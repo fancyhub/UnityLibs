@@ -263,8 +263,7 @@ namespace FH.UI.View.Gen.ED
 
 
         private static class FileExporter
-        {
-
+        { 
             private const string C_FILE_USING_HEADER = @"
 using System;
 using System.Collections.Generic;
