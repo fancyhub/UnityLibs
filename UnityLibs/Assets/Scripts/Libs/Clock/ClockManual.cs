@@ -14,15 +14,15 @@ namespace FH
     /// </summary>
     public class ClockManual : IClock
     {
-        public long _time;
+        public long Time;
         public ClockManual(long init_time)
         {
-            _time = init_time;
+            Time = init_time;
         }
 
         public void SetTime(long time)
         {
-            _time = time;
+            Time = time;
         }
 
         public void Scale(float scale)
@@ -54,7 +54,7 @@ namespace FH
 
         public long GetTime()
         {
-            return _time;
+            return Time;
         }
     }
 }

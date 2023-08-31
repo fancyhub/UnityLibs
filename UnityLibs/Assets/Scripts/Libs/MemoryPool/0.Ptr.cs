@@ -69,10 +69,11 @@ namespace FH
 
         public void Destroy()
         {
-            if (Val == null)
+            var t = Val;
+            if (t == null)
                 return;
-            _target.Destroy();
             _target = default;
+            t.Destroy();
         }
 
         public void Dispose()

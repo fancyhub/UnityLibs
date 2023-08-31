@@ -100,7 +100,20 @@ namespace FH
     }
 
 
-    public sealed class Timer : CPoolItemBase
+    public interface ITimer : ICPtr
+    {
+        public bool IsRunning { get; }
+
+        /// <summary>
+        /// 经过的时间
+        /// </summary>
+        public long ElapsedTime { get; }
+
+
+        public void Stop();
+    }
+
+    public sealed class Timer : CPoolItemBase, ITimer
     {
         public TimerId _timer_id;
         public Action<Timer> _call_back;
@@ -154,12 +167,12 @@ namespace FH
         public int CurCount { get { return _data.GetCurCount(); } }
 
         /// <summary>       
-        /// repeat_count &lt;= 0 无限循环  &gt;0 循环次数 <para/>
+        /// repeat_count &lt;= 0 无限循环  &gt;0 循环次数 <br/>
         /// duration_ms >0, 如果总时间或者循环次数达到条件, 结束timer
         /// </summary>        
         public bool Start(long interval_ms, int repeat_count, long duration_ms = 0)
         {
-            if (!_timer_id.IsValid())
+            if (_timer_id.IsValid())
                 return false;
             if (interval_ms < 0)
                 return false;
@@ -210,7 +223,7 @@ namespace FH
         }
     }
 
-    public sealed class Timer<T> : CPoolItemBase
+    public sealed class Timer<T> : CPoolItemBase, ITimer
     {
         public TimerId _timer_id;
         public T _user_data;
@@ -257,12 +270,12 @@ namespace FH
 
 
         /// <summary>       
-        /// repeat_count &lt;= 0 无限循环  &gt;0 循环次数 <para/>
+        /// repeat_count &lt;= 0 无限循环  &gt;0 循环次数 <br/>
         /// duration_ms >0, 如果总时间或者循环次数达到条件, 结束timer
         /// </summary>        
         public bool Start(long interval_ms, int repeat_count, long duration_ms = 0)
         {
-            if (!_timer_id.IsValid())
+            if (_timer_id.IsValid())
                 return false;
             if (interval_ms < 0)
                 return false;
@@ -312,9 +325,9 @@ namespace FH
     }
 
 
-    public sealed class TimerSeq : CPoolItemBase
+    public sealed class TimerSeq : CPoolItemBase, ITimer
     {
-        public struct InnerData
+        private struct InnerData
         {
             public long _interval_ms;
             public int _repeat_count;
@@ -322,13 +335,13 @@ namespace FH
             public Action<TimerSeq> _call_back;
         }
 
-        public LinkedList<InnerData> _link_list = new LinkedList<InnerData>();
-        public bool _is_infinite = false; //是否已经无限了
-        public long _start_time_ms;
+        private LinkedList<InnerData> _link_list = new LinkedList<InnerData>();
+        private bool _is_infinite = false; //是否已经无限了
+        private long _start_time_ms;
 
-        public CPtr<Timer> _cur_timer;
-        public Action<TimerSeq> _cur_call_back;
-        public ITimerDriver _timer_driver;
+        private CPtr<Timer> _cur_timer;
+        private Action<TimerSeq> _cur_call_back;
+        private ITimerDriver _timer_driver;
 
         public static TimerSeq Create(ITimerDriver driver)
         {
@@ -341,27 +354,27 @@ namespace FH
 
         private TimerSeq() { }
 
-        public TimerSeq Delay(long interval_ms)
+        public TimerSeq AddDelay(long interval_ms)
         {
-            Add(null, interval_ms, 1, 0);
+            _Add(null, interval_ms, 1, 0);
             return this;
         }
 
-        public TimerSeq Once(long interval_ms, Action<TimerSeq> call_back)
+        public TimerSeq AddOnce(long interval_ms, Action<TimerSeq> call_back)
         {
-            Add(call_back, interval_ms, 1, 0);
+            _Add(call_back, interval_ms, 1, 0);
             return this;
         }
 
-        public TimerSeq Repeat(long interval_ms, int repeat_count, Action<TimerSeq> call_back)
+        public TimerSeq AddRepeat(long interval_ms, int repeat_count, Action<TimerSeq> call_back)
         {
-            Add(call_back, interval_ms, repeat_count, 0);
+            _Add(call_back, interval_ms, repeat_count, 0);
             return this;
         }
 
-        public TimerSeq Update(long duration, Action<TimerSeq> call_back)
+        public TimerSeq AddUpdate(long duration, Action<TimerSeq> call_back)
         {
-            Add(call_back, 0, 0, duration);
+            _Add(call_back, 0, 0, duration);
             return this;
         }
 
@@ -380,7 +393,38 @@ namespace FH
             }
         }
 
-        public bool Add(Action<TimerSeq> call_back, long interval_ms, int repeat_count, long duration_ms)
+     
+        public void Start()
+        {
+            if (!_cur_timer.Null)
+                return;
+            if (_link_list.Count == 0)
+                return;
+
+            _start_time_ms = _timer_driver.Clock.GetTime();
+            _link_list.ExtPopFirst(out var data);
+            _cur_call_back = data._call_back;
+            _cur_timer = Timer.Create(_OnTimerOut, _timer_driver);
+            _cur_timer.Val.Start(0, data._repeat_count, data._duration_ms);
+        }
+
+        public void Stop()
+        {
+            _cur_timer.Destroy();
+            _cur_call_back = null;
+            _link_list.ExtClear();
+            _is_infinite = false;
+        }
+
+        protected override void OnPoolRelease()
+        {
+            if (_timer_driver == null)
+                return;
+            _timer_driver = null;
+            Stop();
+        }
+
+        private bool _Add(Action<TimerSeq> call_back, long interval_ms, int repeat_count, long duration_ms)
         {
             if (!_cur_timer.Null)
             {
@@ -401,37 +445,8 @@ namespace FH
             return true;
         }
 
-        public void Start()
-        {
-            if (!_cur_timer.Null)
-                return;
-            if (_link_list.Count == 0)
-                return;
 
-            _start_time_ms = _timer_driver.Clock.GetTime();
-            _link_list.ExtPopFirst(out var data);
-            _cur_call_back = data._call_back;
-            _cur_timer = Timer.Create(_on_timeout, _timer_driver);
-            _cur_timer.Val.Start(0, data._repeat_count, data._duration_ms);
-        }
-
-        public void Stop()
-        {
-            _cur_timer.Destroy();
-            _cur_call_back = null;
-            _link_list.ExtClear();
-            _is_infinite = false;
-        }
-
-        protected override void OnPoolRelease()
-        {
-            if (_timer_driver == null)
-                return;
-            _timer_driver = null;
-            Stop();
-        }       
-
-        public void _on_timeout(Timer t)
+        private void _OnTimerOut(Timer t)
         {
             //开始下一个Timer
             Action<TimerSeq> action = _cur_call_back;
@@ -444,7 +459,7 @@ namespace FH
                 if (_link_list.ExtPopFirst(out var data))
                 {
                     _cur_call_back = data._call_back;
-                    _cur_timer = Timer.Create(_on_timeout, _timer_driver);
+                    _cur_timer = Timer.Create(_OnTimerOut, _timer_driver);
                     _cur_timer.Val.Start(data._interval_ms, data._repeat_count, data._duration_ms);
                 }
             }
