@@ -26,17 +26,17 @@ namespace FH
         public static BitEnum64<T> Zero = new BitEnum64<T>(0);
         public static BitEnum64<T> All = new BitEnum64<T>(ulong.MaxValue);
 
-        private ulong _v;
-        public BitEnum64(ulong value) { _v = value; }
-        public BitEnum64(long value) { _v = (ulong)value; }
+        public ulong Value;
+        public BitEnum64(ulong value) { Value = value; }
+        public BitEnum64(long value) { Value = (ulong)value; }
 
         public BitEnum64(params T[] arrays)
         {
-            _v = 0;
+            Value = 0;
             for (int i = 0; i < arrays.Length; i++)
             {
                 int idx = BitEnumUtil.ToInt32(arrays[i]);
-                _v |= 1u << idx;
+                Value |= 1u << idx;
             }
         }
 
@@ -54,17 +54,17 @@ namespace FH
             return GetBit(index);
         }
 
-        public void SetValue(BitEnum64<T> mask, BitEnum64<T> value)
+        public void SetValue(BitEnum64<T> mask, BitEnum64<T> v)
         {
-            _v = (_v & (~mask._v)) | (value._v & mask._v);
+            Value = (Value & (~mask.Value)) | (v.Value & mask.Value);
         }
 
-        public void SetValue(BitEnum64<T> mask, bool value)
+        public void SetValue(BitEnum64<T> mask, bool v)
         {
-            if (value)
-                _v |= mask._v;
+            if (v)
+                Value |= mask.Value;
             else
-                _v &= ~mask._v;
+                Value &= ~mask.Value;
         }
 
         public bool SetBit(int idx, bool state)
@@ -77,9 +77,9 @@ namespace FH
             }
 
             if (state)
-                _v = (1ul << idx) | _v;
+                Value = (1ul << idx) | Value;
             else
-                _v = ~(1ul << idx) & _v;
+                Value = ~(1ul << idx) & Value;
             return true;
         }
 
@@ -91,7 +91,7 @@ namespace FH
                 Log.Assert(false, "idx:{1} 要在 [0,{0})", LENGTH, idx);
                 return false;
             }
-            return ((1ul << idx) & _v) != 0;
+            return ((1ul << idx) & Value) != 0;
         }
 
         public bool this[T idx]
@@ -121,10 +121,8 @@ namespace FH
         /// </summary>
         public void Clear(bool state)
         {
-            _v = state ? uint.MaxValue : 0;
+            Value = state ? uint.MaxValue : 0;
         }
-
-        public ulong Value { get { return _v; } set { _v = value; } }
 
         public int GetCount(bool v)
         {
@@ -132,30 +130,30 @@ namespace FH
             ulong u64_v1 = v ? 1ul : 0ul;
             for (int i = 0; i < LENGTH; ++i)
             {
-                ulong u64_v2 = (_v >> i) & 1ul;
+                ulong u64_v2 = (Value >> i) & 1ul;
                 if (u64_v2 == u64_v1)
                     ret++;
             }
             return ret;
         }
 
-        public override bool Equals(object obj) { if (obj is BitEnum64<T> other) return other._v == _v; return false; }
+        public override bool Equals(object obj) { if (obj is BitEnum64<T> other) return other.Value == Value; return false; }
 
-        public bool Equals(BitEnum64<T> other) { return _v == other._v; }
+        public bool Equals(BitEnum64<T> other) { return Value == other.Value; }
 
-        public override int GetHashCode() { return HashCode.Combine(_v); }
+        public override int GetHashCode() { return HashCode.Combine(Value); }
 
 
-        public static BitEnum64<T> operator &(BitEnum64<T> a, BitEnum64<T> b) { return new BitEnum64<T>(a._v & b._v); }
-        public static BitEnum64<T> operator |(BitEnum64<T> a, BitEnum64<T> b) { return new BitEnum64<T>(a._v | b._v); }
-        public static bool operator ==(BitEnum64<T> a, BitEnum64<T> b) { return a._v == b._v; }
-        public static bool operator !=(BitEnum64<T> a, BitEnum64<T> b) { return a._v != b._v; }
+        public static BitEnum64<T> operator &(BitEnum64<T> a, BitEnum64<T> b) { return new BitEnum64<T>(a.Value & b.Value); }
+        public static BitEnum64<T> operator |(BitEnum64<T> a, BitEnum64<T> b) { return new BitEnum64<T>(a.Value | b.Value); }
+        public static bool operator ==(BitEnum64<T> a, BitEnum64<T> b) { return a.Value == b.Value; }
+        public static bool operator !=(BitEnum64<T> a, BitEnum64<T> b) { return a.Value != b.Value; }
 
         public static implicit operator BitEnum64<T>(T v) { int idx = BitEnumUtil.ToInt32(v); return new BitEnum64<T>(1ul << idx); }
         public static implicit operator BitEnum64<T>(long v) { return new BitEnum64<T>(v); }
         public static implicit operator BitEnum64<T>(ulong v) { return new BitEnum64<T>(v); }
-        public static implicit operator ulong(BitEnum64<T> v) { return v._v; }
-        public static implicit operator long(BitEnum64<T> v) { return (long)v._v; }
+        public static implicit operator ulong(BitEnum64<T> v) { return v.Value; }
+        public static implicit operator long(BitEnum64<T> v) { return (long)v.Value; }
 
     }
 
@@ -176,7 +174,7 @@ namespace FH
 
             var targetObjectType = type_ref.GetGenericArguments()[0];
 
-            var propertyX = property.FindPropertyRelative("_v");
+            var propertyX = property.FindPropertyRelative("Value");
             ulong v = propertyX.ulongValue;
             int mask = Value2Mask(v, targetObjectType);
             int new_mask = mask;

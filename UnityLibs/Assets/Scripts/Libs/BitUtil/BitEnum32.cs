@@ -40,17 +40,17 @@ namespace FH
 #if BEHAVIOUR_DESIGNER
         [BDBitEnum32]
 #endif
-        private uint _v;
-        public BitEnum32(uint value) { _v = value; }
-        public BitEnum32(int value) { _v = (uint)value; }
+        public uint Value;
+        public BitEnum32(uint value) { Value = value; }
+        public BitEnum32(int value) { Value = (uint)value; }
 
         public BitEnum32(params T[] arrays)
         {
-            _v = 0;
+            Value = 0;
             for (int i = 0; i < arrays.Length; i++)
             {
                 int idx = BitEnumUtil.ToInt32(arrays[i]);
-                _v |= 1u << idx;
+                Value |= 1u << idx;
             }
         }
 
@@ -70,20 +70,20 @@ namespace FH
 
         public void SetValue(BitEnum32<T> mask, BitEnum32<T> value)
         {
-            _v = (_v & (~mask._v)) | (value._v & mask._v);
+            Value = (Value & (~mask.Value)) | (value.Value & mask.Value);
         }
 
         public void SetValue(BitEnum32<T> mask, bool value)
         {
             if (value)
-                _v |= mask._v;
+                Value |= mask.Value;
             else
-                _v &= ~mask._v;
+                Value &= ~mask.Value;
         }
 
         public BitEnum32<T> GetValue(BitEnum32<T> mask)
         {
-            return _v & mask.Value;
+            return Value & mask.Value;
         }
 
         public bool SetBit(int idx, bool state)
@@ -96,9 +96,9 @@ namespace FH
             }
 
             if (state)
-                _v = (1u << idx) | _v;
+                Value = (1u << idx) | Value;
             else
-                _v = ~(1u << idx) & _v;
+                Value = ~(1u << idx) & Value;
             return true;
         }
 
@@ -110,7 +110,7 @@ namespace FH
                 Log.Assert(false, "idx:{1} 要在 [0,{0})", LENGTH, idx);
                 return false;
             }
-            return ((1u << idx) & _v) != 0;
+            return ((1u << idx) & Value) != 0;
         }
 
         public bool this[T idx]
@@ -140,10 +140,8 @@ namespace FH
         /// </summary>
         public void Clear(bool state)
         {
-            _v = state ? uint.MaxValue : 0;
+            Value = state ? uint.MaxValue : 0;
         }
-
-        public uint Value { get { return _v; } set { _v = value; } }
 
         public int GetCount(bool v)
         {
@@ -151,7 +149,7 @@ namespace FH
             uint u32_v1 = v ? 1u : 0u;
             for (int i = 0; i < LENGTH; ++i)
             {
-                uint u32_v2 = (_v >> i) & 0x1u;
+                uint u32_v2 = (Value >> i) & 0x1u;
                 if (u32_v2 == u32_v1)
                     ret++;
             }
@@ -165,22 +163,22 @@ namespace FH
 
         public bool Equals(BitEnum32<T> other)
         {
-            return _v == other._v;
+            return Value == other.Value;
         }
 
-        public override int GetHashCode() { return HashCode.Combine(_v); }
-        
+        public override int GetHashCode() { return HashCode.Combine(Value); }
 
-        public static BitEnum32<T> operator &(BitEnum32<T> a, BitEnum32<T> b) { return new BitEnum32<T>(a._v & b._v); }
-        public static BitEnum32<T> operator |(BitEnum32<T> a, BitEnum32<T> b) { return new BitEnum32<T>(a._v | b._v); }
-        public static bool operator ==(BitEnum32<T> a, BitEnum32<T> b) { return a._v == b._v; }
-        public static bool operator !=(BitEnum32<T> a, BitEnum32<T> b) { return a._v != b._v; }
+
+        public static BitEnum32<T> operator &(BitEnum32<T> a, BitEnum32<T> b) { return new BitEnum32<T>(a.Value & b.Value); }
+        public static BitEnum32<T> operator |(BitEnum32<T> a, BitEnum32<T> b) { return new BitEnum32<T>(a.Value | b.Value); }
+        public static bool operator ==(BitEnum32<T> a, BitEnum32<T> b) { return a.Value == b.Value; }
+        public static bool operator !=(BitEnum32<T> a, BitEnum32<T> b) { return a.Value != b.Value; }
 
         public static implicit operator BitEnum32<T>(T v) { int idx = BitEnumUtil.ToInt32(v); return new BitEnum32<T>(1u << idx); }
         public static implicit operator BitEnum32<T>(int v) { return new BitEnum32<T>(v); }
         public static implicit operator BitEnum32<T>(uint v) { return new BitEnum32<T>(v); }
-        public static implicit operator uint(BitEnum32<T> v) { return v._v; }
-        public static implicit operator int(BitEnum32<T> v) { return (int)v._v; }
+        public static implicit operator uint(BitEnum32<T> v) { return v.Value; }
+        public static implicit operator int(BitEnum32<T> v) { return (int)v.Value; }
     }
 
 #if UNITY_EDITOR
@@ -200,7 +198,7 @@ namespace FH
 
             var targetObjectType = type_ref.GetGenericArguments()[0];
 
-            var propertyX = property.FindPropertyRelative("_v");
+            var propertyX = property.FindPropertyRelative("Value");
             uint v = propertyX.uintValue;
             int mask = Value2Mask(v, targetObjectType);
             int new_mask = mask;
