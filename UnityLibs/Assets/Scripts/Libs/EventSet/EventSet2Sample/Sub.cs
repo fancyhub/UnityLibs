@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace FH.EventSet2Sample
 {
-    public class Sub : MonoBehaviour, IEventSet2Handler<EventKey, object>
+    public class Sub : MonoBehaviour, EventMgr.IHandler
     {
         public PtrList _ptrlist;
         public void Start()
@@ -42,7 +42,7 @@ namespace FH.EventSet2Sample
         }
 
         public void HandleEvent(EventKey key, object value)
-        { 
+        {
             Debug.Log($"HandleEvent key: {key} Value: {value}");
         }
     }

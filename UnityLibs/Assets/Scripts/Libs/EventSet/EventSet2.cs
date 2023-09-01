@@ -11,18 +11,19 @@ using System.Collections.Generic;
 
 namespace FH
 {
-    public interface IEventSet2Handler<Tkey, TValue>
-    {
-        void HandleEvent(Tkey key, TValue value);
-    }
 
     /// <summary>
     /// Support <br/>
     /// 1. Delay Msg  <br/>
-    /// 2. IEventSet2Handler, Action, Action&lt;TValue&gt;, Action&lt;TKey,TValue&gt; <br/>
+    /// 2. IHandler, Action, Action&lt;TValue&gt;, Action&lt;TKey,TValue&gt; <br/>
     /// </summary>
     public class EventSet2<TKey, TValue> : ICPtr
     {
+        public interface IHandler
+        {
+            void HandleEvent(TKey key, TValue value);
+        }
+
         private sealed class ActionList : CPoolItemBase
         {
             private TKey _key;
@@ -51,7 +52,7 @@ namespace FH
                         node = node.Next;
                         if (cur == null)
                             continue;
-                        if (cur is IEventSet2Handler<TKey, TValue> handler)
+                        if (cur is IHandler handler)
                             handler.HandleEvent(_key, v);
                         else if (cur is Action a)
                             a();
@@ -127,7 +128,7 @@ namespace FH
 
         public bool Reg(TKey key, Action<TKey, TValue> action) { return _RegDelegate(key, action); }
 
-        public bool Reg(TKey key, IEventSet2Handler<TKey, TValue> handler)
+        public bool Reg(TKey key, IHandler handler)
         {
             if (handler == null)
             {
@@ -149,7 +150,7 @@ namespace FH
 
         public bool Unreg(TKey key, Action<TKey, TValue> action) { return UnregCallBack(key, action); }
 
-        public bool Unreg(TKey key, IEventSet2Handler<TKey, TValue> handler) { return UnregCallBack(key, handler); }
+        public bool Unreg(TKey key, IHandler handler) { return UnregCallBack(key, handler); }
 
         public bool UnregCallBack(TKey key, object call_back)
         {
@@ -300,7 +301,7 @@ namespace FH
             return this;
         }
 
-        public EventSet2Auto<TKey, TValue> Reg(TKey key, IEventSet2Handler<TKey, TValue> handler)
+        public EventSet2Auto<TKey, TValue> Reg(TKey key, EventSet2<TKey, TValue>.IHandler handler)
         {
             EventSet2<TKey, TValue> set = _set;
             if (set != null && set.Reg(key, handler))
