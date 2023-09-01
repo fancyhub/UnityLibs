@@ -93,9 +93,9 @@ namespace FH
     public static class Log
     {
         private const int C_TEMP_SIZE = 1024;
-        
+
         // allow mask, 对应的位,如果是true,就可以显示
-        public static ELogMask AllowMask; 
+        public static ELogMask AllowMask = (ELogMask)uint.MaxValue;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool _IsEnable(ELogMask mask, ELogLvl lvl)
