@@ -6,7 +6,7 @@
 *************************************************************************************/
 
 using System;
-using UnityEngine;
+using System.Runtime.CompilerServices;
 
 namespace FH
 {
@@ -27,10 +27,7 @@ namespace FH
         private const long C_MICRO_SEC_TICKS = 10L; //1微秒 对应的Ticks
         private const long C_MILLI_SEC_TICKS = C_MICRO_SEC_TICKS * 1000L; //1毫秒 对应的ticks
         private const long C_SEC_TICKS = C_MILLI_SEC_TICKS * 1000L; //1 秒对应的 ticks
-        private const long C_MINUTE_TICKS = C_SEC_TICKS * 60L;// 一分钟对应的 ticks
-        private const long C_HOUR_TICKS = C_MINUTE_TICKS * 60L;//一小时对应的 ticks
-        private const long C_DAY_TICKS = C_HOUR_TICKS * 24L;//一天内的ticks
-        private const long C_SEC_2_MILLISEC = 1000L;//1秒对应的 毫秒
+        private const long C_SEC_2_MILLI = 1000L;//1秒对应的 毫秒
         private static long _system_time = 0;
         private static long _last_system_time = (uint)Environment.TickCount;
 
@@ -60,20 +57,22 @@ namespace FH
         /// <summary>
         /// 本地时间戳,秒
         /// </summary>
-        public static int Unix { get { return (int)((DateTime.UtcNow.Ticks - C_TICK_DT_1970_0001) / C_SEC_TICKS); } }
+        public static int Unix { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return (int)((DateTime.UtcNow.Ticks - C_TICK_DT_1970_0001) / C_SEC_TICKS); } }
 
         /// <summary>
         /// 本地时间戳,毫秒
         /// </summary>
-        public static long UnixMilli { get { return (DateTime.UtcNow.Ticks - C_TICK_DT_1970_0001) / C_MILLI_SEC_TICKS; } }
+        public static long UnixMilli { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return (DateTime.UtcNow.Ticks - C_TICK_DT_1970_0001) / C_MILLI_SEC_TICKS; } }
 
         /// <summary>
         /// 服务器时间戳,秒
-        /// </summary>
+        /// </summary>        
         public static int SvrUnix
         {
-            get { return (int)((UnixMilli + _svr_dt) / C_SEC_2_MILLISEC); }
-            set { _svr_dt = value * C_SEC_2_MILLISEC - UnixMilli; }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return (int)((UnixMilli + _svr_dt) / C_SEC_2_MILLI); }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { _svr_dt = value * C_SEC_2_MILLI - UnixMilli; }
         }
 
         /// <summary>
@@ -81,65 +80,61 @@ namespace FH
         /// </summary>
         public static long SvrUnixMilli
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return UnixMilli + _svr_dt; }
-            set { _svr_dt = value < int.MaxValue ? (value * C_SEC_2_MILLISEC - UnixMilli) : (value - UnixMilli); }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { _svr_dt = value - UnixMilli; }
         }
 
-        /// <summary>
-        /// 把本地的时间戳转换成服务器的时间戳 <para/>
-        /// 参数: 本地时间戳, 可以是秒,或者是毫秒
-        /// </summary>
-        /// <param name="local_time">本地的时间戳,秒/毫秒</param>
-        /// <returns>服务器的时间戳, 毫秒</returns>
-        public static long Loc2Svr(long local_time)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long Loc2SvrMilli(long local_time)
         {
-            if (local_time <= 0)
-                local_time = 0;
-            else if (local_time < int.MaxValue)
-                local_time = local_time * C_SEC_2_MILLISEC;
+            if (local_time <= 0) local_time = 0;
             return local_time + _svr_dt;
         }
 
-        /// <summary>
-        /// 把服务器的时间戳,转换成本地的时间戳 <para/>
-        /// 参数: 服务器时间戳, 可以是秒,或者是毫秒
-        /// </summary>
-        /// <param name="svr_time">服务器的时间戳, 秒/毫秒</param>
-        /// <returns>本地的时间戳, 毫秒</returns>
-        public static long Svr2Loc(long svr_time)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Loc2Svr(int local_time)
         {
-            if (svr_time <= 0)
-                svr_time = 0;
-            else if (svr_time < int.MaxValue)
-                svr_time = svr_time * C_SEC_2_MILLISEC;
+            return (int)(Loc2SvrMilli(local_time * C_SEC_2_MILLI) / C_SEC_2_MILLI);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long Svr2LocMilli(long svr_time)
+        {
+            if (svr_time <= 0) svr_time = 0;
             return svr_time - _svr_dt;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Svr2Loc(int svr_time)
+        {
+            return (int)(Svr2LocMilli(svr_time * C_SEC_2_MILLI) / C_SEC_2_MILLI);
         }
 
 
-        [ExecuteAlways]
-        [ExecuteInEditMode]
-        private sealed class TimerUpdater : MonoBehaviour
+        [UnityEngine.ExecuteAlways]
+        [UnityEngine.ExecuteInEditMode]
+        private sealed class TimerUpdater : UnityEngine.MonoBehaviour
         {
-            public void Start() { _frame_count = Time.frameCount; }
+            public void Start() { _frame_count = UnityEngine.Time.frameCount; }
 
-            public void Update() { _frame_count = Time.frameCount; }
+            public void Update() { _frame_count = UnityEngine.Time.frameCount; }
 
-            public void FixedUpdate() { _frame_count = Time.frameCount; }
+            public void FixedUpdate() { _frame_count = UnityEngine.Time.frameCount; }
 
             private static TimerUpdater _inst;
 #if UNITY_EDITOR
             [UnityEditor.InitializeOnEnterPlayMode]
             [UnityEditor.InitializeOnLoadMethod]
 #endif
-            [RuntimeInitializeOnLoadMethod]
+            [UnityEngine.RuntimeInitializeOnLoadMethod]
             public static void _InitUpdater()
             {
                 if (_inst != null)
                     return;
-                GameObject obj = new GameObject("TimeUtilUpdater");
+                UnityEngine.GameObject obj = new UnityEngine.GameObject("TimeUtilUpdater");
                 if (UnityEngine.Application.isPlaying)
-                    GameObject.DontDestroyOnLoad(obj);
-                obj.hideFlags = HideFlags.HideAndDontSave;
+                    UnityEngine.GameObject.DontDestroyOnLoad(obj);
+                obj.hideFlags = UnityEngine.HideFlags.HideAndDontSave;
                 _inst = obj.AddComponent<TimerUpdater>();
             }
         }
