@@ -1,7 +1,9 @@
 {
     "name": "Logger",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "GUID:9c6d13452ceab084f8fcce2a0885059c"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

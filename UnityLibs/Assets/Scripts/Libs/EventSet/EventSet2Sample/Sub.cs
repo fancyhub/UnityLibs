@@ -8,7 +8,7 @@ namespace FH.EventSet2Sample
         public PtrList _ptrlist;
         public void Start()
         {
-
+            LogRecorderMgr.Init();
         }
 
         public void OnEnable()
@@ -28,22 +28,22 @@ namespace FH.EventSet2Sample
 
         private void _OnMsgUpdate0()
         {
-            Debug.Log("OnMsgUpdate0");
+            Log.D("OnMsgUpdate0");
         }
 
         private void _OnMsgUpdate1(object v)
         {
-            Debug.Log($"OnMsgUpdate1 Value:{v}");
+            Log.I($"OnMsgUpdate1 Value:{v}");
         }
 
         private void _OnMsgUpdate2(EventKey key, object v)
         {
-            Debug.Log($"OnMsgUpdate2 key: {key} Value: {v}");
+            Log.E($"OnMsgUpdate2 key: {key} Value: {v}");
         }
 
         public void HandleEvent(EventKey key, object value)
         {
-            Debug.Log($"HandleEvent key: {key} Value: {value}");
+            Log.D($"HandleEvent key: {key} Value: {value}");
         }
     }
 }

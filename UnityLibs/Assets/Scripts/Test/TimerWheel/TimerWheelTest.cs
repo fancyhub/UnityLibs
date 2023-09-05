@@ -54,7 +54,6 @@ public class TimerWheelTest : MonoBehaviour
 
         public void Update()
         {
-            TimeUtil.UpdateFrameCount();
             _timer_driver.Update();
         }
     }
