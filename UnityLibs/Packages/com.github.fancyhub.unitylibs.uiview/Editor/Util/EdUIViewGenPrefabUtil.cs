@@ -229,7 +229,7 @@ namespace FH.UI.View.Gen.ED
         /// <summary>
         /// 从 prefab的名字生成 class name
         /// </summary>
-        public static string GenClassNameFromPrefabPath(string prefab_path)
+        public static string GenClassNameFromPrefabPath(UIViewGenConfig config, string prefab_path)
         {
             string prefab_name = Path.GetFileNameWithoutExtension(prefab_path);
             prefab_name = prefab_name.Replace(' ', '_');
@@ -240,7 +240,7 @@ namespace FH.UI.View.Gen.ED
                 class_name += _UpperFirstAlpha(s);
             }
 
-            return EdUIViewGenConfig.C_CLASS_PREFIX + class_name + EdUIViewGenConfig.C_CLASS_SUFFIX;
+            return config.ClassPrefix + class_name + config.ClassSuffix;
         }
 
         private static string _UpperFirstAlpha(string s)

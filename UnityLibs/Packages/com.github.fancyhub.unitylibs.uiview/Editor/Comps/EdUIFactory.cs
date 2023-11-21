@@ -19,7 +19,7 @@ namespace FH.UI.View.Gen.ED
         public EdUIFactory(EdUIViewData data)
         {
             _data = data;
-            CompTypeList = EdUIViewGenTypeList.StaticGetCompOrderList();
+            CompTypeList = data.Config._CompTypeList;
         }
 
         #region CreateView
@@ -36,7 +36,7 @@ namespace FH.UI.View.Gen.ED
                         ret.Conf = conf;
                         ret.Prefab = prefab;
                         ret.IsVariant = false;
-                        ret.ParentClass = EdUIViewGenConfig.C_Base_Class;
+                        ret.ParentClass = _data.Config.BaseClassName;
                         return ret;
                     }
 
@@ -117,7 +117,7 @@ namespace FH.UI.View.Gen.ED
 
             string inner_prefab_path = EdUIViewGenPrefabUtil.GetInnerPrefabAssetPath(target.gameObject);
 
-            if (EdUIViewGenConfig.IsPrefabPathValid(inner_prefab_path))
+            if (view_data.Config.IsPrefabPathValid(inner_prefab_path))
             {
                 string go_path = target.ExtGetHierarchyPath(root);
                 var dep_conf = view_data.AddDependPath(inner_prefab_path);

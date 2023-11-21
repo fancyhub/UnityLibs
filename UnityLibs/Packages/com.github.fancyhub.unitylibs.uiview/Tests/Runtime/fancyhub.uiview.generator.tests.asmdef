@@ -1,0 +1,20 @@
+{
+    "name": "fancyhub.uiview.generator.tests",
+    "rootNamespace": "",
+    "references": [
+        "GUID:fd3e1939cfeaae345a28d38349cb6f69",
+        "GUID:0b842a67cd8e4af44a402c6759714aed",
+        "GUID:1877918f68576784390a0d85d351747a"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

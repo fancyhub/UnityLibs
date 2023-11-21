@@ -9,6 +9,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace FH.UI.View.Gen.ED
 {
@@ -41,9 +42,10 @@ namespace FH.UI.View.Gen.ED
     /// </summary>
     public class EdUIViewConfDb
     {
-        private static char[] C_TRIM_CHARS = new char[] { ' ', '"', ';' };
-        private const string C_CLASS_NAME_PRE = "public partial class ";
-        private const string C_PREFAB_PATH_PRE = "\"Assets/";
+        private static Regex C_CLASS_NAME_REG = new Regex(@"[\t\s\w]*public\s*partial\s*class\s*(?<class_name>[_/\w\.]*)\s*:\s*(?<parent_class_name>[_/\w\.]*)\s*");
+        private static Regex C_ASSET_PATH_REG = new Regex(@"[\t\s\w]*const\s*string\s*C_AssetPath\s*=\s*""(?<path>[_/\w\.]*)"";");
+
+        public UIViewGenConfig Config;
 
         private List<EdUIViewConf> _all_confs = new();
 
@@ -52,10 +54,11 @@ namespace FH.UI.View.Gen.ED
         // key is prefab path
         private Dictionary<string, EdUIViewConf> _path_2_conf = new();
 
-        public static EdUIViewConfDb LoadConfFromCSCode(string code_gen_folder = EdUIViewGenConfig.C_CS_FOLDER)
+        public static EdUIViewConfDb LoadConfFromCSCode(UIViewGenConfig config)
         {
             EdUIViewConfDb ret = new EdUIViewConfDb();
-            string[] files = System.IO.Directory.GetFiles(code_gen_folder);
+            ret.Config = config;
+            string[] files = System.IO.Directory.GetFiles(config.CodeFolder);
             foreach (string file in files)
             {
                 if (file.EndsWith(EdUIViewConf.C_CS_RES_SUFFIX))
@@ -64,7 +67,6 @@ namespace FH.UI.View.Gen.ED
                     ret._all_confs.Add(conf);
                 }
             }
-
             ret._BuildCache();
             return ret;
         }
@@ -110,7 +112,7 @@ namespace FH.UI.View.Gen.ED
 
             if (_parent_class_list0.Count == 0 || _parent_class_list1.Count == 0)
             {
-                return EdUIViewGenConfig.C_Base_Class;
+                return Config.BaseClassName;
             }
 
             int count = System.Math.Min(_parent_class_list0.Count, _parent_class_list1.Count);
@@ -120,7 +122,7 @@ namespace FH.UI.View.Gen.ED
                     return _parent_class_list0[i];
             }
 
-            return EdUIViewGenConfig.C_Base_Class;
+            return Config.BaseClassName;
         }
 
         public bool IsParentClass(string class_name, string parent_class_name)
@@ -148,7 +150,7 @@ namespace FH.UI.View.Gen.ED
             {
                 out_list.Add(conf.ClassName);
 
-                if (conf.ParentClassName == EdUIViewGenConfig.C_Base_Class)
+                if (conf.ParentClassName == Config.BaseClassName)
                 {
                     out_list.Add(conf.ParentClassName);
                     break;
@@ -229,24 +231,19 @@ namespace FH.UI.View.Gen.ED
 
             foreach (string line in all_lines)
             {
-                int index = line.IndexOf(C_CLASS_NAME_PRE);
-                if (index >= 0)
+                var nameMatchResult = C_CLASS_NAME_REG.Match(line);
+                if(nameMatchResult.Success)
                 {
-                    class_name = line.Substring(index + C_CLASS_NAME_PRE.Length);
-                    int last_index = class_name.IndexOf(":");
-                    parent_class_name = class_name.Substring(last_index + 1).Trim();
-                    class_name = class_name.Substring(0, last_index);
-                    class_name = class_name.Trim();
+                    class_name = nameMatchResult.Groups["class_name"].ToString();
+                    parent_class_name = nameMatchResult.Groups["parent_class_name"].ToString();
                     continue;
                 }
-
-                index = line.IndexOf(C_PREFAB_PATH_PRE);
-                if (index > 0)
+                var matchResult = C_ASSET_PATH_REG.Match(line);
+                if(matchResult.Success)
                 {
-                    prefab_path = line.Substring(index);
-                    prefab_path = prefab_path.Trim(C_TRIM_CHARS);
+                    prefab_path = matchResult.Groups["path"].ToString().Trim();
                     break;
-                }
+                }                
             }
 
             EdUIViewConf ret = new EdUIViewConf();

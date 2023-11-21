@@ -8,13 +8,13 @@ using UnityEngine.UI;
 namespace FH.UI
 {
 
-    public partial class UIButton2View : FH.UI.UIBaseView
+    public partial class UIButtonView : FH.UI.UIBaseView
     {
-        public  const string C_AssetPath = "Assets/Resources/UI/Prefab/Button2.prefab";
-        public  const string C_ResoucePath = "UI/Prefab/Button2";
+        public  const string C_AssetPath = "Packages/com.github.fancyhub.unitylibs.uiview/Tests/Runtime/Prefabs/Button.prefab";
+        public  const string C_ResoucePath = "";
 
-		public UnityEngine.UI.Button _Button2;
-		public UnityEngine.UI.Text _Text;
+		public UnityEngine.RectTransform _Button;
+		public UnityEngine.RectTransform _Text;
 
         #region AutoGen 1
         public override string GetAssetPath() { return C_AssetPath; }
@@ -23,12 +23,12 @@ namespace FH.UI
         protected override void _AutoInit()
         {
             base._AutoInit();
-            UIViewReference refs = _FindViewReference("Button2");
+            UIViewReference refs = _FindViewReference("Button");
             if (refs == null)
                 return;
 
-			_Button2 = refs.GetComp<UnityEngine.UI.Button>("_Button2");
-			_Text = refs.GetComp<UnityEngine.UI.Text>("_Text");
+			_Button = refs.GetComp<UnityEngine.RectTransform>("_Button");
+			_Text = refs.GetComp<UnityEngine.RectTransform>("_Text");
 
         }
 

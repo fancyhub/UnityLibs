@@ -23,13 +23,13 @@ namespace FH.UI.View.Gen.ED
 
             List<EdUIView> comp_list = _GenViews(data, factory);
 
-            _LinkParentSubViews(comp_list);
+            _LinkParentSubViews(comp_list,data.Config);
             _CreateListFields(comp_list, factory);
             _InitPrefabPathMono(comp_list);
 
             foreach (EdUIView view in comp_list)
             {
-                EdUIViewCodeExporter_CSharp.Export(view);
+                EdUIViewCodeExporter_CSharp.Export(data.Config,view);
             }
         }
 
@@ -133,12 +133,12 @@ namespace FH.UI.View.Gen.ED
             return ret;
         }
 
-        public static void _LinkParentSubViews(List<EdUIView> comp_list)
+        public static void _LinkParentSubViews(List<EdUIView> comp_list, UIViewGenConfig config)
         {
             //把父类link起来
             foreach (EdUIView comp in comp_list)
             {
-                comp.ParentView = _FindViewWithClassName(comp_list, comp.ParentClass);
+                comp.ParentView = _FindViewWithClassName(comp_list, comp.ParentClass,config);
             }
         }
 
@@ -177,9 +177,9 @@ namespace FH.UI.View.Gen.ED
             return ret;
         }
 
-        public static EdUIView _FindViewWithClassName(List<EdUIView> view_list, string class_name)
+        public static EdUIView _FindViewWithClassName(List<EdUIView> view_list, string class_name, UIViewGenConfig config)
         {
-            if (class_name == EdUIViewGenConfig.C_Base_Class)
+            if (class_name == config.BaseClassName)
                 return null;
             foreach (EdUIView view in view_list)
             {

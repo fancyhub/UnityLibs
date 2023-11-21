@@ -10,8 +10,8 @@ namespace FH.UI
 
     public partial class UIButtonVariantView : UIButtonView
     {
-        public  new  const string C_AssetPath = "Assets/Resources/UI/Prefab/Button_Variant.prefab";
-        public  new  const string C_ResoucePath = "UI/Prefab/Button_Variant";
+        public  new  const string C_AssetPath = "Packages/com.github.fancyhub.unitylibs.uiview/Tests/Runtime/Prefabs/Button_Variant.prefab";
+        public  new  const string C_ResoucePath = "";
 
 
         #region AutoGen 1

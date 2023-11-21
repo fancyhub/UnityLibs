@@ -16,11 +16,15 @@ namespace FH.UI.View.Gen.ED
 {
     public static class EdUIViewGenMain
     {
-        [MenuItem(EdUIViewGenConfig.C_MENU_Gen_Select, true, 200)]
+        [MenuItem(UIViewGenConfig.C_MENU_Gen_Select, true, 200)]
         public static bool GenCode_Select_Valid()
         {
             GameObject[] selections = Selection.gameObjects;
             if (null == selections)
+                return false;
+
+            UIViewGenConfig config = UIViewGenConfig.EdLoadDefault();
+            if (config == null)
                 return false;
 
             foreach (GameObject obj in selections)
@@ -29,7 +33,7 @@ namespace FH.UI.View.Gen.ED
                 if (string.IsNullOrEmpty(path))
                     continue;
 
-                if (EdUIViewGenConfig.IsPrefabPathValid(path))
+                if (config.IsPrefabPathValid(path))
                     return true;
             }
             return false;
@@ -37,9 +41,13 @@ namespace FH.UI.View.Gen.ED
         /// <summary>
         /// 生成代码，只是当前选中的 prefab
         /// </summary>
-        [MenuItem(EdUIViewGenConfig.C_MENU_Gen_Select, false, 200)]
+        [MenuItem(UIViewGenConfig.C_MENU_Gen_Select, false, 200)]
         public static void GenCode_Select()
         {
+            UIViewGenConfig config = UIViewGenConfig.EdLoadDefault();
+            if (config == null)
+                return;
+
             GameObject[] selections = Selection.gameObjects;
             if (null == selections)
             {
@@ -54,13 +62,13 @@ namespace FH.UI.View.Gen.ED
                     Debug.LogErrorFormat("{0}不是prefab, 选中prefab才允许生成", obj.name);
                     return;
                 }
-                if (!EdUIViewGenConfig.IsPrefabPathValid(path))
+                if (!config.IsPrefabPathValid(path))
                 {
                     Debug.LogErrorFormat("{0}路径不合法, 不允许生成代码", obj.name);
                     return;
                 }
 
-                EdUIViewData data = new EdUIViewData(EdUIViewConfDb.LoadConfFromCSCode());
+                EdUIViewData data = new EdUIViewData(EdUIViewConfDb.LoadConfFromCSCode(config));
                 data.AddInitPath(path);
 
                 EdUIViewGen.GenCode(data);
@@ -74,10 +82,14 @@ namespace FH.UI.View.Gen.ED
             EditorUtility.DisplayDialog("完成", "结束", "确认");
         }
 
-        [MenuItem(EdUIViewGenConfig.C_MENU_Gen_ALL, false, 200)]
+        [MenuItem(UIViewGenConfig.C_MENU_Gen_ALL, false, 200)]
         public static void ReGenCodeAll()
         {
-            EdUIViewConfDb conf_db = EdUIViewConfDb.LoadConfFromCSCode();
+            UIViewGenConfig config = UIViewGenConfig.EdLoadDefault();
+            if (config == null)
+                return;
+
+            EdUIViewConfDb conf_db = EdUIViewConfDb.LoadConfFromCSCode(config);
             conf_db.RemoveInvalidatePath();
 
             EdUIViewData data = new EdUIViewData(conf_db);
@@ -90,7 +102,7 @@ namespace FH.UI.View.Gen.ED
             EditorUtility.DisplayDialog("完成", "结束", "确认");
         }
 
-        [MenuItem(EdUIViewGenConfig.C_MENU_Export_Class_Usage, false, 200)]
+        [MenuItem(UIViewGenConfig.C_MENU_Export_Class_Usage, false, 200)]
         public static void GenClassUsage()
         {
             string file_path = UnityEditor.EditorUtility.SaveFilePanel("保存", null, null, "csv");
@@ -117,10 +129,14 @@ namespace FH.UI.View.Gen.ED
         /// <summary>
         /// 删除不要的代码
         /// </summary>
-        [MenuItem(EdUIViewGenConfig.C_MENU_Clear_Unused_Class, false, 200)]
+        [MenuItem(UIViewGenConfig.C_MENU_Clear_Unused_Class, false, 200)]
         public static void RemoveInvalidateCS()
         {
-            EdUIViewConfDb conf_db = EdUIViewConfDb.LoadConfFromCSCode();
+            UIViewGenConfig config = UIViewGenConfig.EdLoadDefault();
+            if (config == null)
+                return;
+
+            EdUIViewConfDb conf_db = EdUIViewConfDb.LoadConfFromCSCode(config);
             conf_db.RemoveInvalidatePath();
 
             HashSet<string> validate_file_names = new HashSet<string>();
@@ -133,7 +149,7 @@ namespace FH.UI.View.Gen.ED
                 validate_file_names.Add(p.GetCsFileNameExt() + ".meta");
             }
 
-            string[] files = System.IO.Directory.GetFiles(EdUIViewGenConfig.C_CS_FOLDER);
+            string[] files = System.IO.Directory.GetFiles(config.CodeFolder);
             foreach (string file_name in files)
             {
                 string name = System.IO.Path.GetFileName(file_name);

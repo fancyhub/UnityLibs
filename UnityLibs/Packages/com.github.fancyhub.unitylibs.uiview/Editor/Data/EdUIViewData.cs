@@ -60,9 +60,11 @@ namespace FH.UI.View.Gen.ED
         private EMode _mode;
         private EdUIViewPathPool _path_pool;
         private EdUIViewConfDb _conf_db;
+        public UIViewGenConfig Config;
 
         public EdUIViewData(EdUIViewConfDb conf_db, EMode mode = EMode.include_dep_auto)
         {
+            this.Config = conf_db.Config;
             _mode = mode;
             _conf_db = conf_db;
             _path_pool = new EdUIViewPathPool();
@@ -83,7 +85,7 @@ namespace FH.UI.View.Gen.ED
             EdUIViewConf conf = _conf_db.FindConfWithPrefabPath(prefab_path);
             if (null == conf)
             {
-                conf = _CreateConfWithPath(prefab_path);
+                conf = _CreateConfWithPath(Config,prefab_path);
                 _conf_db.AddConf(conf);
             }
 
@@ -92,12 +94,12 @@ namespace FH.UI.View.Gen.ED
 
         public EdUIViewConf AddDependPath(string prefab_path)
         {
-            return _FindOrCreateConf(_conf_db, _path_pool, prefab_path, _mode);
+            return _FindOrCreateConf(Config,_conf_db, _path_pool, prefab_path, _mode);
         }
 
         public EdUIViewConf AddDependPath_Variant(string prefab_path)
         {
-            return _FindOrCreateConf(_conf_db, _path_pool, prefab_path, EMode.include_dep_all);
+            return _FindOrCreateConf(Config,_conf_db, _path_pool, prefab_path, EMode.include_dep_all);
         }
 
 
@@ -114,7 +116,7 @@ namespace FH.UI.View.Gen.ED
             return _conf_db.FindConfWithPrefabPath(path);
         }
 
-        private static EdUIViewConf _FindOrCreateConf(EdUIViewConfDb db, EdUIViewPathPool pool, string prefab_path, EMode mode)
+        private static EdUIViewConf _FindOrCreateConf(UIViewGenConfig config, EdUIViewConfDb db, EdUIViewPathPool pool, string prefab_path, EMode mode)
         {
             EdUIViewConf conf = db.FindConfWithPrefabPath(prefab_path);
             switch (mode)
@@ -137,17 +139,17 @@ namespace FH.UI.View.Gen.ED
 
             if (null == conf)
             {
-                conf = _CreateConfWithPath(prefab_path);
+                conf = _CreateConfWithPath(config,prefab_path);
                 db.AddConf(conf);
             }
             return conf;
         }
 
 
-        private static EdUIViewConf _CreateConfWithPath(string prefab_path)
+        private static EdUIViewConf _CreateConfWithPath(UIViewGenConfig config, string prefab_path)
         {
-            string class_name = EdUIViewGenPrefabUtil.GenClassNameFromPrefabPath(prefab_path);
-            string parent_class_name = EdUIViewGenConfig.C_Base_Class;
+            string class_name = EdUIViewGenPrefabUtil.GenClassNameFromPrefabPath(config,prefab_path);
+            string parent_class_name = config.BaseClassName;
 
             {
                 GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefab_path);
@@ -155,7 +157,7 @@ namespace FH.UI.View.Gen.ED
                 if (orig_prefab != null)
                 {
                     string parent_path = AssetDatabase.GetAssetPath(orig_prefab);
-                    parent_class_name = EdUIViewGenPrefabUtil.GenClassNameFromPrefabPath(parent_path);
+                    parent_class_name = EdUIViewGenPrefabUtil.GenClassNameFromPrefabPath(config,parent_path);
                 }
             }
 

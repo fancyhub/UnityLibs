@@ -69,13 +69,13 @@ namespace FH.UI.View.Gen.ED
     }
 ";
 
-        public static void Export(EdUIView view)
+        public static void Export(UIViewGenConfig config, EdUIView view)
         {
             //1. 生成 xxx.res.cs
-            string file_path = Path.Combine(EdUIViewGenConfig.C_CS_FOLDER, view.Conf.GetCsFileNameRes());
+            string file_path = Path.Combine(config.CodeFolder, view.Conf.GetCsFileNameRes());
             using (StreamWriter sw = new StreamWriter(file_path))
             {
-                using (var t = FileExporter.FileScope(sw))
+                using (var t = CreateFileScope(sw,config))
                 {
                     EdStrFormatter formater = _GenStrFormatter(view);
                     sw.WriteLine(formater.Format(C_CLASS_BEIGN));
@@ -113,12 +113,12 @@ namespace FH.UI.View.Gen.ED
             }
 
             //2. 生成 xxx.ext.cs
-            file_path = Path.Combine(EdUIViewGenConfig.C_CS_FOLDER, view.Conf.GetCsFileNameExt());
+            file_path = Path.Combine(config.CodeFolder, view.Conf.GetCsFileNameExt());
             if (File.Exists(file_path))
                 return;
             using (StreamWriter sw = new StreamWriter(file_path))
             {
-                using (var t = FileExporter.FileScope(sw))
+                using (var t = CreateFileScope(sw,config))
                 {
                     //生成默认的 ext.cs 代码
                     string code = _GenStrFormatter(view).Format(C_PARTIAL_CODE);
@@ -262,24 +262,19 @@ namespace FH.UI.View.Gen.ED
         }
 
 
-        private static class FileExporter
-        { 
-            private const string C_FILE_USING_HEADER = @"
+        private static FileScope CreateFileScope(StreamWriter sw, UIViewGenConfig config)
+        {
+            string start = @"
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-namespace " + EdUIViewGenConfig.C_NAME_SPACE + "\n{";
+namespace " + config.NameSpace + "\n{";
 
-
-            public static FileScope FileScope(StreamWriter sw)
-            {
-                return new FileScope(sw, C_FILE_USING_HEADER, "}");
-
-            }
-        }
+            return new FileScope(sw, start, "}");
+        }        
 
         private class FileScope : IDisposable
         {

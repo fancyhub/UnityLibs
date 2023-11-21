@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06cc6fe67bab23747b0cbadfc0653c7f, type: 3}
+  m_Name: UIGeneratorConfig
+  m_EditorClassIdentifier: 
+  NameSpace: FH.UI
+  ClassPrefix: UI
+  ClassSuffix: View
+  BaseClassName: FH.UI.UIBaseView
+  CodeFolder: Packages/com.github.fancyhub.unitylibs.uiview/Tests/Runtime/GenView
+  ResourcesFolderList:
+  - Packages/com.github.fancyhub.unitylibs.uiview/Tests/Runtime/Prefabs
+  CompTypeList:
+  - UnityEngine.RectTransform
+  - UnityEngine.Transform
+  - UnityEngine.UI.Button
+  - UnityEngine.UI.Toggle
+  - UnityEngine.UI.Slider
+  - UnityEngine.UI.InputField
+  - UnityEngine.UI.ScrollRect
+  - UnityEngine.UI.Text
+  - UnityEngine.UI.Scrollbar
+  - UnityEngine.UI.RawImage
+  - UnityEngine.UI.Image
+  - UnityEngine.RectTransform
+  - UnityEngine.Transform
