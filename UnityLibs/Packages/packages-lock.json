@@ -1,5 +1,71 @@
 {
   "dependencies": {
+    "com.github.fancyhub.unitylibs.bitutil": {
+      "version": "file:com.github.fancyhub.unitylibs.bitutil",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.github.fancyhub.unitylibs.clock": {
+      "version": "file:com.github.fancyhub.unitylibs.clock",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.github.fancyhub.unitylibs.collection": {
+      "version": "file:com.github.fancyhub.unitylibs.collection",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.github.fancyhub.unitylibs.eventset": {
+      "version": "file:com.github.fancyhub.unitylibs.eventset",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.github.fancyhub.unitylibs.log": {
+      "version": "file:com.github.fancyhub.unitylibs.log",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.github.fancyhub.unitylibs.memorypool": {
+      "version": "file:com.github.fancyhub.unitylibs.memorypool",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.github.fancyhub.unitylibs.template": {
+      "version": "file:com.github.fancyhub.unitylibs.template",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.github.fancyhub.unitylibs.timeutil": {
+      "version": "file:com.github.fancyhub.unitylibs.timeutil",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.github.fancyhub.unitylibs.timewheel": {
+      "version": "file:com.github.fancyhub.unitylibs.timewheel",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.github.fancyhub.unitylibs.uiview": {
+      "version": "file:com.github.fancyhub.unitylibs.uiview",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.github.fancyhub.unitylibs.unityutil": {
+      "version": "file:com.github.fancyhub.unitylibs.unityutil",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.editorcoroutines": {
       "version": "1.0.0",
       "depth": 1,

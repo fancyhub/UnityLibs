@@ -1,0 +1,13 @@
+{
+  "name": "com.github.fancyhub.unitylibs.eventset",
+  "version": "1.0.0",
+  "displayName": "[fancyhub] eventset",
+  "description": "eventset",
+  "unity": "2022.3",
+  "keywords": [],
+  "author": {
+    "name": "fancyhub",
+    "email": "fancy113@msn.com",
+    "url": "https://github.com/fancyhub/UnityLibs"
+  }
+}
