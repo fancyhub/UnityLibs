@@ -66,6 +66,12 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.github.fancyhub.unitylibs.uguiutil": {
+      "version": "file:com.github.fancyhub.unitylibs.uguiutil",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.github.fancyhub.unitylibs.uiviewgen": {
       "version": "file:com.github.fancyhub.unitylibs.uiviewgen",
       "depth": 0,
