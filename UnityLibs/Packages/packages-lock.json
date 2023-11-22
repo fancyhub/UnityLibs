@@ -18,6 +18,12 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.github.fancyhub.unitylibs.csv": {
+      "version": "file:com.github.fancyhub.unitylibs.csv",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.github.fancyhub.unitylibs.eventset": {
       "version": "file:com.github.fancyhub.unitylibs.eventset",
       "depth": 0,
@@ -32,6 +38,12 @@
     },
     "com.github.fancyhub.unitylibs.memorypool": {
       "version": "file:com.github.fancyhub.unitylibs.memorypool",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.github.fancyhub.unitylibs.str": {
+      "version": "file:com.github.fancyhub.unitylibs.str",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}
@@ -64,7 +76,9 @@
       "version": "file:com.github.fancyhub.unitylibs.unityutil",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.github.fancyhub.unitylibs.log": "1.0.0"
+      }
     },
     "com.unity.editorcoroutines": {
       "version": "1.0.0",

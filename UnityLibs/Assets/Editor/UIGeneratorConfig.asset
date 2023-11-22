@@ -15,7 +15,7 @@ MonoBehaviour:
   NameSpace: FH.UI
   ClassPrefix: UI
   ClassSuffix: View
-  BaseClassName: FH.UI.UIBaseView2
+  BaseClassName: FH.UI.UIBaseView
   CodeFolder: Assets/Scripts/UI/View
   ResourcesFolderList:
   - Assets/Resources/UI/Prefab

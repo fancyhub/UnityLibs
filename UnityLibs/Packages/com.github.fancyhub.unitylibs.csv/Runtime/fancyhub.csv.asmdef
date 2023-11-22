@@ -1,0 +1,16 @@
+{
+    "name": "fancyhub.csv",
+    "rootNamespace": "",
+    "references": [
+        "GUID:8778f4f6958ad5944bdd30fa384e231e"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
