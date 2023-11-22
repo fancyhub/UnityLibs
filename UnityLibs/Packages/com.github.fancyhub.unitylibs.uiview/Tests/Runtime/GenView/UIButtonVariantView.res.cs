@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-namespace FH.UI
+namespace FH.UI.Sample
 {
 
     public partial class UIButtonVariantView : UIButtonView

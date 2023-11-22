@@ -8,7 +8,7 @@
 using System;
 using UnityEngine;
 
-namespace FH.UI
+namespace FH.UI.Sample
 {
     public abstract partial class UIBaseView
     {

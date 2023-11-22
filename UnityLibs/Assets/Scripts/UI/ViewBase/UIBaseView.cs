@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace FH.UI
 { 
-    public abstract partial class UIBaseView2
+    public abstract partial class UIBaseView
     {
         public interface IUIResHolder
         {
@@ -56,7 +56,7 @@ namespace FH.UI
         #endregion
 
         #region 不要修改
-        protected static T CreateSub<T>(GameObject obj_self, IUIResHolder res_holder) where T : UIBaseView2, new()
+        protected static T CreateSub<T>(GameObject obj_self, IUIResHolder res_holder) where T : UIBaseView, new()
         {
             T ret = new T();
             if (ret.Init(obj_self, res_holder, EUIBaseViewCreateMode.Sub))

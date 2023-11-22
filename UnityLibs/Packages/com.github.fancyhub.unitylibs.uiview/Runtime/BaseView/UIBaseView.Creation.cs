@@ -11,7 +11,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-namespace FH.UI
+namespace FH.UI.Sample
 {
     public abstract partial class UIBaseView
     {

@@ -5,10 +5,10 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-namespace FH.UI
+namespace FH.UI.Sample
 {
 
-    public partial class UIButtonView // : FH.UI.UIBaseView 
+    public partial class UIButtonView // : FH.UI.Sample.UIBaseView 
     {
         //public override void OnCreate()
         //{

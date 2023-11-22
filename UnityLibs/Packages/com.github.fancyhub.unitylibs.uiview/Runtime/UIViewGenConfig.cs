@@ -19,10 +19,10 @@ namespace FH.UI
         public const string C_MENU_Clear_Unused_Class = "Tools/UI/Clear UIView Code";
         public const string C_MENU_Export_Class_Usage = "Tools/UI/Gen Class Usage";
 
-        public string NameSpace = "FH.UI";
+        public string NameSpace = "FH.UI.Sample";
         public string ClassPrefix = "UI"; //自动生成的 class 前缀        
         public string ClassSuffix = "View";
-        public string BaseClassName = "FH.UI.UIBaseView";
+        public string BaseClassName = "FH.UI.Sample.UIBaseView";
         public string CodeFolder = "Assets/Scripts/UI/View";
 
         public List<string> ResourcesFolderList = new List<string>()
@@ -99,6 +99,7 @@ namespace FH.UI
 #endif
 
 #if UNITY_EDITOR
+        public Type _BaseViewClass;
         public List<Type> _CompTypeList = new List<Type>();
 #endif
 
@@ -106,8 +107,19 @@ namespace FH.UI
         {
 #if UNITY_EDITOR
             _CompTypeList.Clear();
-            UnityEditor.TypeCache.TypeCollection sub_class_list = UnityEditor.TypeCache.GetTypesDerivedFrom<UnityEngine.Component>();
 
+            foreach (var assembly in System.AppDomain.CurrentDomain.GetAssemblies())
+            {
+                _BaseViewClass = assembly.GetType(BaseClassName, false, false);
+                if (_BaseViewClass != null)
+                    break;
+            }
+            if (_BaseViewClass == null)
+            {
+                Debug.LogError("找不View的基类 " + BaseClassName);
+            }
+
+            UnityEditor.TypeCache.TypeCollection sub_class_list = UnityEditor.TypeCache.GetTypesDerivedFrom<UnityEngine.Component>();
             foreach (var p in CompTypeList)
             {
                 bool found = false;

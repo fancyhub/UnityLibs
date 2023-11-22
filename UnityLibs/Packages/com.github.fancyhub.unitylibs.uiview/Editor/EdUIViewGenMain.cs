@@ -105,11 +105,15 @@ namespace FH.UI.View.Gen.ED
         [MenuItem(UIViewGenConfig.C_MENU_Export_Class_Usage, false, 200)]
         public static void GenClassUsage()
         {
+            UIViewGenConfig config = UIViewGenConfig.EdLoadDefault();
+            if (config == null || config._BaseViewClass==null)
+                return;
+
             string file_path = UnityEditor.EditorUtility.SaveFilePanel("保存", null, null, "csv");
             if (string.IsNullOrEmpty(file_path))
                 return;
 
-            var all_types = EdUIViewUsageFinder.Find(typeof(FH.UI.UIBaseView));
+            var all_types = EdUIViewUsageFinder.Find(config._BaseViewClass);
             System.IO.StreamWriter sw = new System.IO.StreamWriter(file_path);
             sw.WriteLine("Type,Owner");
             foreach (var p in all_types)

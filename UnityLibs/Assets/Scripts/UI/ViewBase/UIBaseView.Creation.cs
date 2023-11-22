@@ -13,7 +13,7 @@ using UnityEngine.EventSystems;
 
 namespace FH.UI
 {
-    public abstract partial class UIBaseView2
+    public abstract partial class UIBaseView
     {
         private class UIResHolderSimple : IUIResHolder
         {
@@ -35,7 +35,7 @@ namespace FH.UI
             }
         }
 
-        public static T CreateView<T>(Transform parent, IUIResHolder res_holder = null) where T : UIBaseView2, new()
+        public static T CreateView<T>(Transform parent, IUIResHolder res_holder = null) where T : UIBaseView, new()
         {
             T ret = new T();
             string path = ret.GetResoucePath();

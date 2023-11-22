@@ -5,10 +5,10 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-namespace FH.UI
+namespace FH.UI.Sample
 {
 
-    public partial class UIPanelView : FH.UI.UIBaseView
+    public partial class UIPanelView : FH.UI.Sample.UIBaseView
     {
         public  const string C_AssetPath = "Packages/com.github.fancyhub.unitylibs.uiview/Tests/Runtime/Prefabs/Panel.prefab";
         public  const string C_ResoucePath = "";

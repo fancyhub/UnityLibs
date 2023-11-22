@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace FH.UI
 {
 
-    public partial class UIButtonVariantView // : FH.UI.UIBaseView2 
+    public partial class UIButtonVariantView // : FH.UI.UIBaseView 
     {
         //public override void OnCreate()
         //{
