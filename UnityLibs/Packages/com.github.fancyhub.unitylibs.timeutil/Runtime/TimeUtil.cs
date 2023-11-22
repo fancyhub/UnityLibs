@@ -37,6 +37,11 @@ namespace FH
         //这个由外部设置,为了给多线程用的
         public static int FrameCount => _frame_count;
 
+        public static void SetFrameCount(int frameCount)
+        {
+            _frame_count = frameCount;
+        }
+
         /// <summary>
         /// 获取系统开启到现在的时间，毫秒,用户不可修改, 非多线程安全的
         /// </summary>
@@ -108,35 +113,6 @@ namespace FH
         public static int Svr2Loc(int svr_time)
         {
             return (int)(Svr2LocMilli(svr_time * C_SEC_2_MILLI) / C_SEC_2_MILLI);
-        }
-
-
-        [UnityEngine.ExecuteAlways]
-        [UnityEngine.ExecuteInEditMode]
-        private sealed class TimerUpdater : UnityEngine.MonoBehaviour
-        {
-            public void Start() { _frame_count = UnityEngine.Time.frameCount; }
-
-            public void Update() { _frame_count = UnityEngine.Time.frameCount; }
-
-            public void FixedUpdate() { _frame_count = UnityEngine.Time.frameCount; }
-
-            private static TimerUpdater _inst;
-#if UNITY_EDITOR
-            [UnityEditor.InitializeOnEnterPlayMode]
-            [UnityEditor.InitializeOnLoadMethod]
-#endif
-            [UnityEngine.RuntimeInitializeOnLoadMethod]
-            public static void _InitUpdater()
-            {
-                if (_inst != null)
-                    return;
-                UnityEngine.GameObject obj = new UnityEngine.GameObject("TimeUtilUpdater");
-                if (UnityEngine.Application.isPlaying)
-                    UnityEngine.GameObject.DontDestroyOnLoad(obj);
-                obj.hideFlags = UnityEngine.HideFlags.HideAndDontSave;
-                _inst = obj.AddComponent<TimerUpdater>();
-            }
         }
     }
 }

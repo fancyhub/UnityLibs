@@ -1,8 +1,8 @@
 {
   "name": "com.github.fancyhub.unitylibs.timeutil",
   "version": "1.0.0",
-  "displayName": "[fancyhub] timeutil",
-  "description": "timeutil",
+  "displayName": "[fancyhub] Time Util",
+  "description": "Time Util",
   "unity": "2022.3",
   "keywords": [],
   "author": {
