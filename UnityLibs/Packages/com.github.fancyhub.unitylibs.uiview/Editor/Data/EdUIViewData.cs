@@ -117,7 +117,7 @@ namespace FH.UI.View.Gen.ED
         }
 
         private static EdUIViewConf _FindOrCreateConf(UIViewGenConfig config, EdUIViewConfDb db, EdUIViewPathPool pool, string prefab_path, EMode mode)
-        {
+        {            
             EdUIViewConf conf = db.FindConfWithPrefabPath(prefab_path);
             switch (mode)
             {

@@ -15,10 +15,10 @@ MonoBehaviour:
   NameSpace: FH.UI
   ClassPrefix: UI
   ClassSuffix: View
-  BaseClassName: FH.UI.UIBaseView
-  CodeFolder: Packages/com.github.fancyhub.unitylibs.uiview/Tests/Runtime/GenView
+  BaseClassName: FH.UI.UIBaseView2
+  CodeFolder: Assets/Scripts/UI/View
   ResourcesFolderList:
-  - Packages/com.github.fancyhub.unitylibs.uiview/Tests/Runtime
+  - Assets/Resources/UI/Prefab
   CompTypeList:
   - UnityEngine.RectTransform
   - UnityEngine.Transform

@@ -12,7 +12,7 @@ namespace FH.UI
     public class UIViewGenConfig : ScriptableObject, ISerializationCallbackReceiver
     {
         public const string DefaultPath = "Assets/Editor/UIGeneratorConfig.asset";
-        public const string C_EditorPrefs_Key = "fancyhub.uiview.gen.path1";
+        public const string C_EditorPrefs_Key = "fancyhub.uiview.gen.path";
 
         public const string C_MENU_Gen_Select = "Assets/Gen UIView Code";
         public const string C_MENU_Gen_ALL = "Tools/UI/Regen All UIView Code";
@@ -51,10 +51,12 @@ namespace FH.UI
         {
             foreach (var key_word in ResourcesFolderList)
             {
-                if (!path.Contains(key_word))
-                    return false;
+                if (path.StartsWith(key_word))
+                    return true;
             }
-            return true;
+
+            //Debug.LogError("Prefab 路径不合法 " + path);
+            return false;
         }
 
 #if UNITY_EDITOR

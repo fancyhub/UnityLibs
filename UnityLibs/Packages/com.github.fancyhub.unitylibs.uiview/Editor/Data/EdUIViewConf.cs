@@ -24,6 +24,7 @@ namespace FH.UI.View.Gen.ED
         public string PrefabPath;
         public string ClassName;
         public string ParentClassName;
+        public string CsFilePath;
 
         public string GetCsFileNameRes()
         {
@@ -34,6 +35,45 @@ namespace FH.UI.View.Gen.ED
         {
             return ClassName + C_CS_EXT_SUFFIX;
         }
+
+
+        private static Regex C_CLASS_NAME_REG = new Regex(@"[\t\s\w]*public\s*partial\s*class\s*(?<class_name>[a-zA-Z0-9_]*)\s*:\s*(?<parent_class_name>[a-zA-Z0-9_\.]*)\s*");
+        private static Regex C_ASSET_PATH_REG = new Regex(@"[\t\s\w]*const\s*string\s*C_AssetPath\s*=\s*""(?<path>[_/\w\.]*)"";");
+        public static EdUIViewConf ParseFromCsFile(string cs_file_path)
+        {
+            if (!cs_file_path.EndsWith(C_CS_RES_SUFFIX))
+                return null;
+
+            string[] all_lines = System.IO.File.ReadAllLines(cs_file_path);
+
+            string prefab_path = null;
+            string class_name = null;
+            string parent_class_name = null;
+
+            foreach (string line in all_lines)
+            {
+                var nameMatchResult = C_CLASS_NAME_REG.Match(line);
+                if (nameMatchResult.Success)
+                {
+                    class_name = nameMatchResult.Groups["class_name"].ToString();
+                    parent_class_name = nameMatchResult.Groups["parent_class_name"].ToString();
+                    continue;
+                }
+                var matchResult = C_ASSET_PATH_REG.Match(line);
+                if (matchResult.Success)
+                {
+                    prefab_path = matchResult.Groups["path"].ToString().Trim();
+                    break;
+                }
+            }
+
+            EdUIViewConf ret = new EdUIViewConf();
+            ret.CsFilePath = cs_file_path;
+            ret.ClassName = class_name;
+            ret.PrefabPath = prefab_path;
+            ret.ParentClassName = parent_class_name;
+            return ret;
+        }
     }
 
     /// <summary>
@@ -42,8 +82,6 @@ namespace FH.UI.View.Gen.ED
     /// </summary>
     public class EdUIViewConfDb
     {
-        private static Regex C_CLASS_NAME_REG = new Regex(@"[\t\s\w]*public\s*partial\s*class\s*(?<class_name>[_/\w\.]*)\s*:\s*(?<parent_class_name>[_/\w\.]*)\s*");
-        private static Regex C_ASSET_PATH_REG = new Regex(@"[\t\s\w]*const\s*string\s*C_AssetPath\s*=\s*""(?<path>[_/\w\.]*)"";");
 
         public UIViewGenConfig Config;
 
@@ -58,14 +96,12 @@ namespace FH.UI.View.Gen.ED
         {
             EdUIViewConfDb ret = new EdUIViewConfDb();
             ret.Config = config;
-            string[] files = System.IO.Directory.GetFiles(config.CodeFolder);
+            string[] files = System.IO.Directory.GetFiles(config.CodeFolder,"*"+ EdUIViewConf.C_CS_RES_SUFFIX);
             foreach (string file in files)
             {
-                if (file.EndsWith(EdUIViewConf.C_CS_RES_SUFFIX))
-                {
-                    EdUIViewConf conf = _GenCnfFromCS(file);
+                EdUIViewConf conf = EdUIViewConf.ParseFromCsFile(file);
+                if (conf != null)
                     ret._all_confs.Add(conf);
-                }
             }
             ret._BuildCache();
             return ret;
@@ -202,7 +238,7 @@ namespace FH.UI.View.Gen.ED
             if (null == old_conf)
                 return;
 
-            Log.E("出现了重复,prefab可能移动过目录，但生成的res代码文件中路径还是原来的: {0} \nPath1: {1}\nPath2: {2}"
+            Log.E("出现了重复,prefab可能移动过目录，但生成的res代码文件中路径还是原来的: {0} \nPath1: {1}\nPath2: {2}\n\n"
                 , conf.ClassName
                 , conf.PrefabPath
                 , old_conf.PrefabPath);
@@ -218,39 +254,6 @@ namespace FH.UI.View.Gen.ED
                 _path_2_conf.Add(conf.PrefabPath, conf);
                 _class_2_conf.Add(conf.ClassName, conf);
             }
-        }
-
-
-        private static EdUIViewConf _GenCnfFromCS(string file_path)
-        {
-            string[] all_lines = System.IO.File.ReadAllLines(file_path);
-
-            string prefab_path = null;
-            string class_name = null;
-            string parent_class_name = null;
-
-            foreach (string line in all_lines)
-            {
-                var nameMatchResult = C_CLASS_NAME_REG.Match(line);
-                if(nameMatchResult.Success)
-                {
-                    class_name = nameMatchResult.Groups["class_name"].ToString();
-                    parent_class_name = nameMatchResult.Groups["parent_class_name"].ToString();
-                    continue;
-                }
-                var matchResult = C_ASSET_PATH_REG.Match(line);
-                if(matchResult.Success)
-                {
-                    prefab_path = matchResult.Groups["path"].ToString().Trim();
-                    break;
-                }                
-            }
-
-            EdUIViewConf ret = new EdUIViewConf();
-            ret.ClassName = class_name;
-            ret.PrefabPath = prefab_path;
-            ret.ParentClassName = parent_class_name;
-            return ret;
         }
     }
 }

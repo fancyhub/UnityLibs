@@ -9,16 +9,16 @@ using System;
 using UnityEngine;
 
 namespace FH.UI
-{
-    public interface IUIResHolder
+{ 
+    public abstract partial class UIBaseView2
     {
-        public GameObject Create(string res_path, Transform parent);
-        public void Release(GameObject obj);
-        public void Destroy();
-    }
+        public interface IUIResHolder
+        {
+            public GameObject Create(string res_path, Transform parent);
+            public void Release(GameObject obj);
+            public void Destroy();
+        }
 
-    public abstract partial class UIBaseView
-    {
         public enum EUIBaseViewCreateMode
         {
             RootWithHolder,
@@ -56,7 +56,7 @@ namespace FH.UI
         #endregion
 
         #region 不要修改
-        protected static T CreateSub<T>(GameObject obj_self, IUIResHolder res_holder) where T : UIBaseView, new()
+        protected static T CreateSub<T>(GameObject obj_self, IUIResHolder res_holder) where T : UIBaseView2, new()
         {
             T ret = new T();
             if (ret.Init(obj_self, res_holder, EUIBaseViewCreateMode.Sub))
