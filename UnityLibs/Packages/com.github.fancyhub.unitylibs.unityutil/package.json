@@ -1,7 +1,7 @@
 {
   "name": "com.github.fancyhub.unitylibs.unityutil",
   "version": "1.0.0",
-  "displayName": "[fancyhub] unityutil",
+  "displayName": "[fancyhub] Unity Util",
   "description": "unityutil package.json",
   "unity": "2022.3",
   "keywords": [],

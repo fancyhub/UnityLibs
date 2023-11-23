@@ -4,13 +4,17 @@
       "version": "file:com.github.fancyhub.unitylibs.bitutil",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.github.fancyhub.unitylibs.log": "1.0.0"
+      }
     },
     "com.github.fancyhub.unitylibs.clock": {
       "version": "file:com.github.fancyhub.unitylibs.clock",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.github.fancyhub.unitylibs.timeutil": "1.0.0"
+      }
     },
     "com.github.fancyhub.unitylibs.collection": {
       "version": "file:com.github.fancyhub.unitylibs.collection",
@@ -22,13 +26,19 @@
       "version": "file:com.github.fancyhub.unitylibs.csv",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.github.fancyhub.unitylibs.str": "1.0.0"
+      }
     },
     "com.github.fancyhub.unitylibs.eventset": {
       "version": "file:com.github.fancyhub.unitylibs.eventset",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.github.fancyhub.unitylibs.log": "1.0.0",
+        "com.github.fancyhub.unitylibs.memorypool": "1.0.0",
+        "com.github.fancyhub.unitylibs.collection": "1.0.0"
+      }
     },
     "com.github.fancyhub.unitylibs.log": {
       "version": "file:com.github.fancyhub.unitylibs.log",
@@ -40,7 +50,10 @@
       "version": "file:com.github.fancyhub.unitylibs.memorypool",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.github.fancyhub.unitylibs.log": "1.0.0",
+        "com.github.fancyhub.unitylibs.collection": "1.0.0"
+      }
     },
     "com.github.fancyhub.unitylibs.str": {
       "version": "file:com.github.fancyhub.unitylibs.str",
@@ -64,19 +77,30 @@
       "version": "file:com.github.fancyhub.unitylibs.timewheel",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.github.fancyhub.unitylibs.log": "1.0.0",
+        "com.github.fancyhub.unitylibs.clock": "1.0.0",
+        "com.github.fancyhub.unitylibs.bitutil": "1.0.0",
+        "com.github.fancyhub.unitylibs.collection": "1.0.0",
+        "com.github.fancyhub.unitylibs.memorypool": "1.0.0"
+      }
     },
     "com.github.fancyhub.unitylibs.uguiutil": {
       "version": "file:com.github.fancyhub.unitylibs.uguiutil",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.unity.ugui": "1.0.0"
+      }
     },
     "com.github.fancyhub.unitylibs.uiviewgen": {
       "version": "file:com.github.fancyhub.unitylibs.uiviewgen",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.github.fancyhub.unitylibs.log": "1.0.0",
+        "com.github.fancyhub.unitylibs.unityutil": "1.0.0"
+      }
     },
     "com.github.fancyhub.unitylibs.unityutil": {
       "version": "file:com.github.fancyhub.unitylibs.unityutil",
