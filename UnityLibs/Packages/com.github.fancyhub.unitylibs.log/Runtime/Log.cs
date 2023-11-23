@@ -308,7 +308,7 @@ namespace FH
 
         private static void _AppendTime(ref ValueStringBuilder sb)
         {
-            sb.Append(ZString.Format(C_Timer_Formater, System.DateTime.Now, TimeUtil.FrameCount));
+            sb.Append(ZString.Format(C_Timer_Formater, System.DateTime.Now, LogTimeUpdater.FrameCount));
         }
 
         private static void _AppendTrace(ref ValueStringBuilder sb, int max_step, bool need_file_info)

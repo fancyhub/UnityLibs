@@ -1,9 +1,7 @@
 {
     "name": "fancyhub.log",
     "rootNamespace": "",
-    "references": [
-        "GUID:9c6d13452ceab084f8fcce2a0885059c"
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
