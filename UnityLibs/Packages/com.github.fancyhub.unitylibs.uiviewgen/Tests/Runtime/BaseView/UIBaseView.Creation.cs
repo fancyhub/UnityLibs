@@ -12,7 +12,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 namespace FH.UI.Sample
-{
+{    
     public abstract partial class UIBaseView
     {
         private class UIResHolderSimple : IUIResHolder
@@ -58,10 +58,11 @@ namespace FH.UI.Sample
                 return null;
             }
             obj.transform.SetParent(parent, false);
-            if (!ret.Init(obj, res_holder, create_mode))
+            if (!ret._Init(obj, res_holder, create_mode))
                 return null;
 
             return ret;
         }
     }
+    //*/
 }

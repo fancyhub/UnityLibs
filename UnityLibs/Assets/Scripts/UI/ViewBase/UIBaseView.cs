@@ -9,7 +9,29 @@ using System;
 using UnityEngine;
 
 namespace FH.UI
-{ 
+{
+    /*
+    //UIBaseView 必须要实现的接口
+    public abstract partial class UIBaseView
+    {
+        #region Need Implement
+        protected T _CreateSub<T>(GameObject obj_self) where T : UIBaseView, new() { return null; }
+        protected UIViewReference _FindViewReference(string prefab_name){return null;}
+        public void Destroy() { }
+        #endregion
+
+
+        #region Don't Need Impeplemnt
+        public virtual string GetAssetPath() { return null; }
+        public virtual string GetResoucePath() { return null; }
+        public virtual string GetDebugName() { return this.GetType().Name; }
+        protected virtual void _AutoInit() { }
+        protected virtual void _AutoDestroy() { }
+        #endregion
+    }
+    //*/
+
+    ///*
     public abstract partial class UIBaseView
     {
         public interface IUIResHolder
@@ -45,26 +67,36 @@ namespace FH.UI
         public GameObject SelfRoot => _self_root;
         public UICanvasOrder CanvasOrder => _canvas_order;
 
-
+        #region Don't Need Impeplemnt
         public virtual string GetAssetPath() { return null; }
         public virtual string GetResoucePath() { return null; }
         public virtual string GetDebugName() { return this.GetType().Name; }
-
-        #region 需要自己实现的, 可选项
-        public virtual void OnCreate() { }
-        public virtual void OnDestroy() { }
+        protected virtual void _AutoInit() { }
+        protected virtual void _AutoDestroy() { }
         #endregion
 
-        #region 不要修改
-        protected static T CreateSub<T>(GameObject obj_self, IUIResHolder res_holder) where T : UIBaseView, new()
+
+        #region Need Implement
+
+        public virtual void OnCreate() { }
+        public virtual void OnDestroy() { }
+
+        protected T _CreateSub<T>(GameObject obj_self) where T : UIBaseView, new()
         {
+            if (obj_self == null)
+                return null;
+
             T ret = new T();
-            if (ret.Init(obj_self, res_holder, EUIBaseViewCreateMode.Sub))
+            if (ret._Init(obj_self, _res_holder, EUIBaseViewCreateMode.Sub))
                 return ret;
             return null;
         }
+        protected UIViewReference _FindViewReference(string prefab_name)
+        {
+            return UIViewReference.Find(_self_root, prefab_name);
+        }
 
-        public bool Init(GameObject obj_self, IUIResHolder res_holder, EUIBaseViewCreateMode create_mode)
+        private bool _Init(GameObject obj_self, IUIResHolder res_holder, EUIBaseViewCreateMode create_mode)
         {
             //1. Check
             if (_view_life_state != EUIBaseViewLifeState.None)
@@ -96,21 +128,6 @@ namespace FH.UI
             return true;
         }
 
-        protected UIViewReference _FindViewReference(string prefab_name)
-        {
-            UIViewReference ret = null;
-            var comps = _self_root.ExtGetComps<UIViewReference>();
-            for (int i = 0; i < comps.Count; i++)
-            {
-                if (comps[i]._prefab_name == prefab_name)
-                {
-                    ret = comps[i];
-                    break;
-                }
-            }
-            comps.Clear();
-            return ret;
-        }
 
         public void Destroy()
         {
@@ -156,11 +173,7 @@ namespace FH.UI
             t?.Invoke();
         }
 
-
-        protected virtual void _AutoInit() { }
-        protected virtual void _AutoDestroy() { }
-
-
         #endregion
     }
+    //*/
 }

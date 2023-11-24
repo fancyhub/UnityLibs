@@ -78,6 +78,23 @@ namespace FH.UI
             T t = obj.GetComponent<T>();
             return t;
         }
+
+        public static UIViewReference Find(GameObject obj, string prefab_name)
+        {
+            UIViewReference ret = null;
+            var comps = obj.ExtGetComps<UIViewReference>();
+            for (int i = 0; i < comps.Count; i++)
+            {
+                if (comps[i]._prefab_name == prefab_name)
+                {
+                    ret = comps[i];
+                    break;
+                }
+            }
+            comps.Clear();
+            return ret;
+        }
+
 #if UNITY_EDITOR
 
         public void EdAdd(string key, GameObject obj)
@@ -101,7 +118,7 @@ namespace FH.UI
                 }
             }
 
-            Log.Assert(false, "找不到 {0}", key);
+            Debug.AssertFormat(false, "找不到 {0}", key);
         }
 #endif
     }

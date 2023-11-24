@@ -58,10 +58,11 @@ namespace FH.UI
                 return null;
             }
             obj.transform.SetParent(parent, false);
-            if (!ret.Init(obj, res_holder, create_mode))
+            if (!ret._Init(obj, res_holder, create_mode))
                 return null;
 
             return ret;
         }
     }
+    //*/
 }

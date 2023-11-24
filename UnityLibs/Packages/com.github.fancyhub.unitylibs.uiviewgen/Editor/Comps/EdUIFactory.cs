@@ -56,7 +56,7 @@ namespace FH.UI.View.Gen.ED
                         }
                         else
                         {
-                            Log.E("Prefab 路径不合法\n Prefab : [{0}] \n Variant Prefab : [{1}]\n", orig_prefab_path, conf.PrefabPath);
+                            UnityEngine.Debug.LogErrorFormat("Prefab 路径不合法\n Prefab : [{0}] \n Variant Prefab : [{1}]\n", orig_prefab_path, conf.PrefabPath);
                             EdUIView ret = new EdUIView();
                             ret.Conf = conf;
                             ret.Prefab = prefab;
@@ -142,7 +142,7 @@ namespace FH.UI.View.Gen.ED
             }
             else //如果子 prefab 在别的目录,就当作普通的GameObject 来处理
             {
-                Log.E("Prefab 里面的对象 {0} 对应的路径不合法 {1}", target.name, inner_prefab_path);
+                UnityEngine.Debug.LogErrorFormat("Prefab 里面的对象 {0} 对应的路径不合法 {1}", target.name, inner_prefab_path);
                 string target_name = target.name;
                 //如果不是根节点，必须要以 下划线开头才能导出 _
                 if (root != target && !target_name.StartsWith("_"))

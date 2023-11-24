@@ -194,7 +194,7 @@ namespace FH.UI.View.Gen.ED
                 conf = FindConfWithClassName(conf.ParentClassName);
                 if (conf == null)
                 {
-                    Log.E("Error " + conf.ClassName + " : " + conf.ParentClassName);
+                    UnityEngine.Debug.LogError("Error " + conf.ClassName + " : " + conf.ParentClassName);
                     //出错了
                     out_list.Clear();
                     break;
@@ -238,7 +238,7 @@ namespace FH.UI.View.Gen.ED
             if (null == old_conf)
                 return;
 
-            Log.E("出现了重复,prefab可能移动过目录，但生成的res代码文件中路径还是原来的: {0} \nPath1: {1}\nPath2: {2}\n\n"
+            UnityEngine.Debug.LogErrorFormat("出现了重复,prefab可能移动过目录，但生成的res代码文件中路径还是原来的: {0} \nPath1: {1}\nPath2: {2}\n\n"
                 , conf.ClassName
                 , conf.PrefabPath
                 , old_conf.PrefabPath);

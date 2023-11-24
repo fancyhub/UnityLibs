@@ -1,5 +1,5 @@
 {
-    "name": "ResInstHolder",
+    "name": "fancyhub.resourceholder",
     "rootNamespace": "",
     "references": [
         "GUID:fd3e1939cfeaae345a28d38349cb6f69",

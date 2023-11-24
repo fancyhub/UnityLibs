@@ -30,9 +30,9 @@ namespace FH.UI.Sample
                 return;
 
 			_img_3 = refs.GetComp<UnityEngine.RectTransform>("_img_3");
-			_btn_3 = CreateSub<UIButton2View>(refs.GetObj("_btn_3"), ResHolder);
+			_btn_3 = _CreateSub<UIButton2View>(refs.GetObj("_btn_3"));
 			_img_4 = refs.GetComp<UnityEngine.RectTransform>("_img_4");
-			_btn_4 = CreateSub<UIButtonVariantView>(refs.GetObj("_btn_4"), ResHolder);
+			_btn_4 = _CreateSub<UIButtonVariantView>(refs.GetObj("_btn_4"));
 			_img_list.Add(_img_3);
 			_img_list.Add(_img_4);
 			_btn_list.Add(_btn_4);

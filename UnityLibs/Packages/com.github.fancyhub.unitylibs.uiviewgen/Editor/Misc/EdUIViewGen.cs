@@ -38,7 +38,7 @@ namespace FH.UI.View.Gen.ED
         {
             if (views.Count == 0)
             {
-                Log.E("empty comp list");
+                UnityEngine.Debug.LogErrorFormat("empty comp list");
                 return;
             }
 
@@ -82,7 +82,7 @@ namespace FH.UI.View.Gen.ED
                 string field_path = field.Path;
 
                 var trans = asset_prefab.transform.Find(field_path);
-                Log.Assert(null != trans, "cant find obj with path [{0}].please check your prefab!", field.Path);
+                UnityEngine.Debug.AssertFormat(null != trans, "cant find obj with path [{0}].please check your prefab!", field.Path);
 
                 var cur = trans.gameObject;
                 var ori = mono.GetObj(field_name);

@@ -38,11 +38,11 @@ namespace FH.UI.Sample
 			_Panel = refs.GetComp<UnityEngine.RectTransform>("_Panel");
 			_bg = refs.GetComp<UnityEngine.RectTransform>("_bg");
 			_img_0 = refs.GetComp<UnityEngine.RectTransform>("_img_0");
-			_btn_0 = CreateSub<UIButtonView>(refs.GetObj("_btn_0"), ResHolder);
+			_btn_0 = _CreateSub<UIButtonView>(refs.GetObj("_btn_0"));
 			_img_1 = refs.GetComp<UnityEngine.RectTransform>("_img_1");
-			_btn_1 = CreateSub<UIButtonView>(refs.GetObj("_btn_1"), ResHolder);
+			_btn_1 = _CreateSub<UIButtonView>(refs.GetObj("_btn_1"));
 			_img_2 = refs.GetComp<UnityEngine.RectTransform>("_img_2");
-			_btn_2 = CreateSub<UIButtonVariantView>(refs.GetObj("_btn_2"), ResHolder);
+			_btn_2 = _CreateSub<UIButtonVariantView>(refs.GetObj("_btn_2"));
 			_img_list.Add(_img_0);
 			_img_list.Add(_img_1);
 			_img_list.Add(_img_2);

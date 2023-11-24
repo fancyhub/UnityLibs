@@ -239,7 +239,7 @@ namespace FH.UI.View.Gen.ED
                             sw.WriteLine("\t\t\t{0} = refs.GetComp<{1}>(\"{0}\");", field.Fieldname, field.FieldType.Name);
                             break;
                         case EdUIFieldType.EType.SubView:
-                            sw.WriteLine("\t\t\t{0} = CreateSub<{1}>(refs.GetObj(\"{0}\"), ResHolder);", field.Fieldname, field.FieldType.Name, field.Path);
+                            sw.WriteLine("\t\t\t{0} = _CreateSub<{1}>(refs.GetObj(\"{0}\"));", field.Fieldname, field.FieldType.Name);
                             break;
                     }
                 }
