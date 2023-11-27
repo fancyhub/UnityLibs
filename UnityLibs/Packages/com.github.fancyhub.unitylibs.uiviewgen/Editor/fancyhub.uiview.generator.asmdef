@@ -2,8 +2,6 @@
     "name": "fancyhub.uiview.generator",
     "rootNamespace": "",
     "references": [
-        "GUID:32cb9e8ee788bd848a35a6bd9226761d",
-        "GUID:0b842a67cd8e4af44a402c6759714aed",
         "GUID:1877918f68576784390a0d85d351747a"
     ],
     "includePlatforms": [

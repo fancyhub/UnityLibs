@@ -11,8 +11,10 @@ using UnityEngine;
 
 namespace FH.UI
 {
-    public class UIViewReference : MonoBehaviour
+    public sealed class UIViewReference : MonoBehaviour
     {
+        private static List<UIViewReference> _Temp = new List<UIViewReference>();
+
         [System.Serializable]
         public struct Pair
         {
@@ -82,16 +84,17 @@ namespace FH.UI
         public static UIViewReference Find(GameObject obj, string prefab_name)
         {
             UIViewReference ret = null;
-            var comps = obj.ExtGetComps<UIViewReference>();
-            for (int i = 0; i < comps.Count; i++)
+            _Temp.Clear();
+            obj.GetComponents<UIViewReference>(_Temp);
+            for (int i = 0; i < _Temp.Count; i++)
             {
-                if (comps[i]._prefab_name == prefab_name)
+                if (_Temp[i]._prefab_name == prefab_name)
                 {
-                    ret = comps[i];
+                    ret = _Temp[i];
                     break;
                 }
             }
-            comps.Clear();
+            _Temp.Clear();
             return ret;
         }
 

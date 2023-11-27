@@ -31,9 +31,7 @@ namespace FH.UI
         };
 
         public List<string> CompTypeList = new List<string>()
-        {
-            "UnityEngine.RectTransform",
-            "UnityEngine.Transform",
+        {            
             "UnityEngine.UI.Button",
             "UnityEngine.UI.Toggle",
             "UnityEngine.UI.Slider",
@@ -43,8 +41,7 @@ namespace FH.UI
             "UnityEngine.UI.Scrollbar",
             "UnityEngine.UI.RawImage",
             "UnityEngine.UI.Image",
-            "UnityEngine.RectTransform",
-            "UnityEngine.Transform",
+            "UnityEngine.RectTransform",            
         };
 
         public bool IsPrefabPathValid(string path)
@@ -101,6 +98,24 @@ namespace FH.UI
 #if UNITY_EDITOR
         public Type _BaseViewClass;
         public List<Type> _CompTypeList = new List<Type>();
+
+        public   Component EdGetComponent(Transform target, Transform root)
+        {
+            foreach (System.Type t in _CompTypeList)
+            {
+                Component obj = target.GetComponent(t);
+                if (null != obj)
+                    return obj;
+            }
+
+            //如果不是根节点，但是 _开头，就把transform导出
+            if (target != root)
+            {
+                return target.GetComponent<Transform>();
+            }
+
+            return null;
+        }
 #endif
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()

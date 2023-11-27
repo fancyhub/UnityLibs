@@ -59,16 +59,16 @@ namespace FH.UI.View.Gen.ED
             }
         }
 
-        public static bool _RefreshMono(EdUIView c, UIViewReference mono, GameObject asset_prefab)
+        public static bool _RefreshMono(EdUIView view, UIViewReference mono, GameObject asset_prefab)
         {
             //1. 先检查prefab name和key list。如果有变化，那么清空掉重建
-            bool changed = _CheckChanged(c, mono, out var new_name);
+            bool changed = _CheckChanged(view, mono, out var new_name);
             if (changed)
             {
                 mono._prefab_name = new_name;
                 mono.Clear();
                 //1.1 清空之后，把key建好，后面就可以直接处理obj的部分了
-                foreach (var field in c.Fields)
+                foreach (var field in view.Fields)
                 {
                     string field_name = field.Fieldname;
                     mono.EdAdd(field_name, null);
@@ -76,7 +76,7 @@ namespace FH.UI.View.Gen.ED
             }
 
             //2. 单独处理obj
-            foreach (var field in c.Fields)
+            foreach (var field in view.Fields)
             {
                 string field_name = field.Fieldname;
                 string field_path = field.Path;
@@ -96,17 +96,17 @@ namespace FH.UI.View.Gen.ED
             return changed;
         }
 
-        public static bool _CheckChanged(EdUIView c, UIViewReference mono, out string new_name)
+        public static bool _CheckChanged(EdUIView c, UIViewReference view_ref, out string new_name)
         {
             //1.先检查名字是否有变化
             new_name = Path.GetFileNameWithoutExtension(c.Conf.PrefabPath);
-            bool name_equal = string.Equals(mono._prefab_name, new_name);
+            bool name_equal = string.Equals(view_ref._prefab_name, new_name);
             if (!name_equal)
                 return true;
 
             //2.再检查成员变量
             //2.1 先检查数量是否一致,如果不一致，那么重建
-            if (mono._objs.Length != c.Fields.Count)
+            if (view_ref._objs.Length != c.Fields.Count)
                 return true;
 
             //2.2 再检查名字是否都存在
@@ -114,7 +114,7 @@ namespace FH.UI.View.Gen.ED
             {
                 //把field name当作key，然后保存obj到mono脚本上
                 string field_name = field.Fieldname;
-                if (!mono.Exist(field_name))
+                if (!view_ref.Exist(field_name))
                     return true;
             }
 

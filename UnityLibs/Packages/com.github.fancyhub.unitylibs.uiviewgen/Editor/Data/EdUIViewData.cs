@@ -11,33 +11,7 @@ using UnityEditor;
 using UnityEngine;
 
 namespace FH.UI.View.Gen.ED
-{
-    /// <summary>
-    /// 描述了哪些路径 需要处理，运行时候的数据
-    /// 主要防止一些prefab重复 生成代码
-    /// </summary>
-    public class EdUIViewPathPool
-    {
-        private HashSet<string> _prefab_paths = new();
-        private Queue<string> _prefab_paths_todo = new();
-
-        public string Pop()
-        {
-            if (_prefab_paths_todo.Count == 0)
-                return null;
-            return _prefab_paths_todo.Dequeue();
-        }
-
-        public void Push(string prefab_path)
-        {
-            if (_prefab_paths.Contains(prefab_path))
-                return;
-            _prefab_paths.Add(prefab_path);
-            _prefab_paths_todo.Enqueue(prefab_path);
-        }
-    }
-
-
+{ 
     /// <summary>
     /// 数据类，用来处理 prefab_path 和 class的对应关系
     /// </summary>
