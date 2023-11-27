@@ -91,9 +91,9 @@ namespace FH.UI.Sample
                 return ret;
             return null;
         }
-        protected UIViewReference _FindViewReference(string prefab_name)
+        protected UIViewCompReference _FindViewReference(string prefab_name)
         {
-            return UIViewReference.Find(_self_root, prefab_name);
+            return UIViewCompReference.Find(_self_root, prefab_name);
         }
 
         private bool _Init(GameObject obj_self, IUIResHolder res_holder, EUIBaseViewCreateMode create_mode)

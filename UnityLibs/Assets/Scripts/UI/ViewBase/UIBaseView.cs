@@ -86,20 +86,25 @@ namespace FH.UI
             if (obj_self == null)
                 return null;
 
-            T ret = new T();
+            T ret = UIViewCache.Get<T>(obj_self);
+            if (ret == null)
+            {
+                ret = new T();
+                UIViewCache.Add(obj_self, ret);
+            }
             if (ret._Init(obj_self, _res_holder, EUIBaseViewCreateMode.Sub))
                 return ret;
             return null;
         }
-        protected UIViewReference _FindViewReference(string prefab_name)
+        protected UIViewCompReference _FindViewReference(string prefab_name)
         {
-            return UIViewReference.Find(_self_root, prefab_name);
+            return UIViewCompReference.Find(_self_root, prefab_name);
         }
 
         private bool _Init(GameObject obj_self, IUIResHolder res_holder, EUIBaseViewCreateMode create_mode)
         {
             //1. Check
-            if (_view_life_state != EUIBaseViewLifeState.None)
+            if (_view_life_state == EUIBaseViewLifeState.Inited)
                 return false;
             if (obj_self == null)
                 return false;

@@ -21,7 +21,7 @@ namespace FH.UI.Sample
         protected override void _AutoInit()
         {
             base._AutoInit();
-            UIViewReference refs = _FindViewReference("Button_Variant");
+            UIViewCompReference refs = _FindViewReference("Button_Variant");
             if (refs == null)
                 return;
 

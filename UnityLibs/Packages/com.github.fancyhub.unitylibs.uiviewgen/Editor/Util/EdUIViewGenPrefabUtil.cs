@@ -32,7 +32,7 @@ namespace FH.UI.View.Gen.ED
         {
             //目前增加component必须要实例化才可以
             var inst_obj = PrefabUtility.InstantiatePrefab(asset_prefab) as GameObject;
-            var t = inst_obj.AddComponent<UIViewReference>();
+            var t = inst_obj.AddComponent<UIViewCompReference>();
             PrefabUtility.ApplyAddedComponent(t, asset_path, InteractionMode.AutomatedAction);
             UnityEngine.Object.DestroyImmediate(inst_obj);
         }
@@ -45,7 +45,7 @@ namespace FH.UI.View.Gen.ED
             var comp = GetViewReference(prefab_root, belong_self);
             if (null == comp)
             {
-                Debug.LogErrorFormat("component type [{0}] not exist in prefab_root [{1}]", typeof(UIViewReference), prefab_root);
+                Debug.LogErrorFormat("component type [{0}] not exist in prefab_root [{1}]", typeof(UIViewCompReference), prefab_root);
                 return false;
             }
 
@@ -58,10 +58,10 @@ namespace FH.UI.View.Gen.ED
         /// 如果belong_self为false，那么默认会返回第一个。
         /// prefab_root: inst prefab或者asset prefab都可以        
         /// </summary>        
-        public static UIViewReference GetViewReference(GameObject prefab_root, bool belong_self)
+        public static UIViewCompReference GetViewReference(GameObject prefab_root, bool belong_self)
         {
-            UIViewReference ret = null;
-            var comp_list = prefab_root.GetComponents<UIViewReference>();
+            UIViewCompReference ret = null;
+            var comp_list = prefab_root.GetComponents<UIViewCompReference>();
             if (!belong_self)
             {
                 if (comp_list.Length == 0)

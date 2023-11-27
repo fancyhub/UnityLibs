@@ -23,7 +23,7 @@ namespace FH.UI
         protected override void _AutoInit()
         {
             base._AutoInit();
-            UIViewReference refs = _FindViewReference("Button");
+            UIViewCompReference refs = _FindViewReference("Button");
             if (refs == null)
                 return;
 

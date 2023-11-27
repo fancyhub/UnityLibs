@@ -164,6 +164,12 @@ namespace FH
 
         public static bool ExtPeekFirst<T>(this LinkedList<T> list, out T val)
         {
+            if (list == null)
+            {
+                val = default(T);
+                return false;
+            }
+
             LinkedListNode<T> node = list.First;
             if (node == null)
             {
@@ -176,6 +182,12 @@ namespace FH
 
         public static bool ExtPopFirst<T>(this LinkedList<T> list, out T val)
         {
+            if (list == null)
+            {
+                val = default(T);
+                return false;
+            }
+
             LinkedListNode<T> node = list.First;
             if (node == null)
             {
@@ -192,6 +204,12 @@ namespace FH
 
         public static bool ExtPopFirstNode<T>(this LinkedList<T> list, out LinkedListNode<T> node)
         {
+            if (list == null)
+            {
+                node =null;
+                return false;
+            }
+
             node = list.First;
             if (node == null)
                 return false;
@@ -201,6 +219,12 @@ namespace FH
 
         public static bool ExtPopLast<T>(this LinkedList<T> list, out T val)
         {
+            if (list == null)
+            {
+                val = default;
+                return false;
+            }
+
             LinkedListNode<T> node = list.Last;
             if (node == null)
             {

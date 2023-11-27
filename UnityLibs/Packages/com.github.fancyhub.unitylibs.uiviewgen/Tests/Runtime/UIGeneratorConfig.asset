@@ -20,8 +20,6 @@ MonoBehaviour:
   ResourcesFolderList:
   - Packages/com.github.fancyhub.unitylibs.uiview/Tests/Runtime
   CompTypeList:
-  - UnityEngine.RectTransform
-  - UnityEngine.Transform
   - UnityEngine.UI.Button
   - UnityEngine.UI.Toggle
   - UnityEngine.UI.Slider
@@ -31,5 +29,3 @@ MonoBehaviour:
   - UnityEngine.UI.Scrollbar
   - UnityEngine.UI.RawImage
   - UnityEngine.UI.Image
-  - UnityEngine.RectTransform
-  - UnityEngine.Transform

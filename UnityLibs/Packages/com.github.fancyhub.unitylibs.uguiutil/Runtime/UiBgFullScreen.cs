@@ -45,6 +45,11 @@ namespace FH.UI
             Adjust();
         }
 
+        protected override void OnEnable()
+        {
+            Adjust();
+        }
+
         private RectTransform _GetRoot()
         {
             if (Application.isPlaying)

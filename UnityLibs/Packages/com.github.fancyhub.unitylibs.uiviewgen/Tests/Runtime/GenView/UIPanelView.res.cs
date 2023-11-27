@@ -31,7 +31,7 @@ namespace FH.UI.Sample
         protected override void _AutoInit()
         {
             base._AutoInit();
-            UIViewReference refs = _FindViewReference("Panel");
+            UIViewCompReference refs = _FindViewReference("Panel");
             if (refs == null)
                 return;
 

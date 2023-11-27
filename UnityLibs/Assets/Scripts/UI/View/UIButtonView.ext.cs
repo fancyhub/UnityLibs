@@ -10,15 +10,23 @@ namespace FH.UI
 
     public partial class UIButtonView // : FH.UI.UIBaseView 
     {
-        //public override void OnCreate()
-        //{
-        //    base.OnCreate();
-        //}
+        public Action OnClick;
+        public override void OnCreate()
+        {
+            base.OnCreate();
+            this._Button.onClick.AddListener(_OnClick);
+        }
 
-        //public override void OnDestroy()
-        //{
-        //    base.OnDestroy();    
-        //}
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
+            OnClick = null;
+        }
+
+        private void _OnClick()
+        {
+            OnClick?.Invoke();
+        }
     }
 
 }

@@ -59,7 +59,7 @@ namespace FH.UI.View.Gen.ED
             }
         }
 
-        public static bool _RefreshMono(EdUIView view, UIViewReference mono, GameObject asset_prefab)
+        public static bool _RefreshMono(EdUIView view, UIViewCompReference mono, GameObject asset_prefab)
         {
             //1. 先检查prefab name和key list。如果有变化，那么清空掉重建
             bool changed = _CheckChanged(view, mono, out var new_name);
@@ -96,7 +96,7 @@ namespace FH.UI.View.Gen.ED
             return changed;
         }
 
-        public static bool _CheckChanged(EdUIView c, UIViewReference view_ref, out string new_name)
+        public static bool _CheckChanged(EdUIView c, UIViewCompReference view_ref, out string new_name)
         {
             //1.先检查名字是否有变化
             new_name = Path.GetFileNameWithoutExtension(c.Conf.PrefabPath);
@@ -121,9 +121,9 @@ namespace FH.UI.View.Gen.ED
             return false;
         }
 
-        public static UIViewReference _GetOrCreateView(GameObject prefab, string asset_path)
+        public static UIViewCompReference _GetOrCreateView(GameObject prefab, string asset_path)
         {
-            UIViewReference ret = EdUIViewGenPrefabUtil.GetViewReference(prefab, true);
+            UIViewCompReference ret = EdUIViewGenPrefabUtil.GetViewReference(prefab, true);
             if (null == ret)
             {
                 EdUIViewGenPrefabUtil.AddComponent(prefab, asset_path);
