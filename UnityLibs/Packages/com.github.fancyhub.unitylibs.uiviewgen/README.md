@@ -1,34 +1,35 @@
 # UI View Code Generator
 
-自动生成UI View的代码
-支持 Variant, 支持 Sub Prefab
+自动生成UI View的代码  
+支持 Variant, 支持 Sub Prefab  
 
-理论上支持任何UI框架
+理论上支持任何UI框架  
+
 UPM:  https://github.com/fancyhub/UnityLibs.git?path=/UnityLibs/Packages/com.github.fancyhub.unitylibs.uiviewgen
 
 ## Config 
-你可以复制该配置, 移动到你自己喜欢的位置, 然后点击 Set Default 按钮
+你可以复制该配置, 移动到你自己喜欢的位置, 然后点击 Set Default 按钮  
 ![ScreenShot](./Documentation~/1.png)
 
 
 
 ## 生成代码
-右击 Prefab, 选中 Gen UIView Code
+右击 Prefab, 选中 Gen UIView Code  
 ![ScreenShot](./Documentation~/3.png)
 
 
 ## 其他按钮
 ![ScreenShot](./Documentation~/2.png)
-1. Clear UIView Code: 清除代码
-2. Gen Class Usage: 生成View代码之间的引用关系
-3. Regen All UIView Code: 重新生成所有代码
+1. Clear UIView Code: 清除代码  
+2. Gen Class Usage: 生成View代码之间的引用关系  
+3. Regen All UIView Code: 重新生成所有代码  
 
 
 
 ## 代码样式
 ![ScreenShot](./Documentation~/4.png)
 
-你自己需要实现的基类,名字可以自己取, Sample里面有样例, 可以 照抄
+你自己需要实现的基类,名字可以自己取, Sample里面有样例, 可以 照抄  
 ```csharp
 public abstract partial class UIBaseView
 {
@@ -49,7 +50,7 @@ public abstract partial class UIBaseView
 }
 ```
 
-生成出来的代码
+生成出来的代码  
 ```csharp
 //UIButtonView.res.cs
 public partial class UIButtonView : FH.UI.UIBaseView
