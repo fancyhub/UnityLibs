@@ -20,8 +20,6 @@ MonoBehaviour:
   ResourcesFolderList:
   - Assets/Resources/UI/Prefab
   CompTypeList:
-  - UnityEngine.RectTransform
-  - UnityEngine.Transform
   - UnityEngine.UI.Button
   - UnityEngine.UI.Toggle
   - UnityEngine.UI.Slider
@@ -31,5 +29,3 @@ MonoBehaviour:
   - UnityEngine.UI.Scrollbar
   - UnityEngine.UI.RawImage
   - UnityEngine.UI.Image
-  - UnityEngine.RectTransform
-  - UnityEngine.Transform

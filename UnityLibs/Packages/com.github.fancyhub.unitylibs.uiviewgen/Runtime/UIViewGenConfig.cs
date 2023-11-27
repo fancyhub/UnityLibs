@@ -41,7 +41,6 @@ namespace FH.UI
             "UnityEngine.UI.Scrollbar",
             "UnityEngine.UI.RawImage",
             "UnityEngine.UI.Image",
-            "UnityEngine.RectTransform",            
         };
 
         public bool IsPrefabPathValid(string path)

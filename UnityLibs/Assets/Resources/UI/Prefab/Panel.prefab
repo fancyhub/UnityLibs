@@ -357,8 +357,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _prefab_name: Panel
   _objs:
-  - name: _Panel
-    obj: {fileID: 8782947883826490633}
   - name: _bg
     obj: {fileID: 5747394996981564124}
   - name: _img_0

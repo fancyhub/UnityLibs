@@ -13,8 +13,8 @@ namespace FH.UI
         public  const string C_AssetPath = "Assets/Resources/UI/Prefab/Button2.prefab";
         public  const string C_ResoucePath = "UI/Prefab/Button2";
 
-		public UnityEngine.RectTransform _Button2;
-		public UnityEngine.RectTransform _Text;
+		public UnityEngine.UI.Button _Button2;
+		public UnityEngine.UI.Text _Text;
 
         #region AutoGen 1
         public override string GetAssetPath() { return C_AssetPath; }
@@ -27,8 +27,8 @@ namespace FH.UI
             if (refs == null)
                 return;
 
-			_Button2 = refs.GetComp<UnityEngine.RectTransform>("_Button2");
-			_Text = refs.GetComp<UnityEngine.RectTransform>("_Text");
+			_Button2 = refs.GetComp<UnityEngine.UI.Button>("_Button2");
+			_Text = refs.GetComp<UnityEngine.UI.Text>("_Text");
 
         }
 

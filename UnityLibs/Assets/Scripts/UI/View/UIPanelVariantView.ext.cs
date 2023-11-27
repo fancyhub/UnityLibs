@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace FH.UI
 {
 
-    public partial class UIPanelVariantView // : UIPanelView
+    public partial class UIPanelVariantView // : UIPanelView 
     {
         //public override void OnCreate()
         //{

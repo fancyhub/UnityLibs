@@ -13,9 +13,9 @@ namespace FH.UI
         public  new  const string C_AssetPath = "Assets/Resources/UI/Prefab/Panel_Variant.prefab";
         public  new  const string C_ResoucePath = "UI/Prefab/Panel_Variant";
 
-		public UnityEngine.RectTransform _img_3;
+		public UnityEngine.UI.Image _img_3;
 		public UIButton2View _btn_3;
-		public UnityEngine.RectTransform _img_4;
+		public UnityEngine.UI.Image _img_4;
 		public UIButtonVariantView _btn_4;
 
         #region AutoGen 1
@@ -29,9 +29,9 @@ namespace FH.UI
             if (refs == null)
                 return;
 
-			_img_3 = refs.GetComp<UnityEngine.RectTransform>("_img_3");
+			_img_3 = refs.GetComp<UnityEngine.UI.Image>("_img_3");
 			_btn_3 = _CreateSub<UIButton2View>(refs.GetObj("_btn_3"));
-			_img_4 = refs.GetComp<UnityEngine.RectTransform>("_img_4");
+			_img_4 = refs.GetComp<UnityEngine.UI.Image>("_img_4");
 			_btn_4 = _CreateSub<UIButtonVariantView>(refs.GetObj("_btn_4"));
 			_img_list.Add(_img_3);
 			_img_list.Add(_img_4);
