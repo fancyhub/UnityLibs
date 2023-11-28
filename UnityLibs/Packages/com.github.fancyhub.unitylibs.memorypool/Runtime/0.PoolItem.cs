@@ -40,6 +40,8 @@ namespace FH
         void Clear();
 
         bool Del(IPoolItem item);
+
+        Type GetObjType();
     }
 
     public interface IPoolItem
@@ -57,7 +59,7 @@ namespace FH
     internal class Pool
     {
         private const int C_CAPCITY = 500;
-        internal Dictionary<Type, IPool> _dict = new Dictionary<Type, IPool>(C_CAPCITY);
+        internal static Dictionary<Type, IPool> Dict = new Dictionary<Type, IPool>(C_CAPCITY);
     }
 
     //	- using, remove, free  
@@ -81,7 +83,7 @@ namespace FH
         {
             _create_func = create_func;
             Instance = this;
-            _dict.Add(typeof(T), this);
+            Dict.Add(typeof(T), this);
         }
 
         public Pool(int capcity, System.Func<T> create_func)
@@ -89,7 +91,7 @@ namespace FH
             _create_func = create_func;
             _InitCap(capcity);
             Instance = this;
-            _dict.Add(typeof(T), this);
+            Dict.Add(typeof(T), this);
         }
 
         /// <summary>
@@ -116,6 +118,9 @@ namespace FH
         /// 同时使用的最大数量
         /// </summary>
         public int CountUsingMax => _count_using_max;
+
+
+        public Type GetObjType() { return typeof(T); }
 
 
         public void Clear()

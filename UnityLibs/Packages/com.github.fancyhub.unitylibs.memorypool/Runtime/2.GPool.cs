@@ -13,6 +13,8 @@ namespace FH
     //全局的 管理Pool的, 非线程安全的
     public static class GPool
     {
+        public static Dictionary<Type,IPool> AllPools { get { return Pool.Dict; } }
+
         public static T New<T>() where T : class, IPoolItem, new()
         {
             //1. 获取 Pool

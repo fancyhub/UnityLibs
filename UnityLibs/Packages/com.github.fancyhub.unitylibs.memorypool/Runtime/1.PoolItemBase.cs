@@ -48,22 +48,22 @@ namespace FH
         private int ___ptr_ver = 0;
         int ICPtr.PtrVer => ___ptr_ver;
 
-        private int _ref_count = 0;
+        private int __ref_count = 0;
         int ISPtr.IncRef()
         {
-            _ref_count++;
-            return _ref_count;
+            __ref_count++;
+            return __ref_count;
         }
 
         public void Destroy()
         {
-            _ref_count--;
-            if (_ref_count > 0)
+            __ref_count--;
+            if (__ref_count > 0)
                 return;
 
             if (___pool == null || ___pool.Del(this))
             {
-                _ref_count = 0;
+                __ref_count = 0;
                 ___ptr_ver++;
                 OnPoolRelease();
                 return;

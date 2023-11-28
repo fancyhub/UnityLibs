@@ -131,7 +131,10 @@ namespace FH
             public static implicit operator Dictionary<K, V>(AutoDict<K, V> v) { return v.Val; }
         }
 
-        //清除容器内的所有可回收元素
+
+        /// <summary>
+        /// 清除容器内的所有可回收元素
+        /// </summary>
         public static void ExtFreeMembers<T>(this List<T> self) where T : IDestroyable
         {
             if (self == null)
@@ -140,7 +143,10 @@ namespace FH
                 p?.Destroy();
             self.Clear();
         }
-        //清除容器内的所有可回收元素
+
+        /// <summary>
+        /// 清除容器内的所有可回收元素
+        /// </summary>
         public static void ExtFreeMembers<T>(this HashSet<T> self) where T : IDestroyable
         {
             if (self == null)
@@ -150,7 +156,9 @@ namespace FH
             self.Clear();
         }
 
-        //清除容器内的所有可回收元素
+        /// <summary>
+        /// 清除容器内的所有可回收元素
+        /// </summary>
         public static void ExtFreeMembers<K, T>(this Dictionary<K, T> self) where T : IDestroyable
         {
             if (self == null)
