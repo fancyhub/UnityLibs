@@ -111,6 +111,9 @@ namespace FH
 
         public static void ExtClear<T>(this LinkedList<T> list)
         {
+            if (list == null)
+                return;
+
             LinkedList<T> cache_list = LinkedListCache<T>._cache;
             LinkedListNode<T> node = list.First;
             for (; ; )

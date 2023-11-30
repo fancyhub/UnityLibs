@@ -57,81 +57,7 @@ namespace FH.UI
 
     public abstract partial class UIBaseView
     {
-        private class UIResHolderSimple : IUIResHolder
-        {
-            private static Transform _pool_obj;
-            public static Dictionary<string, LinkedList<GameObject>> _pool = new Dictionary<string, LinkedList<GameObject>>();
-
-            public GameObject Create(string res_path, Transform parent)
-            {
-                _pool.TryGetValue(res_path, out var list);
-
-                for (; ; )
-                {
-                    if (!list.ExtPopFirst(out var obj))
-                    {
-                        break;
-                    }
-
-                    if (obj != null)
-                        return obj;
-                }
-
-                GameObject prefab = Resources.Load<GameObject>(res_path);
-                GameObject ret = GameObject.Instantiate<GameObject>(prefab, parent);
-
-                var path_obj = ret.AddComponent<UIGameObjPath>();
-                path_obj.Path = res_path;
-                return ret;
-            }
-
-            public void Destroy()
-            {
-
-            }
-
-            public static Transform PoolObj
-            {
-                get
-                {
-                    if (_pool_obj == null)
-                    {
-                        GameObject obj = new GameObject("PoolObj");
-                        obj.SetActive(false);
-                        GameObject.DontDestroyOnLoad(obj);
-                        _pool_obj = obj.transform;
-                    }
-                    return _pool_obj;
-                }
-            }
-
-            public void Release(GameObject obj)
-            {
-                if (obj == null)
-                    return;
-                var path_obj = obj.GetComponent<UIGameObjPath>();
-                if (path_obj == null)
-                {
-                    GameObject.Destroy(obj);
-                    return;
-                }
-
-                string path = path_obj.Path;
-
-                _pool.TryGetValue(path, out var list);
-                if (list == null)
-                {
-                    list = new LinkedList<GameObject>();
-                    _pool[path] = list;
-                }
-
-                list.ExtAddLast(obj);
-                obj.transform.SetParent(PoolObj, false);
-
-            }
-        }
-
-        public static T CreateView<T>(Transform parent, IUIResHolder res_holder = null) where T : UIBaseView, new()
+        public static T CreateView<T>(Transform parent, IResInstHolder res_holder = null) where T : UIBaseView, new()
         {
             T ret = new T();
             string path = ret.GetResoucePath();
@@ -143,20 +69,21 @@ namespace FH.UI
             EUIBaseViewCreateMode create_mode = EUIBaseViewCreateMode.RootWithoutHolder;
             if (res_holder == null)
             {
-                res_holder = new UIResHolderSimple();
+                res_holder = ResMgr.CreateHolder(true);
                 create_mode = EUIBaseViewCreateMode.RootWithHolder;
             }
 
-            GameObject obj = res_holder.Create(path, parent);
+            GameObject obj = res_holder.Create(path);
             if (null == obj)
             {
                 Log.E("Create {0} Faield, 可能资源不存在 {1}", typeof(T), path);
                 return null;
             }
 
+            obj.transform.SetParent(parent, false);
             T temp = UIViewCache.Get<T>(obj);
             if (temp != null)
-                ret = temp;            
+                ret = temp;
 
             obj.transform.SetParent(parent, false);
             if (!ret._Init(obj, res_holder, create_mode))

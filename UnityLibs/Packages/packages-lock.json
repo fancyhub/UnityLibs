@@ -55,8 +55,18 @@
         "com.github.fancyhub.unitylibs.collection": "1.0.0"
       }
     },
+    "com.github.fancyhub.unitylibs.msgqueue": {
+      "version": "file:com.github.fancyhub.unitylibs.msgqueue",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.github.fancyhub.unitylibs.log": "1.0.0",
+        "com.github.fancyhub.unitylibs.memorypool": "1.0.0",
+        "com.github.fancyhub.unitylibs.collection": "1.0.0"
+      }
+    },
     "com.github.fancyhub.unitylibs.resourceholder": {
-      "version": "file:com.github.fancyhub.unitylibs.resourceholder",
+      "version": "file:com.github.fancyhub.unitylibs.resourcemanager",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}

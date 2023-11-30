@@ -32,6 +32,26 @@ namespace FH
             return obj;
         }
 
+        public static void Destroy(GameObject obj)
+        {
+            if (obj == null)
+                return;
+            if (obj.GetInstanceID() > 0) //Res
+                return;
+
+            if (Application.isPlaying)
+                GameObject.Destroy(obj);
+            else
+                GameObject.DestroyImmediate(obj);
+        }
+
+        public static void Destroy(ref GameObject obj)
+        {
+            GameObject t = obj;
+            obj = null;
+            Destroy(t);
+        }
+
         public static T ExtResetTran<T>(this T obj) where T : Component
         {
             if (obj == null)

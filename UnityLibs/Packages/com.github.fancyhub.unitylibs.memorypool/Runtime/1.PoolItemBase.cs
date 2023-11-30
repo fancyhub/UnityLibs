@@ -6,10 +6,10 @@
 *************************************************************************************/
 
 using System;
-using System.Collections.Generic;
 
 namespace FH
 {
+
     public abstract class CPoolItemBase : IPoolItem, ICPtr, IDisposable
     {
         private IPool ___pool = null;
@@ -27,7 +27,7 @@ namespace FH
                 ___ptr_ver++;
                 OnPoolRelease();
                 return;
-            } 
+            }
         }
 
         public void Dispose()

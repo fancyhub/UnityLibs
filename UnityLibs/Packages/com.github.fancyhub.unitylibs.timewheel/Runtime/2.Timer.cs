@@ -431,6 +431,12 @@ namespace FH
                 return false;
             }
 
+            if(_is_infinite)
+            {
+                Log.Assert(false, "已经不再结束了, 不能添加");
+                return false;
+            }
+
             _link_list.ExtAddLast(new InnerData()
             {
                 _interval_ms = interval_ms,
