@@ -65,7 +65,7 @@
         "com.github.fancyhub.unitylibs.collection": "1.0.0"
       }
     },
-    "com.github.fancyhub.unitylibs.resourceholder": {
+    "com.github.fancyhub.unitylibs.resourcemanager": {
       "version": "file:com.github.fancyhub.unitylibs.resourcemanager",
       "depth": 0,
       "source": "embedded",

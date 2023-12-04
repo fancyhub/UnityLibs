@@ -60,7 +60,7 @@ namespace FH.UI
         public static T CreateView<T>(Transform parent, IResInstHolder res_holder = null) where T : UIBaseView, new()
         {
             T ret = new T();
-            string path = ret.GetResoucePath();
+            string path = ret.GetAssetPath();
             if (string.IsNullOrEmpty(path))
                 return null;
             if (parent == null)

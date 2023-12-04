@@ -2,7 +2,7 @@ using FH;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using FH.Res.SampleAssetLoader;
 
 public class ResMgr : MonoBehaviour
 {
@@ -10,7 +10,7 @@ public class ResMgr : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        FH.ResMgr.InitMgr(new AssetLoader_Resource(), Config);
+        FH.ResMgr.InitMgr(new AssetLoader_AssetDatabase(), Config);
     }
 
     // Update is called once per frame

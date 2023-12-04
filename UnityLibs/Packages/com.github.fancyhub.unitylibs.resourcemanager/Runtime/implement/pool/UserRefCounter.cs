@@ -5,7 +5,9 @@
  * Desc    : 
 *************************************************************************************/
 
-#define USER_OBJ 
+#if UNITY_EDITOR
+#define USER_OBJ
+#endif
 
 using System;
 using System.Collections.Generic;

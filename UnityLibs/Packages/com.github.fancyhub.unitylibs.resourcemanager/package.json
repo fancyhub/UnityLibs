@@ -1,7 +1,7 @@
 {
-  "name": "com.github.fancyhub.unitylibs.resourceholder",
+  "name": "com.github.fancyhub.unitylibs.resourcemanager",
   "version": "1.0.0",
-  "displayName": "[fancyhub] Resource Holder",
+  "displayName": "[fancyhub] Resource Manager",
   "description": "Resource And GameObject Instance Holder",
   "unity": "2022.3",
   "keywords": [],
