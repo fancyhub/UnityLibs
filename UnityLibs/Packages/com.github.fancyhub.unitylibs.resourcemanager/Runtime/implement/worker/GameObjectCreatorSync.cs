@@ -80,14 +80,14 @@ namespace FH.Res
             }
 
             //7. 没有找到空闲的，创建一个                      
-            GameObject inst = GoPoolUtil.InstNew(job.Path.Path, prefab);
+            GameObject inst = GameObjectPoolUtil.InstNew(job.Path.Path, prefab);
             if (null == inst)
             {
                 job.ErrorCode = (EResError)EResError.GameObjectCreatorSync_inst_error_unkown;
                 _msg_queue.SendJobNext(job);
                 return;
             }
-            GoPoolUtil.InstActive(inst);
+            GameObjectPoolUtil.InstActive(inst);
             bool succ = _gobj_pool.AddInst(job.Path.Path, inst, out object user, out inst_id);
             ResLog._.Assert(succ, "严重错误 {0}", job.Path);
             _res_pool.AddUser(job.ResId.Id, user);

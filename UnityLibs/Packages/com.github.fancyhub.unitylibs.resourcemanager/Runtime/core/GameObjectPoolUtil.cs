@@ -9,8 +9,13 @@ using UnityEngine;
 
 namespace FH
 {
+    public interface IDynamicComponent
+    {
+        public void OnDynamicRelease();
+    }
+
     //GameObject pool 相关的操作
-    public static class GoPoolUtil
+    public static class GameObjectPoolUtil
     {
         public static Transform _dummy_inactive;
         public static Transform _dummy_active;
@@ -106,19 +111,15 @@ namespace FH
 
         public static void _destroy_dynamic_comps(GameObject obj)
         {
-            //var comps = obj.GetCompsInChildrenExt<DynamicBehaviour>(true);
-            //for (int i = 0; i < comps.Count; i++)
-            //{
-            //    comps[i]?.ResetInPool();
-            //}
-            //comps.Clear();
-
-            //var ui_comps = obj.GetCompsInChildrenExt<UIDynamicBehaviour>(true);
-            //for (int i = 0; i < ui_comps.Count; i++)
-            //{
-            //    ui_comps[i]?.ResetInPool();
-            //}
-            //ui_comps.Clear();
+            var comps = obj.ExtGetCompsInChildren<Component>(true);
+            for (int i = 0; i < comps.Count; i++)
+            {
+                if (comps[i] is IDynamicComponent dynamic_comp)
+                {
+                    dynamic_comp.OnDynamicRelease();
+                }
+            }
+            comps.Clear();         
         }
     }
 }

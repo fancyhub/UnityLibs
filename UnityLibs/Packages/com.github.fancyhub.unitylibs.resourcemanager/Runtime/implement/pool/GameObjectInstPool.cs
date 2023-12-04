@@ -315,7 +315,7 @@ namespace FH.Res
                 return EResError.OK;
 
             //5. 移除
-            GoPoolUtil.Push2Pool(pool_val._inst);
+            GameObjectPoolUtil.Push2Pool(pool_val._inst);
             _index_by_path.Add(path, id);
             _lru_free_list.Set(id, UnityEngine.Time.frameCount);
             return EResError.OK;

@@ -128,7 +128,7 @@ namespace FH.Res
                     //int free_count = _go_pool.GetFreeCount(res._res_id);
 
                     //4. 真正的实例化第一步
-                    _obj_inst = GoPoolUtil.InstNew(_current_job.Path.Path, prefab);
+                    _obj_inst = GameObjectPoolUtil.InstNew(_current_job.Path.Path, prefab);
                     if (null != _obj_inst)
                         continue;
                     _current_job.ErrorCode = (EResError)EResError.GameObjectCreatorAsync_inst_error_unkown;
@@ -149,7 +149,7 @@ namespace FH.Res
                     _obj_inst = null;
 
                     //2. 激活实例
-                    GoPoolUtil.InstActive(inst);
+                    GameObjectPoolUtil.InstActive(inst);
 
                     //3. 添加到pool
                     bool succ = _gobj_pool.AddInst(job.Path.Path, inst, out System.Object res_user, out var inst_id);

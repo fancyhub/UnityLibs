@@ -137,7 +137,7 @@ namespace FH.Res
             //2. 如果没有，直接创建一个
             {
                 GameObject obj = new GameObject(string.Empty);
-                obj.transform.SetParent(GoPoolUtil.GetDummyInactive(), false);
+                obj.transform.SetParent(GameObjectPoolUtil.GetDummyInactive(), false);
                 var item = EmptyGameObjectItem.Create(obj);
 
                 int inst_id = obj.GetInstanceID();
@@ -184,7 +184,7 @@ namespace FH.Res
                 return EResError.OK;
 
             //4. 加到free 队列里面
-            GoPoolUtil.Push2Pool(item.Res);
+            GameObjectPoolUtil.Push2Pool(item.Res);
             _free.ExtAddLast(id);
 #if DEBUG
             if(item.Res!=null)
