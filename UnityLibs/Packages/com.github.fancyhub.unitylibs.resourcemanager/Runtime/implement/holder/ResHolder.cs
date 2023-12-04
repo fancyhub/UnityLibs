@@ -38,34 +38,36 @@ namespace FH.Res
             return ret;
         }
 
-        public UnityEngine.Object Load(ResPath path)
+        public UnityEngine.Object Load(string path, bool sprite)
         {
             var mgr = _ResMgr.Val;
             if (mgr == null)
                 return null;
 
+            ResPath res_path = ResPath.Create(path, sprite);
+
             //1. 先检查缓存
-            if (_all.TryGetValue(path, out var item))
+            if (_all.TryGetValue(res_path, out var item))
             {
-                if (item.ResRef.IsSelfValid())                
-                    return item.ResRef.Get();                
+                if (item.ResRef.IsSelfValid())
+                    return item.ResRef.Get();
 
                 if (item.JobId == 0) //加载失败                                    
                     return null;
             }
 
             //2. 同步加载
-            EResError err = mgr.Load(path, _sync_load_enable, out var res_ref);
-            ResLog._.ErrCode(err, path.Path);
+            EResError err = mgr.Load(path, sprite, _sync_load_enable, out var res_ref);
+            ResLog._.ErrCode(err, path);
             if (err != EResError.OK)
             {
-                _all[path] = default; //加载失败的
+                _all[res_path] = default; //加载失败的
                 return null;
             }
 
             //3. 添加
             res_ref.AddUser(this);
-            _all[path] = new InnerItem()
+            _all[res_path] = new InnerItem()
             {
                 JobId = 0,
                 ResRef = res_ref,
@@ -73,21 +75,22 @@ namespace FH.Res
             return res_ref.Get();
         }
 
-        public void PreLoad(ResPath path, int priority = 0)
+        public void PreLoad(string path, bool sprite = false, int priority = 0)
         {
             IResMgr mgr = _ResMgr.Val;
             if (mgr == null)
-                return ;
-
-            //已经存在了
-            if (_all.TryGetValue(path, out var item))
                 return;
 
-            EResError err = mgr.AsyncLoad(path, priority, _res_event, out int job_id);
+            //已经存在了
+            ResPath res_path = ResPath.Create(path, sprite);
+            if (_all.TryGetValue(res_path, out var item))
+                return;
+
+            EResError err = mgr.AsyncLoad(path,sprite, priority, _res_event, out int job_id);
             ResLog._.ErrCode(err);
             if (err == EResError.OK)
             {
-                _all.Add(path, new InnerItem()
+                _all.Add(res_path, new InnerItem()
                 {
                     JobId = job_id,
                 });
@@ -104,17 +107,19 @@ namespace FH.Res
             _stat = new HolderStat();
         }
 
-        private void _OnResLoaded(EResError err, ResPath path, EResType resType, int job_id)
+        private void _OnResLoaded(EResError err, string path, EResType resType, int job_id)
         {
             //1. 查找, 如果找不到,说明已经被销毁了
-            if (!_all.TryGetValue(path, out var item) || item.JobId != job_id)
+            ResPath res_path = ResPath.Create(path, resType== EResType.Sprite? true:false);
+            
+            if (!_all.TryGetValue(res_path, out var item) || item.JobId != job_id)
                 return;
 
             //2. 检查错误
             if (err != EResError.OK)
             {
-                ResLog._.ErrCode(err, path.Path);
-                _all[path] = default;
+                ResLog._.ErrCode(err, path);
+                _all[res_path] = default;
                 return;
             }
 
@@ -124,16 +129,16 @@ namespace FH.Res
 
 
             //3. 添加
-            err = res_mgr.Load(path, false, out var res_ref);
-            ResLog._.ErrCode(err, path.Path);
+            err = res_mgr.Load(path,res_path.Sprite, false, out var res_ref);
+            ResLog._.ErrCode(err, path);
             if (err != EResError.OK)
             {
-                _all[path] = default;
+                _all[res_path] = default;
                 return;
             }
 
             res_ref.AddUser(this);
-            _all[path] = new InnerItem() { ResRef = res_ref };
+            _all[res_path] = new InnerItem() { ResRef = res_ref };
         }
 
         protected override void OnPoolRelease()

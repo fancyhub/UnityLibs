@@ -12,8 +12,8 @@ namespace FH
     /// </summary>
     public interface IAssetLoader : ICPtr
     {
-        IAssetRef Load(ResPath path);
-        IAssetRef LoadAsync(ResPath path);
+        IAssetRef Load(string path, bool sprite);
+        IAssetRef LoadAsync(string path, bool sprite);
 
         string AtlasTag2Path(string atlasName);
         bool IsResExist(string path);

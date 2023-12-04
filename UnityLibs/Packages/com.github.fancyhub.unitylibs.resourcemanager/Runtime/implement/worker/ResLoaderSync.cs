@@ -14,11 +14,11 @@ namespace FH.Res
     {
         #region 传入
         public ResPool _res_pool;
-        public IAssetLoader _asset_loader;        
+        public IAssetLoader _asset_loader;
         public ResMsgQueue _msg_queue;
         #endregion
 
-     
+
         public void Init()
         {
             _msg_queue.Reg(EResWoker.sync_load_res, this);
@@ -30,11 +30,11 @@ namespace FH.Res
         }
 
         public void OnMsgProc(ref ResJob job)
-        { 
+        {
             //2. 如果任务取消了，就从db里面移除            
             if (job.IsCanceled)
             {
-                _msg_queue.SendJobNext(job);                
+                _msg_queue.SendJobNext(job);
                 return;
             }
 
@@ -56,7 +56,7 @@ namespace FH.Res
             }
 
             //5. 不存在, 加载
-            IAssetRef asset_ref = _asset_loader.Load(job.Path);
+            IAssetRef asset_ref = _asset_loader.Load(job.Path.Path, job.Path.Sprite);
             if (asset_ref == null)
             {
                 ResLog._.D("load failed res {0}", job.Path.Path);

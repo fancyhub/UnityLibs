@@ -4,11 +4,11 @@ using UnityEngine;
 namespace FH
 {
     [Serializable]
-    public struct ResPath<T> : IEquatable<ResPath<T>> where T : UnityEngine.Object
+    public struct AssetPath<T> : IEquatable<AssetPath<T>> where T : UnityEngine.Object
     {
         public string Path;
 
-        public bool Equals(ResPath<T> other)
+        public bool Equals(AssetPath<T> other)
         {
             return Path == other.Path;
         }

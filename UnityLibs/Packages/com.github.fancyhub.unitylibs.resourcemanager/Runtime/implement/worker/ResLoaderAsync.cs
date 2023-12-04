@@ -222,7 +222,7 @@ namespace FH.Res
                     continue;
 
                 task_slot._path = job.Path;
-                task_slot._asset_request = _asset_loader.LoadAsync(job.Path);
+                task_slot._asset_request = _asset_loader.LoadAsync(job.Path.Path,job.Path.Sprite);
 
 
                 if (task_slot._asset_request != null)

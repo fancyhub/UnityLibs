@@ -22,8 +22,8 @@ namespace FH
 
     public interface IResHolder : ICPtr
     {
-        UnityEngine.Object Load(ResPath path);
-        void PreLoad(ResPath path, int priority = 0);
+        UnityEngine.Object Load(string path,bool sprite);
+        void PreLoad(string path, bool sprite, int priority = 0);
         void GetAll(List<ResRef> out_list);
         HolderStat GetStat();
     }

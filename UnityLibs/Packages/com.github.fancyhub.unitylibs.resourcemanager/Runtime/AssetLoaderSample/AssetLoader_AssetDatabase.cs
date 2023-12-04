@@ -40,7 +40,8 @@ namespace FH.Res.SampleAssetLoader
 
         public sealed class EditorResRequest
         {
-            private ResPath _resPath;
+            private string _resPath;
+            private bool _sprite;
             public bool isDone;
             public UnityEngine.Object asset;
 
@@ -48,31 +49,32 @@ namespace FH.Res.SampleAssetLoader
             {
                 yield return null;
 
-                if (_resPath.Sprite)
+                if (_sprite)
                 {
-                    asset = AssetDatabase.LoadAssetAtPath<Sprite>(_resPath.Path);
+                    asset = AssetDatabase.LoadAssetAtPath<Sprite>(_resPath);
                 }
                 else
                 {
-                    asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(_resPath.Path);
+                    asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(_resPath);
                 }
                 isDone = true;
                 if (asset != null)
                 {
                     string real_path = AssetDatabase.GetAssetPath(asset);
-                    if (real_path != _resPath.Path)
+                    if (real_path != _resPath)
                     {
-                        ResLog._.E("资源路径大小写不对 \n {0} -> \n{1}", real_path, _resPath.Path);
+                        ResLog._.E("资源路径大小写不对 \n {0} -> \n{1}", real_path, _resPath);
                         asset = null;
                     }
                 }
                 yield return null;
             }
 
-            public static EditorResRequest LoadAsync(ResPath path)
+            public static EditorResRequest LoadAsync(string path, bool sprite)
             {
                 EditorResRequest req = new EditorResRequest();
                 req._resPath = path;
+                req._sprite = sprite;
                 EditorResRequestComp.StartReq(req._LoadAsync());
 
                 return req;
@@ -187,20 +189,20 @@ namespace FH.Res.SampleAssetLoader
             return true;
         }
 
-        public IAssetRef Load(ResPath path)
+        public IAssetRef Load(string path, bool sprite)
         {
             UnityEngine.Object asset = null;
-            if (!path.Sprite)
-                asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path.Path);
+            if (!sprite)
+                asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
             else
-                asset = AssetDatabase.LoadAssetAtPath<Sprite>(path.Path);
+                asset = AssetDatabase.LoadAssetAtPath<Sprite>(path);
 
             if (asset != null)
             {
                 string real_path = AssetDatabase.GetAssetPath(asset);
-                if (real_path != path.Path)
+                if (real_path != path)
                 {
-                    ResLog._.E("资源路径大小写不对 \n {0} -> \n{1}", real_path, path.Path);
+                    ResLog._.E("资源路径大小写不对 \n {0} -> \n{1}", real_path, path);
                     asset = null;
                 }
             }
@@ -208,14 +210,14 @@ namespace FH.Res.SampleAssetLoader
             return AssetRef.Create(_ResRef, asset);
         }
 
-        public IAssetRef LoadAsync(ResPath path)
+        public IAssetRef LoadAsync(string path, bool sprite)
         {
             if (!Application.isPlaying)
             {
-                return Load(path);
+                return Load(path, sprite);
             }
 
-            return AssetRef.Create(_ResRef, EditorResRequest.LoadAsync(path));            
+            return AssetRef.Create(_ResRef, EditorResRequest.LoadAsync(path,sprite));
         }
 
         protected override void OnRelease()

@@ -8,12 +8,15 @@ using System.Collections.Generic;
 
 namespace FH
 {
-    public delegate void ResEvent(EResError code, ResPath path, EResType resType, int job_id);
+    public delegate void ResEvent(EResError code, string path, EResType resType, int job_id);
 
-    public struct ResSnapshot
+    public struct ResSnapShotItem
     {
-        public int _inst_id;
-        public List<object> _users;
+        public string Path;
+        public bool Sprite;
+        public ResId Id;
+        public int UserCount;
+        public List<object> Users; //Editor 模式下才有内容
     }
 
 
@@ -24,13 +27,13 @@ namespace FH
         public bool IsAssetExist(string path);
 
         #region Res
-        public EResError Load(ResPath path, bool auto_load, out ResRef res_ref);
-        public EResError AsyncLoad(ResPath path, int priority, ResEvent cb, out int job_id);
-        public void ResSnapshot(ref Dictionary<ResPath, ResSnapshot> out_snapshot);
+        public EResError Load(string path, bool sprite, bool aync_load_enable, out ResRef res_ref);
+        public EResError AsyncLoad(string path, bool sprite, int priority, ResEvent cb, out int job_id);
+        public void ResSnapshot(ref List<ResSnapShotItem> out_snapshot);
         #endregion
 
         #region GameObject Inst
-        public EResError Create(string path, System.Object user, bool auto_load, out ResRef res_ref);
+        public EResError Create(string path, System.Object user, bool aync_load_enable, out ResRef res_ref);
         public EResError AsyncCreate(string path, int priority, ResEvent cb, out int job_id);
         #endregion
 
@@ -49,7 +52,7 @@ namespace FH
     public static class ResMgr
     {
         private static CPtr<IResMgr> _;
-        
+
         public static void Destroy()
         {
             _.Destroy();
@@ -62,8 +65,8 @@ namespace FH
                 return null;
 
             Res.ResInstHolder ret = GPool.New<Res.ResInstHolder>();
-            ret._res_holder = Res.ResHolder.Create(mgr,sync_load_enable);
-            ret._inst_holder = Res.InstHolder.Create(mgr,sync_load_enable);
+            ret._res_holder = Res.ResHolder.Create(mgr, sync_load_enable);
+            ret._inst_holder = Res.InstHolder.Create(mgr, sync_load_enable);
             ret._empty_inst_holder = Res.EmptyInstHolder.Create(mgr);
             ret._pre_inst_holder = Res.PreInstHolder.Create(mgr);
             return ret;
@@ -97,23 +100,23 @@ namespace FH
         }
 
         #region Res
-        public static EResError Load(ResPath path, bool auto_load, out ResRef res_ref)
+        public static EResError Load(string path, bool sprite, bool aync_load_enable, out ResRef res_ref)
         {
             res_ref = default;
             var inst = _.Val;
             if (inst == null) return EResError.ResMgrNotInit;
-            return inst.Load(path, auto_load, out res_ref);
+            return inst.Load(path, sprite, aync_load_enable, out res_ref);
         }
 
-        public static EResError AsyncLoad(ResPath path, int priority, ResEvent cb, out int job_id)
+        public static EResError AsyncLoad(string path, bool sprite, int priority, ResEvent cb, out int job_id)
         {
             job_id = default;
             var inst = _.Val;
             if (inst == null) return EResError.ResMgrNotInit;
-            return inst.AsyncLoad(path, priority, cb, out job_id);
+            return inst.AsyncLoad(path, sprite, priority, cb, out job_id);
         }
 
-        public static void ResSnapshot(ref Dictionary<ResPath, ResSnapshot> out_snapshot)
+        public static void ResSnapshot(ref List<ResSnapShotItem> out_snapshot)
         {
             var inst = _.Val;
             if (inst == null)
@@ -127,12 +130,12 @@ namespace FH
         #endregion
 
         #region GameObject Inst
-        public static EResError Create(string path, System.Object user, bool auto_load, out ResRef res_ref)
+        public static EResError Create(string path, System.Object user, bool aync_load_enable, out ResRef res_ref)
         {
             res_ref = default;
             var inst = _.Val;
             if (inst == null) return EResError.ResMgrNotInit;
-            return inst.Create(path, user, auto_load, out res_ref);
+            return inst.Create(path, user, aync_load_enable, out res_ref);
         }
         public static EResError AsyncCreate(string path, int priority, ResEvent cb, out int job_id)
         {

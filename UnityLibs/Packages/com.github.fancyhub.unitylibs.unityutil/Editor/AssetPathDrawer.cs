@@ -6,8 +6,8 @@ using System;
 
 namespace FH.Ed
 {
-    [CustomPropertyDrawer(typeof(ResPath<>), true)]
-    public class ResPathTDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(AssetPath<>), true)]
+    public class AssetPathTDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -47,13 +47,13 @@ namespace FH.Ed
 
     // Odin
     /*
-    public class OdinResPathDrawer<T> : OdinValueDrawer<ResPath<T>> where T : UnityEngine.Object
+    public class OdinAssetPathDrawer<T> : OdinValueDrawer<AssetPath<T>> where T : UnityEngine.Object
     {
         protected override void DrawPropertyLayout(GUIContent label)
         {
             Rect rect = EditorGUILayout.GetControlRect();
 
-            ResPath<T> selfVal = ValueEntry.SmartValue;
+            AssetPath<T> selfVal = ValueEntry.SmartValue;
             Type tar_type = selfVal.GetType().GetGenericArguments()[0];
 
             T old_obj = selfVal.EdLoad();

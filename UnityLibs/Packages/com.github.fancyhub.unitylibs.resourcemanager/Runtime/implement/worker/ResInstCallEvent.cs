@@ -40,14 +40,14 @@ namespace FH.Res
             EResWoker job_type = job.GetCurrentWorker();
             if (job_type == EResWoker.call_inst_event)
             {
-                job.EventCallBack(job.ErrorCode, job.Path, EResType.Inst, job.JobId);
+                job.EventCallBack(job.ErrorCode, job.Path.Path, EResType.Inst, job.JobId);
             }
             else if (job_type == EResWoker.call_res_event)
             {
                 if (job.Path.Sprite)
-                    job.EventCallBack(job.ErrorCode, job.Path, EResType.Sprite, job.JobId);
+                    job.EventCallBack(job.ErrorCode, job.Path.Path, EResType.Sprite, job.JobId);
                 else
-                    job.EventCallBack(job.ErrorCode, job.Path, EResType.Res, job.JobId);
+                    job.EventCallBack(job.ErrorCode, job.Path.Path, EResType.Res, job.JobId);
             }
             else
             {

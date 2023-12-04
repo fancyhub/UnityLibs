@@ -66,7 +66,7 @@ namespace FH.Res
         {
             _pool = new Dictionary<int, ResPoolItem>(C_POOL_CAP);
             _lru_free_list = new LruList<ResId, int>();
-            _index_by_path = new Dictionary<ResPath, ResId>();
+            _index_by_path = new Dictionary<ResPath, ResId>(MyEqualityComparer<ResPath>.Default);
         }
 
         public void Destroy()
@@ -80,7 +80,7 @@ namespace FH.Res
         }
 
         // 资源的部分,key: path
-        public void Snapshot(ref Dictionary<ResPath, ResSnapshot> out_snapshot)
+        public void Snapshot(ref List<ResSnapShotItem> out_snapshot)
         {
             //1. check
             if (out_snapshot == null)
@@ -96,14 +96,16 @@ namespace FH.Res
             foreach (var p in _pool)
             {
                 //获取数据
-                ResPoolItem pool_val = p.Value;
-                ResPath path = pool_val.Path;
+                ResPoolItem pool_val = p.Value;                
 
                 //填充数据                
-                ResSnapshot data = new ResSnapshot();
-                pool_val.CopyUserList(ref data._users);
-                data._inst_id = p.Key;
-                out_snapshot.Add(path, data);
+                ResSnapShotItem data = new ResSnapShotItem();
+                data.Path= pool_val.Path.Path;
+                data.Sprite = pool_val.Path.Sprite;
+                data.Id = pool_val.ResId;
+                data.UserCount = pool_val._user_count;
+                pool_val.CopyUserList(ref data.Users);
+                out_snapshot.Add(data);
             }
         }
 

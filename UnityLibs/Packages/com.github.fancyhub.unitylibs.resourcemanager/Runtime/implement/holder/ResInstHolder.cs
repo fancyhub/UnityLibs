@@ -45,9 +45,9 @@ namespace FH.Res
             return _res_holder.GetStat();
         }
 
-        public UnityEngine.Object Load(ResPath path)
+        public UnityEngine.Object Load(string path,bool sprite)
         {
-            return _res_holder.Load(path);
+            return _res_holder.Load(path,sprite);
         }
 
         public void PreInst(string path, int count)
@@ -55,9 +55,9 @@ namespace FH.Res
             _pre_inst_holder.PreInst(path, count);
         }
 
-        public void PreLoad(ResPath path, int priority = 0)
+        public void PreLoad(string path, bool sprite, int priority = 0)
         {
-            _res_holder.PreLoad(path, priority);
+            _res_holder.PreLoad(path, sprite,priority);
         }
 
         public bool Release(GameObject obj)

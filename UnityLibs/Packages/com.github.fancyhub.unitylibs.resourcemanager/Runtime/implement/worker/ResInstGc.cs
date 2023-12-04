@@ -102,7 +102,7 @@ namespace FH.Res
                 }
 
                 //2.5 移除对资源的引用
-                EResError err = _res_pool.RemoveUser(new ResPath(path, false), user, out ResId _);
+                EResError err = _res_pool.RemoveUser(ResPath.CreateRes(path), user, out ResId _);
                 ResLog._.ErrCode(err, "释放资源出错 {0}", path);
 
                 //2.6 开始释放

@@ -54,6 +54,6 @@ namespace FH
     [Serializable]
     public class ResMgrConfig
     {
-        public GameObjectPreInstConfig GameObjectPreInstConfig= new GameObjectPreInstConfig();
+        public GameObjectPreInstConfig GameObjectPreInstConfig = new GameObjectPreInstConfig();
     }
 }

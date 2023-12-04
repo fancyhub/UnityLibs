@@ -177,7 +177,7 @@ namespace FH.Res
                 int delta_count = count_need - count_now;
                 if (delta_count > 0)
                 {
-                    ResJob job = _job_db.CreateJob(new ResPath(path, false), -1000, null);
+                    ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), -1000, null);
                     job.AddWorker(EResWoker.async_load_res);
                     for (int k = 0; k < delta_count; ++k)
                         job.AddWorker(EResWoker.async_obj_inst);

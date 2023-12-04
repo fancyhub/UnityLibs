@@ -19,10 +19,11 @@ namespace FH
     public readonly struct ResRef
     {
         public readonly ResId Id;
-        public readonly ResPath Path;
+        public readonly string Path;
+        public readonly bool Sprite;
         private readonly CPtr<IResPool> ResPool;
 
-        public ResRef(ResId id, ResPath path, IResPool pool) { this.Id = id; this.Path = path; this.ResPool = new CPtr<IResPool>(pool); }
+        public ResRef(ResId id, string path, bool sprite, IResPool pool) { this.Id = id; this.Path = path; this.Sprite = sprite; this.ResPool = new CPtr<IResPool>(pool); }
 
         public bool IsSelfValid()
         {
@@ -38,7 +39,7 @@ namespace FH
 
         public override string ToString()
         {
-            return $"ResId:({Id.Id},{Id.ResType}) ResPath:({Path.Path},{Path.Sprite})";
+            return $"ResId:({Id.Id},{Id.ResType}) ResPath:({Path},{Sprite})";
         }
-    }     
+    }
 }

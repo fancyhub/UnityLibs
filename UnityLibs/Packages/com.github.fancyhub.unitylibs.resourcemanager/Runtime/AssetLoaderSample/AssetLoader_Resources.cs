@@ -120,20 +120,20 @@ namespace FH.Res.SampleAssetLoader
             return true;
         }
 
-        public IAssetRef Load(ResPath path)
+        public IAssetRef Load(string path, bool sprite)
         {
-            if (!path.Sprite)
-                return AssetRef.Create(_ResRef, Resources.Load(path.Path));
+            if (!sprite)
+                return AssetRef.Create(_ResRef, Resources.Load(path));
             else
-                return AssetRef.Create(_ResRef, Resources.Load<Sprite>(path.Path));
+                return AssetRef.Create(_ResRef, Resources.Load<Sprite>(path));
         }
 
-        public IAssetRef LoadAsync(ResPath path)
+        public IAssetRef LoadAsync(string path, bool sprite)
         {
-            if (!path.Sprite)
-                return AssetRef.Create(_ResRef, Resources.LoadAsync(path.Path));
+            if (!sprite)
+                return AssetRef.Create(_ResRef, Resources.LoadAsync(path));
             else
-                return AssetRef.Create(_ResRef, Resources.LoadAsync<Sprite>(path.Path));
+                return AssetRef.Create(_ResRef, Resources.LoadAsync<Sprite>(path));
         }
 
         protected override void OnRelease()

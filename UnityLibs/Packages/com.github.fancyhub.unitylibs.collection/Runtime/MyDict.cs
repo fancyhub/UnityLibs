@@ -25,7 +25,7 @@ namespace FH
                 if (_Default == null && !(t.IsEnum || t.IsPrimitive || t == typeof(string)))
                 {
                     Debug.LogError($"{t} 没有 EqualityComparer, 需要注册 MyEqualityComparer.Reg");
-                }
+                }                
 #endif
                 return _Default == null ? EqualityComparer<T>.Default : _Default;
             }

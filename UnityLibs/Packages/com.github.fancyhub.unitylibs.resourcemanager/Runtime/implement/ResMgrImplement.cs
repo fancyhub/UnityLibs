@@ -15,11 +15,6 @@ namespace FH.Res
         private int ___ptr_ver = 0;
         int ICPtr.PtrVer => ___ptr_ver;
 
-        public enum E_ERR
-        {
-           
-        }
-
         public IAssetLoader _asset_loader;
 
         public ResMgrConfig _conf;
@@ -42,7 +37,8 @@ namespace FH.Res
 
         static ResMgrImplement()
         {
-            MyEqualityComparer.Reg<ResId>(new ResId());
+            MyEqualityComparer.Reg(new ResId());
+            MyEqualityComparer.Reg(new ResPath());
         }
 
         public void Init(IAssetLoader asset_loader, ResMgrConfig conf)
@@ -99,7 +95,7 @@ namespace FH.Res
             _worker_go_pre_inst._gobj_stat = _gobj_stat;
             _worker_go_pre_inst._gobj_pre_data = _gobj_pre_data;
             _worker_go_pre_inst._job_db = _job_db;
-            _worker_go_pre_inst._msg_queue= _msg_queue;
+            _worker_go_pre_inst._msg_queue = _msg_queue;
 
             _atlas_loader = new AtlasLoader();
             _atlas_loader._asset_loader = _asset_loader;
@@ -263,10 +259,10 @@ namespace FH.Res
         }
 
         #region Res
-        public EResError Load(ResPath path, bool auto_load, out ResRef res_ref)
+        public EResError Load(string path, bool sprite, bool aync_load_enable, out ResRef res_ref)
         {
-            //1. check            
-            if (!path.IsValid())
+            //1. check
+            if (string.IsNullOrEmpty(path))
             {
                 res_ref = default;
                 ResLog._.Assert(false, "路径为空 ");
@@ -274,37 +270,38 @@ namespace FH.Res
             }
 
             //2. 先尝试找一下
-            EResError err = _res_pool.GetIdByPath(path, out var res_id);
+            ResPath res_path = ResPath.Create(path, sprite);
+            EResError err = _res_pool.GetIdByPath(res_path, out var res_id);
             if (err == EResError.OK) //如果找到了，直接返回
             {
-                res_ref = new ResRef(res_id, path, this);
+                res_ref = new ResRef(res_id, path, sprite, this);
                 return EResError.OK;
             }
-            if (!auto_load)
+            if (!aync_load_enable)
             {
                 res_ref = default;
                 return err;
             }
 
             //3. 同步加载
-            ResJob job = _job_db.CreateJob(path, 0, null);
-            job.AddWorker(EResWoker.sync_load_res);            
+            ResJob job = _job_db.CreateJob(res_path, 0, null);
+            job.AddWorker(EResWoker.sync_load_res);
             _msg_queue.BeginJob(job, true);
 
             //4. 再次找到该资源
-            err = _res_pool.GetIdByPath(path, out res_id);
+            err = _res_pool.GetIdByPath(res_path, out res_id);
             //ResLog._.ErrCode(err, "找不到资源,可能不存在 {0}", path);
             if (err == EResError.OK)
-                res_ref = new ResRef(res_id, path, this);
+                res_ref = new ResRef(res_id, path, sprite, this);
             else
                 res_ref = default;
             return err;
         }
 
-        public EResError AsyncLoad(ResPath path, int priority, ResEvent cb, out int job_id)
+        public EResError AsyncLoad(string path, bool sprite, int priority, ResEvent cb, out int job_id)
         {
             //1. check
-            if (!path.IsValid())
+            if (string.IsNullOrEmpty(path))
             {
                 job_id = 0;
                 ResLog._.Assert(false, "路径为空");
@@ -318,11 +315,11 @@ namespace FH.Res
             }
 
             //2. 异步加载
-            ResJob job = _job_db.CreateJob(path, priority, cb);
+            ResJob job = _job_db.CreateJob(ResPath.Create(path,sprite), priority, cb);
             job.AddWorker(EResWoker.async_load_res);
             job.AddWorker(EResWoker.call_res_event);
-            
-            _msg_queue.BeginJob(job, false);            
+
+            _msg_queue.BeginJob(job, false);
             job_id = job.JobId;
 
             return EResError.OK;
@@ -334,7 +331,7 @@ namespace FH.Res
         }
 
         // 资源的部分,key: path
-        public void ResSnapshot(ref Dictionary<ResPath, ResSnapshot> out_snapshot)
+        public void ResSnapshot(ref List<ResSnapShotItem> out_snapshot)
         {
             _res_pool.Snapshot(ref out_snapshot);
         }
@@ -364,7 +361,7 @@ namespace FH.Res
 
 
             //2. 移除对资源的依赖
-            EResError err = _res_pool.RemoveUser(new ResPath(path, false), res_user, out ResId _);
+            EResError err = _res_pool.RemoveUser(ResPath.CreateRes(path), res_user, out ResId _);
 
             //3. 移除
             bool suc2 = _gobj_pool.RemoveInst(inst_id, out string _);
@@ -373,7 +370,7 @@ namespace FH.Res
         }
 
         //优先查找是否有空余的
-        public EResError Create(string path, System.Object user, bool auto_load, out ResRef res_ref)
+        public EResError Create(string path, System.Object user, bool aync_load_enable, out ResRef res_ref)
         {
             //1. check
             if (string.IsNullOrEmpty(path))
@@ -393,15 +390,15 @@ namespace FH.Res
             EResError err = _gobj_pool.PopInst(path, user, out var inst_id);
             if (err == EResError.OK)
             {
-                res_ref = new ResRef(inst_id, new ResPath(path, false), this);
+                res_ref = new ResRef(inst_id, path, false, this);
                 return err;
             }
 
             //3. 加载
-            ResJob job = _job_db.CreateJob(new ResPath(path, false), 0, null);
-            if (!auto_load) //不允许同步加载
+            ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), 0, null);
+            if (!aync_load_enable) //不允许同步加载
             {
-                err = _res_pool.GetIdByPath(new ResPath(path, false), out job.ResId);
+                err = _res_pool.GetIdByPath(ResPath.CreateRes(path), out job.ResId);
                 if (err != EResError.OK) //资源不存在, 没有加载
                 {
                     _msg_queue.SendJobNext(job);
@@ -413,14 +410,14 @@ namespace FH.Res
             {
                 job.AddWorker(EResWoker.sync_load_res);
             }
-            job.AddWorker(EResWoker.sync_obj_inst);            
+            job.AddWorker(EResWoker.sync_obj_inst);
             _msg_queue.BeginJob(job, true);
 
             //4. 再次检查
             err = _gobj_pool.PopInst(path, user, out inst_id);
             if (err == EResError.OK)
             {
-                res_ref = new ResRef(inst_id, new ResPath(path, false), this);
+                res_ref = new ResRef(inst_id, path, false, this);
                 return err;
             }
             else
@@ -447,10 +444,10 @@ namespace FH.Res
             }
 
             //2. 创建Job
-            ResJob job = _job_db.CreateJob(new ResPath(path, false), priority, cb);
+            ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), priority, cb);
             job.AddWorker(EResWoker.async_load_res);
             job.AddWorker(EResWoker.async_obj_inst);
-            job.AddWorker(EResWoker.call_inst_event);            
+            job.AddWorker(EResWoker.call_inst_event);
 
             //3. 开始加载
             _msg_queue.BeginJob(job, false);
@@ -495,7 +492,7 @@ namespace FH.Res
                 return err;
             }
 
-            res_ref = new ResRef(res_id, new ResPath(string.Empty, false), this);
+            res_ref = new ResRef(res_id, null, false, this);
             return EResError.OK;
         }
         #endregion
