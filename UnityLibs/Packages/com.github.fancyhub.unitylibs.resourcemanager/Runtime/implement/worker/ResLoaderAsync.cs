@@ -46,17 +46,15 @@ namespace FH.Res
         #endregion
 
 
-
-        //最大的数量
-        public const int C_MAX_COUNT = 10;
-        public int _count = 5;
-        public ResAsyncTask[] _task_slots = new ResAsyncTask[C_MAX_COUNT];
+        public ResAsyncTask[] _task_slots;
 
         //优先级的job queue
         public ResJobQueuePriority _job_queue;
 
-        public ResLoaderAsync()
+        public ResLoaderAsync(int count)
         {
+            count = Math.Max(count, 1);
+            _task_slots = new ResAsyncTask[count];
             for (int i = 0; i < _task_slots.Length; ++i)
             {
                 _task_slots[i] = new ResAsyncTask();
@@ -78,12 +76,7 @@ namespace FH.Res
             {
                 task.Clear();
             }
-        }
-
-        public void SetWorkerCount(int count)
-        {
-            _count = System.Math.Max(count, C_MAX_COUNT);
-        }
+        } 
 
         public void OnMsgProc(ref ResJob job)
         {
@@ -207,7 +200,7 @@ namespace FH.Res
                 }
 
                 //2.5 找到执行的task_slot
-                ResAsyncTask task_slot = _GetTaskSlot(_task_slots, _count, job.Path);
+                ResAsyncTask task_slot = _GetTaskSlot(_task_slots, _task_slots.Length, job.Path);
                 if (null == task_slot)
                 {
                     //没有空余的 task slot，直接break

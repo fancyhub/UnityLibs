@@ -50,18 +50,18 @@ namespace FH.Res
             _res_pool = new ResPool();
             _gobj_pool = new GameObjectInstPool(_gobj_stat);
             _job_db = new ResJobDB();
-            _gobj_pre_data = new GameObjectPreInstData(conf.GameObjectPreInstConfig);
+            _gobj_pre_data = new GameObjectPreInstData(conf.PreInst);
             _empty_go_pool = new EmptyGameObjectPool();
             _msg_queue = new ResMsgQueue();
             _msg_queue._job_db = _job_db;
 
-            _gc = new ResInstGc();
+            _gc = new ResInstGc(conf.GC);
             _gc._res_pool = _res_pool;
             _gc._gobj_pool = _gobj_pool;
             _gc._gobj_pre_data = _gobj_pre_data;
             _gc._gobj_stat = _gobj_stat;
 
-            _worker_go_async = new GameObjectCreatorAsync();
+            _worker_go_async = new GameObjectCreatorAsync(conf.MaxAsyncGameObjectStep);
             _worker_go_async._res_pool = _res_pool;
             _worker_go_async._gobj_pool = _gobj_pool;
             _worker_go_async._job_db = _job_db;
@@ -74,7 +74,7 @@ namespace FH.Res
             _worker_go_sync._msg_queue = _msg_queue;
             _worker_go_sync.Init();
 
-            _worker_res_async = new ResLoaderAsync();
+            _worker_res_async = new ResLoaderAsync(conf.MaxAsyncResLoaderSlot);
             _worker_res_async._res_pool = _res_pool;
             _worker_res_async._asset_loader = asset_loader;
             _worker_res_async._job_db = _job_db;

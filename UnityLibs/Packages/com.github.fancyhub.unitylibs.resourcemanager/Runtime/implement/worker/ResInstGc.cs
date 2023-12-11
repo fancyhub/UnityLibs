@@ -18,13 +18,14 @@ namespace FH.Res
         public GameObjectPreInstData _gobj_pre_data;
         public GameObjectStat _gobj_stat;
 
-        public const int C_COUNT = 20;
-        public const int C_RES_WEEK_REF_COUNT = 10;
-        public const int C_SPRITE_WEEK_REF_COUNT = 60;
-        public const int C_INST_WEEK_REF_COUNT = 100;
-
+        public ResMgrConfig.GCConfig _config;
+        
         public List<KeyValuePair<ResId, int>> _temp_list = new List<KeyValuePair<ResId, int>>();
 
+        public ResInstGc(ResMgrConfig.GCConfig config)
+        {
+            _config = config;            
+        }
         public void Update()
         {
             GcInst();
@@ -33,11 +34,11 @@ namespace FH.Res
 
         public void GcRes()
         {
-            long now_time = UnityEngine.Time.frameCount;
+            int now_time = UnityEngine.Time.frameCount;
             //1.1 获取列表
             List<KeyValuePair<ResId, int>> res_list = _temp_list;
-            _res_pool.GetLruFreeList(res_list, true, C_COUNT);
-            long expire_time = now_time - C_RES_WEEK_REF_COUNT;
+            _res_pool.GetLruFreeList(res_list, true, _config.MaxResCountProcess);
+            int expire_time = now_time - _config.ResWaitFrameCount;
 
             //1.2 检查数据是否到了
             for (int i = 0; i < res_list.Count; ++i)
@@ -62,10 +63,10 @@ namespace FH.Res
         public void GcInst()
         {
             //2.1 获取列表            
-            long now_time = UnityEngine.Time.frameCount;
+            int now_time = UnityEngine.Time.frameCount;
             List<KeyValuePair<ResId, int>> inst_list = _temp_list;
-            _gobj_pool.GetLruFreeList(inst_list, true, C_COUNT);
-            long expire_time = now_time - C_INST_WEEK_REF_COUNT;
+            _gobj_pool.GetLruFreeList(inst_list, true, _config.MaxInstCountProcess);
+            int expire_time = now_time - _config.InstWaitFrameCount;
 
             //2.2 检查数据是否到了
             for (int i = 0; i < inst_list.Count; ++i)

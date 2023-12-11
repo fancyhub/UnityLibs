@@ -38,10 +38,10 @@ namespace FH.Res
         //Val: Val 对应的该请求的 count
         public Dictionary<int, KeyValuePair<string, int>> _req_id_dict;
 
-        public GameObjectPreInstConfig _conf;
+        public ResMgrConfig.GameObjectPreInstConfig _conf;
         public int _req_id_gen = 0;
 
-        public GameObjectPreInstData(GameObjectPreInstConfig conf)
+        public GameObjectPreInstData(ResMgrConfig.GameObjectPreInstConfig conf)
         {
             _conf = conf;
             _dict = new Dictionary<string, InstData>();

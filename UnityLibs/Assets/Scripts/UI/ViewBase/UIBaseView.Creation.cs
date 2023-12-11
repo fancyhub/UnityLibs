@@ -50,10 +50,6 @@ namespace FH.UI
         }
     }
 
-    public class UIGameObjPath : MonoBehaviour
-    {
-        public string Path;
-    }
 
     public abstract partial class UIBaseView
     {

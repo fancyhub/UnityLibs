@@ -65,7 +65,7 @@ namespace FH
             return _dummy_active;
         }
 
-        public static GameObject InstNew(string path, GameObject prefab)
+        internal static GameObject InstNew(string path, GameObject prefab)
         {
             //1. check
             if (null == prefab || string.IsNullOrEmpty(path))
@@ -73,15 +73,8 @@ namespace FH
                 Log.Assert(null != prefab, "prefab 为空");
                 Log.Assert(!string.IsNullOrEmpty(path), "路径为空");
                 return null;
-            }
-            //如果不是资源                        
-            if (prefab.GetInstanceID() < 0)
-            {
-                Log.Assert(false, "prefab 不是资源 {0}", path);
-                return null;
-            }
+            }    
 
-            //Transform dummy = GetDummyActive();
             Transform dummy = GetDummyInactive();
             GameObject obj_inst = GameObject.Instantiate(prefab, dummy, false);
 
@@ -92,25 +85,26 @@ namespace FH
             return obj_inst;
         }
 
-        public static void InstActive(GameObject obj)
+        internal static void InstActive(GameObject obj)
         {
+            if (obj == null)
+                return;
+
+            Transform active_dummy = GetDummyActive();
+            obj.transform.SetParent(active_dummy, false);
+
+            Transform inactive_dummy = GetDummyInactive();
+            obj.transform.SetParent(inactive_dummy, false);
             //Do nothing
         }
-        public static void Push2Pool(GameObject obj)
+
+        internal static void Push2Pool(GameObject obj)
         {
             //1. check
             if (null == obj)
                 return;
 
             //2. 清除动态增加的组件
-            _destroy_dynamic_comps(obj);
-
-            //3. 获取组件, 组件disable/enable模式
-            obj.transform.SetParent(GetDummyInactive(), false);
-        }
-
-        public static void _destroy_dynamic_comps(GameObject obj)
-        {
             var comps = obj.ExtGetCompsInChildren<Component>(true);
             for (int i = 0; i < comps.Count; i++)
             {
@@ -119,7 +113,10 @@ namespace FH
                     dynamic_comp.OnDynamicRelease();
                 }
             }
-            comps.Clear();         
+            comps.Clear();
+
+            //3. 获取组件, 组件disable/enable模式
+            obj.transform.SetParent(GetDummyInactive(), false);
         }
     }
 }

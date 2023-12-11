@@ -21,7 +21,7 @@ namespace FH.Res
         public ResMsgQueue _msg_queue;
         #endregion
 
-      
+
 
         //优先级的job queue
         public ResJobQueuePriority _job_queue;
@@ -33,10 +33,15 @@ namespace FH.Res
         private GameObject _obj_inst;
         public List<ResJob> _temp_list = new List<ResJob>();
 
+        public GameObjectCreatorAsync(int step_count_per_frame)
+        {
+            _step_count_per_frame = Math.Max(1, step_count_per_frame);
+        }
+
         public void Init()
         {
             _job_queue = new ResJobQueuePriority();
-            _msg_queue.Reg((int)EResWoker.async_obj_inst, this);            
+            _msg_queue.Reg((int)EResWoker.async_obj_inst, this);
         }
 
         public void Destroy()
@@ -52,7 +57,7 @@ namespace FH.Res
         }
 
         public void OnMsgProc(ref ResJob job)
-        {  
+        {
 
             //2. 如果任务取消了，就从db里面移除            
             if (job.IsCanceled)
@@ -155,9 +160,9 @@ namespace FH.Res
                     bool succ = _gobj_pool.AddInst(job.Path.Path, inst, out System.Object res_user, out var inst_id);
                     ResLog._.Assert(succ, "添加go inst 到 pool 失败 {0}", job.Path.Path);
                     //ResLog._.assert(ResConst.GetIdType(inst_id) == E_RES_TYPE.inst);
-                    if (succ)                    
+                    if (succ)
                         _res_pool.AddUser(job.ResId.Id, res_user);
-                    
+
 
                     //4. 把当前任务发送给下一个
                     _res_pool.RemoveUser(job.ResId.Id, job);

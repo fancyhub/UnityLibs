@@ -14,6 +14,12 @@ namespace FH
         NotDownloaded,
     }
 
+    public interface IAssetRef : ICPtr
+    {
+        bool IsDone { get; }
+        UnityEngine.Object Asset { get; }
+    }
+
     /// <summary>
     /// 需要外部实现该接口
     /// </summary>
@@ -24,11 +30,5 @@ namespace FH
 
         string AtlasTag2Path(string atlasName);
         EAssetStatus GetAssetStatus(string path);
-    }
-
-    public interface IAssetRef : ICPtr
-    {
-        bool IsDone { get; }
-        UnityEngine.Object Asset { get; }
-    }
+    }  
 }
