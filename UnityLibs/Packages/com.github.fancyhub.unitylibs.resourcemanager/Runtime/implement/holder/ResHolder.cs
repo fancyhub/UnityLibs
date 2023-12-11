@@ -86,7 +86,7 @@ namespace FH.Res
             if (_all.TryGetValue(res_path, out var item))
                 return;
 
-            EResError err = mgr.AsyncLoad(path,sprite, priority, _res_event, out int job_id);
+            EResError err = mgr.AsyncLoad(path, sprite, priority, _res_event, out int job_id);
             ResLog._.ErrCode(err);
             if (err == EResError.OK)
             {
@@ -110,8 +110,8 @@ namespace FH.Res
         private void _OnResLoaded(EResError err, string path, EResType resType, int job_id)
         {
             //1. 查找, 如果找不到,说明已经被销毁了
-            ResPath res_path = ResPath.Create(path, resType== EResType.Sprite? true:false);
-            
+            ResPath res_path = ResPath.Create(path, resType == EResType.Sprite ? true : false);
+
             if (!_all.TryGetValue(res_path, out var item) || item.JobId != job_id)
                 return;
 
@@ -129,7 +129,7 @@ namespace FH.Res
 
 
             //3. 添加
-            err = res_mgr.Load(path,res_path.Sprite, false, out var res_ref);
+            err = res_mgr.Load(path, res_path.Sprite, false, out var res_ref);
             ResLog._.ErrCode(err, path);
             if (err != EResError.OK)
             {
@@ -146,7 +146,7 @@ namespace FH.Res
             UnloadAll();
         }
 
-        public void GetAll(List<ResRef> out_list)
+        public void GetAllRes(List<ResRef> out_list)
         {
             foreach (var p in _all)
             {
@@ -157,6 +157,13 @@ namespace FH.Res
 
         public HolderStat GetStat()
         {
+            HolderStat ret = new HolderStat();
+
+            foreach (var p in _all)
+            {
+                ret.Total++;
+
+            }
             return _stat;
         }
     }

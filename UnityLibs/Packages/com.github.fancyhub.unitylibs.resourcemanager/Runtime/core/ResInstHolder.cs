@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 
 namespace FH
-{ 
+{
     public struct HolderStat
     {
         public int Total;
@@ -22,36 +22,33 @@ namespace FH
 
     public interface IResHolder : ICPtr
     {
-        UnityEngine.Object Load(string path,bool sprite);
+        UnityEngine.Object Load(string path, bool sprite);
         void PreLoad(string path, bool sprite, int priority = 0);
-        void GetAll(List<ResRef> out_list);
+        void GetAllRes(List<ResRef> out_list);
         HolderStat GetStat();
     }
 
-    public interface IPreInstHolder :  ICPtr
+    public interface IPreInstHolder : ICPtr
     {
         void PreInst(string path, int count);
         void ClearPreInst();
     }
 
-    public interface IInstRelease: ICPtr
-    {
-        bool Release(GameObject obj);
-        void ReleaseAll();
-    }
-
-    public interface IInstHolder : IInstRelease
-    {
-        GameObject Create(string path);        
-    }
-
-    public interface IEmptyInstHolder : IInstRelease
+    public interface IInstHolder : ICPtr
     {
         GameObject CreateEmpty();
+        GameObject Create(string path);
+
+        bool Release(GameObject obj);
+        void ReleaseAll();
+
+        void GetAllInst(List<ResRef> out_list);
     }
 
+
     //聚合类
-    public interface IResInstHolder : IEmptyInstHolder, IResHolder, IInstHolder, IPreInstHolder
+    public interface IResInstHolder : IResHolder, IInstHolder, IPreInstHolder
     {
-    }     
+        void GetAll(List<ResRef> out_list);
+    }
 }

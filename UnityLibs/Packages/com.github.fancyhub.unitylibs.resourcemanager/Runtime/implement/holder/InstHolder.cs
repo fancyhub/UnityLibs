@@ -10,12 +10,8 @@ using UnityEngine;
 *************************************************************************************/
 namespace FH.Res
 {
-    /// <summary>
-    /// 非独占实例的holder，但是destroy的时候，会清除当前正在用的所有对象
-    /// </summary>
     internal sealed class InstHolder : CPoolItemBase, IInstHolder
     {
-        public const string C_USER = "Holder User";
         private bool _AsyncLoadEnable;
         private CPtr<IResMgr> _ResMgr;
         public MyDict<int, ResRef> _Dict = new MyDict<int, ResRef>();
@@ -54,6 +50,25 @@ namespace FH.Res
             return obj;
         }
 
+        public GameObject CreateEmpty()
+        {
+            IResMgr res_mgr = _ResMgr.Val;
+            if (res_mgr == null)
+                return null;
+
+            EResError err = res_mgr.CreateEmpty(this, out var res_ref);
+            if (err != EResError.OK)
+                return null;
+
+            GameObject obj = res_ref.Get<GameObject>();
+            if (obj == null)
+                return null;
+
+            _Dict.Add(obj.GetInstanceID(), res_ref);
+            return obj;
+        }
+
+
         /// <summary>
         /// 回收一个实例对象
         /// </summary>        
@@ -89,6 +104,14 @@ namespace FH.Res
         protected override void OnPoolRelease()
         {
             ReleaseAll();
+        }
+
+        public void GetAllInst(List<ResRef> out_list)
+        {
+            foreach(var p in _Dict)
+            {
+                out_list.Add(p.Value);
+            }
         }
     }
 }

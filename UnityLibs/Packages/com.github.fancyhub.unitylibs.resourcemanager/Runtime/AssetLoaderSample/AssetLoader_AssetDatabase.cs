@@ -13,6 +13,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
 
 namespace FH.Res.SampleAssetLoader
 {
@@ -184,9 +185,16 @@ namespace FH.Res.SampleAssetLoader
             return string.Empty;
         }
 
-        public bool IsResExist(string path)
+        public EAssetStatus GetAssetStatus(string path)
         {
-            return true;
+            if (!System.IO.File.Exists(path))
+                return EAssetStatus.NotExist;
+            
+            FileInfo fileInfo = new FileInfo(path);
+            if(!fileInfo.FullName.EndsWith(path)) //大小写            
+                return EAssetStatus.NotExist;
+
+            return EAssetStatus.Exist;            
         }
 
         public IAssetRef Load(string path, bool sprite)

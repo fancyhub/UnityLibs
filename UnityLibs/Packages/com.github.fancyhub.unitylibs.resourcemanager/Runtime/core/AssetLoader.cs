@@ -7,6 +7,13 @@
 
 namespace FH
 {
+    public enum EAssetStatus
+    {
+        Exist,
+        NotExist,
+        NotDownloaded,
+    }
+
     /// <summary>
     /// 需要外部实现该接口
     /// </summary>
@@ -16,7 +23,7 @@ namespace FH
         IAssetRef LoadAsync(string path, bool sprite);
 
         string AtlasTag2Path(string atlasName);
-        bool IsResExist(string path);
+        EAssetStatus GetAssetStatus(string path);
     }
 
     public interface IAssetRef : ICPtr

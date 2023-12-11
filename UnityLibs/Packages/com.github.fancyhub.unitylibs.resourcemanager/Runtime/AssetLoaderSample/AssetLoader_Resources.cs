@@ -115,9 +115,9 @@ namespace FH.Res.SampleAssetLoader
             return string.Empty;
         }
 
-        public bool IsResExist(string path)
+        public EAssetStatus GetAssetStatus(string path)
         {
-            return true;
+            return EAssetStatus.Exist;
         }
 
         public IAssetRef Load(string path, bool sprite)

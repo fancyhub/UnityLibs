@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.github.fancyhub.unitylibs.assetbundleloader": {
+      "version": "file:com.github.fancyhub.unitylibs.assetbundleloader",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.github.fancyhub.unitylibs.bitutil": {
       "version": "file:com.github.fancyhub.unitylibs.bitutil",
       "depth": 0,
@@ -67,6 +73,12 @@
     },
     "com.github.fancyhub.unitylibs.resourcemanager": {
       "version": "file:com.github.fancyhub.unitylibs.resourcemanager",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.github.fancyhub.unitylibs.scenemanager": {
+      "version": "file:com.github.fancyhub.unitylibs.scenemanager",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}

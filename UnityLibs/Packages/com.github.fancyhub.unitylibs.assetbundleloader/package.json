@@ -1,0 +1,13 @@
+{
+  "name": "com.github.fancyhub.unitylibs.assetbundleloader",
+  "version": "1.0.0",
+  "displayName": "[fancyhub] Asset Bundle Loader",
+  "description": "Asset Bundle Loader",
+  "unity": "2022.3",
+  "keywords": [],
+  "author": {
+    "name": "fancyhub",
+    "email": "fancy113@msn.com",
+    "url": "https://github.com/fancyhub/UnityLibs"
+  }
+}

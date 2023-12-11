@@ -315,7 +315,7 @@ namespace FH.Res
             }
 
             //2. 异步加载
-            ResJob job = _job_db.CreateJob(ResPath.Create(path,sprite), priority, cb);
+            ResJob job = _job_db.CreateJob(ResPath.Create(path, sprite), priority, cb);
             job.AddWorker(EResWoker.async_load_res);
             job.AddWorker(EResWoker.call_res_event);
 
@@ -325,9 +325,9 @@ namespace FH.Res
             return EResError.OK;
         }
 
-        public bool IsAssetExist(string res_path)
+        public EAssetStatus GetAssetStatus(string res_path)
         {
-            return _asset_loader.IsResExist(res_path);
+            return _asset_loader.GetAssetStatus(res_path);
         }
 
         // 资源的部分,key: path
@@ -465,8 +465,10 @@ namespace FH.Res
                 req_id = 0;
                 return (EResError)EResError.ResMgrImplement_path_null_8;
             }
+
             //2. 检查资源是否存在
-            if (!_asset_loader.IsResExist(path))
+            var asset_status = _asset_loader.GetAssetStatus(path);
+            if (asset_status != EAssetStatus.Exist)
             {
                 req_id = 0;
                 return (EResError)EResError.ResMgrImplement_res_not_exist;

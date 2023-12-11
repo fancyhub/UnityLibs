@@ -24,7 +24,7 @@ namespace FH
     {
         public void Update();
 
-        public bool IsAssetExist(string path);
+        public EAssetStatus GetAssetStatus(string path);
 
         #region Res
         public EResError Load(string path, bool sprite, bool aync_load_enable, out ResRef res_ref);
@@ -67,7 +67,6 @@ namespace FH
             Res.ResInstHolder ret = GPool.New<Res.ResInstHolder>();
             ret._res_holder = Res.ResHolder.Create(mgr, sync_load_enable);
             ret._inst_holder = Res.InstHolder.Create(mgr, sync_load_enable);
-            ret._empty_inst_holder = Res.EmptyInstHolder.Create(mgr);
             ret._pre_inst_holder = Res.PreInstHolder.Create(mgr);
             return ret;
         }
@@ -88,15 +87,15 @@ namespace FH
             _.Val?.Update();
         }
 
-        public static bool IsAssetExist(string path)
+        public static EAssetStatus GetAssetStatus(string path)
         {
             var inst = _.Val;
             if (inst == null)
             {
                 Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
-                return false;
+                return  EAssetStatus.NotExist;
             }
-            return inst.IsAssetExist(path);
+            return inst.GetAssetStatus(path);
         }
 
         #region Res
