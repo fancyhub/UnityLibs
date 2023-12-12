@@ -1,8 +1,8 @@
 {
-  "name": "com.github.fancyhub.unitylibs.assetbundleloader",
+  "name": "com.github.fancyhub.unitylibs.assetbundlemanager",
   "version": "1.0.0",
-  "displayName": "[fancyhub] Asset Bundle Loader",
-  "description": "Asset Bundle Loader",
+  "displayName": "[fancyhub] Asset Bundle Manager",
+  "description": "Asset Bundle Manager",
   "unity": "2022.3",
   "keywords": [],
   "author": {

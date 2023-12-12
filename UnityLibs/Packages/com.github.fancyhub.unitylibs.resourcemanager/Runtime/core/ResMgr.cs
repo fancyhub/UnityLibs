@@ -4,6 +4,7 @@
  * Title   : 
  * Desc    : 
 *************************************************************************************/
+using FH.Res;
 using System.Collections.Generic;
 
 namespace FH
@@ -53,29 +54,15 @@ namespace FH
     {
         private static CPtr<IResMgr> _;
 
-        public static void Destroy()
-        {
-            _.Destroy();
-        }
-
-        public static IResInstHolder CreateHolder(bool sync_load_enable)
-        {
-            IResMgr mgr = _.Val;
-            if (mgr == null)
-                return null;
-
-            Res.ResInstHolder ret = GPool.New<Res.ResInstHolder>();
-            ret._res_holder = Res.ResHolder.Create(mgr, sync_load_enable);
-            ret._inst_holder = Res.InstHolder.Create(mgr, sync_load_enable);
-            ret._pre_inst_holder = Res.PreInstHolder.Create(mgr);
-            return ret;
-        }
-
         public static bool InitMgr(IAssetLoader asset_loader, ResMgrConfig conf)
         {
             if (!_.Null)
+            {
+                Res.ResLog._.Assert(false,"ResMgr 已经存在了");
                 return false;
+            }
 
+            ResLog._ = TagLogger.Create(ResLog._.Tag, conf.LogLevel);
             Res.ResMgrImplement mgr = new Res.ResMgrImplement();
             mgr.Init(asset_loader, conf);
             _ = mgr;
@@ -87,31 +74,68 @@ namespace FH
             _.Val?.Update();
         }
 
+        public static void Destroy()
+        {
+            _.Destroy();
+        }
+
         public static EAssetStatus GetAssetStatus(string path)
         {
             var inst = _.Val;
             if (inst == null)
             {
                 Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
-                return  EAssetStatus.NotExist;
+                return EAssetStatus.NotExist;
             }
             return inst.GetAssetStatus(path);
+        }
+
+        /// <summary>
+        /// 创建一个Holder
+        /// </summary>
+        /// <param name="sync_load_enable">是否允许同步加载</param>
+        /// <param name="share_inst">实例对象是否在多个Holder之间共享</param>
+        /// <returns></returns>
+        public static IResInstHolder CreateHolder(bool sync_load_enable, bool share_inst)
+        {
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return null;
+            }
+
+            Res.ResInstHolder ret = GPool.New<Res.ResInstHolder>();
+            ret._res_holder = Res.ResHolder.Create(inst, sync_load_enable);
+            ret._inst_holder = Res.InstHolder.Create(inst, sync_load_enable, share_inst);
+            ret._pre_inst_holder = Res.PreInstHolder.Create(inst);
+            return ret;
         }
 
         #region Res
         public static EResError Load(string path, bool sprite, bool aync_load_enable, out ResRef res_ref)
         {
-            res_ref = default;
-            var inst = _.Val;
-            if (inst == null) return EResError.ResMgrNotInit;
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                res_ref = default;
+                Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return EResError.ResMgrNotInit;
+            }
+
             return inst.Load(path, sprite, aync_load_enable, out res_ref);
         }
 
         public static EResError AsyncLoad(string path, bool sprite, int priority, ResEvent cb, out int job_id)
         {
-            job_id = default;
-            var inst = _.Val;
-            if (inst == null) return EResError.ResMgrNotInit;
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                job_id = default;
+                Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return EResError.ResMgrNotInit;
+            }
+
             return inst.AsyncLoad(path, sprite, priority, cb, out job_id);
         }
 
@@ -131,16 +155,24 @@ namespace FH
         #region GameObject Inst
         public static EResError Create(string path, System.Object user, bool aync_load_enable, out ResRef res_ref)
         {
-            res_ref = default;
-            var inst = _.Val;
-            if (inst == null) return EResError.ResMgrNotInit;
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                res_ref = default;
+                Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return EResError.ResMgrNotInit;
+            }
             return inst.Create(path, user, aync_load_enable, out res_ref);
         }
         public static EResError AsyncCreate(string path, int priority, ResEvent cb, out int job_id)
         {
-            job_id = default;
-            var inst = _.Val;
-            if (inst == null) return EResError.ResMgrNotInit;
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                job_id = default;
+                Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return EResError.ResMgrNotInit;
+            }
             return inst.AsyncCreate(path, priority, cb, out job_id);
         }
         #endregion
@@ -148,15 +180,23 @@ namespace FH
         #region 预实例化
         public static EResError ReqPreInst(string path, int count, out int req_id)
         {
-            req_id = default;
-            var inst = _.Val;
-            if (inst == null) return EResError.ResMgrNotInit;
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                req_id = default;
+                Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return EResError.ResMgrNotInit;
+            }
             return inst.ReqPreInst(path, count, out req_id);
         }
         public static EResError CancelPreInst(int req_id)
         {
-            var inst = _.Val;
-            if (inst == null) return EResError.ResMgrNotInit;
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return EResError.ResMgrNotInit;
+            }
             return inst.CancelPreInst(req_id);
         }
         #endregion;
@@ -164,9 +204,13 @@ namespace FH
         #region Empty
         public static EResError CreateEmpty(System.Object user, out ResRef res_ref)
         {
-            res_ref = default;
-            var inst = _.Val;
-            if (inst == null) return EResError.ResMgrNotInit;
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                res_ref = default;
+                Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return EResError.ResMgrNotInit;
+            }
             return inst.CreateEmpty(user, out res_ref);
         }
         #endregion

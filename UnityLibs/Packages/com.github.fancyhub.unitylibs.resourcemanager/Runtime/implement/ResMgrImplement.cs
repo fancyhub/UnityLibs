@@ -167,14 +167,14 @@ namespace FH.Res
                 case EResType.Inst:
                     {
                         EResError err3 = _gobj_pool.AddUsage(res_id, user);
-                        ResLog.ErrCode(err3, "add user ，实例类型的资源");
+                        ResLog._.ErrCode(err3, "add user ，实例类型的资源");
                         return err3;
                     }
 
                 case EResType.EmptyInst:
                     {
                         EResError err2 = _empty_go_pool.AddUser(res_id.Id, user);
-                        ResLog.ErrCode(err2, "add user ，Empty 类型的资源");
+                        ResLog._.ErrCode(err2, "add user ，Empty 类型的资源");
                         return err2;
                     }
                 default:
@@ -204,14 +204,14 @@ namespace FH.Res
                 case EResType.Inst:
                     {
                         EResError err3 = _gobj_pool.RemoveUser(res_id, user);
-                        ResLog.ErrCode(err3, "remove user ，实例类型的资源");
+                        ResLog._.ErrCode(err3, "remove user ，实例类型的资源");
                         return err3;
                     }
 
                 case EResType.EmptyInst:
                     {
                         EResError err2 = _empty_go_pool.RemoveUser(res_id.Id, user);
-                        ResLog.ErrCode(err2, "remove user ，Empty 类型的资源");
+                        ResLog._.ErrCode(err2, "remove user ，Empty 类型的资源");
                         return err2;
                     }
                 default:
@@ -242,7 +242,7 @@ namespace FH.Res
 
                 case EResType.EmptyInst:
                     EResError err = _empty_go_pool.Get(res_id.Id, out UnityEngine.GameObject obj);
-                    ResLog.ErrCode(err);
+                    ResLog._.ErrCode(err);
                     return obj;
             }
         }

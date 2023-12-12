@@ -43,7 +43,7 @@ namespace FH.Res
             //1.2 检查数据是否到了
             for (int i = 0; i < res_list.Count; ++i)
             {
-                long time = res_list[i].Value;
+                int time = res_list[i].Value;
                 if (time > expire_time) //还没有到时间                    
                     break;
 
@@ -71,8 +71,8 @@ namespace FH.Res
             //2.2 检查数据是否到了
             for (int i = 0; i < inst_list.Count; ++i)
             {
-                long time = inst_list[i].Value;
-                if (time > expire_time) //还没有到时间                    
+                int time = inst_list[i].Value;
+                if (time > expire_time) //还没有到时间
                     break;
 
                 //2.3 获取路径

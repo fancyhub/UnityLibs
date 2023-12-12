@@ -65,7 +65,7 @@ namespace FH.UI
             EUIBaseViewCreateMode create_mode = EUIBaseViewCreateMode.RootWithoutHolder;
             if (res_holder == null)
             {
-                res_holder = ResMgr.CreateHolder(true);
+                res_holder = ResMgr.CreateHolder(true, false);
                 create_mode = EUIBaseViewCreateMode.RootWithHolder;
             }
 

@@ -10,11 +10,13 @@ using UnityEngine;
 
 namespace FH
 {
-    
+
 
     [Serializable]
     public class ResMgrConfig
     {
+        public ELogLvl LogLevel = ELogLvl.Debug;
+
         /// <summary>
         /// 同时加载资源的数量
         /// </summary>
@@ -27,9 +29,9 @@ namespace FH
         /// 第二步: 先移动到 Enable的节点下面, 再移回Disable的节点下面
         /// </summary>
         [Range(1, 10)]
-        public int MaxAsyncGameObjectStep = 1;        
+        public int MaxAsyncGameObjectStep = 1;
 
-        public GameObjectPreInstConfig PreInst= new GameObjectPreInstConfig();
+        public GameObjectPreInstConfig PreInst = new GameObjectPreInstConfig();
 
         public GCConfig GC = new GCConfig();
 
@@ -91,7 +93,7 @@ namespace FH
             /// <summary>
             /// 一帧最多处理多少个Res
             /// </summary>
-            [Min(1)] 
+            [Min(1)]
             public int MaxInstCountProcess = 40;
 
             /// <summary>

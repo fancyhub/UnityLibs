@@ -267,7 +267,7 @@ namespace FH.Res
         public EResError AddUser(ResPath path, System.Object user, out ResId out_res_id)
         {
             EResError err = GetIdByPath(path, out out_res_id);
-            ResLog.ErrCode(err, path.Path);
+            ResLog._.ErrCode(err, path.Path);
             if (err != EResError.OK)
                 return err;
 

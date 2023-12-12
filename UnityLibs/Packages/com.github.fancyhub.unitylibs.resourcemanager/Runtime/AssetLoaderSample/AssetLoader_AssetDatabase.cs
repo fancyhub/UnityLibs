@@ -117,7 +117,7 @@ namespace FH.Res.SampleAssetLoader
         {
             public UnityEngine.Object _Asset;
             public EditorResRequest _ResRequest;
-            public ResRefDB _ResRef;
+            public ResRefDB _ResRefDB;
             public bool IsDone
             {
                 get
@@ -127,31 +127,31 @@ namespace FH.Res.SampleAssetLoader
                     if (!_ResRequest.isDone)
                         return false;
                     _Asset = _ResRequest.asset;
-                    _ResRef.IncRef(_Asset);
+                    _ResRefDB.IncRef(_Asset);
                     _ResRequest = null;
                     return true;
                 }
             }
 
-            public static AssetRef Create(ResRefDB res_ref, UnityEngine.Object asset)
+            public static AssetRef Create(ResRefDB res_ref_db, UnityEngine.Object asset)
             {
-                if (res_ref == null || asset == null)
+                if (res_ref_db == null || asset == null)
                     return null;
-                res_ref.IncRef(asset);
+                res_ref_db.IncRef(asset);
                 AssetRef ret = GPool.New<AssetRef>();
                 ret._Asset = asset;
-                ret._ResRef = res_ref;
+                ret._ResRefDB = res_ref_db;
                 return ret;
             }
 
-            public static AssetRef Create(ResRefDB res_ref, EditorResRequest request)
+            public static AssetRef Create(ResRefDB res_ref_db, EditorResRequest request)
             {
-                if (res_ref == null || request == null)
+                if (res_ref_db == null || request == null)
                     return null;
 
                 AssetRef ret = GPool.New<AssetRef>();
                 ret._ResRequest = request;
-                ret._ResRef = res_ref;
+                ret._ResRefDB = res_ref_db;
                 return ret;
             }
 
@@ -161,13 +161,17 @@ namespace FH.Res.SampleAssetLoader
             {
                 _ResRequest = null;
                 if (_Asset == null)
+                {
+                    _ResRefDB = null;
                     return;
+                }
 
                 var asset = _Asset;
-                var resRef = _ResRef;
-                _ResRef = null;
+                var resRefDB = _ResRefDB;
+                _ResRefDB = null;
                 _Asset = null;
-                if (resRef.DecRef(asset) >= 0)
+
+                if (resRefDB.DecRef(asset) > 0)
                     return;
 
                 //UnloadAsset may only be used on individual assets and can not be used on GameObject's / Components / AssetBundles or GameManagers
@@ -178,7 +182,7 @@ namespace FH.Res.SampleAssetLoader
         }
 
 
-        public ResRefDB _ResRef = new ResRefDB();
+        public ResRefDB _ResRefDB = new ResRefDB();
 
         public string AtlasTag2Path(string atlasName)
         {
@@ -189,12 +193,12 @@ namespace FH.Res.SampleAssetLoader
         {
             if (!System.IO.File.Exists(path))
                 return EAssetStatus.NotExist;
-            
+
             FileInfo fileInfo = new FileInfo(path);
-            if(!fileInfo.FullName.EndsWith(path)) //大小写            
+            if (!fileInfo.FullName.EndsWith(path)) //大小写            
                 return EAssetStatus.NotExist;
 
-            return EAssetStatus.Exist;            
+            return EAssetStatus.Exist;
         }
 
         public IAssetRef Load(string path, bool sprite)
@@ -215,7 +219,7 @@ namespace FH.Res.SampleAssetLoader
                 }
             }
 
-            return AssetRef.Create(_ResRef, asset);
+            return AssetRef.Create(_ResRefDB, asset);
         }
 
         public IAssetRef LoadAsync(string path, bool sprite)
@@ -225,7 +229,7 @@ namespace FH.Res.SampleAssetLoader
                 return Load(path, sprite);
             }
 
-            return AssetRef.Create(_ResRef, EditorResRequest.LoadAsync(path,sprite));
+            return AssetRef.Create(_ResRefDB, EditorResRequest.LoadAsync(path, sprite));
         }
 
         protected override void OnRelease()

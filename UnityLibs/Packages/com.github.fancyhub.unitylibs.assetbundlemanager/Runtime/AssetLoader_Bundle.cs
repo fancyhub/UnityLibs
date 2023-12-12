@@ -1,18 +1,12 @@
-/*************************************************************************************
- * Author  : cunyu.fan
- * Time    : 2024/12/1 
- * Title   : 
- * Desc    : 
-*************************************************************************************/
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-
-namespace FH.Res.SampleAssetLoader
+namespace FH
 {
-    public class AssetLoader_Resource : CPtrBase, IAssetLoader
+    public class AssetLoader_Bundle : CPtrBase, IAssetLoader
     {
+        public ABMgr _AbMgr;
         public sealed class ResRefDB
         {
             public Dictionary<int, int> _Data = new Dictionary<int, int>();
@@ -47,8 +41,9 @@ namespace FH.Res.SampleAssetLoader
         public sealed class AssetRef : CPoolItemBase, IAssetRef
         {
             public UnityEngine.Object _Asset;
-            public ResourceRequest _ResRequest;
+            public AssetBundleRequest _ResRequest;
             public ResRefDB _ResRefDB;
+            public IBundle _Bundle;
 
             public bool IsDone
             {
@@ -65,25 +60,31 @@ namespace FH.Res.SampleAssetLoader
                 }
             }
 
-            public static AssetRef Create(ResRefDB res_ref_db, UnityEngine.Object asset)
+            public static AssetRef Create(ResRefDB res_ref_db, IBundle bundle, UnityEngine.Object asset)
             {
-                if (res_ref_db == null || asset == null)
+                if (res_ref_db == null || bundle == null || asset == null)
                     return null;
-                res_ref_db.IncRef(asset);
+
                 AssetRef ret = GPool.New<AssetRef>();
-                ret._Asset = asset;
                 ret._ResRefDB = res_ref_db;
+                ret._Asset = asset;
+                ret._Bundle = bundle;
+
+                res_ref_db.IncRef(asset);
+                bundle.IncRef();
                 return ret;
             }
 
-            public static AssetRef Create(ResRefDB res_ref_db, ResourceRequest request)
+            public static AssetRef Create(ResRefDB res_ref_db, IBundle bundle, AssetBundleRequest req)
             {
-                if (res_ref_db == null || request == null)
+                if (bundle == null || res_ref_db == null || req == null)
                     return null;
 
                 AssetRef ret = GPool.New<AssetRef>();
-                ret._ResRequest = request;
                 ret._ResRefDB = res_ref_db;
+                ret._ResRequest = req;
+                ret._Bundle = bundle;
+                bundle.IncRef();
                 return ret;
             }
 
@@ -94,25 +95,38 @@ namespace FH.Res.SampleAssetLoader
                 _ResRequest = null;
                 if (_Asset == null)
                 {
+                    _Bundle?.DecRef();
+                    _Bundle = null;
                     _ResRefDB = null;
                     return;
                 }
 
                 var asset = _Asset;
                 var resRefDB = _ResRefDB;
+                var bundle = _Bundle;
                 _ResRefDB = null;
                 _Asset = null;
+                _Bundle = null;
 
-                if (resRefDB.DecRef(asset) > 0)
-                    return;
-                //UnloadAsset may only be used on individual assets and can not be used on GameObject's / Components / AssetBundles or GameManagers
-                if (asset is GameObject)
-                    return;
-                Resources.UnloadAsset(asset);
+                if (resRefDB.DecRef(asset) <= 0)
+                {
+                    //UnloadAsset may only be used on individual assets and can not be used on GameObject's / Components / AssetBundles or GameManagers
+                    if (!(asset is GameObject))
+                    {
+                        Resources.UnloadAsset(asset);
+                    }
+                }
+
+                bundle?.DecRef();
             }
         }
 
         public ResRefDB _ResRefDB = new ResRefDB();
+
+        public AssetLoader_Bundle(ABMgr ab_mgr)
+        {
+            _AbMgr = ab_mgr;
+        }
 
         public string AtlasTag2Path(string atlasName)
         {
@@ -126,18 +140,37 @@ namespace FH.Res.SampleAssetLoader
 
         public IAssetRef Load(string path, bool sprite)
         {
-            if (!sprite)
-                return AssetRef.Create(_ResRefDB, Resources.Load(path));
+            IBundle bundle = _AbMgr.LoadBundleByAsset(path);
+            if (bundle == null)
+                return null;
+
+            UnityEngine.Object asset = null;
+            if (sprite)
+                asset = bundle.LoadAsset<Sprite>(path);
             else
-                return AssetRef.Create(_ResRefDB, Resources.Load<Sprite>(path));
+                asset = bundle.LoadAsset<UnityEngine.Object>(path);
+
+            AssetRef ret = AssetRef.Create(_ResRefDB, bundle, asset);
+
+            bundle.DecRef();
+            return ret;
         }
 
         public IAssetRef LoadAsync(string path, bool sprite)
         {
-            if (!sprite)
-                return AssetRef.Create(_ResRefDB, Resources.LoadAsync(path));
+            IBundle bundle = _AbMgr.LoadBundleByAsset(path);
+            if (bundle == null)
+                return null;
+
+            UnityEngine.AssetBundleRequest req = null;
+            if (sprite)
+                req = bundle.LoadAssetAsync<Sprite>(path);
             else
-                return AssetRef.Create(_ResRefDB, Resources.LoadAsync<Sprite>(path));
+                req = bundle.LoadAssetAsync<UnityEngine.Object>(path);
+            AssetRef ret = AssetRef.Create(_ResRefDB, bundle, req);
+
+            bundle.DecRef();
+            return ret;
         }
 
         protected override void OnRelease()
@@ -145,5 +178,4 @@ namespace FH.Res.SampleAssetLoader
 
         }
     }
-
 }

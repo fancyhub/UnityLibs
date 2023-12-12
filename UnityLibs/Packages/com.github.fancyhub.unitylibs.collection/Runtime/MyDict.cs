@@ -126,7 +126,7 @@ namespace FH
                 if (_end || _dict == null)
                     return false;
 
-                _node = _next_node(_dict._child_keys, _node);
+                _node = _NextNode(_dict._child_keys, _node);
                 if (_node == null)
                 {
                     _end = true;
@@ -141,7 +141,7 @@ namespace FH
                 _node = null;
             }
 
-            private LinkedListNode<InnerVal> _next_node(LinkedList<InnerVal> list, LinkedListNode<InnerVal> node)
+            private LinkedListNode<InnerVal> _NextNode(LinkedList<InnerVal> list, LinkedListNode<InnerVal> node)
             {
                 if (node == null)
                     node = list.First;

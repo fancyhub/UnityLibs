@@ -521,6 +521,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Config:
+    LogLevel: 0
     MaxAsyncResLoaderSlot: 5
     MaxAsyncGameObjectStep: 1
     PreInst:
@@ -530,7 +531,7 @@ MonoBehaviour:
       MaxResCountProcess: 20
       ResWaitFrameCount: 5
       MaxInstCountProcess: 40
-      InstWaitFrameCount: 10
+      InstWaitFrameCount: 246
 --- !u!4 &1811144036
 Transform:
   m_ObjectHideFlags: 0

@@ -9,8 +9,9 @@ public class ResMgr : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        //FH.ResMgr.InitMgr(new FH.Res.SampleAssetLoader.AssetLoader_Resource(), new FH.ResMgrConfig());
-        FH.ResMgr.InitMgr(new FH.Res.SampleAssetLoader.AssetLoader_AssetDatabase(), new FH.ResMgrConfig());
+        UnityEngine.Application.targetFrameRate = 30;
+        //FH.ResMgr.InitMgr(new FH.Res.SampleAssetLoader.AssetLoader_Resource(), Config);
+        FH.ResMgr.InitMgr(new FH.Res.SampleAssetLoader.AssetLoader_AssetDatabase(), Config);
     }
 
     // Update is called once per frame

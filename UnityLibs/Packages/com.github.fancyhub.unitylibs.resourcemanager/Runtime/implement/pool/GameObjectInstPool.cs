@@ -159,15 +159,15 @@ namespace FH.Res
             {
                 _pool.Add(id, pool_val);
                 path = null;
-                ResLog._.Assert(false, "有人正在使用，不能移除 {0}", path);
+                ResLog._.Assert(false, "有人正在使用，不能移除 {0} {1}",id.Id, path);
                 return false;
             }
 
             //3. 从 lru里面移除
             succ = _lru_free_list.Remove(id, out int _);
-            ResLog._.Assert(succ, "从lru list 移除失败 {0}", path);
+            ResLog._.Assert(succ, "从lru list 移除失败 {0} {1}", id.Id, path);
             succ = _index_by_path.RemoveVal(id);
-            ResLog._.Assert(succ, "从 index_by_path 移除失败 {0}", path);
+            ResLog._.Assert(succ, "从 index_by_path 移除失败 {0} {1}", id.Id, path);
 
             //4. 获取参数
             pool_val.Destroy();
@@ -180,7 +180,7 @@ namespace FH.Res
             bool suc = _pool.TryGetValue(id, out GameObjectInstItem pool_val);
             if (!suc)
             {
-                ResLog._.Assert(false, "该对象已经被释放了，需要外面持有引用");
+                ResLog._.Assert(false, "该对象已经被释放了，需要外面持有引用 {0}",id.Id);
                 return null;
             }
 
@@ -188,7 +188,7 @@ namespace FH.Res
             {
                 if (pool_val.GetUserCount() == 0)
                 {
-                    ResLog._.Assert(false, "该对象已经回收了，需要外面持有引用 {0}", pool_val._path);
+                    ResLog._.Assert(false, "该对象已经回收了，需要外面持有引用 {0} {1}",id.Id, pool_val._path);
                     return null;
                 }
             }
@@ -221,6 +221,7 @@ namespace FH.Res
                     //不报错误了，因为是可能的
                     return (EResError)EResError.GameObjectInstPool_no_free_inst;
                 }
+
                 //3. 设置user                
                 suc = _pool.TryGetValue(id, out GameObjectInstItem pool_val);
                 ResLog._.Assert(suc, "获取失败 {0}", path);
@@ -228,7 +229,7 @@ namespace FH.Res
                 if (pool_val._inst == null)
                 {
                     //等待GC 来销毁
-                    ResLog._.Assert(false, "有对象不正常的被销毁了 {0}", path);
+                    ResLog._.Assert(false, "有对象不正常的被销毁了 {0} {1}", id.Id, path);
                     continue;
                 }
 

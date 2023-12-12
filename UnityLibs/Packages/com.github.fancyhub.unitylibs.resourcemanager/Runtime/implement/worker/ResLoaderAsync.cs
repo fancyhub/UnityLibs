@@ -114,7 +114,7 @@ namespace FH.Res
             if (asset_status != EAssetStatus.Exist)
             {
                 job.ErrorCode = EResError.ResLoaderAsync_res_not_exist;
-                ResLog.ErrCode(job.ErrorCode, $"资源不存在 {job.Path.Path} {asset_status}");
+                ResLog._.ErrCode(job.ErrorCode, $"资源不存在 {job.Path.Path} {asset_status}");
 
                 //直接发到下一个
                 _msg_queue.SendJobNext(job);
@@ -142,7 +142,7 @@ namespace FH.Res
                 //1.2 添加到pool里面
                 ResLog._.D("load res async {0}", task._path);
                 EResError error_code = _res_pool.AddRes(task._path, task._asset_request, out ResId _);
-                ResLog.ErrCode(error_code, $"添加资源失败 {task._path}");
+                ResLog._.ErrCode(error_code, $"添加资源失败 {task._path}");
                 if (error_code != EResError.OK)
                 {
                     task._asset_request.Destroy();

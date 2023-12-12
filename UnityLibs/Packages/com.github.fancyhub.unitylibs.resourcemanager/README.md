@@ -18,6 +18,7 @@
 2. 不支持一个 Texture 多个Sprite的资源, 只能加载第一个sprite, 如果确实需要多个Sprite, 自己写一个ScriptableObject 持有多个引用
 3. 理论上支持 异步Atlas加载, 但是内存释放的时机不确定, 所以会出现不可控的问题, 最好是Atlas 勾选include in build
 4. 最好是使用ResInstHolder,可以查看最外层代码 FH.UI.UIBaseView.CreateView, 比如 一个角色用一个 ResInstHolder, 一个UI页面用一个ResInstHolder, 该页面的相关的资源加载都通过该ResInstHolder, UI关闭之后, 直接 ResInstHolder.Destroy()
+5. 回收 GameObjectInst的时候, 如果一个组件实现了FH.IDynamicComponent, 会被调用 OnDynamicRelease 方法
 
 ## 入口类 FH.ResMgr
 
