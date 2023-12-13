@@ -502,7 +502,7 @@ GameObject:
   - component: {fileID: 1811144036}
   - component: {fileID: 1811144035}
   m_Layer: 0
-  m_Name: ResMgr
+  m_Name: ResService
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -521,7 +521,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Config:
-    LogLevel: 0
+    LogLevel: 1
     MaxAsyncResLoaderSlot: 5
     MaxAsyncGameObjectStep: 1
     PreInst:

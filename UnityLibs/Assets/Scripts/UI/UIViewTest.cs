@@ -25,6 +25,7 @@ public class UIViewTest : MonoBehaviour
             _view = FH.UI.UIBaseView.CreateView<FH.UI.UIPanelVariantView>(this.transform);
             _view._btn_0.OnClick = _onClose;
 
+            var a1 = FH.ResMgr.Load("Assets/Resources/UI/Sprite/btn_disable1.png");
             var a = FH.ResMgr.Load("Assets/Resources/UI/Sprite/btn_disable.png");
             var b = FH.ResMgr.LoadSprite("Assets/Resources/UI/Sprite/btn_disable.png");
 

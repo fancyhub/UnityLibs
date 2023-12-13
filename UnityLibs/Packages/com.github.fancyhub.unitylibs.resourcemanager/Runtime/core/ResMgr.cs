@@ -124,7 +124,7 @@ namespace FH
             }
 
             var err = inst.Load(path, true, aync_load_enable, out var res_ref);
-            Res.ResLog._.ErrCode(err);
+            Res.ResLog._.ErrCode(err, path);
             return res_ref;
         }
 
@@ -138,7 +138,7 @@ namespace FH
             }
 
             var err = inst.Load(path, false, aync_load_enable, out var res_ref);
-            Res.ResLog._.ErrCode(err);
+            Res.ResLog._.ErrCode(err, path);
             return res_ref;
         }
 
@@ -152,7 +152,9 @@ namespace FH
                 return EResError.ResMgrNotInit;
             }
 
-            return inst.AsyncLoad(path, sprite, priority, cb, out job_id);
+            var err = inst.AsyncLoad(path, sprite, priority, cb, out job_id);
+            Res.ResLog._.ErrCode(err, path);
+            return err;
         }
 
         public static void ResSnapshot(ref List<ResSnapShotItem> out_snapshot)
@@ -178,7 +180,7 @@ namespace FH
                 return default;
             }
             var err = inst.Create(path, user, aync_load_enable, out var res_ref);
-            Res.ResLog._.ErrCode(err);
+            Res.ResLog._.ErrCode(err, path);
             return res_ref;
         }
         public static EResError AsyncCreate(string path, int priority, ResEvent cb, out int job_id)
@@ -190,7 +192,9 @@ namespace FH
                 Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return EResError.ResMgrNotInit;
             }
-            return inst.AsyncCreate(path, priority, cb, out job_id);
+            var err = inst.AsyncCreate(path, priority, cb, out job_id);
+            Res.ResLog._.ErrCode(err, path);
+            return err;
         }
         #endregion
 
@@ -204,7 +208,9 @@ namespace FH
                 Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return EResError.ResMgrNotInit;
             }
-            return inst.ReqPreInst(path, count, out req_id);
+            var err = inst.ReqPreInst(path, count, out req_id);
+            Res.ResLog._.ErrCode(err, path);
+            return err;
         }
         public static EResError CancelPreInst(int req_id)
         {
@@ -214,21 +220,24 @@ namespace FH
                 Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return EResError.ResMgrNotInit;
             }
-            return inst.CancelPreInst(req_id);
+            var err = inst.CancelPreInst(req_id);
+            Res.ResLog._.ErrCode(err);
+            return err;
         }
         #endregion;
 
         #region Empty
-        public static EResError CreateEmpty(System.Object user, out ResRef res_ref)
+        public static ResRef CreateEmpty(System.Object user)
         {
             IResMgr inst = _.Val;
             if (inst == null)
             {
-                res_ref = default;
                 Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
-                return EResError.ResMgrNotInit;
+                return default;
             }
-            return inst.CreateEmpty(user, out res_ref);
+            var err = inst.CreateEmpty(user, out var res_ref);
+            Res.ResLog._.ErrCode(err);
+            return res_ref;
         }
         #endregion
 
