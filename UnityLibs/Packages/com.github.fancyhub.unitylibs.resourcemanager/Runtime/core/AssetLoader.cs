@@ -5,6 +5,7 @@
  * Desc    : 
 *************************************************************************************/
 
+ 
 namespace FH
 {
     public enum EAssetStatus
@@ -29,6 +30,7 @@ namespace FH
         IAssetRef LoadAsync(string path, bool sprite);
 
         string AtlasTag2Path(string atlasName);
+
         EAssetStatus GetAssetStatus(string path);
-    }  
+    }
 }

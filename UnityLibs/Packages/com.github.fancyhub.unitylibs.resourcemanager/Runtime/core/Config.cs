@@ -10,8 +10,6 @@ using UnityEngine;
 
 namespace FH
 {
-
-
     [Serializable]
     public class ResMgrConfig
     {

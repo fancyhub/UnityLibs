@@ -58,7 +58,7 @@ namespace FH
         {
             if (!_.Null)
             {
-                Res.ResLog._.Assert(false,"ResMgr 已经存在了");
+                Res.ResLog._.Assert(false, "ResMgr 已经存在了");
                 return false;
             }
 
@@ -113,17 +113,33 @@ namespace FH
         }
 
         #region Res
-        public static EResError Load(string path, bool sprite, bool aync_load_enable, out ResRef res_ref)
+
+        public static ResRef LoadSprite(string path, bool aync_load_enable = true)
         {
             IResMgr inst = _.Val;
             if (inst == null)
             {
-                res_ref = default;
                 Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
-                return EResError.ResMgrNotInit;
+                return default;
             }
 
-            return inst.Load(path, sprite, aync_load_enable, out res_ref);
+            var err = inst.Load(path, true, aync_load_enable, out var res_ref);
+            Res.ResLog._.ErrCode(err);
+            return res_ref;
+        }
+
+        public static ResRef Load(string path, bool aync_load_enable = true)
+        {
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return default;
+            }
+
+            var err = inst.Load(path, false, aync_load_enable, out var res_ref);
+            Res.ResLog._.ErrCode(err);
+            return res_ref;
         }
 
         public static EResError AsyncLoad(string path, bool sprite, int priority, ResEvent cb, out int job_id)
@@ -153,16 +169,17 @@ namespace FH
         #endregion
 
         #region GameObject Inst
-        public static EResError Create(string path, System.Object user, bool aync_load_enable, out ResRef res_ref)
+        public static ResRef Create(string path, System.Object user, bool aync_load_enable)
         {
             IResMgr inst = _.Val;
             if (inst == null)
             {
-                res_ref = default;
                 Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
-                return EResError.ResMgrNotInit;
+                return default;
             }
-            return inst.Create(path, user, aync_load_enable, out res_ref);
+            var err = inst.Create(path, user, aync_load_enable, out var res_ref);
+            Res.ResLog._.ErrCode(err);
+            return res_ref;
         }
         public static EResError AsyncCreate(string path, int priority, ResEvent cb, out int job_id)
         {

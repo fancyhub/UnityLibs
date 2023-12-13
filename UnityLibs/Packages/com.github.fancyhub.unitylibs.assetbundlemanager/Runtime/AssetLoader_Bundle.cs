@@ -1,3 +1,10 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2023/12/12
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,7 +13,7 @@ namespace FH
 {
     public class AssetLoader_Bundle : CPtrBase, IAssetLoader
     {
-        public ABMgr _AbMgr;
+        public CPtr<IBundleMgr> _BundleMgr;
         public sealed class ResRefDB
         {
             public Dictionary<int, int> _Data = new Dictionary<int, int>();
@@ -71,7 +78,7 @@ namespace FH
                 ret._Bundle = bundle;
 
                 res_ref_db.IncRef(asset);
-                bundle.IncRef();
+                bundle.IncRefCount();
                 return ret;
             }
 
@@ -84,7 +91,7 @@ namespace FH
                 ret._ResRefDB = res_ref_db;
                 ret._ResRequest = req;
                 ret._Bundle = bundle;
-                bundle.IncRef();
+                bundle.IncRefCount();
                 return ret;
             }
 
@@ -95,7 +102,7 @@ namespace FH
                 _ResRequest = null;
                 if (_Asset == null)
                 {
-                    _Bundle?.DecRef();
+                    _Bundle?.DecRefCount();
                     _Bundle = null;
                     _ResRefDB = null;
                     return;
@@ -117,15 +124,15 @@ namespace FH
                     }
                 }
 
-                bundle?.DecRef();
+                bundle?.DecRefCount();
             }
         }
 
         public ResRefDB _ResRefDB = new ResRefDB();
 
-        public AssetLoader_Bundle(ABMgr ab_mgr)
+        public AssetLoader_Bundle(IBundleMgr bundle_mgr)
         {
-            _AbMgr = ab_mgr;
+            _BundleMgr = new CPtr<IBundleMgr>(bundle_mgr);
         }
 
         public string AtlasTag2Path(string atlasName)
@@ -135,12 +142,27 @@ namespace FH
 
         public EAssetStatus GetAssetStatus(string path)
         {
-            return EAssetStatus.Exist;
+            IBundleMgr bundleMgr = _BundleMgr.Val;
+            if (bundleMgr == null)
+                return EAssetStatus.NotExist;
+
+            IBundle bundle = bundleMgr.GetBundleByAsset(path);
+            if (bundle == null)
+                return EAssetStatus.NotExist;
+            if (bundle.IsDownloaded())
+                return EAssetStatus.Exist;
+            else
+                return EAssetStatus.NotDownloaded;
         }
 
         public IAssetRef Load(string path, bool sprite)
         {
-            IBundle bundle = _AbMgr.LoadBundleByAsset(path);
+            IBundleMgr bundleMgr = _BundleMgr.Val;
+            if (bundleMgr == null)
+                return null;
+
+
+            IBundle bundle = bundleMgr.LoadBundleByAsset(path);
             if (bundle == null)
                 return null;
 
@@ -152,13 +174,17 @@ namespace FH
 
             AssetRef ret = AssetRef.Create(_ResRefDB, bundle, asset);
 
-            bundle.DecRef();
+            bundle.DecRefCount();
             return ret;
         }
 
         public IAssetRef LoadAsync(string path, bool sprite)
         {
-            IBundle bundle = _AbMgr.LoadBundleByAsset(path);
+            IBundleMgr bundleMgr = _BundleMgr.Val;
+            if (bundleMgr == null)
+                return null;
+
+            IBundle bundle = bundleMgr.LoadBundleByAsset(path);
             if (bundle == null)
                 return null;
 
@@ -169,7 +195,7 @@ namespace FH
                 req = bundle.LoadAssetAsync<UnityEngine.Object>(path);
             AssetRef ret = AssetRef.Create(_ResRefDB, bundle, req);
 
-            bundle.DecRef();
+            bundle.DecRefCount();
             return ret;
         }
 
