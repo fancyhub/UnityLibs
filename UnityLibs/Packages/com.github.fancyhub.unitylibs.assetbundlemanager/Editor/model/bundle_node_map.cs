@@ -1,0 +1,581 @@
+using System.Collections.Generic;
+using System.Text;
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2021/5/17 14:10:55
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
+namespace FH.AssetBundleManager.Builder
+{
+    public class BundleNodeMap
+    {
+        private HashSet<BundleNode> _nodes_map = new HashSet<BundleNode>();
+        private BundleNodeMapAdd _node_add;
+
+        public BundleNodeMap()
+        {
+            _node_add = new BundleNodeMapAdd(_nodes_map);
+        }
+
+        public BundleNode Add(AssetObject obj, string ab_name)
+        {
+            return _node_add.Add(obj, ab_name);
+        }
+
+        public void Build()
+        {
+            new BundleNodeMapBuilder(_nodes_map).Build();
+        }
+
+        public BundleNode FindNode(string name)
+        {
+            foreach (BundleNode node in _nodes_map)
+            {
+                if (node.GetNodeName() == name)
+                    return node;
+            }
+            return null;
+
+        }
+
+        public HashSet<AssetObject> GetAllAssetObjects()
+        {
+            HashSet<AssetObject> ret = new HashSet<AssetObject>();
+            foreach (BundleNode node in _nodes_map)
+            {
+                foreach (AssetObject obj in node)
+                {
+                    ret.Add(obj);
+                }
+
+                foreach (AssetObject obj in node._dep_objs)
+                {
+                    ret.Add(obj);
+                }
+            }
+            return ret;
+        }
+
+        public HashSet<string> GetAllFiles()
+        {
+            HashSet<AssetObject> all_objs = GetAllAssetObjects();
+            //unity 的版本不支持这种写法
+            //HashSet<string> ret = new HashSet<string>(all_objs.Count);
+            HashSet<string> ret = new HashSet<string>();
+            foreach (AssetObject obj in all_objs)
+            {
+                ret.Add(obj._file_path);
+            }
+            return ret;
+        }
+
+        #region 私有类
+        private class BundleNodeMapAdd
+        {
+            private HashSet<BundleNode> _node_set;
+            private Dictionary<string, BundleNode> _name_node_dict = new Dictionary<string, BundleNode>();
+            private Dictionary<AssetObject, BundleNode> _obj_main_nodes = new Dictionary<AssetObject, BundleNode>();
+
+            public BundleNodeMapAdd(HashSet<BundleNode> node_set)
+            {
+                _node_set = node_set;
+            }
+
+            public BundleNode Add(AssetObject obj, string ab_name)
+            {
+                BundleNode node = _find_node_by_name(ab_name);
+                if (null == node)
+                {
+                    node = new BundleNode(ab_name);
+                    _name_node_dict.Add(ab_name, node);
+                    _node_set.Add(node);
+                    node._is_scene_node = obj.IsSceneObj();
+                }
+
+                _Add(obj, node);
+                if (null != obj._cycle_deps_objs)
+                {
+                    foreach (var a in obj._cycle_deps_objs)
+                    {
+                        _Add(a, node);
+                    }
+                }
+                return node;
+            }
+
+            private void _Add(AssetObject obj, BundleNode node)
+            {
+                //判断 该obj 是否已经加到了 node里面
+                BundleNode orig_node = _find_node_by_obj(obj);
+                if (orig_node != null)
+                {
+                    //如果已经加进去了，就直接返回
+                    if (node == orig_node)
+                        return;
+
+                    string msg = string.Format("File Is In {0},conflict with {1}, {2}"
+                        , orig_node.GetNodeName()
+                        , node.GetNodeName()
+                        , obj._file_path);
+
+                    BuilderLog.Error(msg);
+                    throw new System.Exception(msg);
+                }
+
+                if (node._is_scene_node != obj.IsSceneObj())
+                {
+                    string msg = null;
+                    if (node._is_scene_node)
+                        msg = string.Format("{0} is scene node, can't add {1}", node.GetNodeName(), obj._file_path);
+                    else
+                        msg = string.Format("{0} is not scene node, can't add {1}", node.GetNodeName(), obj._file_path);
+
+                    BuilderLog.Error(msg);
+                    throw new System.Exception(msg);
+                }
+                _obj_main_nodes.Add(obj, node);
+                node.AddMainObj(obj);
+            }
+
+            private BundleNode _find_node_by_obj(AssetObject obj)
+            {
+                BundleNode ret = null;
+                _obj_main_nodes.TryGetValue(obj, out ret);
+                return ret;
+            }
+
+            private BundleNode _find_node_by_name(string ab_name)
+            {
+                BundleNode ret = null;
+                _name_node_dict.TryGetValue(ab_name, out ret);
+                return ret;
+            }
+        }
+
+        public class BundleNodeMapBuilder
+        {
+            private HashSet<BundleNode> _nodes_map;
+            private HashSet<AssetObject> _all_deps_objs = new HashSet<AssetObject>();
+            private BundleNodeDepCheck _cycle_dep_checker = new BundleNodeDepCheck();
+
+            //这个属性和 node对象的 _main_objs 对应
+            private Dictionary<AssetObject, BundleNode> _obj_main_nodes = new Dictionary<AssetObject, BundleNode>();
+
+            //这个属性和node对象的_dep_objs 对应
+            private Dictionary<AssetObject, HashSet<BundleNode>> _obj_owner_nodes = new Dictionary<AssetObject, HashSet<BundleNode>>();
+
+            public BundleNodeMapBuilder(HashSet<BundleNode> node_set)
+            {
+                _nodes_map = node_set;
+            }
+
+            public void Build()
+            {
+                //step 1: 设置所有的main nodes
+                foreach (BundleNode a in _nodes_map)
+                {
+                    foreach (var b in a._main_objs)
+                    {
+                        _set_main_node(b, a);
+                    }
+                }
+
+
+                //step 2: 建立Node 之间的依赖关系
+                foreach (BundleNode node in _nodes_map)
+                {
+                    foreach (AssetObject obj in node._main_objs)
+                    {
+                        foreach (AssetObject sub_obj in obj._dep_objs)
+                        {
+                            BundleNode main_node = _get_main_node(sub_obj);
+                            if (main_node == null)
+                                continue;
+                            if (main_node == node)
+                                continue;
+                            node._dep_nodes.Add(main_node);
+                        }
+                    }
+                }
+                _cycle_dep_checker.HasCycleDep(_nodes_map);
+
+
+                //Step3 : 把所有的依赖加到节点里面
+                foreach (BundleNode self_node in _nodes_map)
+                {
+                    _fill_dep_objs(self_node);
+                }
+                _cycle_dep_checker.HasCycleDep(_nodes_map);
+
+                //Step4: 分割节点
+                bool result = _process_split();
+                //_cycle_dep_checker.HasCycleDep(_nodes_map);
+                while (result)
+                {
+                    result = _process_split();
+                    //_cycle_dep_checker.HasCycleDep(_nodes_map);
+                }
+
+                //Step5: 把场景类型的节点下面的资源单独作为一个包
+                HashSet<BundleNode> temp = new HashSet<BundleNode>();
+                foreach (BundleNode self_node in _nodes_map)
+                {
+                    if (!self_node.IsSceneNode())
+                        continue;
+
+                    List<AssetObject> dep_objs = self_node.GetDepObjs();
+                    if (dep_objs.Count == 0)
+                        continue;
+
+                    BundleNode new_node = new BundleNode(null);
+                    temp.Add(new_node);
+
+                    new_node._is_scene_node = false;
+                    foreach (AssetObject obj in dep_objs)
+                    {
+                        HashSet<BundleNode> owner_nodes_set = _get_owner_node_set(obj);
+                        BuilderLog.Assert(owner_nodes_set.Count == 1);
+                        new_node.AddMainObj(obj);
+                        _set_main_node(obj, new_node);
+                        owner_nodes_set.Clear();
+                    }
+
+                    dep_objs.Clear();
+                    HashSet<BundleNode> dep_nodes = self_node.GetDepNodes();
+                    dep_nodes.Clear();
+                }
+
+                foreach (var a in temp)
+                {
+                    _nodes_map.Add(a);
+                }
+
+                //6. 重建依赖关系
+                foreach (var a in _nodes_map)
+                {
+                    _build_node_dep_nodes(a);
+                }
+
+                _cycle_dep_checker.HasCycleDep(_nodes_map);
+            }
+
+            //建立 node 的依赖node
+            private void _build_node_dep_nodes(BundleNode self_node)
+            {
+                HashSet<BundleNode> dep_nodes = self_node.GetDepNodes();
+                dep_nodes.Clear();
+                foreach (AssetObject a in self_node)
+                {
+                    foreach (var b in a._dep_objs)
+                    {
+                        var node = _get_main_node(b);
+                        if (null != node)
+                        {
+                            if (node != self_node)
+                            {
+                                dep_nodes.Add(node);
+                            }
+                            continue;
+                        }
+
+                        var owner_nodes_set = _get_owner_node_set(b);
+                        BuilderLog.Assert(owner_nodes_set.Count == 1);
+                        foreach (var c in owner_nodes_set)
+                        {
+                            if (c != self_node)
+                            {
+                                dep_nodes.Add(c);
+                            }
+                        }
+                    }
+                }
+            }
+
+            private BundleNode _get_main_node(AssetObject obj)
+            {
+                BundleNode ret = null;
+                _obj_main_nodes.TryGetValue(obj, out ret);
+                return ret;
+            }
+
+            private void _set_main_node(AssetObject obj, BundleNode node)
+            {
+                _obj_main_nodes.Add(obj, node);
+            }
+
+            private void _replace_main_node(AssetObject obj, BundleNode node)
+            {
+                if (!_obj_main_nodes.ContainsKey(obj))
+                    throw new System.Exception();
+
+                _obj_main_nodes.Add(obj, node);
+            }
+
+
+            private HashSet<BundleNode> _get_owner_node_set(AssetObject obj)
+            {
+                HashSet<BundleNode> ret = null;
+                _obj_owner_nodes.TryGetValue(obj, out ret);
+                if (null == ret)
+                {
+                    ret = new HashSet<BundleNode>();
+                    _obj_owner_nodes.Add(obj, ret);
+                }
+                return ret;
+            }
+
+
+            private void _fill_dep_objs(BundleNode self_node)
+            {
+                BuilderLog.Assert(self_node.GetDepObjs().Count == 0);
+
+                _all_deps_objs.Clear();
+                foreach (AssetObject self_obj in self_node.GetMainObjs())
+                {
+                    self_obj.GetAllDepObjs(_all_deps_objs);
+                }
+
+                foreach (AssetObject dep in _all_deps_objs)
+                {
+                    BundleNode node = _get_main_node(dep);
+                    //如果不在 main_objs 里面，就加到自己节点里面的依赖objs里面
+                    if (node == null)
+                    {
+                        self_node.AddDepObj(dep);
+                        HashSet<BundleNode> dep_owner_nodes_set = _get_owner_node_set(dep);
+                        dep_owner_nodes_set.Add(self_node);
+                        continue;
+                    }
+
+                    if (node == self_node)
+                        continue;
+
+                    //如果已经在 某个Node 里面的 main_objs 了,那么该node 就是自己的依赖node
+                    //一定要检查是否出现了 循环依赖
+                    self_node._dep_nodes.Add(node);
+                }
+            }
+
+            private bool _process_split()
+            {
+                HashSet<AssetObject> all_deps_objs = new HashSet<AssetObject>();
+
+                //Step 1: 把节点里面的依赖obj，判断是否在依赖的节点里面，如果在就移除出去
+                foreach (BundleNode self_node in _nodes_map)
+                {
+                    //如果标记位表示不需要处理，就ignore
+                    if (!self_node._flag_need_process) continue;
+
+                    all_deps_objs.Clear();
+                    foreach (AssetObject obj in self_node.GetDepObjs())
+                    {
+                        if (self_node.IsObjInDepNodes(obj))
+                        {
+                            all_deps_objs.Add(obj);
+                        }
+                    }
+
+                    foreach (AssetObject obj in all_deps_objs)
+                    {
+                        HashSet<BundleNode> owner_node_set = _get_owner_node_set(obj);
+                        self_node.RemoveDepObj(obj);
+                        BuilderLog.Assert(owner_node_set.Count > 1);
+                        owner_node_set.Remove(self_node);
+                    }
+                }
+
+                //Step 2: 遍历每个node，检查所依赖的obj是否被多个node所依赖，如果是被多个的话，就变成一个独立的新节点
+                Dictionary<string, HashSet<AssetObject>> temp = new Dictionary<string, HashSet<AssetObject>>();
+                List<int> temp_ids = new List<int>();
+                StringBuilder sb = new StringBuilder();
+
+                //把所有的节点，按照被引用的node的ids的字符串作为key
+                //ids按照从小到达排序
+                //按照这个key来分组，一个组就是一个新的节点
+                foreach (BundleNode self_node in _nodes_map)
+                {
+                    if (!self_node._flag_need_process)
+                        continue;
+
+                    bool found = false;
+                    foreach (AssetObject obj in self_node.GetDepObjs())
+                    {
+                        HashSet<BundleNode> obj_owner_nodes_set = _get_owner_node_set(obj);
+                        BuilderLog.Assert(obj_owner_nodes_set.Count > 0);
+                        //被多个依赖的，单独拎出来
+                        if (obj_owner_nodes_set.Count > 1)
+                        {
+                            temp_ids.Clear();
+                            foreach (BundleNode s in obj_owner_nodes_set)
+                            {
+                                temp_ids.Add(s._id);
+                            }
+                            temp_ids.Sort();
+
+                            sb.Clear();
+                            for (int i = 0; i < temp_ids.Count; i++)
+                            {
+                                sb.Append(temp_ids[i].ToString());
+                                sb.Append(',');
+                            }
+                            string key = sb.ToString();
+
+                            HashSet<AssetObject> set = null;
+                            temp.TryGetValue(key, out set);
+                            if (set == null)
+                            {
+                                set = new HashSet<AssetObject>();
+                                set.Add(obj);
+                                temp.Add(key, set);
+                            }
+                            else
+                                set.Add(obj);
+                            found = true;
+                        }
+                    }
+
+                    //如果该节点的状态没有发生改变，下次就不要继续处理了
+                    if (found)
+                    {
+                        self_node._flag_need_process = true;
+                    }
+                    else
+                    {
+                        self_node._flag_need_process = false;
+                    }
+                }
+
+
+                //Step3: 变成新的节点
+                foreach (var p in temp)
+                {
+                    HashSet<AssetObject> obj_set = p.Value;
+                    BundleNode new_node = new BundleNode(null);
+                    new_node._is_scene_node = false;
+                    new_node._flag_need_process = true;
+
+                    foreach (AssetObject bo in obj_set)
+                    {
+                        new_node.AddMainObj(bo);
+                        _set_main_node(bo, new_node);
+
+                        //移除旧的
+                        var bo_owner_nodes_set = _get_owner_node_set(bo);
+                        foreach (BundleNode old_node in bo_owner_nodes_set)
+                        {
+                            old_node._flag_need_process = true;
+                            old_node.RemoveDepObj(bo);
+                            old_node._dep_nodes.Add(new_node);
+                        }
+                        bo_owner_nodes_set.Clear();
+                    }
+                    _fill_dep_objs(new_node);
+                    _nodes_map.Add(new_node);
+                }
+
+                if (temp.Count > 0)
+                    return true;
+                else
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// 检查循环依赖的问题
+        /// </summary>
+        private class BundleNodeDepCheck
+        {
+            public HashSet<BundleNode> _checked_nodes = new HashSet<BundleNode>();
+            public Stack<BundleNode> _stacks = new Stack<BundleNode>();
+
+            /// <summary>
+            /// 没有循环依赖，就返回false
+            /// 如果有循环依赖，返回true
+            /// </summary>
+            public bool HasCycleDep(ICollection<BundleNode> nodes_set)
+            {
+                _checked_nodes.Clear();
+                //检查循环引用的问题            
+                bool ret = false;
+                foreach (BundleNode node in nodes_set)
+                {
+                    _stacks.Clear();
+                    bool is_cycle = _check_cycle_dep(node);
+                    if (!is_cycle)
+                        continue;
+
+                    ret = true;
+                    break;
+                }
+
+                //出现了循环依赖
+                if (!ret)
+                    return !ret;
+
+
+                var last_one = _stacks.Peek();
+                List<BundleNode> b_list = new List<BundleNode>();
+                foreach (var p in _stacks)
+                {
+                    if (p == last_one)
+                        b_list.Add(p);
+                    else if (b_list.Count > 0)
+                        b_list.Add(p);
+                }
+                b_list.Add(last_one);
+
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("Node Dep Cycle ");
+                foreach (var a in b_list)
+                {
+                    sb.AppendLine("\t" + a.GetNodeName());
+                }
+                sb.AppendLine();
+
+                for (int i = 0; i < b_list.Count - 1; ++i)
+                {
+                    var node_a = b_list[i];
+                    var node_b = b_list[i + 1];
+
+                    sb.AppendFormat("Node {0} 依赖 {1} 的文件列表\n", node_a.GetNodeName(), node_b.GetNodeName());
+                    foreach (var p in node_a.FindDep(node_b))
+                    {
+                        sb.AppendFormat("\t {0} -> {1} \n", p.Key, p.Value);
+                    }
+                }
+
+                string msg = sb.ToString();
+                BuilderLog.Error(msg);
+                throw new System.Exception("循环依赖了");
+            }
+
+            public bool _check_cycle_dep(BundleNode node)
+            {
+                bool ret = false;
+                if (_stacks.Contains(node))
+                    return true;
+
+                if (_checked_nodes.Contains(node))
+                {
+                    return false;
+                }
+
+                _stacks.Push(node);
+                foreach (var child in node._dep_nodes)
+                {
+                    if (_check_cycle_dep(child))
+                    {
+                        return true;
+                    }
+                }
+
+                _checked_nodes.Add(node);
+                _stacks.Pop();
+                return ret;
+            }
+        }
+
+        #endregion
+    }
+}
