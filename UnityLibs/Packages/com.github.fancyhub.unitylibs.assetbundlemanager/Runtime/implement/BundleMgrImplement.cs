@@ -17,8 +17,8 @@ namespace FH.AB
         private List<Bundle> _BundleList;
         private MyDict<string, Bundle> _AssetDict;
 
-        public BundleMgrConfig _Config;
-        public void Init(IBundleLoader bundleLoader, BundleMgrConfig config)
+        public BundleMgrManifest _Config;
+        public void Init(IBundleLoader bundleLoader, BundleMgrManifest config)
         {
             _BundleLoader = new CPtr<IBundleLoader>(bundleLoader);
             _Config = config;

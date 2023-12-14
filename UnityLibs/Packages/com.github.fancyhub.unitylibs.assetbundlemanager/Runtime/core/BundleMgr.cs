@@ -10,13 +10,14 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
- 
+
 namespace FH
 {
     public enum EBundleFileStatus
     {
-        None,
         Exist,
+        NoExist,
+        NeedDownload,
         Downloading,
     }
 
@@ -64,7 +65,7 @@ namespace FH
 
         public static IBundleMgr Inst { get { return _.Val; } }
 
-        public static bool InitMgr(IBundleLoader bundle_loader, BundleMgrConfig config)
+        public static bool InitMgr(IBundleLoader bundle_loader, BundleMgrManifest config)
         {
             if (_.Val != null)
                 return false;
@@ -83,6 +84,6 @@ namespace FH
         public static IBundle LoadBundleByAsset(string asset)
         {
             return _.Val.LoadBundleByAsset(asset);
-        }        
+        }
     }
 }

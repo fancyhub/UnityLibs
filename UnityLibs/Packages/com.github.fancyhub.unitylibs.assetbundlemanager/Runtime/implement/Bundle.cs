@@ -22,7 +22,7 @@ namespace FH.AB
     internal class Bundle : IBundle
     {
         public CPtr<IBundleLoader> _BundleLoader;
-        public BundleMgrConfig.BundleConfig _Config;
+        public BundleMgrManifest.BundleManifest _Config;
         public Bundle[] _AllDeps;
 
         private AssetBundle _AssetBundle;
@@ -31,8 +31,8 @@ namespace FH.AB
         private int _RefCount = 0;
         private int _DepRefCount = 0;
 
-        public string Name { get { return _Config.Name; } }        
-        
+        public string Name { get { return _Config.Name; } }
+
         public void GetAllDeps(List<IBundle> deps)
         {
             deps.AddRange(_AllDeps);
@@ -57,7 +57,7 @@ namespace FH.AB
             _RefCount++;
             return _RefCount;
         }
-        
+
         public int RefCount => _RefCount;
 
         public int DecRefCount()
@@ -75,7 +75,7 @@ namespace FH.AB
                 _LoadStatus = EBundleLoadStatus.LoadedByDep;
                 return _RefCount;
             }
-
+            BundleLog._.D("Bundle {0} Unload ", _Config.Name);
             _LoadStatus = EBundleLoadStatus.None;
             this._AssetBundle.Unload(false);
             return _RefCount;
@@ -84,9 +84,15 @@ namespace FH.AB
         public T LoadAsset<T>(string path) where T : UnityEngine.Object
         {
             if (_LoadStatus != EBundleLoadStatus.Loaded)
+            {
+                BundleLog._.E("Bundle {0} Is Not Loaded {1}, Load Asset Fail {2}  ", _Config.Name, _LoadStatus, path);
                 return null;
+            }
             if (_AssetBundle == null)
+            {
+                BundleLog._.E("Bundle {0} AssetBundle Is Null ", _Config.Name);
                 return null;
+            }
 
             return _AssetBundle.LoadAsset<T>(path);
         }
@@ -125,11 +131,20 @@ namespace FH.AB
                     return false;
 
                 case EBundleLoadStatus.None:
+                    BundleLog._.D("Load Bundle {0} Load", _Config.Name);
                     IBundleLoader loader = _BundleLoader.Val;
                     if (loader == null)
+                    {
+                        BundleLog._.E("BundleLoader is null");
                         return false;
-                    if (loader.GetBundleFileStatus(_Config.Name) != EBundleFileStatus.Exist)
+                    }
+
+                    EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
+                    if (bundleStatus != EBundleFileStatus.Exist)
+                    {
+                        BundleLog._.D("Bundle {0} Is {1}", _Config.Name, bundleStatus);
                         return false;
+                    }
 
                     foreach (var p in _AllDeps)
                     {
@@ -144,7 +159,10 @@ namespace FH.AB
 
                             case EBundleLoadStatus.None:
                                 if (!p.IsDownloaded())
+                                {
+                                    BundleLog._.D("Bundle {0} Dep {1} Is not Downloaded", _Config.Name, p._Config.Name);
                                     return false;
+                                }
                                 break;
                         }
                     }
@@ -176,7 +194,11 @@ namespace FH.AB
                         _AssetBundle = AssetBundle.LoadFromFile(loader.GetBundleFullPath(_Config.Name));
 
                     if (_AssetBundle != null)
+                    {
+                        BundleLog._.D("Bundle {0} Load Succ", _Config.Name);
+                        _LoadStatus = EBundleLoadStatus.Loaded;
                         return true;
+                    }
 
                     _LoadStatus = EBundleLoadStatus.Error;
                     for (int i = 0; i < index; i++)
@@ -190,11 +212,21 @@ namespace FH.AB
             switch (_LoadStatus)
             {
                 case EBundleLoadStatus.None:
+                    BundleLog._.D("Load Dep Bundle {0} Load", _Config.Name);
+
                     IBundleLoader loader = _BundleLoader.Val;
                     if (loader == null)
+                    {
+                        BundleLog._.E("BundleLoader is null");
                         return false;
-                    if (loader.GetBundleFileStatus(_Config.Name) != EBundleFileStatus.Exist)
+                    }
+
+                    EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
+                    if (bundleStatus != EBundleFileStatus.Exist)
+                    {
+                        BundleLog._.D("Bundle {0} Is {1}", _Config.Name, bundleStatus);
                         return false;
+                    }
 
                     _Stream = loader.LoadBundleFile(_Config.Name);
                     if (_Stream != null)
@@ -207,9 +239,12 @@ namespace FH.AB
 
                     if (_AssetBundle == null)
                     {
+                        BundleLog._.E("Bundle {0} Load Dep Fail", _Config.Name);
                         _LoadStatus = EBundleLoadStatus.Error;
                         return false;
                     }
+
+                    BundleLog._.D("Bundle {0} Load Dep Succ", _Config.Name);
                     _LoadStatus = EBundleLoadStatus.LoadedByDep;
                     return true;
 
@@ -238,6 +273,7 @@ namespace FH.AB
             if (_RefCount > 0)
                 return;
 
+            BundleLog._.D("Bundle {0} Unload By DepRef", _Config.Name);
             _AssetBundle.Unload(false);
             _AssetBundle = null;
             _Stream?.Close();

@@ -245,20 +245,26 @@ namespace FH.Res.SampleAssetLoader
             throw new NotImplementedException();
         }
 
+        public EAssetStatus GetAssetStatus(string path)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsResExist(string path)
         {
             throw new NotImplementedException();
         }
 
-        public IAssetRef Load(ResPath path)
+        public IAssetRef Load(string path, bool sprite)
         {
             throw new NotImplementedException();
         }
 
-        public IAssetRef LoadAsync(ResPath path)
+        public IAssetRef LoadAsync(string path, bool sprite)
         {
             throw new NotImplementedException();
         }
+
         protected override void OnRelease()
         {
             throw new NotImplementedException();

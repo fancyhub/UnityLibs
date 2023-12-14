@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEditor;
+
 /*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2021/5/17 14:10:55
@@ -28,16 +31,65 @@ namespace FH.AssetBundleManager.Builder
             new BundleNodeMapBuilder(_nodes_map).Build();
         }
 
-        public BundleNode FindNode(string name)
+        public AssetBundleBuild[] GenAssetBundleBuildList()
         {
-            foreach (BundleNode node in _nodes_map)
+            HashSet<BundleNode> node_list = _nodes_map;
+            if (node_list.Count == 0)
             {
-                if (node.GetNodeName() == name)
-                    return node;
+                throw new System.Exception("没有任何资源被打包");
             }
-            return null;
 
+            List<AssetBundleBuild> builder_list = new List<AssetBundleBuild>(node_list.Count);
+            foreach (BundleNode node in node_list)
+            {
+                AssetBundleBuild builder = node.GenAssetBundleBuild();
+
+                if (builder.assetBundleName == null || builder.assetNames.Length == 0)
+                {
+                    throw new Exception("有node 为空 " + node.GetNodeName());
+                }
+                builder_list.Add(builder);
+            }
+            return builder_list.ToArray();            
         }
+
+        public void CheckAllAssetsInBundle(ICollection<AssetObject> allAssetObjs)
+        {
+            HashSet<string> file_list_from_obj = new HashSet<string>(allAssetObjs.Count);
+            foreach (var p in allAssetObjs)
+                file_list_from_obj.Add(p._file_path);
+
+            HashSet<string> file_list_from_node = new HashSet<string>(allAssetObjs.Count);
+            foreach (var p in GetAllAssetObjects())
+                file_list_from_node.Add(p._file_path);
+
+            if (file_list_from_node.Count == file_list_from_obj.Count)
+                return;
+
+            HashSet<string> file_list_not_include = new HashSet<string>();
+            foreach (string a in file_list_from_obj)
+            {
+                if (file_list_from_node.Contains(a))
+                    continue;
+                file_list_not_include.Add(a);
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("错误，有文件没有被打包 Count: " + file_list_not_include.Count);
+            int index = 0;
+            foreach (var a in file_list_not_include)
+            {
+                sb.AppendLine(a);
+                index++;
+                if (index > 10)
+                {
+                    //输出部分只取前面10个，要不然输出太多
+                    break;
+                }
+            }
+
+            throw new System.Exception(sb.ToString());
+        }         
 
         public HashSet<AssetObject> GetAllAssetObjects()
         {
@@ -55,48 +107,35 @@ namespace FH.AssetBundleManager.Builder
                 }
             }
             return ret;
-        }
-
-        public HashSet<string> GetAllFiles()
-        {
-            HashSet<AssetObject> all_objs = GetAllAssetObjects();
-            //unity 的版本不支持这种写法
-            //HashSet<string> ret = new HashSet<string>(all_objs.Count);
-            HashSet<string> ret = new HashSet<string>();
-            foreach (AssetObject obj in all_objs)
-            {
-                ret.Add(obj._file_path);
-            }
-            return ret;
-        }
+        }       
 
         #region 私有类
         private class BundleNodeMapAdd
         {
-            private HashSet<BundleNode> _node_set;
-            private Dictionary<string, BundleNode> _name_node_dict = new Dictionary<string, BundleNode>();
-            private Dictionary<AssetObject, BundleNode> _obj_main_nodes = new Dictionary<AssetObject, BundleNode>();
+            private HashSet<BundleNode> _BundleSet;
+            private Dictionary<string, BundleNode> _Name2BundleMap = new Dictionary<string, BundleNode>();
+            private Dictionary<AssetObject, BundleNode> _Asset2BundleMap = new Dictionary<AssetObject, BundleNode>();
 
-            public BundleNodeMapAdd(HashSet<BundleNode> node_set)
+            public BundleNodeMapAdd(HashSet<BundleNode> bundle_set)
             {
-                _node_set = node_set;
+                _BundleSet = bundle_set;
             }
 
-            public BundleNode Add(AssetObject obj, string ab_name)
+            public BundleNode Add(AssetObject assset, string ab_name)
             {
-                BundleNode node = _find_node_by_name(ab_name);
+                BundleNode node = _FindBundleByName(ab_name);
                 if (null == node)
                 {
                     node = new BundleNode(ab_name);
-                    _name_node_dict.Add(ab_name, node);
-                    _node_set.Add(node);
-                    node._is_scene_node = obj.IsSceneObj();
+                    _Name2BundleMap.Add(ab_name, node);
+                    _BundleSet.Add(node);
+                    node._is_scene_node = assset.IsSceneObj();
                 }
 
-                _Add(obj, node);
-                if (null != obj._cycle_deps_objs)
+                _Add(assset, node);
+                if (null != assset._cycle_deps_objs)
                 {
-                    foreach (var a in obj._cycle_deps_objs)
+                    foreach (var a in assset._cycle_deps_objs)
                     {
                         _Add(a, node);
                     }
@@ -104,51 +143,51 @@ namespace FH.AssetBundleManager.Builder
                 return node;
             }
 
-            private void _Add(AssetObject obj, BundleNode node)
+            private void _Add(AssetObject asset, BundleNode bundle)
             {
                 //判断 该obj 是否已经加到了 node里面
-                BundleNode orig_node = _find_node_by_obj(obj);
+                BundleNode orig_node = _FindBundleByAsset(asset);
                 if (orig_node != null)
                 {
                     //如果已经加进去了，就直接返回
-                    if (node == orig_node)
+                    if (bundle == orig_node)
                         return;
 
                     string msg = string.Format("File Is In {0},conflict with {1}, {2}"
                         , orig_node.GetNodeName()
-                        , node.GetNodeName()
-                        , obj._file_path);
+                        , bundle.GetNodeName()
+                        , asset._file_path);
 
                     BuilderLog.Error(msg);
                     throw new System.Exception(msg);
                 }
 
-                if (node._is_scene_node != obj.IsSceneObj())
+                if (bundle._is_scene_node != asset.IsSceneObj())
                 {
                     string msg = null;
-                    if (node._is_scene_node)
-                        msg = string.Format("{0} is scene node, can't add {1}", node.GetNodeName(), obj._file_path);
+                    if (bundle._is_scene_node)
+                        msg = string.Format("{0} is scene node, can't add {1}", bundle.GetNodeName(), asset._file_path);
                     else
-                        msg = string.Format("{0} is not scene node, can't add {1}", node.GetNodeName(), obj._file_path);
+                        msg = string.Format("{0} is not scene node, can't add {1}", bundle.GetNodeName(), asset._file_path);
 
                     BuilderLog.Error(msg);
                     throw new System.Exception(msg);
                 }
-                _obj_main_nodes.Add(obj, node);
-                node.AddMainObj(obj);
+                _Asset2BundleMap.Add(asset, bundle);
+                bundle.AddMainObj(asset);
             }
 
-            private BundleNode _find_node_by_obj(AssetObject obj)
+            private BundleNode _FindBundleByAsset(AssetObject asset)
             {
                 BundleNode ret = null;
-                _obj_main_nodes.TryGetValue(obj, out ret);
+                _Asset2BundleMap.TryGetValue(asset, out ret);
                 return ret;
             }
 
-            private BundleNode _find_node_by_name(string ab_name)
+            private BundleNode _FindBundleByName(string ab_name)
             {
                 BundleNode ret = null;
-                _name_node_dict.TryGetValue(ab_name, out ret);
+                _Name2BundleMap.TryGetValue(ab_name, out ret);
                 return ret;
             }
         }
@@ -157,7 +196,7 @@ namespace FH.AssetBundleManager.Builder
         {
             private HashSet<BundleNode> _nodes_map;
             private HashSet<AssetObject> _all_deps_objs = new HashSet<AssetObject>();
-            private BundleNodeDepCheck _cycle_dep_checker = new BundleNodeDepCheck();
+            private BundleNodeDepChecker _cycle_dep_checker = new BundleNodeDepChecker();
 
             //这个属性和 node对象的 _main_objs 对应
             private Dictionary<AssetObject, BundleNode> _obj_main_nodes = new Dictionary<AssetObject, BundleNode>();
@@ -484,7 +523,7 @@ namespace FH.AssetBundleManager.Builder
         /// <summary>
         /// 检查循环依赖的问题
         /// </summary>
-        private class BundleNodeDepCheck
+        private class BundleNodeDepChecker
         {
             public HashSet<BundleNode> _checked_nodes = new HashSet<BundleNode>();
             public Stack<BundleNode> _stacks = new Stack<BundleNode>();

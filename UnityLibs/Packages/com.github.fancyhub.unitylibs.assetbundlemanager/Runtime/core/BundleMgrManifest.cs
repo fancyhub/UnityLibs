@@ -12,12 +12,13 @@ using UnityEngine;
 namespace FH
 {
     [Serializable]
-    public class BundleMgrConfig
+    public class BundleMgrManifest
     {
         private static HashSet<int> S_TempSet = new HashSet<int>();
 
+
         [Serializable]
-        public class BundleConfig
+        public class BundleManifest
         {
             public string Name;
             public int[] Deps;
@@ -27,18 +28,25 @@ namespace FH
             public string[] GetAssets() { return Assets == null ? System.Array.Empty<string>() : Assets; }
         }
 
-        public BundleConfig[] BundleList;
+        public BundleManifest[] BundleList;
+
+
+        public static BundleMgrManifest LoadFromFile(string path)
+        {
+            string content= System.IO.File.ReadAllText(path);
+            return UnityEngine.JsonUtility.FromJson<BundleMgrManifest>(content);
+        }
 
 #if UNITY_EDITOR
-        public static BundleMgrConfig EdCreateFromManifest(AssetBundleManifest manifest, UnityEditor.AssetBundleBuild[] bundleBuildList)
+        public static BundleMgrManifest EdCreateFromManifest(AssetBundleManifest manifest, UnityEditor.AssetBundleBuild[] bundleBuildList)
         {
             var all_bundles = manifest.GetAllAssetBundles();
-            List<BundleConfig> bundleList = new List<BundleConfig>(all_bundles.Length);
+            List<BundleManifest> bundleList = new List<BundleManifest>(all_bundles.Length);
             Dictionary<string, int> bundleDict = new(all_bundles.Length);
 
             foreach (var p in all_bundles)
             {
-                var bundleConfig = new BundleConfig() { Name = p };
+                var bundleConfig = new BundleManifest() { Name = p };
                 bundleDict.Add(p, bundleList.Count);
                 bundleList.Add(bundleConfig);
             }
@@ -57,12 +65,11 @@ namespace FH
             }
 
             List<string> assetList = new List<string>();
-            List<string> sceneList = new List<string>();
 
             //资源
             foreach (var p in bundleBuildList)
             {
-                BundleConfig config = null;
+                BundleManifest config = null;
                 if (string.IsNullOrEmpty(p.assetBundleVariant))
                     config = bundleList[bundleDict[p.assetBundleName]];
                 else
@@ -72,7 +79,13 @@ namespace FH
                 {
                     for (int i = 0; i < p.assetNames.Length; i++)
                     {
-                        assetList.Add(p.addressableNames[i]);
+                        string addressName = p.addressableNames[i];
+                        if (string.IsNullOrEmpty(addressName))
+                            assetList.Add(p.assetNames[i]);
+                        else if (string.IsNullOrWhiteSpace(addressName))
+                            continue;
+                        else
+                            assetList.Add(addressName);
                     }
                 }
                 else
@@ -86,7 +99,7 @@ namespace FH
                 config.Assets = assetList.ToArray();
             }
 
-            return new BundleMgrConfig() { BundleList = bundleList.ToArray() };
+            return new BundleMgrManifest() { BundleList = bundleList.ToArray() };
         }
 #endif
 

@@ -22,6 +22,7 @@ namespace FH.AssetBundleManager.Builder
         public string _guid = null;
         public string _file_hash = string.Empty;
         public bool _need_export = false;
+        public string _address_name = null;
 
         //这个里面是循环依赖的objs
         //如果该对象和某些对象是循环依赖，这个属性，就会共享，包含这一组循环依赖的所有对象

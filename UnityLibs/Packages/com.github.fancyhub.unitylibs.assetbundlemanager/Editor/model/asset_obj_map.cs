@@ -44,17 +44,18 @@ namespace FH.AssetBundleManager.Builder
             _bundle_collection = collection;
         }
 
-        public AssetObject AddObject(string path)
+        public AssetObject AddObject(string path, string address_name = null)
         {
             if (string.IsNullOrEmpty(path))
-            {
                 return null;
-            }
+
+            path = path.Replace('\\', '/');
 
             AssetObject obj = FindObject(path);
             if (obj != null)
             {
                 obj._need_export = true;
+                obj._address_name = address_name;
                 return obj;
             }
 
@@ -63,6 +64,7 @@ namespace FH.AssetBundleManager.Builder
             if (null == obj)
                 return obj;
 
+            obj._address_name = address_name;
             obj._need_export = true;
 
             //把循环依赖变成一个组
@@ -73,6 +75,10 @@ namespace FH.AssetBundleManager.Builder
 
         public AssetObject FindObject(string path)
         {
+            if (string.IsNullOrEmpty(path))
+                return null;
+            path = path.Replace('\\', '/');
+
             AssetObject obj_ret = null;
             _objs_map.TryGetValue(path, out obj_ret);
             return obj_ret;

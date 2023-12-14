@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
+
 /*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2021/5/17 14:10:55
@@ -11,6 +13,8 @@ namespace FH.AssetBundleManager.Builder
     //最终要给mapnode 对应一个asset_bundle
     public class BundleNode : IEnumerable<AssetObject>
     {
+        public const string CIgnoreAddressName = " ";
+
         private static int S_NODE_ID_GEN = 0;
         public int _id;
         readonly int _hash_code = 0;
@@ -93,6 +97,15 @@ namespace FH.AssetBundleManager.Builder
             return false;
         }
 
+        public AssetBundleBuild GenAssetBundleBuild()
+        {
+            AssetBundleBuild ret = new AssetBundleBuild();
+            ret.assetBundleName = GetNodeName();
+            ret.assetNames = _GetAllFiles().ToArray();
+            ret.addressableNames = _GetAllAddressNames().ToArray();
+            return ret;
+        }
+
         public List<AssetObject> GetDepObjs()
         {
             return _dep_objs;
@@ -132,7 +145,7 @@ namespace FH.AssetBundleManager.Builder
             return _name_guid;
         }
 
-        public List<string> GetAllFiles()
+        private List<string> _GetAllFiles()
         {
             _sort();
             List<string> file_list = new List<string>(_main_objs.Count + _dep_objs.Count);
@@ -144,6 +157,28 @@ namespace FH.AssetBundleManager.Builder
             foreach (AssetObject a in _dep_objs)
             {
                 file_list.Add(a._file_path);
+            }
+            return file_list;
+        }
+
+        private List<string> _GetAllAddressNames()
+        {
+            _sort();
+            List<string> file_list = new List<string>(_main_objs.Count + _dep_objs.Count);
+            foreach (AssetObject a in _main_objs)
+            {
+                if (!a._need_export)
+                    file_list.Add(CIgnoreAddressName);
+                else
+                    file_list.Add(a._address_name);                
+            }
+
+            foreach (AssetObject a in _dep_objs)
+            {
+                if (!a._need_export)
+                    file_list.Add(CIgnoreAddressName);
+                else
+                    file_list.Add(a._address_name);
             }
             return file_list;
         }

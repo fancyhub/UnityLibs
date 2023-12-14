@@ -1,0 +1,20 @@
+{
+    "BundleList": [
+        {
+            "Name": "test",
+            "Deps": [],
+            "Assets": [
+                "Assets/Resources/UI/Prefab/Button_Variant.prefab",
+                "Assets/Resources/UI/Prefab/Button2.prefab",
+                "Assets/Resources/UI/Prefab/Panel.prefab",
+                "Assets/Resources/UI/Sprite/btn_press.png",
+                "Assets/Resources/UI/Texture/bg.png",
+                "Assets/Resources/UI/Prefab/Panel_Variant.prefab",
+                "Assets/Resources/UI/Sprite/icon.png",
+                "Assets/Resources/UI/Sprite/btn_normal.png",
+                "Assets/Resources/UI/Sprite/btn_disable.png",
+                "Assets/Resources/UI/Prefab/Button.prefab"
+            ]
+        }
+    ]
+}
