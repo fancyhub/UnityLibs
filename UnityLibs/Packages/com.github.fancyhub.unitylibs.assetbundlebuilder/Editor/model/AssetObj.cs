@@ -1,17 +1,19 @@
-using System;
-using System.Collections.Generic;
 /*************************************************************************************
  * Author  : cunyu.fan
- * Time    : 2021/5/17 14:10:55
+ * Time    : 2021/5/17
  * Title   : 
  * Desc    : 
 *************************************************************************************/
-namespace FH.AssetBundleManager.Builder
+
+using System;
+using System.Collections.Generic;
+
+namespace FH.AssetBundleBuilder.Ed
 {
     /// <summary>
-    /// 代表了一个bundle asset
+    /// 代表了一个 asset
     /// </summary>
-    public class AssetObject
+    public class AssetObj
     {
         public static int C_ID_GEN = 100000;
         public int _id;
@@ -28,10 +30,10 @@ namespace FH.AssetBundleManager.Builder
         //如果该对象和某些对象是循环依赖，这个属性，就会共享，包含这一组循环依赖的所有对象
         //并且这一组内的所有对象的 _dep_objs 也共享实例
         //_cycle_dep_objs 是共享实例
-        public HashSet<AssetObject> _cycle_deps_objs;
-        public HashSet<AssetObject> _dep_objs = new HashSet<AssetObject>();
+        public HashSet<AssetObj> _cycle_deps_objs;
+        public HashSet<AssetObj> _dep_objs = new HashSet<AssetObj>();
 
-        public AssetObject()
+        public AssetObj()
         {
             _hash_code = C_ID_GEN.GetHashCode();
             _id = C_ID_GEN;
@@ -53,7 +55,7 @@ namespace FH.AssetBundleManager.Builder
             return _file_path;
         }
 
-        public HashSet<AssetObject> GetCycleDepObjGroup()
+        public HashSet<AssetObj> GetCycleDepObjGroup()
         {
             return _cycle_deps_objs;
         }
@@ -77,7 +79,7 @@ namespace FH.AssetBundleManager.Builder
             _file_hash = file_hash;
         }
 
-        public bool IsDep(AssetObject obj)
+        public bool IsDep(AssetObj obj)
         {
             if (_dep_objs.Contains(obj))
                 return true;
@@ -90,16 +92,16 @@ namespace FH.AssetBundleManager.Builder
             return false;
         }
 
-        public void GetAllDepObjs(HashSet<AssetObject> out_deps_objs)
+        public void GetAllDepObjs(HashSet<AssetObj> out_deps_objs)
         {
-            foreach (AssetObject dep_obj in _dep_objs)
+            foreach (AssetObj dep_obj in _dep_objs)
             {
                 if (out_deps_objs.Contains(dep_obj))
                     continue;
 
                 if (_cycle_deps_objs != null)
                 {
-                    foreach (AssetObject cycle_dep_obj in _cycle_deps_objs)
+                    foreach (AssetObj cycle_dep_obj in _cycle_deps_objs)
                     {
                         out_deps_objs.Add(cycle_dep_obj);
                     }

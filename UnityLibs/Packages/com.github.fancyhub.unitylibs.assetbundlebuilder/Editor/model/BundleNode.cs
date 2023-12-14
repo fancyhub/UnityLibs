@@ -1,17 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
-
 /*************************************************************************************
  * Author  : cunyu.fan
- * Time    : 2021/5/17 14:10:55
+ * Time    : 2021/5/17 
  * Title   : 
  * Desc    : 
 *************************************************************************************/
-namespace FH.AssetBundleManager.Builder
+
+using System.Collections;
+using System.Collections.Generic;
+
+namespace FH.AssetBundleBuilder.Ed
 {
     //最终要给mapnode 对应一个asset_bundle
-    public class BundleNode : IEnumerable<AssetObject>
+    public class BundleNode : IEnumerable<AssetObj>
     {
         public const string CIgnoreAddressName = " ";
 
@@ -22,8 +22,8 @@ namespace FH.AssetBundleManager.Builder
         public string _name_guid = null;
         public bool _is_scene_node = false;
 
-        public List<AssetObject> _main_objs = new List<AssetObject>();
-        public List<AssetObject> _dep_objs = new List<AssetObject>();
+        public List<AssetObj> _main_objs = new List<AssetObj>();
+        public List<AssetObj> _dep_objs = new List<AssetObj>();
         public HashSet<BundleNode> _dep_nodes = new HashSet<BundleNode>();
 
         //运行时候需要处理的
@@ -47,12 +47,12 @@ namespace FH.AssetBundleManager.Builder
             return true;
         }
 
-        public List<AssetObject> GetMainObjs()
+        public List<AssetObj> GetMainObjs()
         {
             return _main_objs;
         }
 
-        public void AddMainObj(AssetObject obj)
+        public void AddMainObj(AssetObj obj)
         {
             if (_name_guid != null)
                 BuilderLog.Error("名字已经创建了，不能添加新节点了");
@@ -60,7 +60,7 @@ namespace FH.AssetBundleManager.Builder
             _main_objs.Add(obj);
         }
 
-        public void AddDepObj(AssetObject obj)
+        public void AddDepObj(AssetObj obj)
         {
             if (_name_guid != null)
                 BuilderLog.Error("名字已经创建了，不能添加新节点了");
@@ -68,7 +68,7 @@ namespace FH.AssetBundleManager.Builder
             _dep_objs.Add(obj);
         }
 
-        public bool RemoveDepObj(AssetObject obj)
+        public bool RemoveDepObj(AssetObj obj)
         {
             _sort_dirty = true;
             return _dep_objs.Remove(obj);
@@ -84,7 +84,7 @@ namespace FH.AssetBundleManager.Builder
             return _is_scene_node;
         }
 
-        public bool IsObjInDepNodes(AssetObject obj)
+        public bool IsObjInDepNodes(AssetObj obj)
         {
             foreach (var a in _dep_nodes)
             {
@@ -97,16 +97,16 @@ namespace FH.AssetBundleManager.Builder
             return false;
         }
 
-        public AssetBundleBuild GenAssetBundleBuild()
+        public UnityEditor.AssetBundleBuild GenAssetBundleBuild()
         {
-            AssetBundleBuild ret = new AssetBundleBuild();
+            UnityEditor.AssetBundleBuild ret = new UnityEditor.AssetBundleBuild();
             ret.assetBundleName = GetNodeName();
             ret.assetNames = _GetAllFiles().ToArray();
             ret.addressableNames = _GetAllAddressNames().ToArray();
             return ret;
         }
 
-        public List<AssetObject> GetDepObjs()
+        public List<AssetObj> GetDepObjs()
         {
             return _dep_objs;
         }
@@ -149,12 +149,12 @@ namespace FH.AssetBundleManager.Builder
         {
             _sort();
             List<string> file_list = new List<string>(_main_objs.Count + _dep_objs.Count);
-            foreach (AssetObject a in _main_objs)
+            foreach (AssetObj a in _main_objs)
             {
                 file_list.Add(a._file_path);
             }
 
-            foreach (AssetObject a in _dep_objs)
+            foreach (AssetObj a in _dep_objs)
             {
                 file_list.Add(a._file_path);
             }
@@ -165,7 +165,7 @@ namespace FH.AssetBundleManager.Builder
         {
             _sort();
             List<string> file_list = new List<string>(_main_objs.Count + _dep_objs.Count);
-            foreach (AssetObject a in _main_objs)
+            foreach (AssetObj a in _main_objs)
             {
                 if (!a._need_export)
                     file_list.Add(CIgnoreAddressName);
@@ -173,7 +173,7 @@ namespace FH.AssetBundleManager.Builder
                     file_list.Add(a._address_name);                
             }
 
-            foreach (AssetObject a in _dep_objs)
+            foreach (AssetObj a in _dep_objs)
             {
                 if (!a._need_export)
                     file_list.Add(CIgnoreAddressName);
@@ -183,7 +183,7 @@ namespace FH.AssetBundleManager.Builder
             return file_list;
         }
 
-        public bool HasObject(AssetObject obj)
+        public bool HasObject(AssetObj obj)
         {
             if (_main_objs.Contains(obj))
                 return true;
@@ -202,12 +202,12 @@ namespace FH.AssetBundleManager.Builder
             _dep_objs.Sort(_compare);
         }
 
-        private int _compare(AssetObject a, AssetObject b)
+        private int _compare(AssetObj a, AssetObj b)
         {
             return a._guid.CompareTo(b._guid);
         }
 
-        public IEnumerator<AssetObject> GetEnumerator()
+        public IEnumerator<AssetObj> GetEnumerator()
         {
             foreach (var a in _main_objs)
                 yield return a;

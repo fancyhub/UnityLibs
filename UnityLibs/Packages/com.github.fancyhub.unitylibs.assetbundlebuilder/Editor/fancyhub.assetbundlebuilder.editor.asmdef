@@ -1,5 +1,5 @@
 {
-    "name": "fancyhub.assetbundlemanager.builder",
+    "name": "fancyhub.assetbundlebuilder.editor",
     "rootNamespace": "",
     "references": [
         "GUID:fd3e1939cfeaae345a28d38349cb6f69",

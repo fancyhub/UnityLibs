@@ -521,7 +521,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Config:
-    LogLevel: 1
+    LogLevel: 0
     MaxAsyncResLoaderSlot: 5
     MaxAsyncGameObjectStep: 1
     PreInst:

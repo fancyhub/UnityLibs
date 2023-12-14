@@ -1,12 +1,14 @@
-using System;
-using System.Collections.Generic;
 /*************************************************************************************
  * Author  : cunyu.fan
- * Time    : 2021/5/17 14:10:55
+ * Time    : 2021/5/17
  * Title   : 
  * Desc    : 
 *************************************************************************************/
-namespace FH.AssetBundleManager.Builder
+
+using System;
+using System.Collections.Generic;
+
+namespace FH.AssetBundleBuilder.Ed
 {
     public enum EFileStatus
     {
@@ -26,16 +28,16 @@ namespace FH.AssetBundleManager.Builder
     /// <summary>
     /// 描述了 Unity的 Assets 之间的依赖关系
     /// </summary>
-    public class AssetObjectMap
+    public class AssetObjMap
     {
         private IAssetDepCollection _bundle_collection;
         public bool _has_error_flag = false;
-        private Dictionary<string, AssetObject> _objs_map;
+        private Dictionary<string, AssetObj> _objs_map;
         private AssetObjectCycleDep _cycle_dep;
 
-        public AssetObjectMap()
+        public AssetObjMap()
         {
-            _objs_map = new Dictionary<string, AssetObject>();
+            _objs_map = new Dictionary<string, AssetObj>();
             _cycle_dep = new AssetObjectCycleDep();
         }
 
@@ -44,14 +46,14 @@ namespace FH.AssetBundleManager.Builder
             _bundle_collection = collection;
         }
 
-        public AssetObject AddObject(string path, string address_name = null)
+        public AssetObj AddObject(string path, string address_name = null)
         {
             if (string.IsNullOrEmpty(path))
                 return null;
 
             path = path.Replace('\\', '/');
 
-            AssetObject obj = FindObject(path);
+            AssetObj obj = FindObject(path);
             if (obj != null)
             {
                 obj._need_export = true;
@@ -73,20 +75,20 @@ namespace FH.AssetBundleManager.Builder
             return obj;
         }
 
-        public AssetObject FindObject(string path)
+        public AssetObj FindObject(string path)
         {
             if (string.IsNullOrEmpty(path))
                 return null;
             path = path.Replace('\\', '/');
 
-            AssetObject obj_ret = null;
+            AssetObj obj_ret = null;
             _objs_map.TryGetValue(path, out obj_ret);
             return obj_ret;
         }
 
-        public List<AssetObject> FindObjects(EAssetObjType obj_type)
+        public List<AssetObj> FindObjects(EAssetObjType obj_type)
         {
-            List<AssetObject> ret = new List<AssetObject>();
+            List<AssetObj> ret = new List<AssetObj>();
             foreach (var p in _objs_map)
             {
                 if (p.Value.GetAssetType() == obj_type)
@@ -97,7 +99,7 @@ namespace FH.AssetBundleManager.Builder
             return ret;
         }
 
-        public ICollection<AssetObject> GetAllObjects()
+        public ICollection<AssetObj> GetAllObjects()
         {
             return _objs_map.Values;
         }
@@ -108,7 +110,7 @@ namespace FH.AssetBundleManager.Builder
             _cycle_dep_checker.HasCycleDep(_objs_map.Values);
         }
 
-        private AssetObject _CreateAssetObject(string path, AssetObjectCycleDep cycle_dep)
+        private AssetObj _CreateAssetObject(string path, AssetObjectCycleDep cycle_dep)
         {
             var file_status = _bundle_collection.FileStatus(path);
             switch (file_status)
@@ -127,7 +129,7 @@ namespace FH.AssetBundleManager.Builder
             }
 
 
-            AssetObject ret_obj = new AssetObject();
+            AssetObj ret_obj = new AssetObj();
             {
                 string guid = _bundle_collection.FileGuid(path);
                 string file_hash = _bundle_collection.FileHash(path);
@@ -159,7 +161,7 @@ namespace FH.AssetBundleManager.Builder
                     continue;
                 }
 
-                AssetObject dep_obj = FindObject(dep_path);
+                AssetObj dep_obj = FindObject(dep_path);
                 if (dep_obj == null)
                 {
                     dep_obj = _CreateAssetObject(dep_path, cycle_dep);
@@ -180,8 +182,8 @@ namespace FH.AssetBundleManager.Builder
         private class AssetObjectCycleDep
         {
             //当添加一个对象的时候，可能要把很多 他所依赖的object 添加进来        
-            public List<AssetObject> _obj_list = new List<AssetObject>(100);
-            public List<AssetObject> _stack = new List<AssetObject>(20);
+            public List<AssetObj> _obj_list = new List<AssetObj>(100);
+            public List<AssetObj> _stack = new List<AssetObj>(20);
 
             public void Clear()
             {
@@ -191,12 +193,12 @@ namespace FH.AssetBundleManager.Builder
             /// <summary>
             /// 获取新添加的对象列表
             /// </summary>        
-            public List<AssetObject> GetObjListNew()
+            public List<AssetObj> GetObjListNew()
             {
                 return _obj_list;
             }
 
-            public void Add(AssetObject obj)
+            public void Add(AssetObj obj)
             {
                 _obj_list.Add(obj);
             }
@@ -225,7 +227,7 @@ namespace FH.AssetBundleManager.Builder
                 }
             }
 
-            private bool _find_cycle_dep_objs(AssetObject obj, List<AssetObject> stack)
+            private bool _find_cycle_dep_objs(AssetObj obj, List<AssetObj> stack)
             {
                 if (stack.Contains(obj))
                 {
@@ -246,21 +248,21 @@ namespace FH.AssetBundleManager.Builder
             }
 
 
-            private void _combine_cycle_objs(List<AssetObject> stack)
+            private void _combine_cycle_objs(List<AssetObj> stack)
             {
                 int count = stack.Count;
-                AssetObject last_obj = stack[count - 1];
+                AssetObj last_obj = stack[count - 1];
                 int first_index = stack.IndexOf(last_obj);
 
                 BuilderLog.Assert(first_index < (count - 1));
 
                 //从first_index 到最后一个都算是一组，相互依赖
 
-                HashSet<AssetObject> cycle_objs = new HashSet<AssetObject>();
-                HashSet<AssetObject> dep_objs = new HashSet<AssetObject>();
+                HashSet<AssetObj> cycle_objs = new HashSet<AssetObj>();
+                HashSet<AssetObj> dep_objs = new HashSet<AssetObj>();
                 for (int i = first_index; i < count - 1; i++)
                 {
-                    AssetObject self_obj = stack[i];
+                    AssetObj self_obj = stack[i];
 
                     cycle_objs.Add(self_obj);
 
@@ -297,18 +299,18 @@ namespace FH.AssetBundleManager.Builder
         /// </summary>
         private class AssetObjectCycleDepChecker
         {
-            HashSet<AssetObject> _checked_objs = new HashSet<AssetObject>();
-            Stack<AssetObject> _stack = new Stack<AssetObject>();
+            HashSet<AssetObj> _checked_objs = new HashSet<AssetObj>();
+            Stack<AssetObj> _stack = new Stack<AssetObj>();
 
             /// <summary>
             /// 没有循环依赖，就返回false
             /// 如果有循环依赖，返回true
             /// </summary>        
-            public bool HasCycleDep(ICollection<AssetObject> objs_set)
+            public bool HasCycleDep(ICollection<AssetObj> objs_set)
             {
                 //检查循环引用的问题            
                 bool ret = false;
-                foreach (AssetObject obj in objs_set)
+                foreach (AssetObj obj in objs_set)
                 {
                     bool is_cycle = _CheckCycleDep(obj);
                     if (!is_cycle)
@@ -320,7 +322,7 @@ namespace FH.AssetBundleManager.Builder
                 return ret;
             }
 
-            private bool _CheckCycleDep(AssetObject node)
+            private bool _CheckCycleDep(AssetObj node)
             {
                 bool ret = false;
                 if (_stack.Contains(node))

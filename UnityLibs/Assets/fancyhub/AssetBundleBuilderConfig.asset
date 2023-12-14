@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-4383418882539697629
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f74e6240d98962e43ab7dff39234b46f, type: 3}
+  m_Name: AssetDepCollectionConfig
+  m_EditorClassIdentifier: 
+  Show: 1
+  Enable: 1
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e144c75478c5b24197b999353964f8b, type: 3}
+  m_Name: AssetBundleBuilderConfig
+  m_EditorClassIdentifier: 
+  Android:
+    BuildOptions: 768
+    OutputDir: 
+  IOS:
+    BuildOptions: 768
+    OutputDir: 
+  Windows:
+    BuildOptions: 768
+    OutputDir: BundleCache/Win
+  OSX:
+    BuildOptions: 768
+    OutputDir: 
+  Features:
+  - {fileID: 4665970939581673736}
+  - {fileID: -4383418882539697629}
+--- !u!114 &4665970939581673736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f413d43d18e558c498663009e00123f7, type: 3}
+  m_Name: AssetCollectionConfig_Folder
+  m_EditorClassIdentifier: 
+  Show: 1
+  Enable: 1
+  Folders:
+  - Assets/Resources

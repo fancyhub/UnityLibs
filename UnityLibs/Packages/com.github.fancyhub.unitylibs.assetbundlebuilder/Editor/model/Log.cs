@@ -1,10 +1,11 @@
 /*************************************************************************************
  * Author  : cunyu.fan
- * Time    : 2021/5/17 14:10:55
+ * Time    : 2021/5/17
  * Title   : 
  * Desc    : 
 *************************************************************************************/
-namespace FH.AssetBundleManager.Builder
+
+namespace FH.AssetBundleBuilder.Ed
 {
     public static class BuilderLog
     {

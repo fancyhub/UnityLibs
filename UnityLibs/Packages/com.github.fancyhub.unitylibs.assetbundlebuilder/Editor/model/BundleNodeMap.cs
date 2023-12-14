@@ -1,15 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using UnityEditor;
-
 /*************************************************************************************
  * Author  : cunyu.fan
- * Time    : 2021/5/17 14:10:55
+ * Time    : 2021/5/17
  * Title   : 
  * Desc    : 
 *************************************************************************************/
-namespace FH.AssetBundleManager.Builder
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace FH.AssetBundleBuilder.Ed
 {
     public class BundleNodeMap
     {
@@ -21,7 +21,7 @@ namespace FH.AssetBundleManager.Builder
             _node_add = new BundleNodeMapAdd(_nodes_map);
         }
 
-        public BundleNode Add(AssetObject obj, string ab_name)
+        public BundleNode Add(AssetObj obj, string ab_name)
         {
             return _node_add.Add(obj, ab_name);
         }
@@ -31,7 +31,7 @@ namespace FH.AssetBundleManager.Builder
             new BundleNodeMapBuilder(_nodes_map).Build();
         }
 
-        public AssetBundleBuild[] GenAssetBundleBuildList()
+        public UnityEditor.AssetBundleBuild[] GenAssetBundleBuildList()
         {
             HashSet<BundleNode> node_list = _nodes_map;
             if (node_list.Count == 0)
@@ -39,10 +39,10 @@ namespace FH.AssetBundleManager.Builder
                 throw new System.Exception("没有任何资源被打包");
             }
 
-            List<AssetBundleBuild> builder_list = new List<AssetBundleBuild>(node_list.Count);
+            List<UnityEditor.AssetBundleBuild> builder_list = new List<UnityEditor.AssetBundleBuild>(node_list.Count);
             foreach (BundleNode node in node_list)
             {
-                AssetBundleBuild builder = node.GenAssetBundleBuild();
+                UnityEditor.AssetBundleBuild builder = node.GenAssetBundleBuild();
 
                 if (builder.assetBundleName == null || builder.assetNames.Length == 0)
                 {
@@ -53,7 +53,7 @@ namespace FH.AssetBundleManager.Builder
             return builder_list.ToArray();            
         }
 
-        public void CheckAllAssetsInBundle(ICollection<AssetObject> allAssetObjs)
+        public void CheckAllAssetsInBundle(ICollection<AssetObj> allAssetObjs)
         {
             HashSet<string> file_list_from_obj = new HashSet<string>(allAssetObjs.Count);
             foreach (var p in allAssetObjs)
@@ -91,17 +91,17 @@ namespace FH.AssetBundleManager.Builder
             throw new System.Exception(sb.ToString());
         }         
 
-        public HashSet<AssetObject> GetAllAssetObjects()
+        public HashSet<AssetObj> GetAllAssetObjects()
         {
-            HashSet<AssetObject> ret = new HashSet<AssetObject>();
+            HashSet<AssetObj> ret = new HashSet<AssetObj>();
             foreach (BundleNode node in _nodes_map)
             {
-                foreach (AssetObject obj in node)
+                foreach (AssetObj obj in node)
                 {
                     ret.Add(obj);
                 }
 
-                foreach (AssetObject obj in node._dep_objs)
+                foreach (AssetObj obj in node._dep_objs)
                 {
                     ret.Add(obj);
                 }
@@ -114,14 +114,14 @@ namespace FH.AssetBundleManager.Builder
         {
             private HashSet<BundleNode> _BundleSet;
             private Dictionary<string, BundleNode> _Name2BundleMap = new Dictionary<string, BundleNode>();
-            private Dictionary<AssetObject, BundleNode> _Asset2BundleMap = new Dictionary<AssetObject, BundleNode>();
+            private Dictionary<AssetObj, BundleNode> _Asset2BundleMap = new Dictionary<AssetObj, BundleNode>();
 
             public BundleNodeMapAdd(HashSet<BundleNode> bundle_set)
             {
                 _BundleSet = bundle_set;
             }
 
-            public BundleNode Add(AssetObject assset, string ab_name)
+            public BundleNode Add(AssetObj assset, string ab_name)
             {
                 BundleNode node = _FindBundleByName(ab_name);
                 if (null == node)
@@ -143,7 +143,7 @@ namespace FH.AssetBundleManager.Builder
                 return node;
             }
 
-            private void _Add(AssetObject asset, BundleNode bundle)
+            private void _Add(AssetObj asset, BundleNode bundle)
             {
                 //判断 该obj 是否已经加到了 node里面
                 BundleNode orig_node = _FindBundleByAsset(asset);
@@ -177,7 +177,7 @@ namespace FH.AssetBundleManager.Builder
                 bundle.AddMainObj(asset);
             }
 
-            private BundleNode _FindBundleByAsset(AssetObject asset)
+            private BundleNode _FindBundleByAsset(AssetObj asset)
             {
                 BundleNode ret = null;
                 _Asset2BundleMap.TryGetValue(asset, out ret);
@@ -195,14 +195,14 @@ namespace FH.AssetBundleManager.Builder
         public class BundleNodeMapBuilder
         {
             private HashSet<BundleNode> _nodes_map;
-            private HashSet<AssetObject> _all_deps_objs = new HashSet<AssetObject>();
+            private HashSet<AssetObj> _all_deps_objs = new HashSet<AssetObj>();
             private BundleNodeDepChecker _cycle_dep_checker = new BundleNodeDepChecker();
 
             //这个属性和 node对象的 _main_objs 对应
-            private Dictionary<AssetObject, BundleNode> _obj_main_nodes = new Dictionary<AssetObject, BundleNode>();
+            private Dictionary<AssetObj, BundleNode> _obj_main_nodes = new Dictionary<AssetObj, BundleNode>();
 
             //这个属性和node对象的_dep_objs 对应
-            private Dictionary<AssetObject, HashSet<BundleNode>> _obj_owner_nodes = new Dictionary<AssetObject, HashSet<BundleNode>>();
+            private Dictionary<AssetObj, HashSet<BundleNode>> _obj_owner_nodes = new Dictionary<AssetObj, HashSet<BundleNode>>();
 
             public BundleNodeMapBuilder(HashSet<BundleNode> node_set)
             {
@@ -224,9 +224,9 @@ namespace FH.AssetBundleManager.Builder
                 //step 2: 建立Node 之间的依赖关系
                 foreach (BundleNode node in _nodes_map)
                 {
-                    foreach (AssetObject obj in node._main_objs)
+                    foreach (AssetObj obj in node._main_objs)
                     {
-                        foreach (AssetObject sub_obj in obj._dep_objs)
+                        foreach (AssetObj sub_obj in obj._dep_objs)
                         {
                             BundleNode main_node = _get_main_node(sub_obj);
                             if (main_node == null)
@@ -263,7 +263,7 @@ namespace FH.AssetBundleManager.Builder
                     if (!self_node.IsSceneNode())
                         continue;
 
-                    List<AssetObject> dep_objs = self_node.GetDepObjs();
+                    List<AssetObj> dep_objs = self_node.GetDepObjs();
                     if (dep_objs.Count == 0)
                         continue;
 
@@ -271,7 +271,7 @@ namespace FH.AssetBundleManager.Builder
                     temp.Add(new_node);
 
                     new_node._is_scene_node = false;
-                    foreach (AssetObject obj in dep_objs)
+                    foreach (AssetObj obj in dep_objs)
                     {
                         HashSet<BundleNode> owner_nodes_set = _get_owner_node_set(obj);
                         BuilderLog.Assert(owner_nodes_set.Count == 1);
@@ -304,7 +304,7 @@ namespace FH.AssetBundleManager.Builder
             {
                 HashSet<BundleNode> dep_nodes = self_node.GetDepNodes();
                 dep_nodes.Clear();
-                foreach (AssetObject a in self_node)
+                foreach (AssetObj a in self_node)
                 {
                     foreach (var b in a._dep_objs)
                     {
@@ -331,19 +331,19 @@ namespace FH.AssetBundleManager.Builder
                 }
             }
 
-            private BundleNode _get_main_node(AssetObject obj)
+            private BundleNode _get_main_node(AssetObj obj)
             {
                 BundleNode ret = null;
                 _obj_main_nodes.TryGetValue(obj, out ret);
                 return ret;
             }
 
-            private void _set_main_node(AssetObject obj, BundleNode node)
+            private void _set_main_node(AssetObj obj, BundleNode node)
             {
                 _obj_main_nodes.Add(obj, node);
             }
 
-            private void _replace_main_node(AssetObject obj, BundleNode node)
+            private void _replace_main_node(AssetObj obj, BundleNode node)
             {
                 if (!_obj_main_nodes.ContainsKey(obj))
                     throw new System.Exception();
@@ -352,7 +352,7 @@ namespace FH.AssetBundleManager.Builder
             }
 
 
-            private HashSet<BundleNode> _get_owner_node_set(AssetObject obj)
+            private HashSet<BundleNode> _get_owner_node_set(AssetObj obj)
             {
                 HashSet<BundleNode> ret = null;
                 _obj_owner_nodes.TryGetValue(obj, out ret);
@@ -370,12 +370,12 @@ namespace FH.AssetBundleManager.Builder
                 BuilderLog.Assert(self_node.GetDepObjs().Count == 0);
 
                 _all_deps_objs.Clear();
-                foreach (AssetObject self_obj in self_node.GetMainObjs())
+                foreach (AssetObj self_obj in self_node.GetMainObjs())
                 {
                     self_obj.GetAllDepObjs(_all_deps_objs);
                 }
 
-                foreach (AssetObject dep in _all_deps_objs)
+                foreach (AssetObj dep in _all_deps_objs)
                 {
                     BundleNode node = _get_main_node(dep);
                     //如果不在 main_objs 里面，就加到自己节点里面的依赖objs里面
@@ -398,7 +398,7 @@ namespace FH.AssetBundleManager.Builder
 
             private bool _process_split()
             {
-                HashSet<AssetObject> all_deps_objs = new HashSet<AssetObject>();
+                HashSet<AssetObj> all_deps_objs = new HashSet<AssetObj>();
 
                 //Step 1: 把节点里面的依赖obj，判断是否在依赖的节点里面，如果在就移除出去
                 foreach (BundleNode self_node in _nodes_map)
@@ -407,7 +407,7 @@ namespace FH.AssetBundleManager.Builder
                     if (!self_node._flag_need_process) continue;
 
                     all_deps_objs.Clear();
-                    foreach (AssetObject obj in self_node.GetDepObjs())
+                    foreach (AssetObj obj in self_node.GetDepObjs())
                     {
                         if (self_node.IsObjInDepNodes(obj))
                         {
@@ -415,7 +415,7 @@ namespace FH.AssetBundleManager.Builder
                         }
                     }
 
-                    foreach (AssetObject obj in all_deps_objs)
+                    foreach (AssetObj obj in all_deps_objs)
                     {
                         HashSet<BundleNode> owner_node_set = _get_owner_node_set(obj);
                         self_node.RemoveDepObj(obj);
@@ -425,7 +425,7 @@ namespace FH.AssetBundleManager.Builder
                 }
 
                 //Step 2: 遍历每个node，检查所依赖的obj是否被多个node所依赖，如果是被多个的话，就变成一个独立的新节点
-                Dictionary<string, HashSet<AssetObject>> temp = new Dictionary<string, HashSet<AssetObject>>();
+                Dictionary<string, HashSet<AssetObj>> temp = new Dictionary<string, HashSet<AssetObj>>();
                 List<int> temp_ids = new List<int>();
                 StringBuilder sb = new StringBuilder();
 
@@ -438,7 +438,7 @@ namespace FH.AssetBundleManager.Builder
                         continue;
 
                     bool found = false;
-                    foreach (AssetObject obj in self_node.GetDepObjs())
+                    foreach (AssetObj obj in self_node.GetDepObjs())
                     {
                         HashSet<BundleNode> obj_owner_nodes_set = _get_owner_node_set(obj);
                         BuilderLog.Assert(obj_owner_nodes_set.Count > 0);
@@ -460,11 +460,11 @@ namespace FH.AssetBundleManager.Builder
                             }
                             string key = sb.ToString();
 
-                            HashSet<AssetObject> set = null;
+                            HashSet<AssetObj> set = null;
                             temp.TryGetValue(key, out set);
                             if (set == null)
                             {
-                                set = new HashSet<AssetObject>();
+                                set = new HashSet<AssetObj>();
                                 set.Add(obj);
                                 temp.Add(key, set);
                             }
@@ -489,12 +489,12 @@ namespace FH.AssetBundleManager.Builder
                 //Step3: 变成新的节点
                 foreach (var p in temp)
                 {
-                    HashSet<AssetObject> obj_set = p.Value;
+                    HashSet<AssetObj> obj_set = p.Value;
                     BundleNode new_node = new BundleNode(null);
                     new_node._is_scene_node = false;
                     new_node._flag_need_process = true;
 
-                    foreach (AssetObject bo in obj_set)
+                    foreach (AssetObj bo in obj_set)
                     {
                         new_node.AddMainObj(bo);
                         _set_main_node(bo, new_node);

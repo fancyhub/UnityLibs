@@ -1,14 +1,23 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2023/12/14
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
+
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
-namespace FH.AssetBundleManager.Builder
+namespace FH.AssetBundleBuilder.Ed
 {
-    public class AssetDepCollection : IAssetDepCollection
+    public class AssetDepCollectionConfig : BuilderFeature, IAssetDepCollection
     {
         public HashSet<string> _ignore_res_list = new HashSet<string>()
         {
         };
-        public List<string> _temp = new List<string>();
+
+        private List<string> _temp = new List<string>();
         public string[] CollectDirectDeps(string path)
         {
             return _Filter(UnityEditor.AssetDatabase.GetDependencies(path, false));
@@ -48,8 +57,8 @@ namespace FH.AssetBundleManager.Builder
             bool changed = false;
             foreach (var a in in_data)
             {
-                if (_ShouldIgnore(a))                
-                    changed = true;                
+                if (_ShouldIgnore(a))
+                    changed = true;
                 else
                     _temp.Add(a);
             }

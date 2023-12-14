@@ -1,17 +1,18 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2021/5/17 
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-/*************************************************************************************
- * Author  : cunyu.fan
- * Time    : 2021/5/17 16:33:30
- * Title   : 
- * Desc    : 
-*************************************************************************************/
-namespace FH.AssetBundleManager.Builder
+namespace FH.AssetBundleBuilder.Ed
 {
     /// <summary>
-    /// Bundle Object Resource Type
+    /// Asset Object Resource Type
     /// </summary>
     public enum EAssetObjType
     {

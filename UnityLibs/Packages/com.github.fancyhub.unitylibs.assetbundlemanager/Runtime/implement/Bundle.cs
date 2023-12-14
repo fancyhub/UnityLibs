@@ -53,8 +53,12 @@ namespace FH.AB
         public int IncRefCount()
         {
             if (_LoadStatus != EBundleLoadStatus.Loaded)
+            {
+                BundleLog._.E("Bundle {0}:{1} Is Not Load, Can't Inc ref count", _Config.Name, _LoadStatus);
                 return 0;
+            }
             _RefCount++;
+            BundleLog._.D("Bundle {0} RefCount {1} -> {2}", _Config.Name, _RefCount - 1, _RefCount);
             return _RefCount;
         }
 
@@ -63,8 +67,12 @@ namespace FH.AB
         public int DecRefCount()
         {
             if (_LoadStatus != EBundleLoadStatus.Loaded)
+            {
+                BundleLog._.E("Bundle {0}:{1} Is Not Load, Can't Dec ref count", _Config.Name, _LoadStatus);
                 return 0;
+            }
 
+            BundleLog._.D("Bundle {0} RefCount {1} -> {2}", _Config.Name, _RefCount, _RefCount - 1);
             _RefCount--;
             if (_RefCount > 0)
                 return _RefCount;
@@ -72,9 +80,11 @@ namespace FH.AB
 
             if (_DepRefCount > 0)
             {
+                BundleLog._.D("Bundle {0} DepRefCount {1}>0, Don't Need Unload", _Config.Name, _DepRefCount);
                 _LoadStatus = EBundleLoadStatus.LoadedByDep;
                 return _RefCount;
             }
+
             BundleLog._.D("Bundle {0} Unload ", _Config.Name);
             _LoadStatus = EBundleLoadStatus.None;
             this._AssetBundle.Unload(false);
@@ -100,9 +110,15 @@ namespace FH.AB
         public AssetBundleRequest LoadAssetAsync<T>(string path) where T : UnityEngine.Object
         {
             if (_LoadStatus != EBundleLoadStatus.Loaded)
+            {
+                BundleLog._.E("Bundle {0} Is Not Loaded {1}, Load Asset Fail {2}  ", _Config.Name, _LoadStatus, path);
                 return null;
+            }
             if (_AssetBundle == null)
+            {
+                BundleLog._.E("Bundle {0} AssetBundle Is Null ", _Config.Name);
                 return null;
+            }
 
             return _AssetBundle.LoadAssetAsync<T>(path);
         }
