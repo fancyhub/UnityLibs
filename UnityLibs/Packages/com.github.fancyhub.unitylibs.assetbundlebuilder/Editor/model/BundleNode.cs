@@ -14,28 +14,28 @@ namespace FH.AssetBundleBuilder.Ed
     public class BundleNode : IEnumerable<AssetObj>
     {
         public const string CIgnoreAddressName = " ";
-
         private static int S_NODE_ID_GEN = 0;
-        public int _id;
-        readonly int _hash_code = 0;
-        public string _name = null;
-        public string _name_guid = null;
-        public bool _is_scene_node = false;
+
+        public readonly int Id;
+
+        private readonly string _Name = null;
+        private string _NameWithGuid = null;
+
+        public bool _IsSceneNode = false;
 
         public List<AssetObj> _main_objs = new List<AssetObj>();
         public List<AssetObj> _dep_objs = new List<AssetObj>();
         public HashSet<BundleNode> _dep_nodes = new HashSet<BundleNode>();
 
         //运行时候需要处理的
-        public bool _sort_dirty = true;
-        public bool _flag_need_process = true;
+        private bool _SortDirty = true;
+
+        public bool FlagNeedProcess { get; set; } = true;
 
         public BundleNode(string name)
         {
-            _name = name;
-            _id = S_NODE_ID_GEN;
-            _hash_code = S_NODE_ID_GEN.GetHashCode();
-            S_NODE_ID_GEN++;
+            _Name = name;
+            Id = S_NODE_ID_GEN++;
         }
 
         public bool IsEmpty()
@@ -54,34 +54,42 @@ namespace FH.AssetBundleBuilder.Ed
 
         public void AddMainObj(AssetObj obj)
         {
-            if (_name_guid != null)
+            if (_NameWithGuid != null)
+            {
                 BuilderLog.Error("名字已经创建了，不能添加新节点了");
-            _sort_dirty = true;
+                return;
+            }
+
+            _SortDirty = true;
             _main_objs.Add(obj);
         }
 
         public void AddDepObj(AssetObj obj)
         {
-            if (_name_guid != null)
+            if (_NameWithGuid != null)
+            {
                 BuilderLog.Error("名字已经创建了，不能添加新节点了");
-            _sort_dirty = true;
+                return;
+            }
+
+            _SortDirty = true;
             _dep_objs.Add(obj);
         }
 
         public bool RemoveDepObj(AssetObj obj)
         {
-            _sort_dirty = true;
+            _SortDirty = true;
             return _dep_objs.Remove(obj);
         }
 
         public override int GetHashCode()
         {
-            return _hash_code;
+            return Id;
         }
 
         public bool IsSceneNode()
         {
-            return _is_scene_node;
+            return _IsSceneNode;
         }
 
         public bool IsObjInDepNodes(AssetObj obj)
@@ -119,66 +127,66 @@ namespace FH.AssetBundleBuilder.Ed
 
         public override string ToString()
         {
-            if (null == _name)
+            if (null == _Name)
                 return base.ToString();
-            return _name;
+            return _Name;
         }
 
         public string GetNodeName()
         {
-            if (null != _name)
-                return _name;
+            if (null != _Name)
+                return _Name;
 
-            if (null != _name_guid)
-                return _name_guid;
+            if (null != _NameWithGuid)
+                return _NameWithGuid;
 
-            _sort();
+            _SortAssets();
             //在 _main_objs 里面找到最小的 guid作为名字
             if (_main_objs.Count > 0)
             {
-                _name_guid = "u_" + _main_objs[0]._guid.ToLower();
+                _NameWithGuid = "u_" + _main_objs[0].GUID.ToLower();
             }
             else if (_dep_objs.Count > 0)
             {
-                _name_guid = "u_" + _dep_objs[0]._guid.ToLower();
+                _NameWithGuid = "u_" + _dep_objs[0].GUID.ToLower();
             }
-            return _name_guid;
+            return _NameWithGuid;
         }
 
         private List<string> _GetAllFiles()
         {
-            _sort();
+            _SortAssets();
             List<string> file_list = new List<string>(_main_objs.Count + _dep_objs.Count);
             foreach (AssetObj a in _main_objs)
             {
-                file_list.Add(a._file_path);
+                file_list.Add(a.FilePath);
             }
 
             foreach (AssetObj a in _dep_objs)
             {
-                file_list.Add(a._file_path);
+                file_list.Add(a.FilePath);
             }
             return file_list;
         }
 
         private List<string> _GetAllAddressNames()
         {
-            _sort();
+            _SortAssets();
             List<string> file_list = new List<string>(_main_objs.Count + _dep_objs.Count);
             foreach (AssetObj a in _main_objs)
             {
-                if (!a._need_export)
+                if (!a.NeedExport)
                     file_list.Add(CIgnoreAddressName);
                 else
-                    file_list.Add(a._address_name);                
+                    file_list.Add(a.AddressName);
             }
 
             foreach (AssetObj a in _dep_objs)
             {
-                if (!a._need_export)
+                if (!a.NeedExport)
                     file_list.Add(CIgnoreAddressName);
                 else
-                    file_list.Add(a._address_name);
+                    file_list.Add(a.AddressName);
             }
             return file_list;
         }
@@ -192,19 +200,19 @@ namespace FH.AssetBundleBuilder.Ed
             return false;
         }
 
-        private void _sort()
+        private void _SortAssets()
         {
-            if (!_sort_dirty)
+            if (!_SortDirty)
                 return;
 
-            _sort_dirty = false;
-            _main_objs.Sort(_compare);
-            _dep_objs.Sort(_compare);
+            _SortDirty = false;
+            _main_objs.Sort(_Compare);
+            _dep_objs.Sort(_Compare);
         }
 
-        private int _compare(AssetObj a, AssetObj b)
+        private static int _Compare(AssetObj a, AssetObj b)
         {
-            return a._guid.CompareTo(b._guid);
+            return a.GUID.CompareTo(b.GUID);
         }
 
         public IEnumerator<AssetObj> GetEnumerator()
@@ -231,14 +239,11 @@ namespace FH.AssetBundleBuilder.Ed
         {
             List<KeyValuePair<string, string>> ret = new List<KeyValuePair<string, string>>();
             foreach (var a in _main_objs)
-            {
-                if (a._dep_objs == null)
-                    continue;
-
-                foreach (var b in a._dep_objs)
+            {                
+                foreach (var b in a.GetDepObjs())
                 {
                     if (node2._main_objs.Contains(b))
-                        ret.Add(new KeyValuePair<string, string>(a._file_path, b._file_path));
+                        ret.Add(new KeyValuePair<string, string>(a.FilePath, b.FilePath));
                 }
             }
             return ret;

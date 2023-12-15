@@ -58,6 +58,10 @@ namespace FH.AB
                 return null;
 
             _AssetDict.TryGetValue(asset, out Bundle b);
+            if(b==null)
+            {
+                BundleLog._.E("找不到 {0} 对应的bundle", asset);
+            }
             return b;
         }
 
@@ -74,14 +78,17 @@ namespace FH.AB
 
             _AssetDict.TryGetValue(asset, out Bundle b);
             if (b == null)
+            {
+                BundleLog._.E("找不到 {0} 对应的bundle", asset);
                 return null;
+            }
 
             if (!b.Load())
                 return null;
 
             b.IncRefCount();
             return b;
-        }         
+        }
 
         protected override void OnRelease()
         {

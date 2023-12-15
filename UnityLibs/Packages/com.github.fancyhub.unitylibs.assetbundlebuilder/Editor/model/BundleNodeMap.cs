@@ -50,18 +50,18 @@ namespace FH.AssetBundleBuilder.Ed
                 }
                 builder_list.Add(builder);
             }
-            return builder_list.ToArray();            
+            return builder_list.ToArray();
         }
 
         public void CheckAllAssetsInBundle(ICollection<AssetObj> allAssetObjs)
         {
             HashSet<string> file_list_from_obj = new HashSet<string>(allAssetObjs.Count);
             foreach (var p in allAssetObjs)
-                file_list_from_obj.Add(p._file_path);
+                file_list_from_obj.Add(p.FilePath);
 
             HashSet<string> file_list_from_node = new HashSet<string>(allAssetObjs.Count);
             foreach (var p in GetAllAssetObjects())
-                file_list_from_node.Add(p._file_path);
+                file_list_from_node.Add(p.FilePath);
 
             if (file_list_from_node.Count == file_list_from_obj.Count)
                 return;
@@ -89,7 +89,12 @@ namespace FH.AssetBundleBuilder.Ed
             }
 
             throw new System.Exception(sb.ToString());
-        }         
+        }
+
+        public HashSet<BundleNode> GetAllNodes()
+        {
+            return _nodes_map;
+        }
 
         public HashSet<AssetObj> GetAllAssetObjects()
         {
@@ -107,7 +112,7 @@ namespace FH.AssetBundleBuilder.Ed
                 }
             }
             return ret;
-        }       
+        }
 
         #region 私有类
         private class BundleNodeMapAdd
@@ -129,13 +134,13 @@ namespace FH.AssetBundleBuilder.Ed
                     node = new BundleNode(ab_name);
                     _Name2BundleMap.Add(ab_name, node);
                     _BundleSet.Add(node);
-                    node._is_scene_node = assset.IsSceneObj();
+                    node._IsSceneNode = assset.IsSceneObj();
                 }
 
                 _Add(assset, node);
-                if (null != assset._cycle_deps_objs)
+                if (null != assset.GetCycleDepObjGroup())
                 {
-                    foreach (var a in assset._cycle_deps_objs)
+                    foreach (var a in assset.GetCycleDepObjGroup())
                     {
                         _Add(a, node);
                     }
@@ -156,19 +161,19 @@ namespace FH.AssetBundleBuilder.Ed
                     string msg = string.Format("File Is In {0},conflict with {1}, {2}"
                         , orig_node.GetNodeName()
                         , bundle.GetNodeName()
-                        , asset._file_path);
+                        , asset.FilePath);
 
                     BuilderLog.Error(msg);
                     throw new System.Exception(msg);
                 }
 
-                if (bundle._is_scene_node != asset.IsSceneObj())
+                if (bundle._IsSceneNode != asset.IsSceneObj())
                 {
                     string msg = null;
-                    if (bundle._is_scene_node)
-                        msg = string.Format("{0} is scene node, can't add {1}", bundle.GetNodeName(), asset._file_path);
+                    if (bundle._IsSceneNode)
+                        msg = string.Format("{0} is scene node, can't add {1}", bundle.GetNodeName(), asset.FilePath);
                     else
-                        msg = string.Format("{0} is not scene node, can't add {1}", bundle.GetNodeName(), asset._file_path);
+                        msg = string.Format("{0} is not scene node, can't add {1}", bundle.GetNodeName(), asset.FilePath);
 
                     BuilderLog.Error(msg);
                     throw new System.Exception(msg);
@@ -226,7 +231,7 @@ namespace FH.AssetBundleBuilder.Ed
                 {
                     foreach (AssetObj obj in node._main_objs)
                     {
-                        foreach (AssetObj sub_obj in obj._dep_objs)
+                        foreach (AssetObj sub_obj in obj.GetDepObjs())
                         {
                             BundleNode main_node = _get_main_node(sub_obj);
                             if (main_node == null)
@@ -270,7 +275,6 @@ namespace FH.AssetBundleBuilder.Ed
                     BundleNode new_node = new BundleNode(null);
                     temp.Add(new_node);
 
-                    new_node._is_scene_node = false;
                     foreach (AssetObj obj in dep_objs)
                     {
                         HashSet<BundleNode> owner_nodes_set = _get_owner_node_set(obj);
@@ -306,7 +310,7 @@ namespace FH.AssetBundleBuilder.Ed
                 dep_nodes.Clear();
                 foreach (AssetObj a in self_node)
                 {
-                    foreach (var b in a._dep_objs)
+                    foreach (var b in a.GetDepObjs())
                     {
                         var node = _get_main_node(b);
                         if (null != node)
@@ -404,7 +408,7 @@ namespace FH.AssetBundleBuilder.Ed
                 foreach (BundleNode self_node in _nodes_map)
                 {
                     //如果标记位表示不需要处理，就ignore
-                    if (!self_node._flag_need_process) continue;
+                    if (!self_node.FlagNeedProcess) continue;
 
                     all_deps_objs.Clear();
                     foreach (AssetObj obj in self_node.GetDepObjs())
@@ -434,7 +438,7 @@ namespace FH.AssetBundleBuilder.Ed
                 //按照这个key来分组，一个组就是一个新的节点
                 foreach (BundleNode self_node in _nodes_map)
                 {
-                    if (!self_node._flag_need_process)
+                    if (!self_node.FlagNeedProcess)
                         continue;
 
                     bool found = false;
@@ -448,7 +452,7 @@ namespace FH.AssetBundleBuilder.Ed
                             temp_ids.Clear();
                             foreach (BundleNode s in obj_owner_nodes_set)
                             {
-                                temp_ids.Add(s._id);
+                                temp_ids.Add(s.Id);
                             }
                             temp_ids.Sort();
 
@@ -477,11 +481,11 @@ namespace FH.AssetBundleBuilder.Ed
                     //如果该节点的状态没有发生改变，下次就不要继续处理了
                     if (found)
                     {
-                        self_node._flag_need_process = true;
+                        self_node.FlagNeedProcess = true;
                     }
                     else
                     {
-                        self_node._flag_need_process = false;
+                        self_node.FlagNeedProcess = false;
                     }
                 }
 
@@ -491,8 +495,8 @@ namespace FH.AssetBundleBuilder.Ed
                 {
                     HashSet<AssetObj> obj_set = p.Value;
                     BundleNode new_node = new BundleNode(null);
-                    new_node._is_scene_node = false;
-                    new_node._flag_need_process = true;
+                    new_node._IsSceneNode = false;
+                    new_node.FlagNeedProcess = true;
 
                     foreach (AssetObj bo in obj_set)
                     {
@@ -503,7 +507,7 @@ namespace FH.AssetBundleBuilder.Ed
                         var bo_owner_nodes_set = _get_owner_node_set(bo);
                         foreach (BundleNode old_node in bo_owner_nodes_set)
                         {
-                            old_node._flag_need_process = true;
+                            old_node.FlagNeedProcess = true;
                             old_node.RemoveDepObj(bo);
                             old_node._dep_nodes.Add(new_node);
                         }

@@ -36,7 +36,7 @@ namespace FH.Res
                 _msg_queue.SendJobNext(job);
                 return;
             }
-
+             
             EResWoker job_type = job.GetCurrentWorker();
             if (job_type == EResWoker.call_inst_event)
             {

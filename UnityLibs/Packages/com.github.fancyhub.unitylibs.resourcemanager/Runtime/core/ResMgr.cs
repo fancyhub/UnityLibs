@@ -62,6 +62,18 @@ namespace FH
                 return false;
             }
 
+            if(asset_loader== null)
+            {
+                Res.ResLog._.Assert(false, "AssetLoader Is null");
+                return false;
+            }
+
+            if (conf == null)
+            {
+                Res.ResLog._.Assert(false, "ResMgrConfig Is null");
+                return false;
+            }
+
             ResLog._ = TagLogger.Create(ResLog._.Tag, conf.LogLevel);
             Res.ResMgrImplement mgr = new Res.ResMgrImplement();
             mgr.Init(asset_loader, conf);

@@ -48,6 +48,7 @@ namespace FH.Res
             if (job.IsCanceled)
             {
                 _job_db.Remove(job_id);
+                Log.E("End");
                 return;
             }
 
@@ -56,6 +57,7 @@ namespace FH.Res
             {
                 //没有后续步骤了
                 _job_db.Remove(job_id);
+                
                 return;
             }
 

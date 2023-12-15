@@ -10,7 +10,7 @@ namespace FH.UI
 
     public partial class UIButtonVariantView : UIButtonView
     {
-        public  new  const string C_AssetPath = "Assets/Resources/UI/Prefab/Button_Variant.prefab";
+        public  new  const string C_AssetPath = "Assets/Res/UI/Prefab/Button_Variant.prefab";
         public  new  const string C_ResoucePath = "UI/Prefab/Button_Variant";
 
 

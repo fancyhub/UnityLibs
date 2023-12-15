@@ -72,7 +72,7 @@ namespace FH.Res
         }
 
 
-        private void _OnAtlasRequest(string atlas_tag, Action<SpriteAtlas> arg2)
+        private void _OnAtlasRequest(string atlas_tag, Action<SpriteAtlas> action)
         {
             string path = _asset_loader.AtlasTag2Path(atlas_tag);
             if (string.IsNullOrEmpty(path))
@@ -85,18 +85,18 @@ namespace FH.Res
             if (_dict.ContainsKey(path))
                 return;
 
+            _dict.Add(path, new InnerData()
+            {
+                _atlas_tag = atlas_tag,
+                _call_back = action,
+                _path = path,
+            });
+
             ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), 0, null);
             job.AddWorker(EResWoker.async_load_res);
             job.AddWorker(EResWoker.call_res_event);
             job.AddWorker(EResWoker.call_set_atlas);         
             _msg_queue.BeginJob(job,false);
-
-            _dict.Add(path, new InnerData()
-            {
-                _atlas_tag = atlas_tag,
-                _call_back = arg2,
-                _path = path,
-            });
         }
     }
 }

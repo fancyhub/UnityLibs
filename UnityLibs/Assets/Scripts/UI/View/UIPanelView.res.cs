@@ -10,7 +10,7 @@ namespace FH.UI
 
     public partial class UIPanelView : FH.UI.UIBaseView
     {
-        public const string C_AssetPath = "Assets/Resources/UI/Prefab/Panel.prefab";
+        public const string C_AssetPath = "Assets/Res/UI/Prefab/Panel.prefab";
         public const string C_ResoucePath = "UI/Prefab/Panel";
 
         public UnityEngine.UI.Image _bg;

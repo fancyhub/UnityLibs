@@ -11,11 +11,11 @@ using UnityEngine;
 
 namespace FH.AssetBundleBuilder.Ed
 {
-    public class AssetCollectionConfig_Folder : BuilderFeature, IAssetCollection
+    public class AssetCollector_Folder : BuilderAssetCollector
     {
         public List<string> Folders;
 
-        public List<(string path, string address)> GetAllAssets()
+        public override List<(string path, string address)> GetAllAssets()
         {
             List<(string, string)> ret = new List<(string, string)>();
 

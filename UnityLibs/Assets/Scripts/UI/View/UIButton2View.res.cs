@@ -10,7 +10,7 @@ namespace FH.UI
 
     public partial class UIButton2View : FH.UI.UIBaseView
     {
-        public  const string C_AssetPath = "Assets/Resources/UI/Prefab/Button2.prefab";
+        public  const string C_AssetPath = "Assets/Res/UI/Prefab/Button2.prefab";
         public  const string C_ResoucePath = "UI/Prefab/Button2";
 
 		public UnityEngine.UI.Button _Button2;

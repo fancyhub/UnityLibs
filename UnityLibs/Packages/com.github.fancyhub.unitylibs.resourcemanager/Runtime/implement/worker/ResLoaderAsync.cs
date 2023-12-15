@@ -14,23 +14,44 @@ namespace FH.Res
     //异步加载的task
     internal class ResAsyncTask
     {
-        public ResPath _path;
-        public IAssetRef _asset_request;
-        public List<int> _job_ids;
+        private ResPath _Path;
+        private IAssetRef _AssetRequest;
+        private List<int> _job_ids;
 
         public ResAsyncTask()
         {
             _job_ids = new List<int>();
         }
 
+        public ResPath Path { get { return _Path; } }
+        public IAssetRef AssetRequest => _AssetRequest;
+        public List<int> JobList => _job_ids;
+
+        public bool IsIdle { get { return _AssetRequest == null; } }
+
+        public bool IsJobDone()
+        {
+            bool ret = _AssetRequest.IsDone;
+            return ret;
+        }
+
+        public void AddLinkJobId(int jobId)
+        {
+            _job_ids.Add(jobId);
+        }
+
+        public void StartWork(int jobId, ResPath path, IAssetRef asset)
+        {
+            JobList.Add(jobId);
+            _AssetRequest = asset;
+            _Path = path;
+        }
+
         public void Clear()
         {
-            if (_asset_request != null)
-            {
-                _asset_request.Destroy();
-                _asset_request = null;
-            }
-            _path = default;
+            if (_AssetRequest != null)                            
+                _AssetRequest = null;            
+            _Path = default;
             _job_ids.Clear();
         }
     }
@@ -76,7 +97,7 @@ namespace FH.Res
             {
                 task.Clear();
             }
-        } 
+        }
 
         public void OnMsgProc(ref ResJob job)
         {
@@ -133,24 +154,18 @@ namespace FH.Res
                 ResAsyncTask task = _task_slots[i];
 
                 //1.1 检查是否任务完成了
-                if (!task._path.IsValid())
+                if (task.IsIdle)
                     continue;
-                ResLog._.Assert(task._asset_request != null, "任务 为空 {0}", task._path);
-                if (!task._asset_request.IsDone)
+                if (!task.IsJobDone())
                     continue;
 
                 //1.2 添加到pool里面
-                ResLog._.D("load res async {0}", task._path);
-                EResError error_code = _res_pool.AddRes(task._path, task._asset_request, out ResId _);
-                ResLog._.ErrCode(error_code, $"添加资源失败 {task._path}");
-                if (error_code != EResError.OK)
-                {
-                    task._asset_request.Destroy();
-                    task._asset_request = null;
-                }
+                ResLog._.D("load res async {0}", task.Path);
+                EResError error_code = _res_pool.AddRes(task.Path, task.AssetRequest, out ResId _);
+                ResLog._.ErrCode(error_code, $"添加资源失败 {task.Path}");
 
                 //1.3 把下面的所有job 发到下一个worker里面去
-                foreach (int job_id in task._job_ids)
+                foreach (int job_id in task.JobList)
                 {
                     _job_db.Find(job_id, out ResJob job);
                     job.ErrorCode = error_code;
@@ -209,22 +224,21 @@ namespace FH.Res
 
                 //2.6  把自己的job id 挂到 task slot下面
                 _job_queue.Pop();
-                task_slot._job_ids.Add(job_id);
-
-                //2.7 判断task 有没有开始加载 ，因为有可能多个任务加载同一个资源，会需要合并
-                if (task_slot._path.IsValid())
+                if (!task_slot.IsIdle)
+                {
+                    task_slot.AddLinkJobId(job_id);
                     continue;
+                }
+                IAssetRef asset = _asset_loader.LoadAsync(job.Path.Path, job.Path.Sprite);
 
-                task_slot._path = job.Path;
-                task_slot._asset_request = _asset_loader.LoadAsync(job.Path.Path, job.Path.Sprite);
-
-
-                if (task_slot._asset_request != null)
+                if (asset != null)
+                {
+                    task_slot.StartWork(job_id, job.Path, asset);
                     continue;
+                }
 
                 //2.8 加载失败
                 ResLog._.Assert(false, "加载资源的asset request为空 {0}", job.Path.Path);
-                task_slot.Clear();
                 job.ErrorCode = EResError.ResLoaderAsync_load_res_failed2;
                 _msg_queue.SendJobNext(job);
             }
@@ -236,14 +250,14 @@ namespace FH.Res
             //1. 先找相同的
             for (int i = 0; i < task_slot.Length; ++i)
             {
-                if (task_slot[i]._path == path)
+                if (!task_slot[i].IsIdle && task_slot[i].Path == path)
                     return task_slot[i];
             }
 
             //2. 找空的
             for (int i = 0; i < count; ++i)
             {
-                if (task_slot[i]._path == null)
+                if (task_slot[i].IsIdle)
                     return task_slot[i];
             }
             return null;

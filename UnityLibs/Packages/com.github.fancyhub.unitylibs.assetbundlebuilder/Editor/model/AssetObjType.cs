@@ -32,7 +32,7 @@ namespace FH.AssetBundleBuilder.Ed
         /// <summary>
         /// spriteatlasv2
         /// </summary>
-        altas,
+        atlas,
 
         /// <summary>
         /// ScriptableObject, *.asset
@@ -159,8 +159,8 @@ namespace FH.AssetBundleBuilder.Ed
             {".giparams", EAssetObjType.giparams },
 
             {".mixer", EAssetObjType.mixer },
-            {".spriteatlasv2",EAssetObjType.altas  },
-            {".spriteatlas",EAssetObjType.altas  },
+            {".spriteatlasv2",EAssetObjType.atlas  },
+            {".spriteatlas",EAssetObjType.atlas  },
         };
 
         public static EAssetObjType GetObjType(string path)

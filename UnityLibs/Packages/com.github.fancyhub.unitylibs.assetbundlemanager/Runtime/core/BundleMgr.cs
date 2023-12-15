@@ -5,6 +5,7 @@
  * Desc    : 
 *************************************************************************************/
 
+using FH.AB;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -69,6 +70,19 @@ namespace FH
         {
             if (_.Val != null)
                 return false;
+
+            if (bundle_loader == null)
+            {
+                BundleLog._.E("BundlerLoader is Null");
+                return false;
+            }
+
+            if (config == null)
+            {
+                BundleLog._.E("config is Null");
+                return false;
+            }
+
 
             AB.BundleMgrImplement mgr = new AB.BundleMgrImplement();
             mgr.Init(bundle_loader, config);

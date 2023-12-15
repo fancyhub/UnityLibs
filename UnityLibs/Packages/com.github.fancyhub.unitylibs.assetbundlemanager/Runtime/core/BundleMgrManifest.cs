@@ -33,8 +33,22 @@ namespace FH
 
         public static BundleMgrManifest LoadFromFile(string path)
         {
-            string content= System.IO.File.ReadAllText(path);
-            return UnityEngine.JsonUtility.FromJson<BundleMgrManifest>(content);
+            if (!System.IO.File.Exists(path))                
+            {
+                Log.E("文件不存在 " + path);
+                return null;
+            }
+
+            try
+            {
+                string content = System.IO.File.ReadAllText(path);
+                return UnityEngine.JsonUtility.FromJson<BundleMgrManifest>(content);                
+            }
+            catch(Exception e)
+            {
+                Log.E(e);
+                return null;
+            }            
         }
 
 #if UNITY_EDITOR
@@ -69,6 +83,7 @@ namespace FH
             //资源
             foreach (var p in bundleBuildList)
             {
+                assetList.Clear();
                 BundleManifest config = null;
                 if (string.IsNullOrEmpty(p.assetBundleVariant))
                     config = bundleList[bundleDict[p.assetBundleName]];

@@ -10,19 +10,10 @@ using System.Collections.Generic;
 
 namespace FH.AssetBundleBuilder.Ed
 {
-    public enum EFileStatus
+    public interface IAssetDependency
     {
-        exist,
-        not_exist,
-        folder,
-    }
-
-    public interface IAssetDepCollection
-    {
-        string[] CollectDirectDeps(string path);
+        List<string> CollectDirectDeps(string path);
         string FileGuid(string path);
-        EFileStatus FileStatus(string path);
-        string FileHash(string path);
     }
 
     /// <summary>
@@ -30,7 +21,7 @@ namespace FH.AssetBundleBuilder.Ed
     /// </summary>
     public class AssetObjMap
     {
-        private IAssetDepCollection _bundle_collection;
+        private IAssetDependency _bundle_collection;
         public bool _has_error_flag = false;
         private Dictionary<string, AssetObj> _objs_map;
         private AssetObjectCycleDep _cycle_dep;
@@ -41,7 +32,7 @@ namespace FH.AssetBundleBuilder.Ed
             _cycle_dep = new AssetObjectCycleDep();
         }
 
-        public void SetDepCollection(IAssetDepCollection collection)
+        public void SetDepCollection(IAssetDependency collection)
         {
             _bundle_collection = collection;
         }
@@ -56,8 +47,8 @@ namespace FH.AssetBundleBuilder.Ed
             AssetObj obj = FindObject(path);
             if (obj != null)
             {
-                obj._need_export = true;
-                obj._address_name = address_name;
+                obj.NeedExport = true;
+                obj.AddressName = address_name;
                 return obj;
             }
 
@@ -66,8 +57,8 @@ namespace FH.AssetBundleBuilder.Ed
             if (null == obj)
                 return obj;
 
-            obj._address_name = address_name;
-            obj._need_export = true;
+            obj.AddressName = address_name;
+            obj.NeedExport = true;
 
             //把循环依赖变成一个组
             _cycle_dep.ProcessCycleDep();
@@ -91,7 +82,7 @@ namespace FH.AssetBundleBuilder.Ed
             List<AssetObj> ret = new List<AssetObj>();
             foreach (var p in _objs_map)
             {
-                if (p.Value.GetAssetType() == obj_type)
+                if (p.Value.AssetType == obj_type)
                 {
                     ret.Add(p.Value);
                 }
@@ -110,41 +101,55 @@ namespace FH.AssetBundleBuilder.Ed
             _cycle_dep_checker.HasCycleDep(_objs_map.Values);
         }
 
+        private enum EFileStatus
+        {
+            Exist,
+            NotExist,
+            Folder,
+        }
+
+        private EFileStatus _GetFileStatus(string path)
+        {
+            if (System.IO.File.Exists(path))
+                return EFileStatus.Exist;
+            if (System.IO.Directory.Exists(path))
+                return EFileStatus.Folder;
+            return EFileStatus.NotExist;
+        }
+
         private AssetObj _CreateAssetObject(string path, AssetObjectCycleDep cycle_dep)
         {
-            var file_status = _bundle_collection.FileStatus(path);
-            switch (file_status)
+            EFileStatus fileStatus = _GetFileStatus(path);
+            switch (fileStatus)
             {
-                case EFileStatus.exist:
+                case EFileStatus.Exist:
                     break;
-                case EFileStatus.folder:
+                case EFileStatus.Folder:
                     return null;
-                case EFileStatus.not_exist:
+                case EFileStatus.NotExist:
                     BuilderLog.Warning("找不到资源: " + path);
                     return null;
 
                 default:
-                    BuilderLog.Warning("未知的类型 {0}", file_status);
+                    BuilderLog.Warning("未知的类型 {0}", fileStatus);
                     return null;
             }
 
 
-            AssetObj ret_obj = new AssetObj();
+            AssetObj ret_obj = new AssetObj(path, _bundle_collection.FileGuid(path));
             {
-                string guid = _bundle_collection.FileGuid(path);
-                string file_hash = _bundle_collection.FileHash(path);
-                ret_obj.SetPath(path, guid, file_hash);
+
                 _objs_map.Add(path, ret_obj);
                 cycle_dep.Add(ret_obj);
 
-                if (ret_obj.GetAssetType() == EAssetObjType.none)
+                if (ret_obj.AssetType == EAssetObjType.none)
                 {
                     BuilderLog.AssertFormat(false, "Unknow res type:{0}", path);
                 }
             }
 
 
-            string[] deps_paths = _bundle_collection.CollectDirectDeps(ret_obj._file_path);
+            List<string> deps_paths = _bundle_collection.CollectDirectDeps(ret_obj.FilePath);
             foreach (string dep_path in deps_paths)
             {
                 if (dep_path == null)
@@ -171,7 +176,7 @@ namespace FH.AssetBundleBuilder.Ed
                         continue;
                     }
                 }
-                ret_obj._dep_objs.Add(dep_obj);
+                ret_obj.AddDirectDep(dep_obj);
             }
             return ret_obj;
         }
@@ -236,7 +241,7 @@ namespace FH.AssetBundleBuilder.Ed
                 }
 
                 stack.Add(obj);
-                foreach (var a in obj._dep_objs)
+                foreach (var a in obj.GetDepObjs())
                 {
                     if (_find_cycle_dep_objs(a, stack))
                     {
@@ -266,15 +271,15 @@ namespace FH.AssetBundleBuilder.Ed
 
                     cycle_objs.Add(self_obj);
 
-                    if (self_obj._cycle_deps_objs != null)
+                    if (self_obj.GetCycleDepObjGroup() != null)
                     {
-                        foreach (var bb in self_obj._cycle_deps_objs)
+                        foreach (var bb in self_obj.GetCycleDepObjGroup())
                         {
                             cycle_objs.Add(bb);
                         }
                     }
 
-                    foreach (var bb in self_obj._dep_objs)
+                    foreach (var bb in self_obj.GetDepObjs())
                     {
                         dep_objs.Add(bb);
                     }
@@ -287,8 +292,7 @@ namespace FH.AssetBundleBuilder.Ed
 
                 foreach (var a in cycle_objs)
                 {
-                    a._cycle_deps_objs = cycle_objs;
-                    a._dep_objs = dep_objs;
+                    a.SetDepsObjs(dep_objs, cycle_objs);                    
                 }
             }
         }
@@ -334,7 +338,7 @@ namespace FH.AssetBundleBuilder.Ed
                 }
 
                 _stack.Push(node);
-                foreach (var child in node._dep_objs)
+                foreach (var child in node.GetDepObjs())
                 {
                     if (_CheckCycleDep(child))
                         return true;

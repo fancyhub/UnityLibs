@@ -18,7 +18,7 @@ MonoBehaviour:
   BaseClassName: FH.UI.UIBaseView
   CodeFolder: Assets/Scripts/UI/View
   ResourcesFolderList:
-  - Assets/Resources/UI/Prefab
+  - Assets/Res/UI/Prefab
   CompTypeList:
   - UnityEngine.UI.Button
   - UnityEngine.UI.Toggle

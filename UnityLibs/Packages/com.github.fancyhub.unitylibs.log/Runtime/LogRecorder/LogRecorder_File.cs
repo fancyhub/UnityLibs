@@ -52,8 +52,9 @@ namespace FH
             //3. Create New Log File
             if (!System.IO.Directory.Exists(dir))
             {
-                UnityEngine.Debug.LogError("Log Dir not exist " + System.IO.Path.GetFullPath(dir));
-                return;
+                Directory.CreateDirectory(dir);
+                //UnityEngine.Debug.LogError("Log Dir not exist " + System.IO.Path.GetFullPath(dir));
+                //return;
             }
 
             var fileStream = new FileStream(_file_path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);

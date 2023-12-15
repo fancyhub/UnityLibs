@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace FH
 {
@@ -100,7 +101,7 @@ namespace FH
         {
             //一般都是异步的
             if (!sync)
-            {
+            {                
                 _MsgQueues.ExtAddLast(new KeyValuePair<int, T>(handle_id, msg));
                 return;
             }
@@ -139,7 +140,7 @@ namespace FH
                 bool succ = _MsgQueues.ExtPopFirst(out KeyValuePair<int, T> msg_pair);
                 if (!succ)
                     break;
-
+                
                 //2. 计数器+1
                 msg_count_process++;
 

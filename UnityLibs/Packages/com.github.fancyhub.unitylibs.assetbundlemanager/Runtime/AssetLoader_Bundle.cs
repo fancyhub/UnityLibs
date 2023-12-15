@@ -14,6 +14,7 @@ namespace FH
     public class AssetLoader_Bundle : CPtrBase, IAssetLoader
     {
         public CPtr<IBundleMgr> _BundleMgr;
+        public Func<string, string> _AtlasTag;
         public sealed class ResRefDB
         {
             public Dictionary<int, int> _Data = new Dictionary<int, int>();
@@ -130,13 +131,16 @@ namespace FH
 
         public ResRefDB _ResRefDB = new ResRefDB();
 
-        public AssetLoader_Bundle(IBundleMgr bundle_mgr)
+        public AssetLoader_Bundle(IBundleMgr bundle_mgr,Func<string,string> atlas_tag)
         {
             _BundleMgr = new CPtr<IBundleMgr>(bundle_mgr);
+            _AtlasTag = atlas_tag;
         }
 
         public string AtlasTag2Path(string atlasName)
         {
+            if (_AtlasTag != null)
+                return _AtlasTag(atlasName);
             return string.Empty;
         }
 

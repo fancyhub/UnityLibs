@@ -22,27 +22,25 @@ namespace FH.AssetBundleBuilder.Ed
         public BuilderParam Windows;
         public BuilderParam OSX;
 
-        [HideInInspector]
-        public List<BuilderFeature> Features = new List<BuilderFeature>();
+        [HideInInspector] public BuilderAssetCollector AssetCollector;
+        [HideInInspector] public BuilderAssetDependency AssetDependency;
 
-        public IAssetCollection GetAssetCollection()
+        [HideInInspector]
+        public List<BuilderBundleRuler> BundleRulers = new List<BuilderBundleRuler>();
+
+        public IAssetCollector GetAssetCollector()
         {
-            return new AssetCollectionGroup(Features);
+            return AssetCollector;
         }
 
-        public IAssetDepCollection GetAssetDepCollection()
+        public IAssetDependency GetAssetDepCollection()
         {
-            foreach (var p in Features)
-            {
-                if (!p.Enable)
-                    continue;
+            return AssetDependency;
+        }
 
-                if (p is IAssetDepCollection c)
-                    return c;
-            }
-
-            Debug.LogError("找不到 IAssetDepCollection");
-            return null;
+        public IBundleRuler GetBundleRuler()
+        {
+            return new BuilderBundleRulerGroup(BundleRulers);
         }
 
         public static AssetBundleBuilderConfig GetDefault()
@@ -75,33 +73,34 @@ namespace FH.AssetBundleBuilder.Ed
             }
         }
 
-        private class AssetCollectionGroup : IAssetCollection
+        private sealed class BuilderBundleRulerGroup : IBundleRuler
         {
-            public List<IAssetCollection> List = new List<IAssetCollection>();
-
-            public AssetCollectionGroup(List<BuilderFeature> features)
+            private List<BuilderBundleRuler> _Rulers;
+            public BuilderBundleRulerGroup(List<BuilderBundleRuler> rulers)
             {
-                foreach (var f in features)
+                _Rulers = new List<BuilderBundleRuler>();
+                if (rulers != null)
                 {
-                    if (!f.Enable)
-                        continue;
-
-                    if (f is IAssetCollection c)
+                    foreach (var p in rulers)
                     {
-                        List.Add(c);
+                        if (p == null || !p.Enable)
+                            continue;
+                        _Rulers.Add(p);
                     }
                 }
+
+                UnityEngine.Debug.Assert(_Rulers.Count > 0, "规则为空");
             }
 
-            public List<(string path, string address)> GetAllAssets()
+            public string GetBundleName(string asset_path, EAssetObjType asset_type, bool need_export)
             {
-                List<(string path, string address)> ret = new List<(string path, string address)>();
-                foreach (var p in List)
+                foreach (var p in _Rulers)
                 {
-                    ret.AddRange(p.GetAllAssets());
+                    string ret = p.GetBundleName(asset_path, asset_type, need_export);
+                    if (ret != null)
+                        return ret;
                 }
-
-                return ret;
+                return null;
             }
         }
     }
