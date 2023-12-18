@@ -102,16 +102,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Android:
     BuildOptions: 768
-    OutputDir: 
+    OutputDir: Bundle/Builder/Android
   IOS:
     BuildOptions: 768
-    OutputDir: 
+    OutputDir: Bundle/Builder/IOS
   Windows:
     BuildOptions: 768
-    OutputDir: BundleCache/Win
+    OutputDir: Bundle/Builder/Win
   OSX:
     BuildOptions: 768
-    OutputDir: 
+    OutputDir: Bundle/Builder/OSX
   AssetCollector: {fileID: -2576945627375757616}
   AssetDependency: {fileID: 2520550354463717286}
   BundleRulers:

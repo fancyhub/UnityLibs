@@ -8,12 +8,11 @@ namespace FH
 {
     public class ResService : MonoBehaviour
     {
-       
         public FH.ResMgrConfig Config;
         // Start is called before the first frame update
-        void Awake()
+        protected virtual void Awake()
         {
-            BundleMgr.InitMgr(new BundleLoader(), BundleMgrManifest.LoadFromFile("BundleCache/Win/manifest.json"));
+            BundleMgr.InitMgr(new BundleLoader(), BundleMgrManifest.LoadFromFile("Bundle/Builder/Win/manifest.json"));
 
             UnityEngine.Application.targetFrameRate = 30;
             //FH.ResMgr.InitMgr(new FH.Res.SampleAssetLoader.AssetLoader_Resource(), Config);
@@ -21,7 +20,6 @@ namespace FH
             {
                 return $"Assets/Res/UI/Atlas/{a}.spriteatlasv2";
             }), Config);
-
         }
 
 
