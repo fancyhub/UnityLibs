@@ -13,9 +13,20 @@ namespace FH.AssetBundleBuilder.Ed
         public class Asset
         {
             public int Id;
+            public bool Export;
             public string Path;
             public string Address;
             public int[] Deps;
+
+            public string GetAddressableName()
+            {
+                if (!Export)
+                    return null;
+
+                if (!string.IsNullOrEmpty(Address))
+                    return Address;
+                return Path;
+            }
         }
 
         [Serializable]
@@ -42,6 +53,7 @@ namespace FH.AssetBundleBuilder.Ed
                     {
                         Id = index,
                         Path = p.FilePath,
+                        Export = p.NeedExport,
                         Address = p.AddressName
                     };
                     index++;

@@ -40,9 +40,6 @@ namespace FH.AssetBundleBuilder.Ed
 
         public List<string> CollectDirectDeps(string asset_path, EAssetObjType asset_type)
         {
-            if (asset_type == EAssetObjType.atlas)
-                return new List<string>();
-
             return _Filter(AssetDatabase.GetDependencies(asset_path, false));
         }
 

@@ -138,3 +138,5 @@ MonoBehaviour:
   IngoreExtList:
   - .dll
   - .cs
+  AtlasDirs:
+  - Assets/Res/UI/Atlas

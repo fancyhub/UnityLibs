@@ -1,0 +1,143 @@
+{
+    "Assets": [
+        {
+            "Id": 0,
+            "Export": true,
+            "Path": "Assets/Res/UI/Atlas/TestAtlas.Low.spriteatlasv2",
+            "Address": "",
+            "Deps": []
+        },
+        {
+            "Id": 1,
+            "Export": true,
+            "Path": "Assets/Res/UI/Atlas/TestAtlas.spriteatlasv2",
+            "Address": "",
+            "Deps": []
+        },
+        {
+            "Id": 2,
+            "Export": true,
+            "Path": "Assets/Res/UI/Prefab/Button_Variant.prefab",
+            "Address": "",
+            "Deps": [
+                11
+            ]
+        },
+        {
+            "Id": 3,
+            "Export": true,
+            "Path": "Assets/Res/UI/Prefab/Button2.prefab",
+            "Address": "",
+            "Deps": []
+        },
+        {
+            "Id": 4,
+            "Export": true,
+            "Path": "Assets/Res/UI/Prefab/Panel.prefab",
+            "Address": "",
+            "Deps": [
+                6,
+                11,
+                2,
+                8
+            ]
+        },
+        {
+            "Id": 5,
+            "Export": true,
+            "Path": "Assets/Res/UI/Sprite/btn_press.png",
+            "Address": "",
+            "Deps": [
+                1,
+                0
+            ]
+        },
+        {
+            "Id": 6,
+            "Export": true,
+            "Path": "Assets/Res/UI/Texture/bg.png",
+            "Address": "",
+            "Deps": []
+        },
+        {
+            "Id": 7,
+            "Export": true,
+            "Path": "Assets/Res/UI/Prefab/Panel_Variant.prefab",
+            "Address": "",
+            "Deps": [
+                4,
+                2,
+                3
+            ]
+        },
+        {
+            "Id": 8,
+            "Export": true,
+            "Path": "Assets/Res/UI/Sprite/icon.png",
+            "Address": "",
+            "Deps": [
+                1,
+                0
+            ]
+        },
+        {
+            "Id": 9,
+            "Export": true,
+            "Path": "Assets/Res/UI/Sprite/btn_normal.png",
+            "Address": "",
+            "Deps": [
+                1,
+                0
+            ]
+        },
+        {
+            "Id": 10,
+            "Export": true,
+            "Path": "Assets/Res/UI/Sprite/btn_disable.png",
+            "Address": "",
+            "Deps": [
+                1,
+                0
+            ]
+        },
+        {
+            "Id": 11,
+            "Export": true,
+            "Path": "Assets/Res/UI/Prefab/Button.prefab",
+            "Address": "",
+            "Deps": [
+                9
+            ]
+        }
+    ],
+    "Bundles": [
+        {
+            "Id": 0,
+            "Name": "atlas",
+            "Deps": [],
+            "Assets": [
+                0,
+                1
+            ]
+        },
+        {
+            "Id": 1,
+            "Name": "test",
+            "Deps": [
+                0
+            ],
+            "Assets": [
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11
+            ]
+        }
+    ]
+}

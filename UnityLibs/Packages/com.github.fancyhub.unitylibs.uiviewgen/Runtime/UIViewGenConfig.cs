@@ -11,7 +11,7 @@ namespace FH.UI
     [CreateAssetMenu(menuName = "UIView/UI View Gen Config", fileName = "NewViewGeneratorConfig")]
     public class UIViewGenConfig : ScriptableObject, ISerializationCallbackReceiver
     {
-        public const string DefaultPath = "Assets/Editor/UIGeneratorConfig.asset";
+        public const string DefaultPath = "Assets/fancyhub/UIGeneratorConfig.asset";
         public const string C_EditorPrefs_Key = "fancyhub.uiview.gen.path";
 
         public const string C_MENU_Gen_Select = "Assets/Gen UIView Code";

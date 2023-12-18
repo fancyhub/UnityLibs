@@ -1,0 +1,23 @@
+ManifestFileVersion: 0
+CRC: 4158811769
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 02c24d9cdef15929ba62696cde1b1b0a
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 033fafe2c9f6c610c3a734393882fd4c
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+- Class: 687078895
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/Res/UI/Atlas/TestAtlas.Low.spriteatlasv2
+- Assets/Res/UI/Atlas/TestAtlas.spriteatlasv2
+Dependencies:
+- E:/fancyHub/UnityLibs/UnityLibs/BundleCache/Win/test
