@@ -9,12 +9,13 @@ using UnityEngine;
 
 public class UIViewTest : MonoBehaviour
 {
+    public Canvas Canvas;
     private FH.UI.UIButtonView _btn;
     private FH.UI.UIPanelVariantView _view;
     // Start is called before the first frame update
     void Start()
     {
-        _btn = FH.UI.UIBaseView.CreateView<FH.UI.UIButtonView>(this.transform);
+        _btn = FH.UI.UIBaseView.CreateView<FH.UI.UIButtonView>(Canvas.transform);
         _btn.OnClick = _on_Add;
     }
 
@@ -22,7 +23,7 @@ public class UIViewTest : MonoBehaviour
     {
         if (_view == null)
         {
-            _view = FH.UI.UIBaseView.CreateView<FH.UI.UIPanelVariantView>(this.transform);
+            _view = FH.UI.UIBaseView.CreateView<FH.UI.UIPanelVariantView>(Canvas.transform);
             _view._btn_0.OnClick = _onClose;
 
             var a1 = FH.ResMgr.Load("Assets/Resources/UI/Sprite/btn_disable1.png");

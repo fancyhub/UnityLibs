@@ -5,23 +5,22 @@
  * Desc    : 
 *************************************************************************************/
 #if UNITY_EDITOR
-#define AssetDatabaseAssetLoader
-using UnityEditor;
-#endif
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using UnityEditor;
 
 namespace FH.Res.SampleAssetLoader
 {
 
     public class AssetLoader_AssetDatabase : CPtrBase, IAssetLoader
     {
+        private Dictionary<string, string> _AssetDict;
+        private Func<string, string> _FuncAtlasTag2Path;
 
-#if AssetDatabaseAssetLoader
         private sealed class EditorResRequestComp : MonoBehaviour
         {
             public static EditorResRequestComp _;
@@ -182,11 +181,35 @@ namespace FH.Res.SampleAssetLoader
         }
 
 
+        public AssetLoader_AssetDatabase(List<(string path, string addressName)> asset_list = null, Func<string, string> func_atlas_tag_2_path = null)
+        {
+            if (asset_list != null)
+            {
+                _AssetDict = new Dictionary<string, string>(asset_list.Count);
+                foreach (var p in asset_list)
+                {
+                    string addressName = string.IsNullOrEmpty(p.addressName) ? p.path : p.addressName;
+
+                    if (_AssetDict.TryGetValue(addressName, out var old_path))
+                    {
+                        Log.E("{0} 指向了两个位置 \n{1}\n{2}\n", addressName, old_path, p.path);
+                    }
+                    else
+                    {
+                        _AssetDict.Add(addressName, p.path);
+                    }
+                }
+            }
+            _FuncAtlasTag2Path = func_atlas_tag_2_path;
+        }
+
         private ResRefDB _ResRefDB = new ResRefDB();
 
         public string AtlasTag2Path(string atlasName)
         {
-            return string.Empty;
+            if (_FuncAtlasTag2Path == null)
+                return null;
+            return _FuncAtlasTag2Path(atlasName);
         }
 
         public EAssetStatus GetAssetStatus(string path)
@@ -203,13 +226,21 @@ namespace FH.Res.SampleAssetLoader
 
         public IAssetRef Load(string path, bool sprite)
         {
+            if (_AssetDict != null)
+            {
+                if (!_AssetDict.TryGetValue(path, out var new_path))
+                    return null;
+
+                path = new_path;
+            }
+
             UnityEngine.Object asset = null;
             if (!sprite)
                 asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
             else
                 asset = AssetDatabase.LoadAssetAtPath<Sprite>(path);
 
-            if (asset != null)
+            if (_AssetDict == null && asset != null)
             {
                 string real_path = AssetDatabase.GetAssetPath(asset);
                 if (real_path != path)
@@ -224,6 +255,14 @@ namespace FH.Res.SampleAssetLoader
 
         public IAssetRef LoadAsync(string path, bool sprite)
         {
+            if (_AssetDict != null)
+            {
+                if (!_AssetDict.TryGetValue(path, out var new_path))
+                    return null;
+
+                path = new_path;
+            }
+
             if (!Application.isPlaying)
             {
                 return Load(path, sprite);
@@ -236,40 +275,6 @@ namespace FH.Res.SampleAssetLoader
         {
 
         }
-
-
-
-#else
-        public string AtlasTag2Path(string atlasName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public EAssetStatus GetAssetStatus(string path)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsResExist(string path)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IAssetRef Load(string path, bool sprite)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IAssetRef LoadAsync(string path, bool sprite)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void OnRelease()
-        {
-            throw new NotImplementedException();
-        }
-#endif
-
     }
 }
+#endif

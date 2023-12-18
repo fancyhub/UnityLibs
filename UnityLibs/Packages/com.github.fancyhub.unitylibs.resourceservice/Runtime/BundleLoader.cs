@@ -13,7 +13,11 @@ namespace FH
 {
     public class BundleLoader : CPtrBase, IBundleLoader
     {
-        public string Dir = "BundleCache/Win";
+        public string Dir;
+        public BundleLoader(string dir)
+        {
+            Dir = dir;
+        }
         public EBundleFileStatus GetBundleFileStatus(string name)
         {
             string path = System.IO.Path.Combine(Dir, name);
