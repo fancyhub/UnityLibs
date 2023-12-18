@@ -12,7 +12,7 @@ namespace FH.AssetBundleBuilder.Ed
 {
     public interface IAssetDependency
     {
-        List<string> CollectDirectDeps(string path);
+        List<string> CollectDirectDeps(string path, EAssetObjType asset_type);
         string FileGuid(string path);
     }
 
@@ -100,42 +100,9 @@ namespace FH.AssetBundleBuilder.Ed
             AssetObjectCycleDepChecker _cycle_dep_checker = new AssetObjectCycleDepChecker();
             _cycle_dep_checker.HasCycleDep(_objs_map.Values);
         }
-
-        private enum EFileStatus
-        {
-            Exist,
-            NotExist,
-            Folder,
-        }
-
-        private EFileStatus _GetFileStatus(string path)
-        {
-            if (System.IO.File.Exists(path))
-                return EFileStatus.Exist;
-            if (System.IO.Directory.Exists(path))
-                return EFileStatus.Folder;
-            return EFileStatus.NotExist;
-        }
-
+ 
         private AssetObj _CreateAssetObject(string path, AssetObjectCycleDep cycle_dep)
-        {
-            EFileStatus fileStatus = _GetFileStatus(path);
-            switch (fileStatus)
-            {
-                case EFileStatus.Exist:
-                    break;
-                case EFileStatus.Folder:
-                    return null;
-                case EFileStatus.NotExist:
-                    BuilderLog.Warning("找不到资源: " + path);
-                    return null;
-
-                default:
-                    BuilderLog.Warning("未知的类型 {0}", fileStatus);
-                    return null;
-            }
-
-
+        { 
             AssetObj ret_obj = new AssetObj(path, _bundle_collection.FileGuid(path));
             {
 
@@ -149,7 +116,7 @@ namespace FH.AssetBundleBuilder.Ed
             }
 
 
-            List<string> deps_paths = _bundle_collection.CollectDirectDeps(ret_obj.FilePath);
+            List<string> deps_paths = _bundle_collection.CollectDirectDeps(ret_obj.FilePath, ret_obj.AssetType);
             foreach (string dep_path in deps_paths)
             {
                 if (dep_path == null)
@@ -292,7 +259,7 @@ namespace FH.AssetBundleBuilder.Ed
 
                 foreach (var a in cycle_objs)
                 {
-                    a.SetDepsObjs(dep_objs, cycle_objs);                    
+                    a.SetDepsObjs(dep_objs, cycle_objs);
                 }
             }
         }

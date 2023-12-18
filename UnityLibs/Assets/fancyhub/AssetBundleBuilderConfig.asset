@@ -1,5 +1,41 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7376883222277061226
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65b27d11bf94e9649b51c91602197269, type: 3}
+  m_Name: PreBuild_Log
+  m_EditorClassIdentifier: 
+--- !u!114 &-7057009503913387643
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0259da093f5de149835f8f4f106e3a3, type: 3}
+  m_Name: PostBuild_SaveBunldeMgrManifest
+  m_EditorClassIdentifier: 
+--- !u!114 &-6210324049705765230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd1f91fe5368df5469ac166c7e86591e, type: 3}
+  m_Name: PostBuild_SaveGraph
+  m_EditorClassIdentifier: 
 --- !u!114 &-6171372005339789729
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13,7 +49,7 @@ MonoBehaviour:
   m_Name: BundleRuler_Simple
   m_EditorClassIdentifier: 
   Enable: 1
-  RulerName: 
+  RulerName: default
   BundleName: test
   OnlyExportFile: 1
   PatternList:
@@ -46,7 +82,7 @@ MonoBehaviour:
   m_Name: BundleRuler_Simple
   m_EditorClassIdentifier: 
   Enable: 1
-  RulerName: a
+  RulerName: "atlas \u89C4\u5219"
   BundleName: atlas
   OnlyExportFile: 1
   PatternList:
@@ -81,6 +117,11 @@ MonoBehaviour:
   BundleRulers:
   - {fileID: -2350463057854487069}
   - {fileID: -6171372005339789729}
+  PreBuild:
+  - {fileID: -7376883222277061226}
+  PostBuild:
+  - {fileID: -6210324049705765230}
+  - {fileID: -7057009503913387643}
 --- !u!114 &2520550354463717286
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -97,16 +138,3 @@ MonoBehaviour:
   IngoreExtList:
   - .dll
   - .cs
---- !u!114 &4325959216925812726
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f413d43d18e558c498663009e00123f7, type: 3}
-  m_Name: AssetCollection_Folder
-  m_EditorClassIdentifier: 
-  Folders: []

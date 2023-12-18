@@ -6,10 +6,10 @@
 *************************************************************************************/
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using System.Linq;
 
 namespace FH.AssetBundleBuilder.Ed
 {
@@ -24,23 +24,34 @@ namespace FH.AssetBundleBuilder.Ed
 
         public static void Build(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target)
         {
+            BuilderParam param = config.GetBuilderParam(target);
             BuilderTimer.Intend = 0;
             using var _ = new BuilderTimer("Build Bundles");
-                    
-            //1. 获取所有可寻址的资源
+
+            //1. 预处理
+            using (new BuilderTimer("1/7. Pre Build"))
+            {
+                foreach (var p in config.PreBuild)
+                {
+                    if (p != null)
+                        p.OnPreBuild(target, param);
+                }
+            }
+
+            //2. 获取所有可寻址的资源
             List<(string path, string address)> fileList = null;
-            using (new BuilderTimer("1/6. Collect"))
+            using (new BuilderTimer("2/7. Collect"))
             {
                 IAssetCollector assetCollection = config.GetAssetCollector();
                 fileList = assetCollection.GetAllAssets();
             }
 
 
-            //2. 添加到 AssetObjMap, 建立依赖关系
+            //3. 添加到 AssetObjMap, 建立依赖关系
             AssetObjMap assetMap = new AssetObjMap();
-            using (new BuilderTimer("2/6. Dep"))
+            using (new BuilderTimer("3/7. Dep"))
             {
-                assetMap.SetDepCollection(config.GetAssetDepCollection());
+                assetMap.SetDepCollection(config.GetAssetDependency());
                 foreach (var file in fileList)
                 {
                     assetMap.AddObject(file.path, file.address);
@@ -48,9 +59,9 @@ namespace FH.AssetBundleBuilder.Ed
             }
             //assetmap.CheckCycleDep();
 
-            //3. 分组
+            //4. 分组
             BundleNodeMap bundleMap = new BundleNodeMap();
-            using (new BuilderTimer("3/6. Group"))
+            using (new BuilderTimer("4/7. Group"))
             {
                 IBundleRuler bundle_ruler = config.GetBundleRuler();
                 foreach (var file in fileList)
@@ -65,33 +76,64 @@ namespace FH.AssetBundleBuilder.Ed
             }
 
 
-            //4. 检查完整性, 是否 AssetMap里面所有的资源都有对应的包
-            using (new BuilderTimer("4/6. Check Group"))
+            //5. 检查完整性, 是否 AssetMap里面所有的资源都有对应的包
+            using (new BuilderTimer("5/7. Check Group"))
             {
                 bundleMap.CheckAllAssetsInBundle(assetMap.GetAllObjects());
             }
 
-            //5. 生成
+            //6. 生成
             AssetBundleBuild[] buildInfoList = null;
             AssetBundleManifest unityManifest = null;
-            BuilderParam param = config.GetBuilderParam(target);
-            using (new BuilderTimer("5/6. Build Bundles"))
+            CreateDir(param.OutputDir);
+            using (new BuilderTimer("6/7. Build Bundles"))
             {
-                buildInfoList = bundleMap.GenAssetBundleBuildList();         
+                buildInfoList = bundleMap.GenAssetBundleBuildList();
                 unityManifest = UnityEditor.BuildPipeline.BuildAssetBundles(param.OutputDir, buildInfoList, param.BuildOptions, target);
             }
 
-            //6. 生成自己的Manifest
-            using (new BuilderTimer("6/6. Gen My Manifest"))
+            //8. 后处理
+            using (new BuilderTimer("7/7. Post Build"))
             {
-                var myManifest = FH.BundleMgrManifest.EdCreateFromManifest(unityManifest, buildInfoList);
-                string path = System.IO.Path.Combine(param.OutputDir, "manifest.json");
-                System.IO.File.WriteAllText(path, UnityEngine.JsonUtility.ToJson(myManifest, true));
-
                 AssetGraph graph = AssetGraph.CreateFrom(bundleMap);
-                string path2 = System.IO.Path.Combine(param.OutputDir, "graph.json");
-                System.IO.File.WriteAllText(path2, UnityEngine.JsonUtility.ToJson(graph, true));
+                PostBuildContext context = new PostBuildContext()
+                {
+                    Target = target,
+                    BuildParam = param,
+                    AssetGraph = graph,
+                    Manifest = unityManifest,
+                    BundleBuildArray = buildInfoList,
+                };
+
+                foreach (var p in config.PostBuild)
+                {
+                    if (p == null)
+                        continue;
+
+                    p.OnPostBuild(context);
+                }
             }
+        }
+
+        private static void CreateFileDir(string file_path)
+        {
+            string full_path = Path.GetFullPath(file_path);
+            _CreateDir(Path.GetDirectoryName(full_path));
+        }
+
+        private static void CreateDir(string folder_path)
+        {
+            _CreateDir(Path.GetFullPath(folder_path));
+        }
+
+        private static void _CreateDir(string folder_path)
+        {
+            if (Directory.Exists(folder_path))
+                return;
+
+            string parent_folder_path = Path.GetDirectoryName(folder_path);
+            _CreateDir(parent_folder_path);
+            Directory.CreateDirectory(folder_path);
         }
     }
 }

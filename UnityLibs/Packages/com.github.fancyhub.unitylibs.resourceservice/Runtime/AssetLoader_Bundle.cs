@@ -13,9 +13,9 @@ namespace FH
 {
     public class AssetLoader_Bundle : CPtrBase, IAssetLoader
     {
-        public CPtr<IBundleMgr> _BundleMgr;
-        public Func<string, string> _AtlasTag;
-        public sealed class ResRefDB
+        private CPtr<IBundleMgr> _BundleMgr;
+        private Func<string, string> _AtlasTag;
+        private sealed class ResRefDB
         {
             public Dictionary<int, int> _Data = new Dictionary<int, int>();
             public void IncRef(UnityEngine.Object obj)
@@ -46,7 +46,7 @@ namespace FH
             }
         }
 
-        public sealed class AssetRef : CPoolItemBase, IAssetRef
+        private sealed class AssetRef : CPoolItemBase, IAssetRef
         {
             public UnityEngine.Object _Asset;
             public AssetBundleRequest _ResRequest;
@@ -129,7 +129,7 @@ namespace FH
             }
         }
 
-        public ResRefDB _ResRefDB = new ResRefDB();
+        private ResRefDB _ResRefDB = new ResRefDB();
 
         public AssetLoader_Bundle(IBundleMgr bundle_mgr,Func<string,string> atlas_tag)
         {

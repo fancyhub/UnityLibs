@@ -22,7 +22,7 @@ namespace FH.Res.SampleAssetLoader
     {
 
 #if AssetDatabaseAssetLoader
-        public sealed class EditorResRequestComp : MonoBehaviour
+        private sealed class EditorResRequestComp : MonoBehaviour
         {
             public static EditorResRequestComp _;
             public static void StartReq(IEnumerator req)
@@ -39,7 +39,7 @@ namespace FH.Res.SampleAssetLoader
             }
         }
 
-        public sealed class EditorResRequest
+        private sealed class EditorResRequest
         {
             private string _resPath;
             private bool _sprite;
@@ -82,7 +82,7 @@ namespace FH.Res.SampleAssetLoader
             }
         }
 
-        public sealed class ResRefDB
+        private sealed class ResRefDB
         {
             public Dictionary<int, int> _Data = new Dictionary<int, int>();
             public void IncRef(UnityEngine.Object obj)
@@ -113,7 +113,7 @@ namespace FH.Res.SampleAssetLoader
             }
         }
 
-        public sealed class AssetRef : CPoolItemBase, IAssetRef
+        private sealed class AssetRef : CPoolItemBase, IAssetRef
         {
             public UnityEngine.Object _Asset;
             public EditorResRequest _ResRequest;
@@ -182,7 +182,7 @@ namespace FH.Res.SampleAssetLoader
         }
 
 
-        public ResRefDB _ResRefDB = new ResRefDB();
+        private ResRefDB _ResRefDB = new ResRefDB();
 
         public string AtlasTag2Path(string atlasName)
         {

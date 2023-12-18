@@ -32,5 +32,10 @@ namespace FH.AssetBundleBuilder.Ed
 
             return ret;
         }
+
+        public override IAssetCollector GetAssetCollector()
+        {
+            return this;
+        }
     }
 }

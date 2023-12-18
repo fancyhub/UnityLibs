@@ -22,20 +22,24 @@ namespace FH.AssetBundleBuilder.Ed
         public BuilderParam Windows;
         public BuilderParam OSX;
 
+
         [HideInInspector] public BuilderAssetCollector AssetCollector;
         [HideInInspector] public BuilderAssetDependency AssetDependency;
 
-        [HideInInspector]
-        public List<BuilderBundleRuler> BundleRulers = new List<BuilderBundleRuler>();
+        [HideInInspector] public List<BuilderBundleRuler> BundleRulers = new List<BuilderBundleRuler>();
+
+        [HideInInspector] public List<BuilderPreBuild> PreBuild = new List<BuilderPreBuild>();
+
+        [HideInInspector] public List<BuilderPostBuild> PostBuild = new List<BuilderPostBuild>();
 
         public IAssetCollector GetAssetCollector()
         {
-            return AssetCollector;
+            return AssetCollector.GetAssetCollector();
         }
 
-        public IAssetDependency GetAssetDepCollection()
+        public IAssetDependency GetAssetDependency()
         {
-            return AssetDependency;
+            return AssetDependency.GetAssetDependency();
         }
 
         public IBundleRuler GetBundleRuler()
@@ -75,17 +79,17 @@ namespace FH.AssetBundleBuilder.Ed
 
         private sealed class BuilderBundleRulerGroup : IBundleRuler
         {
-            private List<BuilderBundleRuler> _Rulers;
+            private List<IBundleRuler> _Rulers;
             public BuilderBundleRulerGroup(List<BuilderBundleRuler> rulers)
             {
-                _Rulers = new List<BuilderBundleRuler>();
+                _Rulers = new List<IBundleRuler>();
                 if (rulers != null)
                 {
                     foreach (var p in rulers)
                     {
                         if (p == null || !p.Enable)
                             continue;
-                        _Rulers.Add(p);
+                        _Rulers.Add(p.GetBundleRuler());
                     }
                 }
 

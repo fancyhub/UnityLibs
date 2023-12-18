@@ -13,6 +13,25 @@ using UnityEngine;
 
 namespace FH.AssetBundleBuilder.Ed
 {
+    public interface IPreBuild
+    {
+        void OnPreBuild(BuildTarget target, BuilderParam param);
+    }
+
+    public class PostBuildContext
+    {
+        public BuildTarget Target;
+        public BuilderParam BuildParam;
+        public AssetGraph AssetGraph;
+        public AssetBundleManifest Manifest;
+        public AssetBundleBuild[] BundleBuildArray;
+    }
+
+    public interface IPostBuild
+    {
+        void OnPostBuild(PostBuildContext context);
+    }
+
     public interface IAssetCollector
     {
         List<(string path, string address)> GetAllAssets();
@@ -35,23 +54,38 @@ namespace FH.AssetBundleBuilder.Ed
 
     public abstract class BuilderAssetCollector : ScriptableObject, IAssetCollector
     {
+        public virtual IAssetCollector GetAssetCollector() { return this; }
         public abstract List<(string path, string address)> GetAllAssets();
     }
 
     public abstract class BuilderAssetDependency : ScriptableObject, IAssetDependency
     {
-        public abstract List<string> CollectDirectDeps(string path);
-
         public virtual string FileGuid(string path)
         {
-            return AssetDatabase.AssetPathToGUID(path);
+            return UnityEditor.AssetDatabase.AssetPathToGUID(path);
         }
+
+        public abstract List<string> CollectDirectDeps(string asset_path, EAssetObjType asset_type);
+        public virtual IAssetDependency GetAssetDependency() { return this; }
     }
 
     public abstract class BuilderBundleRuler : ScriptableObject, IBundleRuler
     {
         public bool Enable = true;
         public string RulerName;
+
         public abstract string GetBundleName(string asset_path, EAssetObjType asset_type, bool need_export);
+
+        public virtual IBundleRuler GetBundleRuler() { return this; }
+    }
+
+    public abstract class BuilderPreBuild : ScriptableObject, IPreBuild
+    {
+        public abstract void OnPreBuild(BuildTarget target, BuilderParam param);
+    }
+
+    public abstract class BuilderPostBuild : ScriptableObject, IPostBuild
+    {
+        public abstract void OnPostBuild(PostBuildContext context);
     }
 }

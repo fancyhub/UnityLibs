@@ -13,7 +13,7 @@ namespace FH.Res.SampleAssetLoader
 {
     public class AssetLoader_Resource : CPtrBase, IAssetLoader
     {
-        public sealed class ResRefDB
+        private sealed class ResRefDB
         {
             public Dictionary<int, int> _Data = new Dictionary<int, int>();
             public void IncRef(UnityEngine.Object obj)
@@ -44,7 +44,7 @@ namespace FH.Res.SampleAssetLoader
             }
         }
 
-        public sealed class AssetRef : CPoolItemBase, IAssetRef
+        private sealed class AssetRef : CPoolItemBase, IAssetRef
         {
             public UnityEngine.Object _Asset;
             public ResourceRequest _ResRequest;
@@ -112,7 +112,7 @@ namespace FH.Res.SampleAssetLoader
             }
         }
 
-        public ResRefDB _ResRefDB = new ResRefDB();
+        private ResRefDB _ResRefDB = new ResRefDB();
 
         public string AtlasTag2Path(string atlasName)
         {

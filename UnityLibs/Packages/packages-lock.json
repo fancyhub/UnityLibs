@@ -83,6 +83,12 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.github.fancyhub.unitylibs.resourceservice": {
+      "version": "file:com.github.fancyhub.unitylibs.resourceservice",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.github.fancyhub.unitylibs.scenemanager": {
       "version": "file:com.github.fancyhub.unitylibs.scenemanager",
       "depth": 0,
