@@ -55,6 +55,25 @@ MonoBehaviour:
   PatternList:
   - Pattern: '*'
     IgnoreCase: 0
+--- !u!114 &-4920360229105867983
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95aef1dba6775204e987d6ae828271db, type: 3}
+  m_Name: BundleRuler_Simple
+  m_EditorClassIdentifier: 
+  Enable: 1
+  RulerName: Scene
+  BundleName: s
+  OnlyExportFile: 1
+  PatternList:
+  - Pattern: '*.unity'
+    IgnoreCase: 1
 --- !u!114 &-2576945627375757616
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -69,25 +88,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Folders:
   - Assets/Res
---- !u!114 &-2350463057854487069
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 95aef1dba6775204e987d6ae828271db, type: 3}
-  m_Name: BundleRuler_Simple
-  m_EditorClassIdentifier: 
-  Enable: 1
-  RulerName: "atlas \u89C4\u5219"
-  BundleName: atlas
-  OnlyExportFile: 1
-  PatternList:
-  - Pattern: '*.spriteatlasv2'
-    IgnoreCase: 0
+  - Assets/Scenes/Scenes
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -115,13 +116,37 @@ MonoBehaviour:
   AssetCollector: {fileID: -2576945627375757616}
   AssetDependency: {fileID: 2520550354463717286}
   BundleRulers:
-  - {fileID: -2350463057854487069}
+  - {fileID: 343812129609068264}
+  - {fileID: -4920360229105867983}
   - {fileID: -6171372005339789729}
   PreBuild:
   - {fileID: -7376883222277061226}
   PostBuild:
   - {fileID: -6210324049705765230}
   - {fileID: -7057009503913387643}
+--- !u!114 &343812129609068264
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3451f6ab97d53894287f3698132fdf58, type: 3}
+  m_Name: BundleRuler_Regular
+  m_EditorClassIdentifier: 
+  Enable: 1
+  RulerName: "atlas \u89C4\u5219 "
+  OnlyExportFile: 0
+  RegularString: /([a-zA-Z0-9]*)[.]
+  BundleNameFormater: a_{0}
+  BundleNameParamCount: 1
+  PatternList:
+  - Pattern: '*.spriteatlasv2'
+    IgnoreCase: 1
+  - Pattern: '*.spriteatlas'
+    IgnoreCase: 1
 --- !u!114 &2520550354463717286
 MonoBehaviour:
   m_ObjectHideFlags: 0
