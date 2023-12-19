@@ -122,9 +122,8 @@ namespace FH.Res
             if (err == EResError.OK)
             {
                 //刷新一下, 不要被回收了
-                _res_pool.AddUser(job.ResId.Id, job);
-                _res_pool.RemoveUser(job.ResId.Id, job);
-
+                _res_pool.RefreshLru(job.ResId);
+                
                 //直接发到下一个
                 _msg_queue.SendJobNext(job);
                 return;
@@ -161,13 +160,14 @@ namespace FH.Res
 
                 //1.2 添加到pool里面
                 ResLog._.D("load res async {0}", task.Path);
-                EResError error_code = _res_pool.AddRes(task.Path, task.AssetRequest, out ResId _);
+                EResError error_code = _res_pool.AddRes(task.Path, task.AssetRequest, out ResId res_id);
                 ResLog._.ErrCode(error_code, $"添加资源失败 {task.Path}");
 
                 //1.3 把下面的所有job 发到下一个worker里面去
                 foreach (int job_id in task.JobList)
                 {
                     _job_db.Find(job_id, out ResJob job);
+                    job.ResId = res_id;
                     job.ErrorCode = error_code;
                     _msg_queue.SendJobNext(job);
                 }
@@ -206,8 +206,7 @@ namespace FH.Res
                 if (err == EResError.OK)
                 {
                     //刷新一下
-                    _res_pool.AddUser(job.ResId.Id, job);
-                    _res_pool.RemoveUser(job.ResId.Id, job);
+                    _res_pool.RefreshLru(job.ResId);
 
                     _job_queue.Pop();
                     _msg_queue.SendJobNext(job);

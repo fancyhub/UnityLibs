@@ -144,9 +144,15 @@ namespace FH.Res
         public GameObjectStat _gobj_stat;
         public ResJobDB _job_db;
         public ResMsgQueue _msg_queue;
+        public int _Priority;
 
         //自己的
         public List<string> _temp_list = new List<string>();
+
+        public GameObjectPreInst(int priority)
+        {
+            _Priority=priority;
+        }
 
         public void Update()
         {
@@ -177,7 +183,7 @@ namespace FH.Res
                 int delta_count = count_need - count_now;
                 if (delta_count > 0)
                 {
-                    ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), -1000, null);
+                    ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), _Priority, null);
                     job.AddWorker(EResWoker.async_load_res);
                     for (int k = 0; k < delta_count; ++k)
                         job.AddWorker(EResWoker.async_obj_inst);

@@ -19,22 +19,21 @@ namespace FH.Res
             public ResRef ResRef;
         }
 
-        public MyDict<ResPath, InnerItem> _all;
-        public ResEvent _res_event;
-        public HolderStat _stat;
-        public bool _sync_load_enable;
+        private MyDict<ResPath, ResRef> _All = new MyDict<ResPath, ResRef>();
+        private MyDict<int, ResPath> _PreLoadDict = new MyDict<int, ResPath>();
+        public HolderStat _Stat = new HolderStat();
+        public bool _SyncLoadEnable;
         public CPtr<IResMgr> _ResMgr;
+
         public ResHolder()
         {
-            _all = new MyDict<ResPath, InnerItem>();
-            _res_event = _OnResLoaded;
         }
 
         internal static ResHolder Create(IResMgr res_mgr, bool sync_load_enable)
         {
             var ret = GPool.New<ResHolder>();
             ret._ResMgr = new CPtr<IResMgr>(res_mgr);
-            ret._sync_load_enable = sync_load_enable;
+            ret._SyncLoadEnable = sync_load_enable;
             return ret;
         }
 
@@ -47,124 +46,138 @@ namespace FH.Res
             ResPath res_path = ResPath.Create(path, sprite);
 
             //1. 先检查缓存
-            if (_all.TryGetValue(res_path, out var item))
+            if (_All.TryGetValue(res_path, out var item))
             {
-                if (item.ResRef.IsSelfValid())
-                    return item.ResRef.Get();
-
-                if (item.JobId == 0) //加载失败                                    
-                    return null;
+                return item.Get();
             }
 
             //2. 同步加载
-            EResError err = mgr.Load(path, sprite, _sync_load_enable, out var res_ref);
+            EResError err = mgr.Load(path, sprite, _SyncLoadEnable, out var res_ref);
             ResLog._.ErrCode(err, path);
             if (err != EResError.OK)
-            {
-                _all[res_path] = default; //加载失败的
                 return null;
-            }
 
             //3. 添加
             res_ref.AddUser(this);
-            _all[res_path] = new InnerItem()
+            _All[res_path] = res_ref;
+
+            //4. 从 预加载的 dict里面移除, 并修改统计
+            foreach (var p in _PreLoadDict)
             {
-                JobId = 0,
-                ResRef = res_ref,
-            };
+                if (p.Value == res_path)
+                {
+                    _Stat.Succ++;
+                    _PreLoadDict.Remove(p.Key);
+                    break;
+                }
+            }
             return res_ref.Get();
         }
 
         public void PreLoad(string path, bool sprite = false, int priority = 0)
         {
+            //1. 检查ResMgr
             IResMgr mgr = _ResMgr.Val;
             if (mgr == null)
                 return;
 
-            //已经存在了
+            //2. 已经存在了
             ResPath res_path = ResPath.Create(path, sprite);
-            if (_all.TryGetValue(res_path, out var item))
+            if (_All.TryGetValue(res_path, out var item))
                 return;
+            foreach (var p in _PreLoadDict)
+            {
+                if (p.Value == res_path)
+                    return;
+            }
 
-            EResError err = mgr.AsyncLoad(path, sprite, priority, _res_event, out int job_id);
+            //3. 预加载
+            _Stat.Total++;
+            EResError err = mgr.AsyncLoad(path, sprite, priority, _OnResLoaded, out int job_id);
             ResLog._.ErrCode(err);
             if (err == EResError.OK)
             {
-                _all.Add(res_path, new InnerItem()
-                {
-                    JobId = job_id,
-                });
+                _PreLoadDict.Add(job_id, res_path);
             }
-        }
-
-        public void UnloadAll()
-        {
-            foreach (var p in _all)
+            else
             {
-                p.Value.ResRef.RemoveUser(this);
+                _All[res_path] = default;
+                _Stat.Fail++;
             }
-            _all.Clear();
-            _stat = new HolderStat();
         }
 
         private void _OnResLoaded(EResError err, string path, EResType resType, int job_id)
         {
-            //1. 查找, 如果找不到,说明已经被销毁了
-            ResPath res_path = ResPath.Create(path, resType == EResType.Sprite ? true : false);
-
-            if (!_all.TryGetValue(res_path, out var item) || item.JobId != job_id)
+            //1. 查找, 如果找不到,说明已经被销毁了            
+            if (!_PreLoadDict.Remove(job_id, out var res_path))
                 return;
 
             //2. 检查错误
             if (err != EResError.OK)
             {
+                _Stat.Fail++;
                 ResLog._.ErrCode(err, path);
-                _all[res_path] = default;
+                if (!_All.ContainsKey(res_path))
+                    _All[res_path] = default;
                 return;
             }
 
             IResMgr res_mgr = _ResMgr.Val;
             if (res_mgr == null)
+            {
+                _Stat.Fail++;
                 return;
-
+            }
 
             //3. 添加
             err = res_mgr.Load(path, res_path.Sprite, false, out var res_ref);
             ResLog._.ErrCode(err, path);
             if (err != EResError.OK)
             {
-                _all[res_path] = default;
+                _Stat.Fail++;
+                _All[res_path] = default;
                 return;
             }
 
             res_ref.AddUser(this);
-            _all[res_path] = new InnerItem() { ResRef = res_ref };
+            _All[res_path] = res_ref;
+            _Stat.Succ++;
         }
 
         protected override void OnPoolRelease()
         {
-            UnloadAll();
+            var res_mgr = _ResMgr.Val;
+
+            if (res_mgr != null)
+            {
+                foreach (var p in _All)
+                {
+                    p.Value.RemoveUser(this);
+                }
+
+                foreach (var p in _PreLoadDict)
+                {
+                    res_mgr.CancelJob(p.Key);
+                }
+            }
+
+            _All.Clear();
+            _PreLoadDict.Clear();
+            _Stat = new HolderStat();
         }
 
         public void GetAllRes(List<ResRef> out_list)
         {
-            foreach (var p in _all)
+            foreach (var p in _All)
             {
-                if (p.Value.ResRef.IsSelfValid())
-                    out_list.Add(p.Value.ResRef);
+                if (p.Value.IsSelfValid())
+                    out_list.Add(p.Value);
             }
         }
 
-        public HolderStat GetStat()
+        public HolderStat GetResStat()
         {
-            HolderStat ret = new HolderStat();
-
-            foreach (var p in _all)
-            {
-                ret.Total++;
-
-            }
-            return _stat;
+            return _Stat;
         }
     }
 }

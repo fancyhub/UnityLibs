@@ -91,7 +91,7 @@ namespace FH.Res
             _worker_res_cb._msg_queue = _msg_queue;
             _worker_res_cb.Init();
 
-            _worker_go_pre_inst = new GameObjectPreInst();
+            _worker_go_pre_inst = new GameObjectPreInst(conf.PreInst.Priority);
             _worker_go_pre_inst._gobj_stat = _gobj_stat;
             _worker_go_pre_inst._gobj_pre_data = _gobj_pre_data;
             _worker_go_pre_inst._job_db = _job_db;
@@ -415,6 +415,36 @@ namespace FH.Res
 
             //4. 再次检查
             err = _gobj_pool.PopInst(path, user, out inst_id);
+            if (err == EResError.OK)
+            {
+                res_ref = new ResRef(inst_id, path, false, this);
+                return err;
+            }
+            else
+            {
+                res_ref = default;
+                return err;
+            }
+        }
+
+        public EResError TryCreate(string path, System.Object user, out ResRef res_ref)
+        {
+            //1. check
+            if (string.IsNullOrEmpty(path))
+            {
+                ResLog._.Assert(false, "路径为空");
+                res_ref = default;
+                return (EResError)EResError.ResMgrImplement_path_null_5;
+            }
+            if (user == null)
+            {
+                ResLog._.Assert(false, "user 为空");
+                res_ref = default;
+                return (EResError)EResError.ResMgrImplement_user_null_1;
+            }
+
+            //2. 判断是否有空余的
+            EResError err = _gobj_pool.PopInst(path, user, out var inst_id);
             if (err == EResError.OK)
             {
                 res_ref = new ResRef(inst_id, path, false, this);

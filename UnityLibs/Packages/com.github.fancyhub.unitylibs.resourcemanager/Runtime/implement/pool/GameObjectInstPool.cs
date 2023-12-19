@@ -159,7 +159,7 @@ namespace FH.Res
             {
                 _pool.Add(id, pool_val);
                 path = null;
-                ResLog._.Assert(false, "有人正在使用，不能移除 {0} {1}",id.Id, path);
+                ResLog._.Assert(false, "有人正在使用，不能移除 {0} {1}", id.Id, path);
                 return false;
             }
 
@@ -180,7 +180,7 @@ namespace FH.Res
             bool suc = _pool.TryGetValue(id, out GameObjectInstItem pool_val);
             if (!suc)
             {
-                ResLog._.Assert(false, "该对象已经被释放了，需要外面持有引用 {0}",id.Id);
+                ResLog._.Assert(false, "该对象已经被释放了，需要外面持有引用 {0}", id.Id);
                 return null;
             }
 
@@ -188,7 +188,7 @@ namespace FH.Res
             {
                 if (pool_val.GetUserCount() == 0)
                 {
-                    ResLog._.Assert(false, "该对象已经回收了，需要外面持有引用 {0} {1}",id.Id, pool_val._path);
+                    ResLog._.Assert(false, "该对象已经回收了，需要外面持有引用 {0} {1}", id.Id, pool_val._path);
                     return null;
                 }
             }
@@ -329,7 +329,8 @@ namespace FH.Res
 
         public void RefreshLru(ResId inst_id)
         {
-            _lru_free_list.Set(inst_id, UnityEngine.Time.frameCount);
+            if (_lru_free_list.TryGetVal(inst_id, out _))
+                _lru_free_list.Set(inst_id, UnityEngine.Time.frameCount);
         }
     }
 }

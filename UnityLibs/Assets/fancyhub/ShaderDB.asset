@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: ShaderDB
   m_EditorClassIdentifier: 
   SearchMaterialFolders: []
+  ShaderGroups: []
   ShaderList: []

@@ -16,29 +16,50 @@ public class UIViewTest : MonoBehaviour
     void Start()
     {
         _btn = FH.UI.UIBaseView.CreateView<FH.UI.UIButtonView>(Canvas.transform);
-        _btn.OnClick = _on_Add;
+        _btn.OnClick = _OnOpen;
     }
 
-    public void _on_Add()
+    public void _OnOpen()
     {
-        if (_view == null)
+        if (_view != null)
+            return;
+
+        this.StartCoroutine(_OpenView());
+    }
+
+    private IEnumerator _OpenView()
+    {
+        IResInstHolder holder = ResMgr.CreateHolder(false, false);
+        holder.PreCreate(FH.UI.UIPanelVariantView.C_AssetPath);
+
+        for (; ; )
         {
-            _view = FH.UI.UIBaseView.CreateView<FH.UI.UIPanelVariantView>(Canvas.transform);
-            _view._btn_0.OnClick = _onClose;
-
-            var a1 = FH.ResMgr.Load("Assets/Resources/UI/Sprite/btn_disable1.png");
-            var a = FH.ResMgr.Load("Assets/Resources/UI/Sprite/btn_disable.png");
-            var b = FH.ResMgr.LoadSprite("Assets/Resources/UI/Sprite/btn_disable.png");
-
-            Debug.LogFormat("{0}", a.Get());
-            Debug.LogFormat("{0}", b.Get());
+            var stat = holder.GetStat();
+            Log.D(stat.ToString());
+            if (stat.IsAllDone)
+                break;
+            else
+                yield return string.Empty;
         }
+
+        _view = FH.UI.UIBaseView.CreateView<FH.UI.UIPanelVariantView>(Canvas.transform, holder);
+        _view._btn_0.OnClick = _OnClose;
+
+
+        //var a1 = FH.ResMgr.Load("Assets/Resources/UI/Sprite/btn_disable1.png");
+        //var a = FH.ResMgr.Load("Assets/Resources/UI/Sprite/btn_disable.png");
+        //var b = FH.ResMgr.LoadSprite("Assets/Resources/UI/Sprite/btn_disable.png");
+
+        //Debug.LogFormat("{0}", a.Get());
+        //Debug.LogFormat("{0}", b.Get());
     }
 
-    public void _onClose()
+    public void _OnClose()
     {
+        IResInstHolder holder = _view.ResHolder;
         _view.Destroy();
         _view = null;
+        holder.Destroy();
     }
 
     // Update is called once per frame

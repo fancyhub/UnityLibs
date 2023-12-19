@@ -13,34 +13,20 @@ namespace FH.Res
     //UI 的资源 Holder，用来创建/加载 资源 gameobject
     internal sealed class ResInstHolder : CPoolItemBase, IResInstHolder
     {
-        public IPreInstHolder _pre_inst_holder;
         public IResHolder _res_holder;
         public IInstHolder _inst_holder;
+        public IPreInstHolder _pre_inst_holder;
 
-        public void ClearPreInst()
+        #region IResHolder
+
+        public UnityEngine.Object Load(string path, bool sprite)
         {
-            _pre_inst_holder.ClearPreInst();
+            return _res_holder.Load(path, sprite);
         }
 
-        public GameObject Create(string path)
+        public void PreLoad(string path, bool sprite, int priority = 0)
         {
-            return _inst_holder.Create(path);
-        }
-
-        public GameObject CreateEmpty()
-        {
-            return _inst_holder.CreateEmpty();
-        }
-
-        public void GetAll(List<ResRef> out_list)
-        {
-            _res_holder.GetAllRes(out_list);
-            _inst_holder.GetAllInst(out_list);
-        }
-
-        public void GetAllInst(List<ResRef> out_list)
-        {
-            _inst_holder.GetAllInst(out_list);
+            _res_holder.PreLoad(path, sprite, priority);
         }
 
         public void GetAllRes(List<ResRef> out_list)
@@ -48,25 +34,38 @@ namespace FH.Res
             _res_holder.GetAllRes(out_list);
         }
 
-        public HolderStat GetStat()
+        public HolderStat GetResStat()
         {
-            return _res_holder.GetStat();
+            return _res_holder.GetResStat();
+        }
+        #endregion
+
+        #region Inst
+        public GameObject CreateEmpty()
+        {
+            return _inst_holder.CreateEmpty();
         }
 
-        public UnityEngine.Object Load(string path,bool sprite)
+        public GameObject Create(string path)
         {
-            return _res_holder.Load(path,sprite);
+            return _inst_holder.Create(path);
         }
 
-        public void PreInst(string path, int count)
+        public void PreCreate(string path, int count, int priority = 0)
         {
-            _res_holder.PreLoad(path,false);
+            _res_holder.PreLoad(path, false, priority);
+            _inst_holder.PreCreate(path, count, priority);
             _pre_inst_holder.PreInst(path, count);
         }
 
-        public void PreLoad(string path, bool sprite, int priority = 0)
+        public void GetAllInst(List<ResRef> out_list)
         {
-            _res_holder.PreLoad(path, sprite,priority);
+            _inst_holder.GetAllInst(out_list);
+        }
+
+        public HolderStat GetInstStat()
+        {
+            return _inst_holder.GetInstStat();
         }
 
         public bool Release(GameObject obj)
@@ -74,14 +73,38 @@ namespace FH.Res
             if (obj == null)
                 return false;
             if (_inst_holder.Release(obj))
-                return true;       
+                return true;
 
             return false;
         }
+        #endregion
 
-        public void ReleaseAll()
+        #region Pre Inst
+        public void PreInst(string path, int count)
         {
-            _inst_holder.ReleaseAll();
+            _res_holder.PreLoad(path, false);
+            _pre_inst_holder.PreInst(path, count);
+        }
+        public void ClearPreInst()
+        {
+            _pre_inst_holder.ClearPreInst();
+        }
+
+        #endregion
+
+
+        public HolderStat GetStat()
+        {
+            HolderStat ret = new HolderStat();
+            ret.Add(_res_holder.GetResStat());
+            ret.Add(_inst_holder.GetInstStat());
+            return ret;
+        }
+
+        public void GetAll(List<ResRef> out_list)
+        {
+            _res_holder.GetAllRes(out_list);
+            _inst_holder.GetAllInst(out_list);
         }
 
         protected override void OnPoolRelease()

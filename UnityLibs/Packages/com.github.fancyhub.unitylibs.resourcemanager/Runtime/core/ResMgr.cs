@@ -36,6 +36,7 @@ namespace FH
         #region GameObject Inst
         public EResError Create(string path, System.Object user, bool aync_load_enable, out ResRef res_ref);
         public EResError AsyncCreate(string path, int priority, ResEvent cb, out int job_id);
+        public EResError TryCreate(string path, System.Object user,out ResRef res_ref);
         #endregion
 
         #region 预实例化
@@ -207,6 +208,19 @@ namespace FH
             var err = inst.AsyncCreate(path, priority, cb, out job_id);
             Res.ResLog._.ErrCode(err, path);
             return err;
+        }
+
+        public static ResRef TryCreate(string path, System.Object user)
+        {
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                Res.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return default;
+            }
+            var err = inst.TryCreate(path, user, out var res_ref);
+            //Res.ResLog._.ErrCode(err, path);
+            return res_ref;
         }
         #endregion
 

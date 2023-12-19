@@ -18,6 +18,8 @@ namespace FH.Res
         private CPtr<IResMgr> _ResMgr;
         private MyDict<int, ResRef> _Dict = new MyDict<int, ResRef>();
         private MyDict<int, ResRef> _FreeDict = new MyDict<int, ResRef>();
+        private MyDict<int, int> _PreCreateDict = new MyDict<int, int>();
+        private HolderStat _Stat = new HolderStat();
 
         /// <summary>
         /// Share 描述的是, 实例对象被还回来之后, 是否放回到大池子里面, 还是留在 Holder里面, 也就是多个InstHolder在存续期间, 实例对象是否共享
@@ -105,6 +107,75 @@ namespace FH.Res
             return obj;
         }
 
+        public void PreCreate(string path, int count, int priority = 0)
+        {
+            //Share 模式, 不需要
+            if (_Share)
+                return;
+            if (count <= 0)
+                return;
+
+            _Stat.Total += count;
+            IResMgr res_mgr = _ResMgr.Val;
+            if (res_mgr == null)
+            {
+                ResLog._.E("ResMgr 已经被销毁了");
+                return;
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                EResError err = res_mgr.AsyncCreate(path, priority, _OnInstCB, out int job_id);
+                ResLog._.ErrCode(err);
+                if (err == EResError.OK)
+                {
+                    _PreCreateDict.Add(job_id, priority);
+                }
+                else
+                {
+                    _Stat.Fail++;
+                }
+            }
+        }
+
+        private void _OnInstCB(EResError code, string path, EResType resType, int job_id)
+        {
+            if (!_PreCreateDict.Remove(job_id, out int priority))
+                return;
+
+            if (code != EResError.OK)
+            {
+                _Stat.Fail++;
+                return;
+            }
+
+            IResMgr res_mgr = _ResMgr.Val;
+            if (res_mgr == null)
+            {
+                _Stat.Fail++;
+                return;
+            }
+
+            var err = res_mgr.TryCreate(path, this, out var res_ref);
+            if (err == EResError.OK)
+            {
+                _Stat.Succ++;
+                _FreeDict.Add(res_ref.Id.Id, res_ref);
+            }
+            else
+            {
+                err = res_mgr.AsyncCreate(path, priority, _OnInstCB, out job_id);
+                ResLog._.ErrCode(err);
+                if (err == EResError.OK)
+                {
+                    _PreCreateDict.Add(job_id, priority);
+                }
+                else
+                {
+                    _Stat.Fail++;
+                }
+            }
+        }
 
         /// <summary>
         /// 回收一个实例对象
@@ -136,10 +207,7 @@ namespace FH.Res
             return true;
         }
 
-        /// <summary>
-        /// 释放所有Holder住的PoolObject对象
-        /// </summary>
-        public void ReleaseAll()
+        protected override void OnPoolRelease()
         {
             foreach (var p in _Dict)
             {
@@ -152,11 +220,18 @@ namespace FH.Res
                 p.Value.RemoveUser(this);
             }
             _FreeDict.Clear();
-        }
 
-        protected override void OnPoolRelease()
-        {
-            ReleaseAll();
+            IResMgr res_mgr = this._ResMgr.Val;
+            if (res_mgr != null)
+            {
+                foreach (var p in _PreCreateDict)
+                {
+                    res_mgr.CancelJob(p.Key);
+                }
+            }
+            _PreCreateDict.Clear();
+            _ResMgr = default;
+            _Stat = new HolderStat();
         }
 
         public void GetAllInst(List<ResRef> out_list)
@@ -166,6 +241,11 @@ namespace FH.Res
 
             foreach (var p in _FreeDict)
                 out_list.Add(p.Value);
+        }
+
+        public HolderStat GetInstStat()
+        {
+            return _Stat;
         }
     }
 }

@@ -36,6 +36,8 @@ namespace FH
         [Serializable]
         public class GameObjectPreInstConfig
         {
+            public int Priority = -1000;
+
             //默认所有的资源，最大的预加载量
             public int DefaultMaxCount = 5;
 

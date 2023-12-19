@@ -96,11 +96,11 @@ namespace FH.Res
             foreach (var p in _pool)
             {
                 //获取数据
-                ResPoolItem pool_val = p.Value;                
+                ResPoolItem pool_val = p.Value;
 
                 //填充数据                
                 ResSnapShotItem data = new ResSnapShotItem();
-                data.Path= pool_val.Path.Path;
+                data.Path = pool_val.Path.Path;
                 data.Sprite = pool_val.Path.Sprite;
                 data.Id = pool_val.ResId;
                 data.UserCount = pool_val._user_count;
@@ -264,6 +264,7 @@ namespace FH.Res
             _lru_free_list.GetSortedList(out_list, asc, max_count);
         }
 
+
         public EResError AddUser(ResPath path, System.Object user, out ResId out_res_id)
         {
             EResError err = GetIdByPath(path, out out_res_id);
@@ -347,6 +348,12 @@ namespace FH.Res
             if (user_count == 0)
                 _lru_free_list.Set(pool_val.ResId, UnityEngine.Time.frameCount);
             return EResError.OK;
+        } 
+
+        public void RefreshLru(ResId res_id)
+        {
+            if (_lru_free_list.TryGetVal(res_id, out _))
+                _lru_free_list.Set(res_id, UnityEngine.Time.frameCount);
         }
     }
 }
