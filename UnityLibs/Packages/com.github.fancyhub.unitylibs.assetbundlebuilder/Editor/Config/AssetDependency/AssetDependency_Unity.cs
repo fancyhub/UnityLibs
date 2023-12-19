@@ -21,6 +21,7 @@ namespace FH.AssetBundleBuilder.Ed
 
         public UnityDependencyUtil _UnityDepCollection;
         public AtlasUtil _AtlasUtil;
+        public Dictionary<string, List<string>> _ShaderDeps;
 
         public override IAssetDependency GetAssetDependency()
         {
@@ -30,6 +31,12 @@ namespace FH.AssetBundleBuilder.Ed
 
             _AtlasUtil = new AtlasUtil();
             _AtlasUtil.BuildCache(AtlasDirs);
+
+            var config = ShaderDBAsset.Load();
+            if (config == null)
+                _ShaderDeps = new Dictionary<string, List<string>>();
+            else
+                _ShaderDeps = config.EdGetShaderMaterialDict();
             return this;
         }
 
@@ -45,13 +52,17 @@ namespace FH.AssetBundleBuilder.Ed
                 _AtlasUtil.GetSpriteDependency(asset_path, ret);
                 return ret;
             }
-            else
+            else if (asset_type == EAssetObjType.shader)
             {
                 var ret = _UnityDepCollection.CollectDirectDeps(asset_path, asset_type);
-                _AtlasUtil.GetSpriteDependency(asset_path, ret);
+                _ShaderDeps.TryGetValue(asset_path, out var list);
+                ret.AddRange(list);
                 return ret;
             }
-                
+            else
+            {
+                return _UnityDepCollection.CollectDirectDeps(asset_path, asset_type);                
+            }
         }
     }
 }

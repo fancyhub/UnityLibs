@@ -10,6 +10,7 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Build.Content;
 
 namespace FH.AssetBundleBuilder.Ed
 {
@@ -85,7 +86,7 @@ namespace FH.AssetBundleBuilder.Ed
             //6. 生成
             AssetBundleBuild[] buildInfoList = null;
             AssetBundleManifest unityManifest = null;
-            CreateDir(param.OutputDir);
+            FileUtil.CreateDir(param.OutputDir);
             using (new BuilderTimer("6/7. Build Bundles"))
             {
                 buildInfoList = bundleMap.GenAssetBundleBuildList();
@@ -115,25 +116,5 @@ namespace FH.AssetBundleBuilder.Ed
             }
         }
 
-        private static void CreateFileDir(string file_path)
-        {
-            string full_path = Path.GetFullPath(file_path);
-            _CreateDir(Path.GetDirectoryName(full_path));
-        }
-
-        private static void CreateDir(string folder_path)
-        {
-            _CreateDir(Path.GetFullPath(folder_path));
-        }
-
-        private static void _CreateDir(string folder_path)
-        {
-            if (Directory.Exists(folder_path))
-                return;
-
-            string parent_folder_path = Path.GetDirectoryName(folder_path);
-            _CreateDir(parent_folder_path);
-            Directory.CreateDirectory(folder_path);
-        }
     }
 }
