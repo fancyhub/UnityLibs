@@ -29,19 +29,21 @@ public static class ResMgr
 	public static void Update();
 	public static void Destroy();
 	
-	public static EAssetStatus GetAssetStatus(string path)
+	public static EAssetStatus GetAssetStatus(string path);
 	
-	public static IResInstHolder CreateHolder(bool sync_load_enable)
+	public static IResInstHolder CreateHolder(bool sync_load_enable);
 	 
  
 	#region Res
-	public static EResError Load(string path, bool sprite, bool aync_load_enable, out ResRef res_ref);
+	public static ResRef LoadSprite(string path, bool aync_load_enable = true);
+	public static ResRef Load(string path, bool aync_load_enable = true);
 	public static EResError AsyncLoad(string path, bool sprite, int priority, ResEvent cb, out int job_id);
 	public static void ResSnapshot(ref List<ResSnapShotItem> out_snapshot);	
 	#endregion
 
 	#region GameObject Inst
-	public static EResError Create(string path, System.Object user, bool aync_load_enable, out ResRef res_ref);
+	public static ResRef Create(string path, System.Object user, bool aync_load_enable);
+	public static ResRef TryCreate(string path, System.Object user);
 	public static EResError AsyncCreate(string path, int priority, ResEvent cb, out int job_id);
 	#endregion
 
@@ -51,7 +53,7 @@ public static class ResMgr
 	#endregion;
 
 	#region Empty
-	public static EResError CreateEmpty(System.Object user, out ResRef res_ref);
+	public static ResRef CreateEmpty(System.Object user);
 	#endregion
 
 	public static void CancelJob(int job_id);	
