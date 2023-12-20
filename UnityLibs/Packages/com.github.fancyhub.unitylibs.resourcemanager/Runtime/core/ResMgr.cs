@@ -36,7 +36,7 @@ namespace FH
         #region GameObject Inst
         public EResError Create(string path, System.Object user, bool aync_load_enable, out ResRef res_ref);
         public EResError AsyncCreate(string path, int priority, ResEvent cb, out int job_id);
-        public EResError TryCreate(string path, System.Object user,out ResRef res_ref);
+        public EResError TryCreate(string path, System.Object user, out ResRef res_ref);
         #endregion
 
         #region 预实例化
@@ -63,7 +63,7 @@ namespace FH
                 return false;
             }
 
-            if(asset_loader== null)
+            if (asset_loader == null)
             {
                 Res.ResLog._.Assert(false, "AssetLoader Is null");
                 return false;
@@ -76,8 +76,7 @@ namespace FH
             }
 
             ResLog._ = TagLogger.Create(ResLog._.Tag, conf.LogLevel);
-            Res.ResMgrImplement mgr = new Res.ResMgrImplement();
-            mgr.Init(asset_loader, conf);
+            Res.ResMgrImplement mgr = new Res.ResMgrImplement(asset_loader, conf);
             _ = mgr;
             return true;
         }

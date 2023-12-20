@@ -32,8 +32,11 @@ namespace FH.UI
     //*/
 
     ///*
-    public abstract partial class UIBaseView
+    public abstract partial class UIBaseView : ICPtr
     {
+        private int ___ptr_ver = 0;
+        int ICPtr.PtrVer => ___ptr_ver;
+
         public interface IUIResHolder
         {
             public GameObject Create(string res_path, Transform parent);
@@ -136,6 +139,8 @@ namespace FH.UI
 
         public void Destroy()
         {
+            ___ptr_ver++;
+
             if (_view_life_state == EUIBaseViewLifeState.Destroyed)
             {
                 Log.E("destroyed flag is set,Destroy twice {0}", GetDebugName());

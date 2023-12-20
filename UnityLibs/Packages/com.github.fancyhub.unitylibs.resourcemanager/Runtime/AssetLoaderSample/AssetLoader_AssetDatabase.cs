@@ -15,7 +15,6 @@ using UnityEditor;
 
 namespace FH.Res.SampleAssetLoader
 {
-
     public class AssetLoader_AssetDatabase : CPtrBase, IAssetLoader
     {
         private Dictionary<string, string> _AssetDict;
@@ -214,12 +213,24 @@ namespace FH.Res.SampleAssetLoader
 
         public EAssetStatus GetAssetStatus(string path)
         {
+            if(_AssetDict!=null)
+            {
+                if (_AssetDict.ContainsKey(path))
+                    return EAssetStatus.Exist;
+                else
+                    return EAssetStatus.NotExist;
+            }
+
             if (!System.IO.File.Exists(path))
                 return EAssetStatus.NotExist;
-
             FileInfo fileInfo = new FileInfo(path);
-            if (!fileInfo.FullName.EndsWith(path)) //大小写            
+            string full_path = fileInfo.FullName;
+            full_path = full_path.Replace('\\', '/');
+            if (!full_path.EndsWith(path)) //大小写                                                   
+            {                
+                ResLog._.E("路径大小写不对, {0} -> {1}", full_path.Substring(full_path.Length - path.Length),path);
                 return EAssetStatus.NotExist;
+            }
 
             return EAssetStatus.Exist;
         }

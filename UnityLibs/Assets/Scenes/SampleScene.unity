@@ -507,12 +507,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 711090c408341fb43a29ec600fcbfc1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Mode: 1
+  Mode: 0
   Config:
     LogLevel: 0
     MaxAsyncResLoaderSlot: 5
     MaxAsyncGameObjectStep: 1
     PreInst:
+      Priority: -1000
       DefaultMaxCount: 5
       Items: []
     GC:

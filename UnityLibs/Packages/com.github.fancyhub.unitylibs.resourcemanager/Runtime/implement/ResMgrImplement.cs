@@ -41,7 +41,7 @@ namespace FH.Res
             MyEqualityComparer.Reg(new ResPath());
         }
 
-        public void Init(IAssetLoader asset_loader, ResMgrConfig conf)
+        public ResMgrImplement(IAssetLoader asset_loader, ResMgrConfig conf)
         {
             _asset_loader = asset_loader;
             _conf = conf;

@@ -1,17 +1,13 @@
 using FH;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Xml.Schema;
 using UnityEngine;
-
-
 
 public class UIViewTest : MonoBehaviour
 {
     public Canvas Canvas;
     private FH.UI.UIButtonView _btn;
-    private FH.UI.UIPanelVariantView _view;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -19,22 +15,49 @@ public class UIViewTest : MonoBehaviour
         _btn.OnClick = _OnOpen;
     }
 
+    public void OnEnable()
+    {
+    }
+
     public void _OnOpen()
     {
-        if (_view != null)
-            return;
+        UIPageScene.Create(Canvas.transform, this);
+    }
+}
 
-        this.StartCoroutine(_OpenView());
+public sealed class UIPageScene : CPoolItemBase
+{
+    private Transform _UIRoot;
+    private FH.UI.UIPanelVariantView _view;
+    private IResInstHolder _Holder;
+    public PtrList _PtrList;
+    public MonoBehaviour _Behaviour;
+    public List<Coroutine> _Routinues = new List<Coroutine>();
+    public List<SceneRef> _SceneRefList = new List<SceneRef>();
+
+    public static UIPageScene Create(Transform root, MonoBehaviour behaviour)
+    {        
+        var ret = GPool.New<UIPageScene>();
+        ret._UIRoot = root;
+        ret._Behaviour = behaviour;
+        ret._Open();
+        return ret;
+    }
+
+    private void _Open()
+    {
+        _Holder = ResMgr.CreateHolder(false, false);
+        _Holder.PreCreate(FH.UI.UIPanelVariantView.C_AssetPath);
+        _PtrList += _Holder;
+
+        _Routinues.Add(_Behaviour.StartCoroutine(_OpenView()));
     }
 
     private IEnumerator _OpenView()
     {
-        IResInstHolder holder = ResMgr.CreateHolder(false, false);
-        holder.PreCreate(FH.UI.UIPanelVariantView.C_AssetPath);
-
         for (; ; )
         {
-            var stat = holder.GetStat();
+            var stat = _Holder.GetStat();
             Log.D(stat.ToString());
             if (stat.IsAllDone)
                 break;
@@ -42,29 +65,69 @@ public class UIViewTest : MonoBehaviour
                 yield return string.Empty;
         }
 
-        _view = FH.UI.UIBaseView.CreateView<FH.UI.UIPanelVariantView>(Canvas.transform, holder);
-        _view._btn_0.OnClick = _OnClose;
+        _view = FH.UI.UIBaseView.CreateView<FH.UI.UIPanelVariantView>(_UIRoot, _Holder);
+        _view._btn_0.OnClick = _OnCloseClick;
+        _view._btn_1.OnClick = _OnTestSceneClick;
+        _view._btn_2.OnClick = _OnCloseFirstSceneClick;
+        _view._btn_4.OnClick = _OnCloseLastSceneClick;
 
-
-        //var a1 = FH.ResMgr.Load("Assets/Resources/UI/Sprite/btn_disable1.png");
-        //var a = FH.ResMgr.Load("Assets/Resources/UI/Sprite/btn_disable.png");
-        //var b = FH.ResMgr.LoadSprite("Assets/Resources/UI/Sprite/btn_disable.png");
-
-        //Debug.LogFormat("{0}", a.Get());
-        //Debug.LogFormat("{0}", b.Get());
+        _PtrList += _view;
     }
 
-    public void _OnClose()
+
+    private void _OnTestSceneClick()
     {
-        IResInstHolder holder = _view.ResHolder;
-        _view.Destroy();
-        _view = null;
-        holder.Destroy();
+        _Routinues.Add(_Behaviour.StartCoroutine(_TestSceneLoad()));
     }
 
-    // Update is called once per frame
-    void Update()
+    private IEnumerator _TestSceneLoad()
     {
+        yield return new WaitForSeconds(1.0f);
+
+        var scene_a = SceneMgr.LoadScene("Assets/Scenes/Scenes/a.unity", true);
+        var scene_b = SceneMgr.LoadScene("Assets/Scenes/Scenes/a.unity", true);
+        _SceneRefList.Add(scene_a);
+        _SceneRefList.Add(scene_b);
+    }
+
+    private void _OnCloseClick()
+    {
+        this.Destroy();
+    }
+
+    protected override void OnPoolRelease()
+    {
+        foreach (var p in _Routinues)
+        {
+            _Behaviour.StopCoroutine(p);
+        }
+        _Routinues.Clear();
+
+        foreach (var p in _SceneRefList)
+        {
+            p.Unload();
+        }
+        _SceneRefList.Clear();
+
+        _PtrList?.Destroy();
+        _PtrList = null;
+    }
+
+    private void _OnCloseFirstSceneClick()
+    {
+        if (_SceneRefList.Count == 0)
+            return;
+        _SceneRefList[0].Unload();
+        _SceneRefList.RemoveAt(0);
+    }
+
+
+    private void _OnCloseLastSceneClick()
+    {
+        if (_SceneRefList.Count == 0)
+            return;
+        _SceneRefList[_SceneRefList.Count - 1].Unload();
+        _SceneRefList.RemoveAt(_SceneRefList.Count - 1);
 
     }
 }
