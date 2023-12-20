@@ -15,7 +15,7 @@ namespace FH
     /// 毫秒
     /// 支持在子线程里面运行, 没有用到Unity的代码
     /// </summary>
-    public class ClockLocal : IClock
+    public sealed class ClockLocal : IClock
     {
         public int _frame_count;
         public bool _frame_update;

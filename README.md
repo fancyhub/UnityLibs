@@ -27,6 +27,8 @@
 ## UI View Gen
 [README](./UnityLibs/Packages/com.github.fancyhub.unitylibs.uiviewgen)
 
+## Msg Queue
+[README](./UnityLibs/Packages/com.github.fancyhub.unitylibs.msgqueue)
 
 ## Resource Manager
 [README](./UnityLibs/Packages/com.github.fancyhub.unitylibs.resourcemanager)
@@ -41,9 +43,8 @@
 [README](./UnityLibs/Packages/com.github.fancyhub.unitylibs.assetbundlebuilder)
 
 ## Resource Service
-这个是聚合包
-[README](./UnityLibs/Packages/com.github.fancyhub.unitylibs.resourceservice)
-聚合了
+[README](./UnityLibs/Packages/com.github.fancyhub.unitylibs.resourceservice)  
+这个是聚合包,聚合了  
 1. Resource Manager
 2. Scene Manager
 3. Asset Bundle Manager

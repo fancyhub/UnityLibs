@@ -13,7 +13,7 @@ public class TimerWheelTest : MonoBehaviour
 
     public void Awake()
     {
-        _timer_driver = TimerDriver.CreateNormal(new Clock(new ClockLocal(true)));
+        _timer_driver = TimerDriver.CreateNormal(new ClockDecorator(new ClockLocal(true)));
         //_timer_driver.Clock.Scale(5.0f);
 
         UpdateBehaviour t = this.gameObject.AddComponent<UpdateBehaviour>();

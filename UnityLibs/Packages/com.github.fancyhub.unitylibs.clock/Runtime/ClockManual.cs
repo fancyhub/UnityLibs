@@ -12,7 +12,7 @@ namespace FH
     /// 不支持 暂停,加速
     /// 如果需要,在上面套接一个
     /// </summary>
-    public class ClockManual : IClock
+    public sealed class ClockManual : IClock
     {
         public long Time;
         public ClockManual(long init_time)
