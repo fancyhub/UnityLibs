@@ -19,6 +19,7 @@ namespace FH.UI
 
         public override void OnDestroy()
         {
+            this._Button.onClick.RemoveAllListeners();
             base.OnDestroy();
             OnClick = null;
         }

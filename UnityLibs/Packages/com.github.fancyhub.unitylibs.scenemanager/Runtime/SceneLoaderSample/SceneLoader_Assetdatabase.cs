@@ -13,6 +13,7 @@ using UnityEngine.SceneManagement;
 
 namespace FH.SceneManagement.SampleSceneLoader
 {
+#if UNITY_EDITOR
     public class SceneLoader_Assetdatabase : ISceneLoader
     {
         private int ___ptr_ver = 0;
@@ -57,4 +58,5 @@ namespace FH.SceneManagement.SampleSceneLoader
             return SceneRef.Create(scene, new LoadSceneParameters(load_mod));
         }
     }
+#endif
 }
