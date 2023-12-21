@@ -16,6 +16,8 @@ namespace FH
 {
     public sealed class SAFileSystem_Normal : ISAFileSystem
     {
+        private List<string> _FileList;
+
         public void Dispose()
         {
 
@@ -36,25 +38,25 @@ namespace FH
             return File.ReadAllBytes(file_path);
         }
 
-        public bool GetFileList(string dir_path, List<string> out_list)
+        public List<string> GetAllFileList()
         {
-            if (string.IsNullOrEmpty(dir_path))
-                return false;
-            if (out_list == null)
-                return false;
-
-            dir_path = Path.Combine(Application.streamingAssetsPath, dir_path);
-            if (!System.IO.Directory.Exists(dir_path))
-                return true;
-
-            var files = Directory.GetFiles(dir_path);
-            if (files == null)
-                return false;
-            foreach (var p in files)
+            if (_FileList == null)
             {
-                out_list.Add(Path.GetFileName(p));
+                _FileList = new List<string>();
+                string dir = Application.streamingAssetsPath;
+                string[] files = System.IO.Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories);
+
+                foreach (var p in files)
+                {
+                    if (p.EndsWith(".meta"))
+                        continue;
+
+                    string path = p.Substring(dir.Length + 1);
+                    path = path.Replace('\\', '/');
+                    _FileList.Add(path);
+                }
             }
-            return true;
+            return _FileList;
         }
     }
 }

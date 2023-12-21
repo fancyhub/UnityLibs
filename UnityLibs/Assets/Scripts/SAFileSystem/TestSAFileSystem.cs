@@ -10,25 +10,29 @@ public class TestSAFileSystem : MonoBehaviour
     {
         try
         {
-            Debug.LogError("Start Test StreamingAssets");
+            Debug.LogError("<NativeIO> Start Test StreamingAssets");
             byte[] bytes = FH.SAFileSystem.ReadAllBytes("Test.txt");
             if (bytes != null)
             {
                 string str = System.Text.Encoding.UTF8.GetString(bytes);
-                Debug.LogError($"From StreamingAssets SUCC: {str}");
+                Debug.LogError($"<NativeIO> From StreamingAssets SUCC: {str}");
             }
             else
-                Debug.LogError($"From StreamingAssets ERR: ");
+                Debug.LogError($"<NativeIO> From StreamingAssets ERR: ");
+
+
+            List<string> file_list = new List<string>();
+            FH.SAFileSystem.GetFileList("A", true, file_list);
+            Debug.LogError("<NativeIO> 文件数量: " + file_list.Count);
+
+            foreach (var f in file_list)
+            {
+                Debug.LogError("<NativeIO> 文件: " + f);
+            }
         }
         catch (Exception e)
         {
             Debug.LogException(e);
         }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
     }
 }

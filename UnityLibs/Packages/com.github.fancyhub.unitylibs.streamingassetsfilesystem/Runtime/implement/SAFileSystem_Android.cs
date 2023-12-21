@@ -5,6 +5,7 @@
  * Desc    : 
 *************************************************************************************/
 
+#if UNITY_ANDROID  && !UNITY_EDITOR
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ using UnityEngine.Android;
 
 namespace FH
 {
-#if UNITY_ANDROID
+
     // https://docs.unity3d.com/2019.3/Documentation/Manual/AndroidJavaSourcePlugins.html
     // https://docs.unity3d.com/2019.3/Documentation/Manual/WindowsPlayerCPlusPlusSourceCodePluginsForIL2CPP.html
     public sealed class SAFileSystem_Anroid : ISAFileSystem
@@ -22,6 +23,7 @@ namespace FH
         public const string C_JAVA_CLASS = "com.github.fancyhub.nativeio.JNIContext";
         public const string C_JAVA_CLASS_INIT_FUNC = "Init";
 
+        private List<string> _FileList;
         private AndroidJavaClass _JNIContext;
         public SAFileSystem_Anroid()
         {
@@ -59,29 +61,26 @@ namespace FH
             return ret;
         }
 
-        public bool GetFileList(string dir_path, List<string> out_list)
+        public List<string> GetAllFileList()
         {
-            if (string.IsNullOrEmpty(dir_path))
-                return false;
-            if (out_list == null)
-                return false;
+            if (_FileList != null)
+                return _FileList;
+
 
             _InitAndroidJNIContext();
-            IntPtr fhandle = AndroidNativeIO.native_io_dir_open(dir_path);
-            if (fhandle == IntPtr.Zero)
-                return false;
-
-            for (; ; )
+            int count = AndroidNativeIO.native_io_get_file_count();
+            _FileList = new List<string>(count);
+            for (int i = 0; i < count; i++)
             {
-                IntPtr p_str = AndroidNativeIO.native_io_dir_next_file(fhandle);
+                IntPtr p_str = AndroidNativeIO.native_io_get_file(i);
                 if (p_str == IntPtr.Zero)
                     break;
                 string file_name = Marshal.PtrToStringAnsi(p_str);
-                out_list.Add(file_name);
+                _FileList.Add(file_name);
             }
-            AndroidNativeIO.native_io_dir_close(fhandle);
-            return true;
+            return _FileList;
         }
+
         private void _InitAndroidJNIContext()
         {
             if (_JNIContext != null)
@@ -115,13 +114,10 @@ namespace FH
             public static extern int native_io_file_read(IntPtr fhandle, IntPtr buff, int count);
 
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr native_io_dir_open(string file_path);
+            public static extern int native_io_get_file_count();
 
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr native_io_dir_next_file(IntPtr fhandle);
-
-            [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-            public static extern void native_io_dir_close(IntPtr fhandle);
+            public static extern IntPtr native_io_get_file(int index);
 
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
             public static extern IntPtr native_io_malloc(int count);
@@ -239,5 +235,5 @@ namespace FH
             }
         }
     }
-#endif
 }
+#endif

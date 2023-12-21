@@ -20,7 +20,7 @@ namespace FH
     {
         public Stream OpenRead(string file_path);
         public byte[] ReadAllBytes(string file_path);
-        public bool GetFileList(string dir_path, List<string> out_list);
+        public List<string> GetAllFileList();
     }
 
     public static class SAFileSystem
@@ -46,12 +46,67 @@ namespace FH
             }
         }
 
-        public static bool GetFileList(string dir_path, List<string> out_list)
+        public static void GetAllFileList(List<string> out_file_list)
         {
             var inst = Inst;
             if (inst == null)
-                return false;
-            return inst.GetFileList(dir_path, out_list);
+                return;
+            if (out_file_list == null)
+                return;
+            out_file_list.AddRange(inst.GetAllFileList());
+        }
+
+        /// <summary>
+        /// 不包括子文件夹
+        /// </summary>        
+        public static void GetFileList(string dir, bool include_sub_folder, List<string> out_file_list)
+        {
+            var inst = Inst;
+            if (inst == null)
+                return;
+            if (out_file_list == null || dir == null)
+                return;
+
+            var file_list = inst.GetAllFileList();
+            if (dir == string.Empty)
+            {
+                if (include_sub_folder)
+                    out_file_list.AddRange(file_list);
+                else
+                {
+                    foreach (var p in file_list)
+                    {
+                        if (p.IndexOf('/') < 0)
+                            out_file_list.Add(p);
+                    }
+                }                
+            }
+            else
+            {
+                if (!dir.EndsWith("/"))
+                    dir = dir + "/";
+
+                if(include_sub_folder)
+                {
+                    foreach (var p in file_list)
+                    {
+                        if (!p.StartsWith(dir))
+                            continue;
+                        out_file_list.Add(p);
+                    }
+                }
+                else
+                {
+                    foreach (var p in file_list)
+                    {
+                        if (!p.StartsWith(dir))
+                            continue;
+
+                        if (p.IndexOf('/', dir.Length) < 0)                        
+                            out_file_list.Add(p);                        
+                    }
+                }
+            }
         }
 
         public static byte[] ReadAllBytes(string file_path)
@@ -60,6 +115,6 @@ namespace FH
             if (inst == null)
                 return System.Array.Empty<byte>();
             return inst.ReadAllBytes(file_path);
-        }        
+        }
     }
 }
