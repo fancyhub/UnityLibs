@@ -18,7 +18,9 @@ namespace FH
         public const string C_OLD_FILE_NAME = "applog_{0:yyyy_MM_dd_HH_mm_ss_fff}.txt";
         private string _file_path;
         private StreamWriter _stream_writer;
+#if UNITY_EDITOR
         private bool _succ;
+#endif
 
         public LogRecorder_File()
         {
@@ -59,9 +61,9 @@ namespace FH
 
             var fileStream = new FileStream(_file_path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
             _stream_writer = new StreamWriter(fileStream);
-            _succ = true;
 
 #if UNITY_EDITOR
+            _succ = true;
             _stream_writer.Close();
             _stream_writer = null;
 #endif

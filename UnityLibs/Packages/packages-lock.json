@@ -101,6 +101,12 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.github.fancyhub.unitylibs.streamingassetsfilesystem": {
+      "version": "file:com.github.fancyhub.unitylibs.streamingassetsfilesystem",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.github.fancyhub.unitylibs.template": {
       "version": "file:com.github.fancyhub.unitylibs.template",
       "depth": 0,
