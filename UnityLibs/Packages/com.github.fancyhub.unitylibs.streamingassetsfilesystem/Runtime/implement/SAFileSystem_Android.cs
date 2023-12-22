@@ -20,8 +20,9 @@ namespace FH
     // https://docs.unity3d.com/2019.3/Documentation/Manual/WindowsPlayerCPlusPlusSourceCodePluginsForIL2CPP.html
     public sealed class SAFileSystem_Anroid : ISAFileSystem
     {
-        public const string C_JAVA_CLASS = "com.github.fancyhub.nativeio.JNIContext";
-        public const string C_JAVA_CLASS_INIT_FUNC = "Init";
+        private const string C_JAVA_CLASS = "com.github.fancyhub.nativeio.JNIContext";
+        private const string C_JAVA_CLASS_INIT_FUNC = "Init";
+        private const string C_JAVA_Func_FetchAllFiles = "FetchAllFiles";
 
         private List<string> _FileList;
         private AndroidJavaClass _JNIContext;
@@ -65,9 +66,11 @@ namespace FH
         {
             if (_FileList != null)
                 return _FileList;
-
-
             _InitAndroidJNIContext();
+            if (_JNIContext == null)
+                return null;
+
+            _JNIContext.CallStatic(C_JAVA_Func_FetchAllFiles);
             int count = AndroidNativeIO.native_io_get_file_count();
             _FileList = new List<string>(count);
             for (int i = 0; i < count; i++)

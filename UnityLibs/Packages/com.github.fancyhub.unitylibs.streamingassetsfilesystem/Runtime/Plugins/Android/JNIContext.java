@@ -30,6 +30,21 @@ public class JNIContext
         if(g_asset_mgr== am)
             return;
         g_asset_mgr = am;
+        nativeSetContext(am);       
+    }
+
+    public static void FetchAllFiles()
+    {
+        Activity activity = UnityPlayer.currentActivity;
+        if(activity == null)
+        {
+            Log.e("NativeIO","UnityPlayer.currentActivity is null");
+            return;
+        }
+        AssetManager am= activity.getAssets();
+        if(g_asset_mgr== am)
+            return;
+        g_asset_mgr = am;
         nativeSetContext(am);
 
         ArrayList<String> folderList = new ArrayList<String>();
