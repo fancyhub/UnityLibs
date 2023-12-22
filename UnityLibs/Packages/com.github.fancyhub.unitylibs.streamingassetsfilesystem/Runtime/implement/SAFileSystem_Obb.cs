@@ -95,7 +95,7 @@ namespace FH.StreamingAssetsFileSystem
         }
 
 
-        internal class ZipEntryStream : Stream
+        internal class ZipEntryStream : Stream, IDisposable
         {
             private ZipArchive _Archive;
             private Stream _Stream;
@@ -170,6 +170,15 @@ namespace FH.StreamingAssetsFileSystem
             public override void Write(byte[] buffer, int offset, int count)
             {
                 _Stream.Write(buffer, offset, count);
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                base.Dispose(disposing);
+                _Stream?.Dispose();
+                _Stream = null;
+                _Archive?.Dispose();
+                _Archive = null;
             }
         }
     }
