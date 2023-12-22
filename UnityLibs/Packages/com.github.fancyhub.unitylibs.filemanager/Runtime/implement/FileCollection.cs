@@ -11,7 +11,7 @@ namespace FH.FileManagement
 {
     internal sealed class FileCollection
     {
-        //Key: file_name, Value: file_path
+        //Key: file_name, Value: full_path
         private Dictionary<string, string> _FilesInStreamingAssets = new();
         private string _CacheDir;
 
@@ -33,14 +33,14 @@ namespace FH.FileManagement
             foreach (var f in files)
             {
                 string file_name = System.IO.Path.GetFileName(f);
-                string file_path = System.IO.Path.Combine(Application.streamingAssetsPath, f);
+                string file_path = FileSetting.StreamingAssetsDir + file_name;
                 file_path = file_path.Replace('\\', '/');
                 _FilesInStreamingAssets.Add(file_name, file_path);
 
                 FileLog._.D("StreamingAssets Collect {0} -> {1}", file_name, file_path);
             }
 
-           
+
         }
 
         public bool IsExist(string file_name)

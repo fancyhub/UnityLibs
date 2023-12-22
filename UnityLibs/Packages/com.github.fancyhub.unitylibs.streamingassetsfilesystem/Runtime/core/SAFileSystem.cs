@@ -7,9 +7,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using FH.StreamingAssetsFileSystem;
+using UnityEngine;
 
 namespace FH
 {
@@ -27,10 +27,11 @@ namespace FH
 
     public static class SAFileSystem
     {
+
 #if UNITY_EDITOR
         private static string _EditorObbPath;
 #endif        
-        [Conditional("UNITY_EDITOR")]
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
         public static void EdSetObbPath(string obb_path)
         {
 #if UNITY_EDITOR
@@ -49,7 +50,6 @@ namespace FH
                 if (_ == null)
                 {
 #if UNITY_ANDROID && !UNITY_EDITOR
-
                     if (UnityEngine.Application.dataPath.EndsWith("base.apk"))
                     {
                         _ = new SAFileSystem_Apk();
@@ -93,6 +93,9 @@ namespace FH
                 return;
             if (out_file_list == null || dir == null)
                 return;
+
+            dir = _StripPath(dir);
+
 
             var file_list = inst.GetAllFileList();
             if (dir == string.Empty)
@@ -141,7 +144,45 @@ namespace FH
             var inst = Inst;
             if (inst == null)
                 return System.Array.Empty<byte>();
+            if (string.IsNullOrEmpty(file_path))
+                return null;
+
+            file_path = _StripPath(file_path);
             return inst.ReadAllBytes(file_path);
+        }
+
+
+        public static Stream OpenRead(string file_path)
+        {
+            var inst = Inst;
+            if (inst == null)
+                return null;
+            if (string.IsNullOrEmpty(file_path))
+                return null;
+
+            file_path = _StripPath(file_path);
+            return inst.OpenRead(file_path);
+        }
+
+
+        private static string _StreamingAssetPath;
+        private static string _StripPath(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return path;
+            if (_StreamingAssetPath == null)
+                _StreamingAssetPath = UnityEngine.Application.streamingAssetsPath;
+
+            if (!path.StartsWith(_StreamingAssetPath))
+                return path;
+
+            if (path.Length == _StreamingAssetPath.Length)
+                return "";
+
+            if (path[_StreamingAssetPath.Length] != '/') //错误
+                return path;
+
+            return path.Substring(_StreamingAssetPath.Length + 1);
         }
     }
 }

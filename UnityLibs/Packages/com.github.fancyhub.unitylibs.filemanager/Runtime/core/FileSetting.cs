@@ -120,7 +120,8 @@ namespace FH
             {
                 if (_StreamingAssetsDir == null)
                 {
-                    _StreamingAssetsDir = Platform.ToString();
+                    _StreamingAssetsDir = System.IO.Path.Combine(Application.streamingAssetsPath, Platform.ToString());
+                    _StreamingAssetsDir = _StreamingAssetsDir.Replace("\\", "/");
                     _StreamingAssetsDir += "/";
                 }
                 return _StreamingAssetsDir;

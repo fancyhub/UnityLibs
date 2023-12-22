@@ -91,6 +91,7 @@ namespace FH.Res.Ed
 
                 //5.2 删除不需要的文件
                 string streamingassets_dir = System.IO.Path.Combine("Assets/StreamingAssets", FileSetting.StreamingAssetsDir);
+                FileUtil.CreateDir(streamingassets_dir);
                 string[] file_list = System.IO.Directory.GetFiles(streamingassets_dir);
                 foreach (var p in file_list)
                 {

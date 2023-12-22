@@ -67,8 +67,8 @@ namespace FH.StreamingAssetsFileSystem
             _InitAndroidJNIContext();
             if (_JNIContext == null)
                 return null;
-
             _JNIContext.CallStatic(C_JAVA_Func_FetchAllFiles);
+
             int count = AndroidNativeIO.native_io_get_file_count();
             _FileList = new List<string>(count);
             for (int i = 0; i < count; i++)

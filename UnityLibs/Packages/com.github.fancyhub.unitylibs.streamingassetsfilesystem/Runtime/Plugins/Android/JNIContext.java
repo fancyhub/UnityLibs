@@ -42,7 +42,7 @@ public class JNIContext
             return;
         }
         AssetManager am= activity.getAssets();
-        if(g_asset_mgr== am)
+        if(g_asset_mgr== null)
             return;
         g_asset_mgr = am;
         nativeSetContext(am);

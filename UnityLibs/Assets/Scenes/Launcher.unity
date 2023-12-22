@@ -567,10 +567,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Mode: 1
+  AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
   FileMgrConfig:
-    LogLvl: 1
+    LogLvl: 0
   BundleMgrConfig:
-    LogLvl: 1
+    LogLvl: 0
   ResMgrConfig:
     LogLevel: 0
     MaxAsyncResLoaderSlot: 5
@@ -585,7 +586,7 @@ MonoBehaviour:
       MaxInstCountProcess: 40
       InstWaitFrameCount: 10
   SceneMgrConfig:
-    LogLvl: 1
+    LogLvl: 0
 --- !u!1 &2098590053
 GameObject:
   m_ObjectHideFlags: 0

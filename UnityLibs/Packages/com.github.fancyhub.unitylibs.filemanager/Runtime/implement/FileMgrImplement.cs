@@ -107,11 +107,10 @@ namespace FH.FileManagement
 
             if (full_path.StartsWith(FileSetting.StreamingAssetsDir))
             {
-                full_path = full_path.Substring(FileSetting.StreamingAssetsDir.Length);
                 FileLog._.D("从StreamingAssets 里面读取文件 {0}->{1}", name, full_path);
                 return SAFileSystem.ReadAllBytes(full_path);
             }
-            if (System.IO.File.Exists(full_path))
+            else if (System.IO.File.Exists(full_path))
             {
                 return System.IO.File.ReadAllBytes(full_path);
             }
