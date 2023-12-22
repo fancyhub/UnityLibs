@@ -8,10 +8,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace FH.AB
+namespace FH.ABManagement
 {
     internal static class BundleLog 
     {
-        internal static TagLogger _ = TagLogger.Create("Bundle", ELogLvl.Debug);
+        internal static TagLogger _ = TagLogger.Create("Bundle", ELogLvl.Info);
     }
 }

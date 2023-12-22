@@ -12,13 +12,13 @@ using UnityEngine;
 namespace FH
 {
     [Serializable]
-    public class BundleMgrManifest
+    public class BundleManifest
     {
         private static HashSet<int> S_TempSet = new HashSet<int>();
 
 
         [Serializable]
-        public class BundleManifest
+        public sealed class Item
         {
             public string Name;
             public int[] Deps;
@@ -28,12 +28,12 @@ namespace FH
             public string[] GetAssets() { return Assets == null ? System.Array.Empty<string>() : Assets; }
         }
 
-        public BundleManifest[] BundleList;
+        public Item[] BundleList;
 
 
-        public static BundleMgrManifest LoadFromFile(string path)
+        public static BundleManifest LoadFromFile(string path)
         {
-            if (!System.IO.File.Exists(path))                
+            if (!System.IO.File.Exists(path))
             {
                 Log.E("文件不存在 " + path);
                 return null;
@@ -42,25 +42,25 @@ namespace FH
             try
             {
                 string content = System.IO.File.ReadAllText(path);
-                return UnityEngine.JsonUtility.FromJson<BundleMgrManifest>(content);                
+                return UnityEngine.JsonUtility.FromJson<BundleManifest>(content);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.E(e);
                 return null;
-            }            
+            }
         }
 
 #if UNITY_EDITOR
-        public static BundleMgrManifest EdCreateFromManifest(AssetBundleManifest manifest, UnityEditor.AssetBundleBuild[] bundleBuildList)
+        public static BundleManifest EdCreateFromManifest(AssetBundleManifest manifest, UnityEditor.AssetBundleBuild[] bundleBuildList)
         {
             var all_bundles = manifest.GetAllAssetBundles();
-            List<BundleManifest> bundleList = new List<BundleManifest>(all_bundles.Length);
+            List<Item> bundleList = new List<Item>(all_bundles.Length);
             Dictionary<string, int> bundleDict = new(all_bundles.Length);
 
             foreach (var p in all_bundles)
             {
-                var bundleConfig = new BundleManifest() { Name = p };
+                var bundleConfig = new Item() { Name = p };
                 bundleDict.Add(p, bundleList.Count);
                 bundleList.Add(bundleConfig);
             }
@@ -84,7 +84,7 @@ namespace FH
             foreach (var p in bundleBuildList)
             {
                 assetList.Clear();
-                BundleManifest config = null;
+                Item config = null;
                 if (string.IsNullOrEmpty(p.assetBundleVariant))
                     config = bundleList[bundleDict[p.assetBundleName]];
                 else
@@ -114,7 +114,7 @@ namespace FH
                 config.Assets = assetList.ToArray();
             }
 
-            return new BundleMgrManifest() { BundleList = bundleList.ToArray() };
+            return new BundleManifest() { BundleList = bundleList.ToArray() };
         }
 #endif
 

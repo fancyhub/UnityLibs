@@ -402,7 +402,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &892294734
 Transform:
   m_ObjectHideFlags: 0
@@ -538,7 +538,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1811144035
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -552,7 +552,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Mode: 1
-  Config:
+  FileMgrConfig:
+    LogLvl: 0
+  SceneMgrConfig:
+    LogLvl: 0
+  BundleMgrConfig:
+    LogLvl: 0
+  ResMgrConfig:
     LogLevel: 0
     MaxAsyncResLoaderSlot: 5
     MaxAsyncGameObjectStep: 1
@@ -564,7 +570,7 @@ MonoBehaviour:
       MaxResCountProcess: 20
       ResWaitFrameCount: 5
       MaxInstCountProcess: 40
-      InstWaitFrameCount: 246
+      InstWaitFrameCount: 10
 --- !u!4 &1811144036
 Transform:
   m_ObjectHideFlags: 0
@@ -596,7 +602,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &2098590054
 MonoBehaviour:
   m_ObjectHideFlags: 0

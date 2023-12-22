@@ -10,8 +10,8 @@ using System.Collections.Generic;
 
 namespace FH.SceneManagement
 {
-    internal static class SceneLog 
+    internal static class SceneLog
     {
-        internal static TagLogger _ = TagLogger.Create("Scene", ELogLvl.Debug);
+        internal static TagLogger _ = TagLogger.Create("Scene", ELogLvl.Info);
     }
 }

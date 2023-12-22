@@ -9,27 +9,30 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace FH
+namespace FH.ABManagement.SampleBundleLoader
 {
-    public class BundleLoader : CPtrBase, IBundleLoader
+    public class BundleLoader_Dir : CPtrBase, IBundleLoader
     {
-        public string Dir;
-        public BundleLoader(string dir)
+        public string _Dir;
+        public string _BundleManifestName;
+        public BundleLoader_Dir(string dir, string bundleManifestName)
         {
-            Dir = dir;
+            _Dir = dir;
+            _BundleManifestName = bundleManifestName;
         }
+
         public EBundleFileStatus GetBundleFileStatus(string name)
         {
-            string path = System.IO.Path.Combine(Dir, name);
+            string path = System.IO.Path.Combine(_Dir, name);
             if (System.IO.File.Exists(path))
                 return EBundleFileStatus.Exist;
             else
                 return EBundleFileStatus.NoExist;
         }
 
-        public string GetBundleFullPath(string name)
+        public string GetBundleFilePath(string name)
         {
-            return System.IO.Path.Combine(Dir, name);
+            return System.IO.Path.Combine(_Dir, name);
         }
 
         public Stream LoadBundleFile(string name)
@@ -37,9 +40,14 @@ namespace FH
             return null;
         }
 
+        public BundleManifest LoadManifest()
+        {
+            string path = System.IO.Path.Combine(_Dir, _BundleManifestName);
+            return BundleManifest.LoadFromFile(path);
+        }
+
         protected override void OnRelease()
         {
         }
     }
-
 }

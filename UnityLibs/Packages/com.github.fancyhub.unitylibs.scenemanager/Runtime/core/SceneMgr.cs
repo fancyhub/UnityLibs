@@ -21,20 +21,26 @@ namespace FH
     {
         private static CPtr<ISceneMgr> _Inst;
 
-        public static void InitMgr(ISceneLoader scene_loader)
+        public static void InitMgr(SceneMgrConfig config, ISceneLoader scene_loader)
         {
+            if (config == null)
+            {
+                SceneLog._.E("SceneMgrConfig Is Null");
+                return;
+            }
+
             if (!_Inst.Null)
             {
                 SceneLog._.E("SceneMgr 已经创建了");
                 return;
             }
-
             if (scene_loader == null)
             {
                 SceneLog._.E("SceneLoader Is Null");
                 return;
             }
 
+            SceneLog._ = TagLogger.Create(SceneLog._.Tag, config.LogLvl);
             SceneMgrImplement mgr = new SceneMgrImplement(scene_loader);
             _Inst = new CPtr<ISceneMgr>(mgr);
         }

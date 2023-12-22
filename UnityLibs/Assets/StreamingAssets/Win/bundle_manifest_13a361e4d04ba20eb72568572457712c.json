@@ -1,0 +1,42 @@
+{
+    "BundleList": [
+        {
+            "Name": "test",
+            "Deps": [
+                1
+            ],
+            "Assets": [
+                "Assets/Res/TestCycle/b.prefab",
+                "Assets/Res/UI/Prefab/Button_Variant.prefab",
+                "Assets/Res/UI/Prefab/Button2.prefab",
+                "Assets/Res/TestCycle/a.prefab",
+                "Assets/Res/UI/Prefab/Panel.prefab",
+                "Assets/Res/UI/Sprite/btn_press.png",
+                "Assets/Res/TestCycle/x.prefab",
+                "Assets/Res/UI/Texture/bg.png",
+                "Assets/Res/UI/Prefab/Panel_Variant.prefab",
+                "Assets/Res/UI/Sprite/icon.png",
+                "Assets/Res/UI/Sprite/btn_normal.png",
+                "Assets/Res/UI/Sprite/btn_disable.png",
+                "Assets/Res/UI/Prefab/Button.prefab",
+                "Assets/Res/TestCycle/y.prefab"
+            ]
+        },
+        {
+            "Name": "a_TestAtlas",
+            "Deps": [],
+            "Assets": [
+                "Assets/Res/UI/Atlas/TestAtlas.Low.spriteatlasv2",
+                "Assets/Res/UI/Atlas/TestAtlas.spriteatlasv2"
+            ]
+        },
+        {
+            "Name": "s",
+            "Deps": [],
+            "Assets": [
+                "Assets/Scenes/Scenes/b.unity",
+                "Assets/Scenes/Scenes/a.unity"
+            ]
+        }
+    ]
+}

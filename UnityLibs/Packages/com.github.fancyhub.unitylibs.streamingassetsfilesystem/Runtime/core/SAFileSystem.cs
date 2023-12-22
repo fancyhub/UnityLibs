@@ -36,11 +36,11 @@ namespace FH
 #if UNITY_EDITOR
             _EditorObbPath = obb_path;
 #endif
-    }
+        }
 
-    private static ISAFileSystem _;
+        private static ISAFileSystem _;
 
-        public static ISAFileSystem Inst
+        private static ISAFileSystem Inst
         {
             get
             {
@@ -60,7 +60,7 @@ namespace FH
                     }
 
 #elif UNITY_EDITOR
-                    if(_EditorObbPath!=null)
+                    if (_EditorObbPath != null)
                         _ = new SAFileSystem_Obb(_EditorObbPath);
                     else
                         _ = new SAFileSystem_Normal();

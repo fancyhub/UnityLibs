@@ -55,7 +55,7 @@ namespace FH
     {
         private static CPtr<IResMgr> _;
 
-        public static bool InitMgr(IAssetLoader asset_loader, ResMgrConfig conf)
+        public static bool InitMgr(ResMgrConfig config,IAssetLoader asset_loader)
         {
             if (!_.Null)
             {
@@ -69,14 +69,14 @@ namespace FH
                 return false;
             }
 
-            if (conf == null)
+            if (config == null)
             {
                 Res.ResLog._.Assert(false, "ResMgrConfig Is null");
                 return false;
             }
 
-            ResLog._ = TagLogger.Create(ResLog._.Tag, conf.LogLevel);
-            Res.ResMgrImplement mgr = new Res.ResMgrImplement(asset_loader, conf);
+            ResLog._ = TagLogger.Create(ResLog._.Tag, config.LogLevel);
+            Res.ResMgrImplement mgr = new Res.ResMgrImplement(asset_loader, config);
             _ = mgr;
             return true;
         }

@@ -17,22 +17,22 @@ namespace FH.Res.Ed
         public override void OnPostBuild(PostBuildContext context)
         {
             //BundleMgrManifest manifest = BundleMgrManifest.EdCreateFromManifest(context.Manifest, context.BundleBuildArray);
-            BundleMgrManifest manifest = _CreateFromGraph(context.AssetGraph);
+            BundleManifest manifest = _CreateFromGraph(context.AssetGraph);
 
-            string path = System.IO.Path.Combine(context.BuildParam.OutputDir, "manifest.json");
+            string path = System.IO.Path.Combine(context.Config.GetOutputDir(context.Target), ResService.BunldeManifestName);
             System.IO.File.WriteAllText(path, UnityEngine.JsonUtility.ToJson(manifest, true));
         }
 
-        private BundleMgrManifest _CreateFromGraph(AssetGraph graph)
+        private BundleManifest _CreateFromGraph(AssetGraph graph)
         {
-            BundleMgrManifest ret = new BundleMgrManifest();
+            BundleManifest ret = new BundleManifest();
 
-            List<BundleMgrManifest.BundleManifest> bundles = new List<BundleMgrManifest.BundleManifest>();
+            List<BundleManifest.Item> bundles = new List<BundleManifest.Item>();
             List<string> assets = new List<string>();
 
             foreach (var p in graph.Bundles)
             {
-                BundleMgrManifest.BundleManifest bundle = new BundleMgrManifest.BundleManifest();
+                BundleManifest.Item bundle = new BundleManifest.Item();
                 bundle.Name = p.Name;
 
                 assets.Clear();

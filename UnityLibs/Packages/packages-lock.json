@@ -52,8 +52,20 @@
         "com.github.fancyhub.unitylibs.collection": "1.0.0"
       }
     },
+    "com.github.fancyhub.unitylibs.filemanager": {
+      "version": "file:com.github.fancyhub.unitylibs.filemanager",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.github.fancyhub.unitylibs.log": {
       "version": "file:com.github.fancyhub.unitylibs.log",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.github.fancyhub.unitylibs.lz4": {
+      "version": "file:com.github.fancyhub.unitylibs.lz4",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}

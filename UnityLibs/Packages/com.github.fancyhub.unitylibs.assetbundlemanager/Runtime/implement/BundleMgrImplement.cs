@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FH.AB
+namespace FH.ABManagement
 {
     internal class BundleMgrImplement : CPtrBase, IBundleMgr
     {
@@ -17,8 +17,8 @@ namespace FH.AB
         private List<Bundle> _BundleList;
         private MyDict<string, Bundle> _AssetDict;
 
-        public BundleMgrManifest _Config;
-        public void Init(IBundleLoader bundleLoader, BundleMgrManifest config)
+        public BundleManifest _Config;
+        public void Init(IBundleLoader bundleLoader, BundleManifest config)
         {
             _BundleLoader = new CPtr<IBundleLoader>(bundleLoader);
             _Config = config;

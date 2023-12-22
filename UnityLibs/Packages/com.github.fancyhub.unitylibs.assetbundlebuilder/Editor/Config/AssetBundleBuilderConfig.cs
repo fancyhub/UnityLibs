@@ -17,11 +17,36 @@ namespace FH.AssetBundleBuilder.Ed
     {
         private static AssetBundleBuilderConfig _Default;
         public const string CPath = "Assets/fancyhub/AssetBundleBuilderConfig.asset";
+
+        public string OutputDir;
+
         public BuilderParam Android;
         public BuilderParam IOS;
         public BuilderParam Windows;
         public BuilderParam OSX;
 
+        public string Target2Name(UnityEditor.BuildTarget target)
+        {
+            switch (target)
+            {
+                case BuildTarget.Android:
+                    return "Android";
+                case BuildTarget.iOS:
+                    return "IOS";
+                case BuildTarget.StandaloneWindows:
+                case BuildTarget.StandaloneWindows64:
+                    return "Win";
+                case BuildTarget.StandaloneOSX:
+                    return "OSX";
+                default:
+                    return null;
+            }
+        }
+
+        public string GetOutputDir(UnityEditor.BuildTarget target)
+        {
+            return System.IO.Path.Combine(OutputDir, Target2Name(target));
+        }
 
         [HideInInspector] public BuilderAssetCollector AssetCollector;
         [HideInInspector] public BuilderAssetDependency AssetDependency;
@@ -115,6 +140,5 @@ namespace FH.AssetBundleBuilder.Ed
         public BuildAssetBundleOptions BuildOptions = //BuildAssetBundleOptions.UncompressedAssetBundle
                                             BuildAssetBundleOptions.ChunkBasedCompression
                                            | BuildAssetBundleOptions.StrictMode;
-        public string OutputDir;
     }
 }

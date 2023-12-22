@@ -15,13 +15,13 @@ namespace FH.AssetBundleBuilder.Ed
 {
     public interface IPreBuild
     {
-        void OnPreBuild(BuildTarget target, BuilderParam param);
+        void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target);
     }
 
     public class PostBuildContext
     {
         public BuildTarget Target;
-        public BuilderParam BuildParam;
+        public AssetBundleBuilderConfig Config;
         public AssetGraph AssetGraph;
         public AssetBundleManifest Manifest;
         public AssetBundleBuild[] BundleBuildArray;
@@ -81,7 +81,7 @@ namespace FH.AssetBundleBuilder.Ed
 
     public abstract class BuilderPreBuild : ScriptableObject, IPreBuild
     {
-        public abstract void OnPreBuild(BuildTarget target, BuilderParam param);
+        public abstract void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target);
     }
 
     public abstract class BuilderPostBuild : ScriptableObject, IPostBuild

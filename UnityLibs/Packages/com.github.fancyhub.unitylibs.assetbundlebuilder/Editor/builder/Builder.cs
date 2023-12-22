@@ -26,6 +26,7 @@ namespace FH.AssetBundleBuilder.Ed
         public static void Build(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target)
         {
             BuilderParam param = config.GetBuilderParam(target);
+            string outputDir = config.GetOutputDir(target);
             BuilderTimer.Intend = 0;
             using var _ = new BuilderTimer("Build Bundles");
 
@@ -35,7 +36,7 @@ namespace FH.AssetBundleBuilder.Ed
                 foreach (var p in config.PreBuild)
                 {
                     if (p != null)
-                        p.OnPreBuild(target, param);
+                        p.OnPreBuild(config, target);
                 }
             }
 
@@ -86,11 +87,11 @@ namespace FH.AssetBundleBuilder.Ed
             //6. 生成
             AssetBundleBuild[] buildInfoList = null;
             AssetBundleManifest unityManifest = null;
-            FileUtil.CreateDir(param.OutputDir);
+            FileUtil.CreateDir(outputDir);
             using (new BuilderTimer("6/7. Build Bundles"))
             {
                 buildInfoList = bundleMap.GenAssetBundleBuildList();
-                unityManifest = UnityEditor.BuildPipeline.BuildAssetBundles(param.OutputDir, buildInfoList, param.BuildOptions, target);
+                unityManifest = UnityEditor.BuildPipeline.BuildAssetBundles(outputDir, buildInfoList, param.BuildOptions, target);
             }
 
             //8. 后处理
@@ -100,7 +101,7 @@ namespace FH.AssetBundleBuilder.Ed
                 PostBuildContext context = new PostBuildContext()
                 {
                     Target = target,
-                    BuildParam = param,
+                    Config = config,
                     AssetGraph = graph,
                     Manifest = unityManifest,
                     BundleBuildArray = buildInfoList,

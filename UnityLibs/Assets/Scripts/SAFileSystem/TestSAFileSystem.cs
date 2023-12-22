@@ -10,7 +10,11 @@ public class TestSAFileSystem : MonoBehaviour
     {
         try
         {
+            FH.SAFileSystem.EdSetObbPath(@"E:\fancyHub\UnityLibs\UnityLibs\Bundle\Player\Android\split.main.obb");
+
             Debug.LogError("<NativeIO> Start Test StreamingAssets");
+            Debug.LogError($"<NativeIO> StreamingAssetsPath: {Application.streamingAssetsPath}");
+            Debug.LogError($"<NativeIO> DataPath: {Application.dataPath}");
             byte[] bytes = FH.SAFileSystem.ReadAllBytes("Test.txt");
             if (bytes != null)
             {

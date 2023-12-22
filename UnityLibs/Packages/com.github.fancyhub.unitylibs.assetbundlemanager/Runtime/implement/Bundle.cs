@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FH.AB
+namespace FH.ABManagement
 {
     internal enum EBundleLoadStatus
     {
@@ -22,7 +22,7 @@ namespace FH.AB
     internal class Bundle : IBundle
     {
         public CPtr<IBundleLoader> _BundleLoader;
-        public BundleMgrManifest.BundleManifest _Config;
+        public BundleManifest.Item _Config;
         public Bundle[] _AllDeps;
 
         private AssetBundle _AssetBundle;
@@ -207,7 +207,7 @@ namespace FH.AB
                     if (_Stream != null)
                         _AssetBundle = AssetBundle.LoadFromStream(_Stream);
                     else
-                        _AssetBundle = AssetBundle.LoadFromFile(loader.GetBundleFullPath(_Config.Name));
+                        _AssetBundle = AssetBundle.LoadFromFile(loader.GetBundleFilePath(_Config.Name));
 
                     if (_AssetBundle != null)
                     {
@@ -249,7 +249,7 @@ namespace FH.AB
                         _AssetBundle = AssetBundle.LoadFromStream(_Stream);
                     else
                     {
-                        var path = loader.GetBundleFullPath(_Config.Name);
+                        var path = loader.GetBundleFilePath(_Config.Name);
                         _AssetBundle = AssetBundle.LoadFromFile(path);
                     }
 

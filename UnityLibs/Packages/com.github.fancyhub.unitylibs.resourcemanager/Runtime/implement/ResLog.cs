@@ -10,6 +10,6 @@ namespace FH.Res
 {
     internal static class ResLog
     {
-        public static TagLogger _ = TagLogger.Create("Res", ELogLvl.Debug);
+        public static TagLogger _ = TagLogger.Create("Res", ELogLvl.Info);
     }
 }

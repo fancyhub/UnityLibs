@@ -14,7 +14,7 @@ namespace FH.AssetBundleBuilder.Ed
         public override void OnPostBuild(PostBuildContext context)
         {
             string content = UnityEngine.JsonUtility.ToJson(context.AssetGraph, true);
-            string path = System.IO.Path.Combine(context.BuildParam.OutputDir, "graph.json");
+            string path = System.IO.Path.Combine(context.Config.GetOutputDir(context.Target), "graph.json");
             System.IO.File.WriteAllText(path, content);
         }
     }
