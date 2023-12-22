@@ -10,5 +10,7 @@ call ndk-build NDK_PROJECT_PATH=. NDK_APPLICATION_MK=Application.mk NDK_APP_DST_
 
 ::timeout /t 2
 rm -r obj
+rm obj.meta
+rm -r ../Runtime/Plugins/Android/*/libc++_shared.so
 ::xcopy .\libs\*.so ..\Runtime\Plugins\Android  /Y /S
 pause

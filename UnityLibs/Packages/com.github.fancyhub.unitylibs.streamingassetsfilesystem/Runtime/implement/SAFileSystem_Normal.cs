@@ -10,11 +10,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 
-
-
-namespace FH
+namespace FH.StreamingAssetsFileSystem
 {
-    public sealed class SAFileSystem_Normal : ISAFileSystem
+    internal sealed class SAFileSystem_Normal : ISAFileSystem
     {
         private List<string> _FileList;
 

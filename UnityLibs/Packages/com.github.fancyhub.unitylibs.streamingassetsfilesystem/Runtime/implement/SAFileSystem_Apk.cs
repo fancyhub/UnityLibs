@@ -5,7 +5,7 @@
  * Desc    : 
 *************************************************************************************/
 
-#if UNITY_ANDROID  && !UNITY_EDITOR
+#if UNITY_ANDROID && !UNITY_EDITOR
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -13,12 +13,12 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Android;
 
-namespace FH
+namespace FH.StreamingAssetsFileSystem
 {
 
     // https://docs.unity3d.com/2019.3/Documentation/Manual/AndroidJavaSourcePlugins.html
     // https://docs.unity3d.com/2019.3/Documentation/Manual/WindowsPlayerCPlusPlusSourceCodePluginsForIL2CPP.html
-    public sealed class SAFileSystem_Anroid : ISAFileSystem
+    internal sealed class SAFileSystem_Apk : ISAFileSystem
     {
         private const string C_JAVA_CLASS = "com.github.fancyhub.nativeio.JNIContext";
         private const string C_JAVA_CLASS_INIT_FUNC = "Init";
@@ -26,11 +26,9 @@ namespace FH
 
         private List<string> _FileList;
         private AndroidJavaClass _JNIContext;
-        public SAFileSystem_Anroid()
+        public SAFileSystem_Apk()
         {
         }
-
-
 
         //只是针对 StreamingAssets 里面的文件
         public Stream OpenRead(string file_path)

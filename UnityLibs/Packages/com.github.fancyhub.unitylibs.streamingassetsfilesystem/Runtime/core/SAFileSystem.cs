@@ -7,7 +7,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using FH.StreamingAssetsFileSystem;
 
 namespace FH
 {
@@ -25,7 +27,18 @@ namespace FH
 
     public static class SAFileSystem
     {
-        private static ISAFileSystem _;
+#if UNITY_EDITOR
+        private static string _EditorObbPath;
+#endif        
+        [Conditional("UNITY_EDITOR")]
+        public static void EdSetObbPath(string obb_path)
+        {
+#if UNITY_EDITOR
+            _EditorObbPath = obb_path;
+#endif
+    }
+
+    private static ISAFileSystem _;
 
         public static ISAFileSystem Inst
         {
@@ -36,8 +49,22 @@ namespace FH
                 if (_ == null)
                 {
 #if UNITY_ANDROID && !UNITY_EDITOR
-                    _ = new SAFileSystem_Anroid();
-#else
+
+                    if (UnityEngine.Application.dataPath.EndsWith("base.apk"))
+                    {
+                        _ = new SAFileSystem_Apk();
+                    }
+                    else
+                    {
+                        _ = new SAFileSystem_Obb(UnityEngine.Application.dataPath);
+                    }
+
+#elif UNITY_EDITOR
+                    if(_EditorObbPath!=null)
+                        _ = new SAFileSystem_Obb(_EditorObbPath);
+                    else
+                        _ = new SAFileSystem_Normal();
+#else 
                     _ = new SAFileSystem_Normal();
 #endif
                 }
@@ -79,14 +106,14 @@ namespace FH
                         if (p.IndexOf('/') < 0)
                             out_file_list.Add(p);
                     }
-                }                
+                }
             }
             else
             {
                 if (!dir.EndsWith("/"))
                     dir = dir + "/";
 
-                if(include_sub_folder)
+                if (include_sub_folder)
                 {
                     foreach (var p in file_list)
                     {
@@ -102,8 +129,8 @@ namespace FH
                         if (!p.StartsWith(dir))
                             continue;
 
-                        if (p.IndexOf('/', dir.Length) < 0)                        
-                            out_file_list.Add(p);                        
+                        if (p.IndexOf('/', dir.Length) < 0)
+                            out_file_list.Add(p);
                     }
                 }
             }
