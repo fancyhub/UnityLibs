@@ -11,21 +11,25 @@ namespace FH
             AssetDatabase,
             Bundle,
         }
+
         public EMode Mode = EMode.AssetDatabase;
+        public string AtlasPathFormater = "Assets/Res/UI/Atlas/{0}.spriteatlasv2";
         public FH.FileMgrConfig FileMgrConfig;
-        public FH.SceneMgrConfig SceneMgrConfig;
         public FH.BundleMgrConfig BundleMgrConfig;
         public FH.ResMgrConfig ResMgrConfig;
-        // Start is called before the first frame update
+        public FH.SceneMgrConfig SceneMgrConfig;
+
+
         protected virtual void Awake()
         {
-            UnityEngine.Application.targetFrameRate = 30;
             GameObject.DontDestroyOnLoad(gameObject);
+            UnityEngine.Application.targetFrameRate = 30;
             _Init();
         }
 
         private void _Init()
         {
+            LogRecorderMgr.Init();
             FileMgr.Init(FileMgrConfig);
 
 #if UNITY_EDITOR
@@ -38,24 +42,13 @@ namespace FH
                 ISceneLoader scene_loader = new FH.SceneManagement.SampleSceneLoader.SceneLoader_Assetdatabase();
 
                 FH.ResMgr.InitMgr(ResMgrConfig, asset_loader);
-                FH.SceneMgr.InitMgr(SceneMgrConfig,scene_loader);
+                FH.SceneMgr.InitMgr(SceneMgrConfig, scene_loader);
                 return;
             }
 #endif
 
             {
-                IBundleLoader bundle_loader = null;
-                {
-                    string pre_fix = "";
-                    if (Application.platform == RuntimePlatform.WindowsPlayer)
-                        pre_fix = "../../";
-                    else
-                        pre_fix = "Bundle/";
-                    bundle_loader = new FH.ABManagement.SampleBundleLoader.BundleLoader_Dir(pre_fix + "Builder/Win", BunldeManifestName);
-                }
-                {
-                    bundle_loader = new BundleLoader_FileMgr(FileMgr.Inst, BunldeManifestName);
-                }
+                IBundleLoader bundle_loader = new BundleLoader_FileMgr(FileMgr.Inst, BunldeManifestName);
 
                 BundleMgr.InitMgr(BundleMgrConfig, bundle_loader);
 
@@ -63,13 +56,13 @@ namespace FH
                 ISceneLoader scene_loader = new FH.SceneLoader_Bundle(BundleMgr.Inst);
 
                 FH.ResMgr.InitMgr(ResMgrConfig, asset_loader);
-                FH.SceneMgr.InitMgr(SceneMgrConfig,scene_loader);
+                FH.SceneMgr.InitMgr(SceneMgrConfig, scene_loader);
             }
         }
 
         private string _AtlasTag2Path(string tag)
         {
-            return $"Assets/Res/UI/Atlas/{tag}.spriteatlasv2";
+            return string.Format(AtlasPathFormater, tag);
         }
 
 

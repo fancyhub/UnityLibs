@@ -19,7 +19,7 @@ namespace FH
         public class FileItem
         {
             public string Name;
-            public string FileName;
+            public string FullName;
             public int Size;
             public bool UseGz;
             public int GzSize;

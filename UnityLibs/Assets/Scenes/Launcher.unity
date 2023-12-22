@@ -531,7 +531,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1811144036}
-  - component: {fileID: 1811144035}
+  - component: {fileID: 1811144037}
   m_Layer: 0
   m_Name: ResService
   m_TagString: Untagged
@@ -539,38 +539,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1811144035
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1811144034}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 711090c408341fb43a29ec600fcbfc1c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Mode: 1
-  FileMgrConfig:
-    LogLvl: 0
-  SceneMgrConfig:
-    LogLvl: 0
-  BundleMgrConfig:
-    LogLvl: 0
-  ResMgrConfig:
-    LogLevel: 0
-    MaxAsyncResLoaderSlot: 5
-    MaxAsyncGameObjectStep: 1
-    PreInst:
-      Priority: -1000
-      DefaultMaxCount: 5
-      Items: []
-    GC:
-      MaxResCountProcess: 20
-      ResWaitFrameCount: 5
-      MaxInstCountProcess: 40
-      InstWaitFrameCount: 10
 --- !u!4 &1811144036
 Transform:
   m_ObjectHideFlags: 0
@@ -586,6 +554,38 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1811144037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1811144034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce6d81fca33831c4f9a035f3176f03a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Mode: 1
+  FileMgrConfig:
+    LogLvl: 1
+  BundleMgrConfig:
+    LogLvl: 1
+  ResMgrConfig:
+    LogLevel: 0
+    MaxAsyncResLoaderSlot: 5
+    MaxAsyncGameObjectStep: 1
+    PreInst:
+      Priority: -1000
+      DefaultMaxCount: 5
+      Items: []
+    GC:
+      MaxResCountProcess: 20
+      ResWaitFrameCount: 5
+      MaxInstCountProcess: 40
+      InstWaitFrameCount: 10
+  SceneMgrConfig:
+    LogLvl: 1
 --- !u!1 &2098590053
 GameObject:
   m_ObjectHideFlags: 0

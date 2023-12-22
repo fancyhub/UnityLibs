@@ -144,7 +144,7 @@ namespace FH.FileManagement
                 return null;
             }
 
-            return _FileCollection.GetFullPath(item.FileName);
+            return _FileCollection.GetFullPath(item.FullName);
         }
 
         public EFileStatus GetFileStatus(string name)
@@ -155,7 +155,7 @@ namespace FH.FileManagement
             var item = _Manifest_Current.FindFile(name);
             if (item == null)
                 return EFileStatus.NotExist;
-            if (_FileCollection.IsExist(item.FileName))
+            if (_FileCollection.IsExist(item.FullName))
                 return EFileStatus.Exist;
             return EFileStatus.NotDownloaded;
         }
@@ -223,9 +223,9 @@ namespace FH.FileManagement
 
             foreach (var p in files)
             {
-                if (!file_collection.IsExist(p.FileName))
+                if (!file_collection.IsExist(p.FullName))
                 {
-                    FileLog._.D("文件 {0} 不存在", p.FileName);
+                    FileLog._.D("文件 {0} 不存在", p.FullName);
                     ret = true;
 #if UNITY_EDITOR
 #else
