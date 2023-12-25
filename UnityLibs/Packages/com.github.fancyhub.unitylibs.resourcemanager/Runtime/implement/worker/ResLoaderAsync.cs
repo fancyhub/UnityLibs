@@ -4,18 +4,18 @@
  * Title   : 
  * Desc    : 
 *************************************************************************************/
-using FH.Res;
+using FH.ResManagement;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     //异步加载的task
     internal class ResAsyncTask
     {
         private ResPath _Path;
-        private IAssetRef _AssetRequest;
+        private IResMgr.IExternalRef _AssetRequest;
         private List<int> _job_ids;
 
         public ResAsyncTask()
@@ -24,7 +24,7 @@ namespace FH.Res
         }
 
         public ResPath Path { get { return _Path; } }
-        public IAssetRef AssetRequest => _AssetRequest;
+        public IResMgr.IExternalRef AssetRequest => _AssetRequest;
         public List<int> JobList => _job_ids;
 
         public bool IsIdle { get { return _AssetRequest == null; } }
@@ -40,7 +40,7 @@ namespace FH.Res
             _job_ids.Add(jobId);
         }
 
-        public void StartWork(int jobId, ResPath path, IAssetRef asset)
+        public void StartWork(int jobId, ResPath path, IResMgr.IExternalRef asset)
         {
             JobList.Add(jobId);
             _AssetRequest = asset;
@@ -61,7 +61,7 @@ namespace FH.Res
     {
         #region  传入的
         public ResPool _res_pool;
-        public IAssetLoader _asset_loader;
+        public IResMgr.IExternalLoader _external_loader;
         public ResJobDB _job_db;
         public ResMsgQueue _msg_queue;
         #endregion
@@ -130,7 +130,7 @@ namespace FH.Res
             }
 
             //5. 判断资源是否存在
-            var asset_status = _asset_loader.GetAssetStatus(job.Path.Path);
+            var asset_status = _external_loader.GetAssetStatus(job.Path.Path);
             if (asset_status != EAssetStatus.Exist)
             {
                 job.ErrorCode = EResError.ResLoaderAsync_res_not_exist;
@@ -228,7 +228,7 @@ namespace FH.Res
                     task_slot.AddLinkJobId(job_id);
                     continue;
                 }
-                IAssetRef asset = _asset_loader.LoadAsync(job.Path.Path, job.Path.Sprite);
+                IResMgr.IExternalRef asset = _external_loader.LoadAsync(job.Path.Path, job.Path.Sprite);
 
                 if (asset != null)
                 {

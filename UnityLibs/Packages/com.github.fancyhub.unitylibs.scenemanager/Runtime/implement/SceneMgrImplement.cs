@@ -12,7 +12,7 @@ namespace FH.SceneManagement
 
         private ScenePool _Pool;
         private SceneLoadingQueue _LoadingQueue;
-        private CPtr<ISceneLoader> _SceneLoader;
+        private CPtr<ISceneMgr.IExternalLoader> _ExternalLoader;
         private ScenePlaceHolderItem _PlaceHolderScene;
 
         static SceneMgrImplement()
@@ -20,9 +20,9 @@ namespace FH.SceneManagement
             MyEqualityComparer.Reg(new SceneID());
         }
 
-        public SceneMgrImplement(ISceneLoader scene_loader)
+        public SceneMgrImplement(ISceneMgr.IExternalLoader external_loader)
         {
-            _SceneLoader = new CPtr<ISceneLoader>(scene_loader);
+            _ExternalLoader = new CPtr<ISceneMgr.IExternalLoader>(external_loader);
             _PlaceHolderScene = new ScenePlaceHolderItem();
             _Pool = new ScenePool();
             _LoadingQueue = new SceneLoadingQueue(_Pool);
@@ -30,7 +30,7 @@ namespace FH.SceneManagement
 
         public SceneRef LoadScene(string scene_path, bool additive)
         {
-            ISceneLoader scene_loader = _SceneLoader.Val;
+            ISceneMgr.IExternalLoader scene_loader = _ExternalLoader.Val;
             if (scene_loader == null)
             {
                 SceneLog._.E("SceneLoader Is Null");
@@ -38,7 +38,7 @@ namespace FH.SceneManagement
             }
 
             LoadSceneMode load_mode = additive ? LoadSceneMode.Additive : LoadSceneMode.Single;
-            ISceneRef scene_ref = scene_loader.Load(scene_path, load_mode);
+            ISceneMgr.IExternalRef scene_ref = scene_loader.Load(scene_path, load_mode);
 
             if (scene_ref == null)
                 return SceneRef.Empty;

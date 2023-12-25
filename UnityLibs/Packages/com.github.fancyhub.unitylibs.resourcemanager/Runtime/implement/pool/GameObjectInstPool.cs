@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     internal sealed class GameObjectInstItem : UserRefCounter, IPoolItem, IDestroyable
     {

@@ -13,9 +13,9 @@ using UnityEngine;
 using System.IO;
 using UnityEditor;
 
-namespace FH.Res.SampleAssetLoader
+namespace FH.ResManagement.SampleExternalLoader
 {
-    public class AssetLoader_AssetDatabase : CPtrBase, IAssetLoader
+    public class ResExternalLoader_AssetDatabase : CPtrBase, IResMgr.IExternalLoader
     {
         private Dictionary<string, string> _AssetDict;
         private Func<string, string> _FuncAtlasTag2Path;
@@ -111,7 +111,7 @@ namespace FH.Res.SampleAssetLoader
             }
         }
 
-        private sealed class AssetRef : CPoolItemBase, IAssetRef
+        private sealed class AssetRef : CPoolItemBase, IResMgr.IExternalRef
         {
             public UnityEngine.Object _Asset;
             public EditorResRequest _ResRequest;
@@ -180,7 +180,7 @@ namespace FH.Res.SampleAssetLoader
         }
 
 
-        public AssetLoader_AssetDatabase(List<(string path, string addressName)> asset_list = null, Func<string, string> func_atlas_tag_2_path = null)
+        public ResExternalLoader_AssetDatabase(List<(string path, string addressName)> asset_list = null, Func<string, string> func_atlas_tag_2_path = null)
         {
             if (asset_list != null)
             {
@@ -235,7 +235,7 @@ namespace FH.Res.SampleAssetLoader
             return EAssetStatus.Exist;
         }
 
-        public IAssetRef Load(string path, bool sprite)
+        public IResMgr.IExternalRef Load(string path, bool sprite)
         {
             if (_AssetDict != null)
             {
@@ -264,7 +264,7 @@ namespace FH.Res.SampleAssetLoader
             return AssetRef.Create(_ResRefDB, asset);
         }
 
-        public IAssetRef LoadAsync(string path, bool sprite)
+        public IResMgr.IExternalRef LoadAsync(string path, bool sprite)
         {
             if (_AssetDict != null)
             {

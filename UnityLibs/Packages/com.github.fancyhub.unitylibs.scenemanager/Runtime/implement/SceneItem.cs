@@ -50,17 +50,17 @@ namespace FH.SceneManagement
         public ESceneStatus _Status;
         public AsyncOperation _LoadingAsyncOperation;
         public AsyncOperation _UnloadingAsyncOperation;
-        public CPtr<ISceneRef> _SceneRef;
+        public CPtr<ISceneMgr.IExternalRef> _SceneRef;
         public Scene _Scene;
 
-        public static SceneItem Create(ISceneRef scene_ref, string scene_path, LoadSceneMode mode)
+        public static SceneItem Create(ISceneMgr.IExternalRef scene_ref, string scene_path, LoadSceneMode mode)
         {
             SceneItem ret = new SceneItem();
             ret._Id = SceneID.Create();
             ret._ScenePath = scene_path;
             ret._LoadMode = mode;
             ret._Status = ESceneStatus.None;
-            ret._SceneRef = new CPtr<ISceneRef>(scene_ref);
+            ret._SceneRef = new CPtr<ISceneMgr.IExternalRef>(scene_ref);
             return ret;
         }
 

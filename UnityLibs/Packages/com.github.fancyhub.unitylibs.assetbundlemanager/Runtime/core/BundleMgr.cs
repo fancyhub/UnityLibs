@@ -14,26 +14,30 @@ using UnityEngine;
 
 namespace FH
 {
-    public enum EBundleFileStatus
+    public partial interface IBundleMgr
     {
-        Exist,
-        NoExist,
-        NeedDownload,
-        Downloading,
+        public enum EBundleFileStatus
+        {
+            Exist,
+            NoExist,
+            NeedDownload,
+            Downloading,
+        }
+
+        public interface IExternalLoader : ICPtr
+        {
+            /// <summary>
+            /// 如果返回null, 使用 AssetBundle.LoadFromFile
+            /// 如果返回正确的值, 使用 AssetBundle.LoadFromStream
+            /// </summary>
+            public Stream LoadBundleFile(string name);
+            public string GetBundleFilePath(string name);
+            public EBundleFileStatus GetBundleFileStatus(string name);
+
+            public BundleManifest LoadManifest();
+        }
     }
 
-    public interface IBundleLoader : ICPtr
-    {
-        /// <summary>
-        /// 如果返回null, 使用 AssetBundle.LoadFromFile
-        /// 如果返回正确的值, 使用 AssetBundle.LoadFromStream
-        /// </summary>
-        public Stream LoadBundleFile(string name);
-        public string GetBundleFilePath(string name);
-        public EBundleFileStatus GetBundleFileStatus(string name);
-
-        public BundleManifest LoadManifest();
-    }
 
     public interface IBundle
     {
@@ -52,7 +56,7 @@ namespace FH
         public AssetBundleRequest LoadAssetAsync<T>(string path) where T : UnityEngine.Object;
     }
 
-    public interface IBundleMgr : ICPtr
+    public partial interface IBundleMgr : ICPtr
     {
         public IBundle LoadBundleByAsset(string asset);
 
@@ -68,7 +72,7 @@ namespace FH
 
         public static IBundleMgr Inst { get { return _.Val; } }
 
-        public static bool InitMgr(BundleMgrConfig config, IBundleLoader bundle_loader)
+        public static bool InitMgr(IBundleMgr.Config config, IBundleMgr.IExternalLoader external_loader)
         {
             if (config == null)
             {
@@ -82,7 +86,7 @@ namespace FH
                 return false;
             }
 
-            if (bundle_loader == null)
+            if (external_loader == null)
             {
                 BundleLog._.E("BundlerLoader is Null");
                 return false;
@@ -90,7 +94,7 @@ namespace FH
 
             BundleLog._ = TagLogger.Create(BundleLog._.Tag, config.LogLvl);
 
-            var manifest = bundle_loader.LoadManifest();
+            var manifest = external_loader.LoadManifest();
             if (manifest == null)
             {
                 BundleLog._.E("bundle manifest is Null");
@@ -99,7 +103,7 @@ namespace FH
 
 
             ABManagement.BundleMgrImplement mgr = new ABManagement.BundleMgrImplement();
-            mgr.Init(bundle_loader, manifest);
+            mgr.Init(external_loader, manifest);
             _ = mgr;
             return true;
         }

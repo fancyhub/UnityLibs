@@ -6,7 +6,7 @@
 *************************************************************************************/
 using System.Collections.Generic;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     internal class ResJobDB
     {

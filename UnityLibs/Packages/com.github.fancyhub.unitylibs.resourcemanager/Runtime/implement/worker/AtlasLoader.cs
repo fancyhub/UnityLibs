@@ -10,11 +10,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     internal class AtlasLoader : IDestroyable, IMsgProc<ResJob>
     {
-        public IAssetLoader _asset_loader;
+        public IResMgr.IExternalLoader _external_loader;
         public ResMsgQueue _msg_queue;        
         public ResJobDB _job_db;
         public ResPool _res_pool;
@@ -74,7 +74,7 @@ namespace FH.Res
 
         private void _OnAtlasRequest(string atlas_tag, Action<SpriteAtlas> action)
         {
-            string path = _asset_loader.AtlasTag2Path(atlas_tag);
+            string path = _external_loader.AtlasTag2Path(atlas_tag);
             if (string.IsNullOrEmpty(path))
             {
                 ResLog._.Assert(false, "Atlas Tag {0} -> Path Null", atlas_tag);

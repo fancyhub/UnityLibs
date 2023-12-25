@@ -8,7 +8,7 @@ using UnityEngine;
  * Title   : 
  * Desc    : 
 *************************************************************************************/
-namespace FH.Res
+namespace FH.ResManagement
 {
     internal sealed class PreInstHolder : CPoolItemBase, IPreInstHolder
     {

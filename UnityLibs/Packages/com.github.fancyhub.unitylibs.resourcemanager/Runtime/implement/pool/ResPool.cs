@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     internal sealed class ResPoolItem : UserRefCounter, IPoolItem, IDestroyable
     {
@@ -21,16 +21,16 @@ namespace FH.Res
         public ResPath Path;
         public ResId ResId;
         public UnityEngine.Object Asset;
-        public CPtr<IAssetRef> AssetRef;
+        public CPtr<IResMgr.IExternalRef> AssetRef;
 
         public ResPoolItem()
         {
         }
-        public static ResPoolItem Create(ResPath path, IAssetRef asset_ref)
+        public static ResPoolItem Create(ResPath path, IResMgr.IExternalRef asset_ref)
         {
             var ret = S_Pool.New();
             ret.Path = path;
-            ret.AssetRef = new CPtr<IAssetRef>(asset_ref);
+            ret.AssetRef = new CPtr<IResMgr.IExternalRef>(asset_ref);
             ret.Asset = asset_ref.Asset;
 
             if (path.Sprite)
@@ -136,7 +136,7 @@ namespace FH.Res
             return EResError.ResPool_res_not_exist_5;
         }
 
-        public EResError AddRes(ResPath path, IAssetRef asset_ref, out ResId id)
+        public EResError AddRes(ResPath path, IResMgr.IExternalRef asset_ref, out ResId id)
         {
             //1. 检查
             if (!path.IsValid())
@@ -215,7 +215,7 @@ namespace FH.Res
             return EResError.OK;
         }
 
-        public EResError RemoveRes(int inst_id, out ResPath path, out IAssetRef asset_ref)
+        public EResError RemoveRes(int inst_id, out ResPath path, out IResMgr.IExternalRef asset_ref)
         {
             //1. 先从pool里面移除
             bool succ = _pool.ExtRemove(inst_id, out ResPoolItem pool_val);

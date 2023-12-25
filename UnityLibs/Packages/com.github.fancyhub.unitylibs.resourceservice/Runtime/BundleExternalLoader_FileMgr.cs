@@ -11,32 +11,32 @@ using System.IO;
 
 namespace FH
 {
-    public class BundleLoader_FileMgr : CPtrBase, IBundleLoader
+    public class BundleExternalLoader_FileMgr : CPtrBase, IBundleMgr.IExternalLoader
     {
         public string _BundleManifestName;
         public CPtr<IFileMgr> _FileMgr;
 
-        public BundleLoader_FileMgr(IFileMgr fileMgr, string manifest_name)
+        public BundleExternalLoader_FileMgr(IFileMgr fileMgr, string manifest_name)
         {
             _FileMgr = new CPtr<IFileMgr>(fileMgr);
             _BundleManifestName = manifest_name;
         }
 
-        public EBundleFileStatus GetBundleFileStatus(string name)
+        public IBundleMgr.EBundleFileStatus GetBundleFileStatus(string name)
         {
             var mgr = _FileMgr.Val;
             if (mgr == null)
-                return EBundleFileStatus.NoExist;
+                return IBundleMgr.EBundleFileStatus.NoExist;
             switch (mgr.GetFileStatus(name))
             {
                 case EFileStatus.NotExist:
-                    return EBundleFileStatus.NoExist;
+                    return IBundleMgr.EBundleFileStatus.NoExist;
                 case EFileStatus.Exist:
-                    return EBundleFileStatus.Exist;
+                    return IBundleMgr.EBundleFileStatus.Exist;
                 case EFileStatus.NotDownloaded:
-                    return EBundleFileStatus.NeedDownload;
+                    return IBundleMgr.EBundleFileStatus.NeedDownload;
                 default:
-                    return EBundleFileStatus.NoExist;
+                    return IBundleMgr.EBundleFileStatus.NoExist;
             }
         }
 

@@ -10,9 +10,12 @@ using UnityEngine;
 
 namespace FH
 {
-    [Serializable]
-    public class FileMgrConfig
+    public partial interface IFileMgr
     {
-        public ELogLvl LogLvl = ELogLvl.Info;
-    }
+        [Serializable]
+        public sealed class Config
+        {
+            public ELogLvl LogLvl = ELogLvl.Info;
+        }
+    }    
 }

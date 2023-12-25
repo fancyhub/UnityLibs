@@ -13,7 +13,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     internal class UserRefCounter : IDestroyable
     {

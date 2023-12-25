@@ -8,7 +8,7 @@ using UnityEngine;
  * Title   : 
  * Desc    : 
 *************************************************************************************/
-namespace FH.Res
+namespace FH.ResManagement
 {
     //UI 的资源 Holder，用来创建/加载 资源 gameobject
     internal sealed class ResInstHolder : CPoolItemBase, IResInstHolder

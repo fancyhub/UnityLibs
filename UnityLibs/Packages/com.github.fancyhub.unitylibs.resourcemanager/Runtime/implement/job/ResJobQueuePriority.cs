@@ -7,7 +7,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     //job的优先级队列
     internal class ResJobQueuePriority 

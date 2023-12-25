@@ -13,14 +13,14 @@ namespace FH.ABManagement
 {
     internal class BundleMgrImplement : CPtrBase, IBundleMgr
     {
-        private CPtr<IBundleLoader> _BundleLoader;
+        private CPtr<IBundleMgr.IExternalLoader> _ExternalLoader;
         private List<Bundle> _BundleList;
         private MyDict<string, Bundle> _AssetDict;
 
         public BundleManifest _Config;
-        public void Init(IBundleLoader bundleLoader, BundleManifest config)
+        public void Init(IBundleMgr.IExternalLoader external_loader, BundleManifest config)
         {
-            _BundleLoader = new CPtr<IBundleLoader>(bundleLoader);
+            _ExternalLoader = new CPtr<IBundleMgr.IExternalLoader>(external_loader);
             _Config = config;
 
             _BundleList = new List<Bundle>(config.BundleList.Length);
@@ -30,7 +30,7 @@ namespace FH.ABManagement
             {
                 Bundle b = new Bundle();
                 b._Config = p;
-                b._BundleLoader = _BundleLoader;
+                b._ExternalLoader = _ExternalLoader;
                 _BundleList.Add(b);
 
                 foreach (var a in p.GetAssets())

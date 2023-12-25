@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     internal sealed class EmptyGameObjectItem : UserRefCounter, IPoolItem, IDestroyable
     {

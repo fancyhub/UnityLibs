@@ -10,9 +10,12 @@ using UnityEngine;
 
 namespace FH
 {
-    [Serializable]
-    public class BundleMgrConfig
+    public partial interface IBundleMgr
     {
-        public ELogLvl LogLvl = ELogLvl.Info;
-    }
+        [Serializable]
+        public class Config
+        {
+            public ELogLvl LogLvl = ELogLvl.Info;
+        }
+    }    
 }

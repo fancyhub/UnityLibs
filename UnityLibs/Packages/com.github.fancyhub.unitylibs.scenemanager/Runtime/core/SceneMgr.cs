@@ -6,12 +6,10 @@
 *************************************************************************************/
 
 using FH.SceneManagement;
-using System;
-using System.Collections.Generic;
 
 namespace FH
 {
-    public interface ISceneMgr : ICPtr
+    public partial interface ISceneMgr : ICPtr
     {
         public SceneRef LoadScene(string scene_path, bool additive);
         public void Update();
@@ -21,7 +19,7 @@ namespace FH
     {
         private static CPtr<ISceneMgr> _Inst;
 
-        public static void InitMgr(SceneMgrConfig config, ISceneLoader scene_loader)
+        public static void InitMgr(ISceneMgr.Config config, ISceneMgr.IExternalLoader external_loader)
         {
             if (config == null)
             {
@@ -34,14 +32,14 @@ namespace FH
                 SceneLog._.E("SceneMgr 已经创建了");
                 return;
             }
-            if (scene_loader == null)
+            if (external_loader == null)
             {
                 SceneLog._.E("SceneLoader Is Null");
                 return;
             }
 
             SceneLog._ = TagLogger.Create(SceneLog._.Tag, config.LogLvl);
-            SceneMgrImplement mgr = new SceneMgrImplement(scene_loader);
+            SceneMgrImplement mgr = new SceneMgrImplement(external_loader);
             _Inst = new CPtr<ISceneMgr>(mgr);
         }
 

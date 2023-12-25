@@ -11,23 +11,23 @@ using System.IO;
 
 namespace FH.ABManagement.SampleBundleLoader
 {
-    public class BundleLoader_Dir : CPtrBase, IBundleLoader
+    public class BundleExternalLoader_Dir : CPtrBase, IBundleMgr.IExternalLoader
     {
         public string _Dir;
         public string _BundleManifestName;
-        public BundleLoader_Dir(string dir, string bundleManifestName)
+        public BundleExternalLoader_Dir(string dir, string bundleManifestName)
         {
             _Dir = dir;
             _BundleManifestName = bundleManifestName;
         }
 
-        public EBundleFileStatus GetBundleFileStatus(string name)
+        public IBundleMgr.EBundleFileStatus GetBundleFileStatus(string name)
         {
             string path = System.IO.Path.Combine(_Dir, name);
             if (System.IO.File.Exists(path))
-                return EBundleFileStatus.Exist;
+                return IBundleMgr.EBundleFileStatus.Exist;
             else
-                return EBundleFileStatus.NoExist;
+                return IBundleMgr.EBundleFileStatus.NoExist;
         }
 
         public string GetBundleFilePath(string name)

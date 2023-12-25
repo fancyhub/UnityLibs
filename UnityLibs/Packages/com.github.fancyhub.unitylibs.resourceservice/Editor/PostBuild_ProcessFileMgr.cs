@@ -10,7 +10,7 @@ using FH.AssetBundleBuilder.Ed;
 using System.Collections.Generic;
 using System.IO;
 
-namespace FH.Res.Ed
+namespace FH.ResManagement.Ed
 {
     public class PostBuild_ProcessFileMgr : BuilderPostBuild
     {

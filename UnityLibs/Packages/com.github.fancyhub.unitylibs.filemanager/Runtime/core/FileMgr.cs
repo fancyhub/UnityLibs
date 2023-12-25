@@ -17,7 +17,7 @@ namespace FH
         NotDownloaded,
     }
 
-    public interface IFileMgr : ICPtr
+    public partial interface IFileMgr : ICPtr
     {
         public VersionInfo GetVersionInfo();
         public bool UpgradeManifest();
@@ -35,7 +35,7 @@ namespace FH
 
         public static IFileMgr Inst { get { return _.Val; } }
 
-        public static void Init(FileMgrConfig config)
+        public static void Init(IFileMgr.Config config)
         {
             if (config == null)
             {

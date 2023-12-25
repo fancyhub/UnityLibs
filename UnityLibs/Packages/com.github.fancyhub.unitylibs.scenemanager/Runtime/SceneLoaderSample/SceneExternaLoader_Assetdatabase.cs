@@ -11,15 +11,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace FH.SceneManagement.SampleSceneLoader
+namespace FH.SceneManagement.SampleExternalLoader
 {
 #if UNITY_EDITOR
-    public class SceneLoader_Assetdatabase : ISceneLoader
+    public class SceneExternaLoader_Assetdatabase : ISceneMgr.IExternalLoader
     {
         private int ___ptr_ver = 0;
         int ICPtr.PtrVer => ___ptr_ver;
 
-        private sealed class SceneRef : CPoolItemBase, ISceneRef
+        private sealed class SceneRef : CPoolItemBase, ISceneMgr.IExternalRef
         {
             public AsyncOperation _AsyncOperation;
             public string _SceneName;
@@ -53,7 +53,7 @@ namespace FH.SceneManagement.SampleSceneLoader
         {
         }        
 
-        public ISceneRef Load(string scene, LoadSceneMode load_mod)
+        public ISceneMgr.IExternalRef Load(string scene, LoadSceneMode load_mod)
         {
             return SceneRef.Create(scene, new LoadSceneParameters(load_mod));
         }

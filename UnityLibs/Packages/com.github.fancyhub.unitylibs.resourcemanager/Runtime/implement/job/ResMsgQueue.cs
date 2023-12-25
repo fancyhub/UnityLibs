@@ -6,7 +6,7 @@
 *************************************************************************************/
 
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     internal class ResMsgQueue : MsgQueue<ResJob>
     {

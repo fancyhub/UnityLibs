@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     //同步创建实例
     internal class GameObjectCreatorSync : IMsgProc<ResJob>

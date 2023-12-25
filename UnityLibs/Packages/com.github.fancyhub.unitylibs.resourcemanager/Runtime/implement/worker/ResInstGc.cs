@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     internal class ResInstGc
     {
@@ -18,11 +18,11 @@ namespace FH.Res
         public GameObjectPreInstData _gobj_pre_data;
         public GameObjectStat _gobj_stat;
 
-        public ResMgrConfig.GCConfig _config;
+        public IResMgr.Config.GCConfig _config;
         
         public List<KeyValuePair<ResId, int>> _temp_list = new List<KeyValuePair<ResId, int>>();
 
-        public ResInstGc(ResMgrConfig.GCConfig config)
+        public ResInstGc(IResMgr.Config.GCConfig config)
         {
             _config = config;            
         }

@@ -10,14 +10,14 @@ using UnityEngine.SceneManagement;
 
 namespace FH
 {
-    public sealed class SceneLoader_Bundle : ISceneLoader
+    public sealed class SceneExternalLoader_Bundle : ISceneMgr.IExternalLoader
     {
         private int ___ptr_ver = 0;
         int ICPtr.PtrVer => ___ptr_ver;
 
         private CPtr<IBundleMgr> _BundleMgr;
 
-        public SceneLoader_Bundle(IBundleMgr bundleMgr)
+        public SceneExternalLoader_Bundle(IBundleMgr bundleMgr)
         {
             _BundleMgr = new CPtr<IBundleMgr>(bundleMgr);
         }
@@ -27,7 +27,7 @@ namespace FH
 
         }
 
-        public ISceneRef Load(string scene, LoadSceneMode mode)
+        public ISceneMgr.IExternalRef Load(string scene, LoadSceneMode mode)
         {
             IBundleMgr bundle_mgr = _BundleMgr.Val;
             if (bundle_mgr == null)
@@ -43,7 +43,7 @@ namespace FH
             return SceneRef.Create(bundle, scene, new LoadSceneParameters(mode));
         }
 
-        private sealed class SceneRef : CPoolItemBase, ISceneRef
+        private sealed class SceneRef : CPoolItemBase, ISceneMgr.IExternalRef
         {
             public AsyncOperation _AsyncOperation;
             public string _SceneName;

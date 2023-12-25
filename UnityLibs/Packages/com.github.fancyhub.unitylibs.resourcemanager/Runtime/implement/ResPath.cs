@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     internal readonly struct ResPath : IEquatable<ResPath>, IEqualityComparer<ResPath>
     {

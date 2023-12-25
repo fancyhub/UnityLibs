@@ -6,7 +6,7 @@
 *************************************************************************************/
 
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     internal static class ResLog
     {

@@ -7,7 +7,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     //发出event
     internal class ResInstCallEvent : IMsgProc<ResJob>

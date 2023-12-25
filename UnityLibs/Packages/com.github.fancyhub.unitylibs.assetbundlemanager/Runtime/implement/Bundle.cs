@@ -21,7 +21,7 @@ namespace FH.ABManagement
 
     internal class Bundle : IBundle
     {
-        public CPtr<IBundleLoader> _BundleLoader;
+        public CPtr<IBundleMgr.IExternalLoader> _ExternalLoader;
         public BundleManifest.Item _Config;
         public Bundle[] _AllDeps;
 
@@ -43,11 +43,11 @@ namespace FH.ABManagement
             if (_LoadStatus != EBundleLoadStatus.None)
                 return true;
 
-            IBundleLoader loader = _BundleLoader.Val;
+            IBundleMgr.IExternalLoader loader = _ExternalLoader.Val;
             if (loader == null)
                 return false;
 
-            return loader.GetBundleFileStatus(_Config.Name) == EBundleFileStatus.Exist;
+            return loader.GetBundleFileStatus(_Config.Name) == IBundleMgr.EBundleFileStatus.Exist;
         }
 
         public int IncRefCount()
@@ -148,15 +148,15 @@ namespace FH.ABManagement
 
                 case EBundleLoadStatus.None:
                     BundleLog._.D("Load Bundle {0} Load", _Config.Name);
-                    IBundleLoader loader = _BundleLoader.Val;
+                    IBundleMgr.IExternalLoader loader = _ExternalLoader.Val;
                     if (loader == null)
                     {
                         BundleLog._.E("BundleLoader is null");
                         return false;
                     }
 
-                    EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
-                    if (bundleStatus != EBundleFileStatus.Exist)
+                    IBundleMgr.EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
+                    if (bundleStatus != IBundleMgr.EBundleFileStatus.Exist)
                     {
                         BundleLog._.D("Bundle {0} Is {1}", _Config.Name, bundleStatus);
                         return false;
@@ -230,15 +230,15 @@ namespace FH.ABManagement
                 case EBundleLoadStatus.None:
                     BundleLog._.D("Load Dep Bundle {0} Load", _Config.Name);
 
-                    IBundleLoader loader = _BundleLoader.Val;
+                    IBundleMgr.IExternalLoader loader = _ExternalLoader.Val;
                     if (loader == null)
                     {
                         BundleLog._.E("BundleLoader is null");
                         return false;
                     }
 
-                    EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
-                    if (bundleStatus != EBundleFileStatus.Exist)
+                    IBundleMgr.EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
+                    if (bundleStatus != IBundleMgr.EBundleFileStatus.Exist)
                     {
                         BundleLog._.D("Bundle {0} Is {1}", _Config.Name, bundleStatus);
                         return false;

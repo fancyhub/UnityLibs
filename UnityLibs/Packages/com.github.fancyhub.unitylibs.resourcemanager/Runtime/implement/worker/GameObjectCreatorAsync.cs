@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     //异步的创建过程
     internal class GameObjectCreatorAsync : IMsgProc<ResJob>

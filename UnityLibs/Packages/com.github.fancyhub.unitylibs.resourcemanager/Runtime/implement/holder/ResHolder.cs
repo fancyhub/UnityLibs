@@ -8,7 +8,7 @@ using UnityEngine;
  * Title   : 
  * Desc    : 
 *************************************************************************************/
-namespace FH.Res
+namespace FH.ResManagement
 {
     //资源和实例的 Holder,方便一起卸载
     internal sealed class ResHolder : CPoolItemBase, IResHolder

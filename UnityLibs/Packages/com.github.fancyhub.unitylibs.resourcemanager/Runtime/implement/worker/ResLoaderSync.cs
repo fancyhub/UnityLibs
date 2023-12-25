@@ -7,14 +7,14 @@
 using System;
 using System.Collections.Generic;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     //同步创建流程
     internal class ResLoaderSync : IMsgProc<ResJob>
     {
         #region 传入
         public ResPool _res_pool;
-        public IAssetLoader _asset_loader;
+        public IResMgr.IExternalLoader _external_loader;
         public ResMsgQueue _msg_queue;
         #endregion
 
@@ -56,7 +56,7 @@ namespace FH.Res
             }
 
             //5. 不存在, 加载
-            IAssetRef asset_ref = _asset_loader.Load(job.Path.Path, job.Path.Sprite);
+            IResMgr.IExternalRef asset_ref = _external_loader.Load(job.Path.Path, job.Path.Sprite);
             if (asset_ref == null)
             {
                 ResLog._.D("load failed res {0}", job.Path.Path);

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     //统计模块
     internal class GameObjectStat 

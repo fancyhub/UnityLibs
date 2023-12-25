@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace FH
 {
-    public class AssetLoader_Bundle : CPtrBase, IAssetLoader
+    public class ResExternalLoader_Bundle : CPtrBase, IResMgr.IExternalLoader
     {
         private CPtr<IBundleMgr> _BundleMgr;
         private Func<string, string> _AtlasTag;
@@ -46,7 +46,7 @@ namespace FH
             }
         }
 
-        private sealed class AssetRef : CPoolItemBase, IAssetRef
+        private sealed class AssetRef : CPoolItemBase, IResMgr.IExternalRef
         {
             public UnityEngine.Object _Asset;
             public AssetBundleRequest _ResRequest;
@@ -131,7 +131,7 @@ namespace FH
 
         private ResRefDB _ResRefDB = new ResRefDB();
 
-        public AssetLoader_Bundle(IBundleMgr bundle_mgr,Func<string,string> atlas_tag)
+        public ResExternalLoader_Bundle(IBundleMgr bundle_mgr,Func<string,string> atlas_tag)
         {
             _BundleMgr = new CPtr<IBundleMgr>(bundle_mgr);
             _AtlasTag = atlas_tag;
@@ -159,7 +159,7 @@ namespace FH
                 return EAssetStatus.NotDownloaded;
         }
 
-        public IAssetRef Load(string path, bool sprite)
+        public IResMgr.IExternalRef Load(string path, bool sprite)
         {
             IBundleMgr bundleMgr = _BundleMgr.Val;
             if (bundleMgr == null)
@@ -182,7 +182,7 @@ namespace FH
             return ret;
         }
 
-        public IAssetRef LoadAsync(string path, bool sprite)
+        public IResMgr.IExternalRef LoadAsync(string path, bool sprite)
         {
             IBundleMgr bundleMgr = _BundleMgr.Val;
             if (bundleMgr == null)

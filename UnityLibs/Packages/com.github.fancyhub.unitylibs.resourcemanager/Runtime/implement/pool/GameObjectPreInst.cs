@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     //gameobject 预实例化的数据
     internal class GameObjectPreInstData
@@ -38,10 +38,10 @@ namespace FH.Res
         //Val: Val 对应的该请求的 count
         public Dictionary<int, KeyValuePair<string, int>> _req_id_dict;
 
-        public ResMgrConfig.GameObjectPreInstConfig _conf;
+        public IResMgr.Config.GameObjectPreInstConfig _conf;
         public int _req_id_gen = 0;
 
-        public GameObjectPreInstData(ResMgrConfig.GameObjectPreInstConfig conf)
+        public GameObjectPreInstData(IResMgr.Config.GameObjectPreInstConfig conf)
         {
             _conf = conf;
             _dict = new Dictionary<string, InstData>();
@@ -120,7 +120,7 @@ namespace FH.Res
             has = _dict.TryGetValue(path, out inst_data);
             if (!has)
             {
-                Res.ResLog._.Assert(false, "严重错误，数据不一致");
+                ResManagement.ResLog._.Assert(false, "严重错误，数据不一致");
                 return (EResError)EResError.GameObjectPreInstData_cant_find_data_with_path;
             }
 

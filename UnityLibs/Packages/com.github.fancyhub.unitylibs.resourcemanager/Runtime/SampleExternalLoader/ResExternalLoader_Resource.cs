@@ -9,9 +9,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace FH.Res.SampleAssetLoader
+namespace FH.ResManagement.SampleExternalLoader
 {
-    public class AssetLoader_Resource : CPtrBase, IAssetLoader
+    public class ResExternalLoader_Resource : CPtrBase, IResMgr.IExternalLoader
     {
         private sealed class ResRefDB
         {
@@ -44,7 +44,7 @@ namespace FH.Res.SampleAssetLoader
             }
         }
 
-        private sealed class AssetRef : CPoolItemBase, IAssetRef
+        private sealed class AssetRef : CPoolItemBase, IResMgr.IExternalRef
         {
             public UnityEngine.Object _Asset;
             public ResourceRequest _ResRequest;
@@ -124,7 +124,7 @@ namespace FH.Res.SampleAssetLoader
             return EAssetStatus.Exist;
         }
 
-        public IAssetRef Load(string path, bool sprite)
+        public IResMgr.IExternalRef Load(string path, bool sprite)
         {
             if (!sprite)
                 return AssetRef.Create(_ResRefDB, Resources.Load(path));
@@ -132,7 +132,7 @@ namespace FH.Res.SampleAssetLoader
                 return AssetRef.Create(_ResRefDB, Resources.Load<Sprite>(path));
         }
 
-        public IAssetRef LoadAsync(string path, bool sprite)
+        public IResMgr.IExternalRef LoadAsync(string path, bool sprite)
         {
             if (!sprite)
                 return AssetRef.Create(_ResRefDB, Resources.LoadAsync(path));

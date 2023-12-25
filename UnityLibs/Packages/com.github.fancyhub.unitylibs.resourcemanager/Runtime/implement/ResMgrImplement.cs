@@ -8,16 +8,16 @@
 using System;
 using System.Collections.Generic;
 
-namespace FH.Res
+namespace FH.ResManagement
 {
     internal class ResMgrImplement : IResMgr, IResPool, ICPtr
     {
         private int ___ptr_ver = 0;
         int ICPtr.PtrVer => ___ptr_ver;
 
-        public IAssetLoader _asset_loader;
+        public IResMgr.IExternalLoader _external_loader;
 
-        public ResMgrConfig _conf;
+        public IResMgr.Config _conf;
         public ResPool _res_pool;
         public GameObjectInstPool _gobj_pool;
         public ResJobDB _job_db;
@@ -41,9 +41,9 @@ namespace FH.Res
             MyEqualityComparer.Reg(new ResPath());
         }
 
-        public ResMgrImplement(IAssetLoader asset_loader, ResMgrConfig conf)
+        public ResMgrImplement(IResMgr.IExternalLoader external_loader, IResMgr.Config conf)
         {
-            _asset_loader = asset_loader;
+            _external_loader = external_loader;
             _conf = conf;
 
             _gobj_stat = new GameObjectStat();
@@ -76,14 +76,14 @@ namespace FH.Res
 
             _worker_res_async = new ResLoaderAsync(conf.MaxAsyncResLoaderSlot);
             _worker_res_async._res_pool = _res_pool;
-            _worker_res_async._asset_loader = asset_loader;
+            _worker_res_async._external_loader = external_loader;
             _worker_res_async._job_db = _job_db;
             _worker_res_async._msg_queue = _msg_queue;
             _worker_res_async.Init();
 
             _worker_res_sync = new ResLoaderSync();
             _worker_res_sync._res_pool = _res_pool;
-            _worker_res_sync._asset_loader = asset_loader;
+            _worker_res_sync._external_loader = external_loader;
             _worker_res_sync._msg_queue = _msg_queue;
             _worker_res_sync.Init();
 
@@ -98,7 +98,7 @@ namespace FH.Res
             _worker_go_pre_inst._msg_queue = _msg_queue;
 
             _atlas_loader = new AtlasLoader();
-            _atlas_loader._asset_loader = _asset_loader;
+            _atlas_loader._external_loader = _external_loader;
             _atlas_loader._job_db = _job_db;
             _atlas_loader._res_pool = _res_pool;
             _atlas_loader._msg_queue = _msg_queue;
@@ -327,7 +327,7 @@ namespace FH.Res
 
         public EAssetStatus GetAssetStatus(string res_path)
         {
-            return _asset_loader.GetAssetStatus(res_path);
+            return _external_loader.GetAssetStatus(res_path);
         }
 
         // 资源的部分,key: path
@@ -497,7 +497,7 @@ namespace FH.Res
             }
 
             //2. 检查资源是否存在
-            var asset_status = _asset_loader.GetAssetStatus(path);
+            var asset_status = _external_loader.GetAssetStatus(path);
             if (asset_status != EAssetStatus.Exist)
             {
                 req_id = 0;

@@ -1,6 +1,6 @@
 /*************************************************************************************
  * Author  : cunyu.fan
- * Time    : 2023/12/21
+ * Time    : 2023/12/20
  * Title   : 
  * Desc    : 
 *************************************************************************************/
@@ -11,11 +11,14 @@ namespace FH
 {
     public partial interface ISceneMgr
     {
-        [Serializable]
-        public class Config
+        public interface IExternalRef : ICPtr
         {
-            public ELogLvl LogLvl = ELogLvl.Info;
+            UnityEngine.AsyncOperation LoadScene();
         }
-    }
-   
+
+        public interface IExternalLoader : ICPtr
+        {
+            IExternalRef Load(string scene_path, UnityEngine.SceneManagement.LoadSceneMode mode);
+        }
+    }   
 }
