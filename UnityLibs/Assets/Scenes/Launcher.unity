@@ -569,11 +569,11 @@ MonoBehaviour:
   Mode: 1
   AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
   FileMgrConfig:
-    LogLvl: 0
+    LogLvl: 1
   BundleMgrConfig:
-    LogLvl: 0
+    LogLvl: 1
   ResMgrConfig:
-    LogLevel: 0
+    LogLevel: 1
     MaxAsyncResLoaderSlot: 5
     MaxAsyncGameObjectStep: 1
     PreInst:
@@ -586,7 +586,25 @@ MonoBehaviour:
       MaxInstCountProcess: 40
       InstWaitFrameCount: 10
   SceneMgrConfig:
-    LogLvl: 0
+    LogLvl: 1
+  VfsConfig:
+    MgrConfig:
+      LogLvl: 0
+    BuilderConfigs:
+    - Name: lua
+      Format: 0
+      Dirs:
+      - RootDir: ../ClientData
+        SpecSubDir: LuaProj
+        IncludeSub: 1
+        SearchPartern: '*.lua'
+    - Name: config
+      Format: 0
+      Dirs:
+      - RootDir: ../ClientData
+        SpecSubDir: Config
+        IncludeSub: 1
+        SearchPartern: '*.json;*.txt'
 --- !u!1 &2098590053
 GameObject:
   m_ObjectHideFlags: 0

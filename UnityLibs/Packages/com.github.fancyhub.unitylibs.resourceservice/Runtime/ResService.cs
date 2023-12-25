@@ -1,8 +1,17 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 namespace FH
 {
+
+    [Serializable]
+    public class VfsConfig
+    {
+        public IVfsMgr.Config MgrConfig;
+        public List<FH.VFSManagement.Builder.BuilderConfig> BuilderConfigs;
+    }
+
     public class ResService : MonoBehaviour
     {
         public const string BunldeManifestName = "bundle_manifest.json";
@@ -19,12 +28,28 @@ namespace FH
         public FH.IResMgr.Config ResMgrConfig;
         public FH.ISceneMgr.Config SceneMgrConfig;
 
+        public VfsConfig VfsConfig;
 
         protected virtual void Awake()
         {
             GameObject.DontDestroyOnLoad(gameObject);
             UnityEngine.Application.targetFrameRate = 30;
-            _Init();            
+            _Init();
+
+
+            VfsMgr.InitMgr(VfsConfig.MgrConfig);
+
+#if UNITY_EDITOR
+            foreach (var p in VfsConfig.BuilderConfigs)
+            {
+                FH.VirtualFileSystem_Dir fs = new VirtualFileSystem_Dir(p.Name);
+                foreach(var p2 in p.Dirs)
+                {
+                    fs.AddDir(p2.RootDir, p2.SpecSubDir);
+                }
+                VfsMgr.Mount(fs);
+            }
+#endif
         }
 
         private void _Init()

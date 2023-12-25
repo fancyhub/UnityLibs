@@ -10,12 +10,12 @@ using System.IO;
 
 namespace FH
 {
-    public class FileSystem_Lz4Zip : IVirtualFileSystem
+    public class VirtualFileSystem_Lz4Zip : IVirtualFileSystem
     {
         public Lz4ZipFile _gzip_file;
         public string _name;         
 
-        public FileSystem_Lz4Zip(string name, Lz4ZipFile gzip_file)
+        public VirtualFileSystem_Lz4Zip(string name, Lz4ZipFile gzip_file)
         {
             _name = name;
             _gzip_file = gzip_file;

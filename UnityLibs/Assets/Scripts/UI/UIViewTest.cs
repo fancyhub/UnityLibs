@@ -21,6 +21,11 @@ public class UIViewTest : MonoBehaviour
 
     public void _OnOpen()
     {
+        string content =  VfsMgr.ReadAllText("Config/test.json");
+        Debug.Log($"Config/test.json {content}");
+
+        content = VfsMgr.ReadAllText("LuaProj/main.lua");
+        Debug.Log($"LuaProj/main.lua {content}");
         UIPageScene.Create(Canvas.transform, this);
     }
 }
