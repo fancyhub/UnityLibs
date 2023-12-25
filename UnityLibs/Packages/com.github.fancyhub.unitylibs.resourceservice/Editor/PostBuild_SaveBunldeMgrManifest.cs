@@ -12,7 +12,7 @@ using UnityEngine.UIElements;
 
 namespace FH.ResManagement.Ed
 {
-    public class PostBuild_SaveBunldeMgrManifest : BuilderPostBuild
+    public class PostBuild_SaveBunldeManifest : BuilderPostBuild
     {
         public override void OnPostBuild(PostBuildContext context)
         {

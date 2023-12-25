@@ -9,9 +9,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using JetBrains.Annotations;
 
-namespace FH.AssetBundleBuilder.Ed
+namespace FH.Ed
 {
    
     public class InnerSODrawer<T> where T : ScriptableObject
@@ -23,7 +22,6 @@ namespace FH.AssetBundleBuilder.Ed
         private T _LastTarget;
         private Editor _Editor;
         private bool _Show;
-        private bool _Show2;
 
         public InnerSODrawer(string path)
         {
@@ -99,7 +97,5 @@ namespace FH.AssetBundleBuilder.Ed
                 EditorGUI.indentLevel--;
             }
         }
-    }
-
-    
+    }    
 }

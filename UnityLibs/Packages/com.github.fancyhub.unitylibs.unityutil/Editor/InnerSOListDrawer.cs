@@ -9,9 +9,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using JetBrains.Annotations;
 
-namespace FH.AssetBundleBuilder.Ed
+namespace FH.Ed
 {  
     public class InnerSOListDrawer<T> where T : ScriptableObject
     {

@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using JetBrains.Annotations;
+using FH.Ed;
 
 namespace FH.AssetBundleBuilder.Ed
 {
@@ -64,6 +64,7 @@ namespace FH.AssetBundleBuilder.Ed
                 _PostBuildDrawer = new InnerSOListDrawer<BuilderPostBuild>(ref config.PostBuild, AssetDatabase.GetAssetPath(target), "Add Post Build", null);
             }
             EditorGUILayout.Space(10);
-            _PostBuildDrawer.Draw("Post Build");        }
+            _PostBuildDrawer.Draw("Post Build");        
+        }
     }
 }

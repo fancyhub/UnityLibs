@@ -11,13 +11,13 @@ using System.Collections.Generic;
 namespace FH.AssetBundleBuilder.Ed
 {
     [Serializable]
-    public class AssetGraph
+    public sealed class AssetGraph
     {
         public List<Asset> Assets = new List<Asset>();
         public List<Bundle> Bundles = new List<Bundle>();
 
         [Serializable]
-        public class Asset
+        public sealed class Asset
         {
             public int Id;
             public bool Export;
@@ -37,12 +37,28 @@ namespace FH.AssetBundleBuilder.Ed
         }
 
         [Serializable]
-        public class Bundle
+        public sealed class Bundle
         {
             public int Id;
             public string Name;
+            public string FileHash;
             public int[] Deps;
             public int[] Assets;
+        }
+
+        public void GetBundleAllDeps(int bundle_index, HashSet<int> out_bundle_index_set)
+        {
+            Bundle bundle = Bundles[bundle_index];
+            if (bundle.Deps == null)
+                return;
+
+            foreach (var sub in bundle.Deps)
+            {
+                if (!out_bundle_index_set.Add(sub))
+                {
+                    GetBundleAllDeps(sub, out_bundle_index_set);
+                }
+            }
         }
 
         public static AssetGraph CreateFrom(BundleNodeMap bundle_map)
@@ -159,6 +175,13 @@ namespace FH.AssetBundleBuilder.Ed
                 Assets = assets_list,
                 Bundles = bundles_list,
             };
+        }
+
+
+        public static AssetGraph LoadFromFile(string file_path)
+        {
+            string content = System.IO.File.ReadAllText(file_path);
+            return UnityEngine.JsonUtility.FromJson<AssetGraph>(content);
         }
     }
 }

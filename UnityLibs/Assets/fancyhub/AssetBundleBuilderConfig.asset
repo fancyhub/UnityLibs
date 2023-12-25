@@ -104,16 +104,12 @@ MonoBehaviour:
   OutputDir: Bundle/Builder
   Android:
     BuildOptions: 768
-    OutputDir: Bundle/Builder/Android
   IOS:
     BuildOptions: 768
-    OutputDir: Bundle/Builder/IOS
   Windows:
     BuildOptions: 768
-    OutputDir: Bundle/Builder/Win
   OSX:
     BuildOptions: 768
-    OutputDir: Bundle/Builder/OSX
   AssetCollector: {fileID: -2576945627375757616}
   AssetDependency: {fileID: 2520550354463717286}
   BundleRulers:
@@ -125,7 +121,6 @@ MonoBehaviour:
   PostBuild:
   - {fileID: -6210324049705765230}
   - {fileID: -7057009503913387643}
-  - {fileID: 8205096381870939508}
 --- !u!114 &343812129609068264
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -167,17 +162,3 @@ MonoBehaviour:
   - .cs
   AtlasDirs:
   - Assets/Res/UI/Atlas
---- !u!114 &8205096381870939508
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2b9eb4227a63e104fa633c7bb154e797, type: 3}
-  m_Name: PostBuild_ProcessFileMgr
-  m_EditorClassIdentifier: 
-  DefaultExt: .bytes
-  DestFolder: Bundle/Server

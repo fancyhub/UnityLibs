@@ -23,7 +23,7 @@ namespace FH.AssetBundleBuilder.Ed
             Build(config, EditorUserBuildSettings.activeBuildTarget);
         }
 
-        public static void Build(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target)
+        public static PostBuildContext Build(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target)
         {
             BuilderParam param = config.GetBuilderParam(target);
             string outputDir = config.GetOutputDir(target);
@@ -98,6 +98,12 @@ namespace FH.AssetBundleBuilder.Ed
             using (new BuilderTimer("7/7. Post Build"))
             {
                 AssetGraph graph = AssetGraph.CreateFrom(bundleMap);
+
+                foreach (var p in graph.Bundles)
+                {
+                    p.FileHash = unityManifest.GetAssetBundleHash(p.Name).ToString();
+                }
+
                 PostBuildContext context = new PostBuildContext()
                 {
                     Target = target,
@@ -114,8 +120,8 @@ namespace FH.AssetBundleBuilder.Ed
 
                     p.OnPostBuild(context);
                 }
+                return context;
             }
         }
-
     }
 }

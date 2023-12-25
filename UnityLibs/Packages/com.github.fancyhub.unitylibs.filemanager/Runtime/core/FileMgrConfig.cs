@@ -6,6 +6,7 @@
 *************************************************************************************/
 
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace FH
@@ -16,6 +17,8 @@ namespace FH
         public sealed class Config
         {
             public ELogLvl LogLvl = ELogLvl.Info;
+
+            public List<string> BaseTags = new List<string>() { "base" };
         }
-    }    
+    }
 }

@@ -593,18 +593,20 @@ MonoBehaviour:
     BuilderConfigs:
     - Name: lua
       Format: 0
+      Tags: base
       Dirs:
       - RootDir: ../ClientData
         SpecSubDir: LuaProj
         IncludeSub: 1
-        SearchPartern: '*.lua'
+        SearchPatterns: '*.lua'
     - Name: config
       Format: 0
+      Tags: base
       Dirs:
       - RootDir: ../ClientData
         SpecSubDir: Config
         IncludeSub: 1
-        SearchPartern: '*.json;*.txt'
+        SearchPatterns: '*.json'
 --- !u!1 &2098590053
 GameObject:
   m_ObjectHideFlags: 0

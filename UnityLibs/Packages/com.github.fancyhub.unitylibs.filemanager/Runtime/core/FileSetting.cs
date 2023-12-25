@@ -84,9 +84,7 @@ namespace FH
         }
         #endregion
 
-
-        public const string TagBase = "base";
-
+                
         private static string _CacheDir;
         public static string CacheDir
         {

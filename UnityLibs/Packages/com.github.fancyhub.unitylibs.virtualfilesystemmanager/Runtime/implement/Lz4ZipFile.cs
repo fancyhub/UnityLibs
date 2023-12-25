@@ -5,6 +5,7 @@
  * Desc    : 
 *************************************************************************************/
 
+using FH.VFSManagement;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,56 +18,41 @@ namespace FH
     /// </summary>
     public class Lz4ZipEntryInfo
     {
-        public string _file_name;
-        public int _hash_code;
+        public readonly string FileName;
         //在整个文件的offset
-        public uint _offset;
+        internal uint _Offset;
         //原来的文件大小
-        public uint _orig_len;
+        internal uint _OrigSize;
         //在整个文件的压缩后的size
-        public uint _compressed_len;
+        internal uint _CompressedLength;
         //该文件是否被压缩了
-        public bool _compressed = false;
+        internal bool _Compressed = false;
 
-        public Lz4ZipEntryInfo(
+        internal Lz4ZipEntryInfo(
             string name
             , uint offset
             , uint orig_len
             , uint compress_len
             , bool compressed)
         {
-            _file_name = name;
-            _hash_code = name.GetHashCode();
-            _offset = offset;
-            _compressed_len = compress_len;
-            _orig_len = orig_len;
-            _compressed = compressed;
+            FileName = name;
+            _Offset = offset;
+            _CompressedLength = compress_len;
+            _OrigSize = orig_len;
+            _Compressed = compressed;
         }
 
         public override int GetHashCode()
         {
-            return _hash_code;
+            if (FileName == null)
+                return 0;
+            return FileName.GetHashCode();
         }
 
-        public string GetFileName()
-        {
-            return _file_name;
-        }
-
-        public uint GetOffset()
-        {
-            return _offset;
-        }
-
-        public uint GetFileOrigSize()
-        {
-            return _orig_len;
-        }
-
-        public uint GetFileCompresedSize()
-        {
-            return _compressed_len;
-        }
+        public uint Offset => _Offset;
+        public uint OrigSize => _OrigSize;
+        public uint CompresedSize => _CompressedLength;
+        public bool IsCompressed => _Compressed;
     }
 
 
@@ -90,49 +76,42 @@ namespace FH
 
     public sealed class Lz4ZipFile
     {
-        public static UInt32 C_FILE_SIGN = 0x4C53475A; // 'LSGZ';
-        public static UInt32 C_FILE_VERSION = 0x1;
-        public static UInt32 C_MAX_FILE_COUNT = 10000;
-        public static UInt16 C_MAX_FILE_NAME_LEN = 256;
-
-        //压缩用的输入文件
-        public struct ZipFileInput
-        {
-            public string _root_dir;
-            public FileInfo[] _files;
-        }
+        private const uint C_FILE_SIGN = 0x4C53475A; // 'LSGZ';
+        private const uint C_FILE_VERSION = 0x1;
+        private const uint C_MAX_FILE_COUNT = 10000;
+        private const ushort C_MAX_FILE_NAME_LEN = 256;
 
         //文件列表
-        public Lz4ZipEntryInfo[] _file_list;
+        private Lz4ZipEntryInfo[] _EntryList;
         //文件列表的缓存
-        public Dictionary<string, Lz4ZipEntryInfo> _file_dict;
+        private Dictionary<string, Lz4ZipEntryInfo> _EntryDict;
         //原始的文件io
-        public System.IO.Stream _file_stream;
+        private System.IO.Stream _ZipFileOrigStream;
         //最大文件的原始大小
-        public uint _max_orig_file_size = 0;
+        private uint _MaxOrigFileSize = 0;
+
         //gzipfile 只能读取一个文件，要保留上一个打开的子文件的stream，打开下一个的，会关闭上一个io
         private Stream _last_stream;
-
-        public LZ4.LZ4Stream _lz4_stream_reader;
+        private LZ4.LZ4Stream _lz4_stream_reader;
 
         private Lz4ZipFile(Stream file_stream, Lz4ZipEntryInfo[] file_list, uint max_size)
         {
-            _file_stream = file_stream;
+            _ZipFileOrigStream = file_stream;
 
-            _file_list = file_list;
-            _max_orig_file_size = max_size;
-            _file_dict = new Dictionary<string, Lz4ZipEntryInfo>(file_list.Length);
+            _EntryList = file_list;
+            _MaxOrigFileSize = max_size;
+            _EntryDict = new Dictionary<string, Lz4ZipEntryInfo>(file_list.Length);
 
-            foreach (var a in _file_list)
+            foreach (var a in _EntryList)
             {
-                _file_dict.Add(a.GetFileName(), a);
+                _EntryDict.Add(a.FileName, a);
             }
         }
 
         /// <summary>
         /// 如果在外部调用方法，要注意该流会被关闭
         /// </summary>
-        public static Lz4ZipFile LoadFile(Stream stream_in)
+        public static Lz4ZipFile LoadFromStream(Stream stream_in)
         {
             if (stream_in == null) return null;
             if (!stream_in.CanRead) return null;
@@ -257,41 +236,41 @@ namespace FH
             return ret;
         }
 
-        public static Lz4ZipFile LoadFile(string file)
+        public static Lz4ZipFile LoadFromFile(string file)
         {
             if (!System.IO.File.Exists(file))
             {
-                Log.E("file[{0}] doesn't exist!", file);
+                VfsLog._.E("file[{0}] doesn't exist!", file);
                 return null;
             }
 
             FileStream fs = System.IO.File.OpenRead(file);
 
-            Lz4ZipFile ret = LoadFile(fs);
+            Lz4ZipFile ret = LoadFromStream(fs);
             return ret;
         }
 
         public uint GetMaxFileSize()
         {
-            return _max_orig_file_size;
+            return _MaxOrigFileSize;
         }
 
         public bool FileExists(string path)
         {
-            if (_find_file_info(path) == null) return false;
+            if (_FindEntry(path) == null) return false;
             return true;
         }
 
-        public Lz4ZipEntryInfo FindFile(string file)
+        public Lz4ZipEntryInfo FindEntry(string file)
         {
-            return _find_file_info(file);
+            return _FindEntry(file);
         }
 
         public Stream OpenRead(string file)
         {
-            if (_file_stream == null) return null;
+            if (_ZipFileOrigStream == null) return null;
 
-            Lz4ZipEntryInfo file_info = _find_file_info(file);
+            Lz4ZipEntryInfo file_info = _FindEntry(file);
             if (file_info == null) return null;
 
             if (null != _last_stream)
@@ -303,25 +282,22 @@ namespace FH
             Stream stream_in = _get_inner_stream_reader(file_info);
 
             //外面套接一下
-            _last_stream = new GzipFileReadStream(stream_in, file_info.GetFileOrigSize());
+            _last_stream = new EntryReadStream(stream_in, file_info.OrigSize);
 
             return _last_stream;
         }
 
         /// <summary>
         /// 
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="path"></param>
+        /// </summary>        
         /// <returns>-1 读取失败,要不然返回读取的文件大小</returns>
-        public int ReadFileAllBytes(byte[] buffer, int offset, string path)
+        public int ReadFileAllBytes(string file_path, byte[] buffer, int offset)
         {
-            Lz4ZipEntryInfo file_info = _find_file_info(path);
+            Lz4ZipEntryInfo file_info = _FindEntry(file_path);
             if (file_info == null) return -1;
 
 
-            uint file_size = file_info.GetFileOrigSize();
+            uint file_size = file_info.OrigSize;
             if ((buffer.Length - offset) < file_size)
             {
                 Log.D("Gzip Load File failde,becuase given buffer is too small");
@@ -336,7 +312,7 @@ namespace FH
 
         public byte[] ReadFileAllBytes(string path)
         {
-            Lz4ZipEntryInfo file_info = _find_file_info(path);
+            Lz4ZipEntryInfo file_info = _FindEntry(path);
             return ReadFileAllBytes(file_info);
         }
 
@@ -345,8 +321,7 @@ namespace FH
             if (file_info == null) return null;
 
             Stream stream_in = _get_inner_stream_reader(file_info);
-
-            byte[] buf = new byte[file_info.GetFileOrigSize()];
+            byte[] buf = new byte[file_info.OrigSize];
             int read_size = stream_in.Read(buf, 0, buf.Length);
             if (read_size < buf.Length)
             {
@@ -363,19 +338,19 @@ namespace FH
                 _last_stream = null;
             }
 
-            if (_file_stream != null)
+            if (_ZipFileOrigStream != null)
             {
-                _file_stream.Close();
-                _file_stream = null;
+                _ZipFileOrigStream.Close();
+                _ZipFileOrigStream = null;
             }
             _lz4_stream_reader = null;
 
-            _file_list = null;
+            _EntryList = null;
         }
 
         public bool IsClosed()
         {
-            if (_file_stream == null)
+            if (_ZipFileOrigStream == null)
             {
                 return true;
             }
@@ -383,9 +358,11 @@ namespace FH
                 return false;
         }
 
+        #region Unzip 
+
         public void UnZip(string dest_folder)
         {
-            if (_file_stream == null) return;
+            if (_ZipFileOrigStream == null) return;
 
             if (null != _last_stream)
             {
@@ -393,7 +370,7 @@ namespace FH
                 _last_stream = null;
             }
 
-            Lz4ZipEntryInfo[] file_list = _file_list;
+            Lz4ZipEntryInfo[] file_list = _EntryList;
             byte[] buff = new byte[4096];
 
             for (int i = 0; i < file_list.Length; i++)
@@ -401,7 +378,7 @@ namespace FH
                 Lz4ZipEntryInfo file_info = file_list[i];
 
                 //1. 创建文件夹
-                string path = System.IO.Path.Combine(dest_folder, file_info.GetFileName());
+                string path = System.IO.Path.Combine(dest_folder, file_info.FileName);
                 string folder = System.IO.Path.GetDirectoryName(path);
                 if (!System.IO.Directory.Exists(folder))
                     System.IO.Directory.CreateDirectory(folder);
@@ -409,7 +386,7 @@ namespace FH
                 //2. 创建对应的流
                 Stream stream_in = _get_inner_stream_reader(file_info);
 
-                int len = (int)file_info.GetFileOrigSize();
+                int len = (int)file_info.OrigSize;
                 System.IO.FileStream fs_out = System.IO.File.OpenWrite(path);
                 while (true)
                 {
@@ -424,15 +401,51 @@ namespace FH
             }
         }
 
-        #region Unzip 
-
         public static void UnZipFile(string zip_file, string dest_folder)
         {
-            Lz4ZipFile file = Lz4ZipFile.LoadFile(zip_file);
+            Lz4ZipFile file = Lz4ZipFile.LoadFromFile(zip_file);
             if (file == null) return;
             file.UnZip(dest_folder);
         }
         #endregion
+
+
+
+        // 查找文件
+        private Lz4ZipEntryInfo _FindEntry(string file_path)
+        {
+            if (file_path == null)
+                return null;
+
+            Lz4ZipEntryInfo ret = null;
+            _EntryDict.TryGetValue(file_path, out ret);
+            return ret;
+        }
+
+        //获取内部的读取流，会根据 file info 是否压缩来判断 使用什么流
+        private Stream _get_inner_stream_reader(Lz4ZipEntryInfo file_info)
+        {
+            if (null != _last_stream)
+            {
+                _last_stream.Close();
+                _last_stream = null;
+            }
+            _ZipFileOrigStream.Seek(file_info.Offset, SeekOrigin.Begin);
+
+            if (!file_info._Compressed)
+                return _ZipFileOrigStream;
+
+            if (null == _lz4_stream_reader)
+            {
+                _lz4_stream_reader = new LZ4.LZ4Stream(
+                    _ZipFileOrigStream
+                    , System.IO.Compression.CompressionMode.Decompress
+                    , LZ4.LZ4StreamFlags.IsolateInnerStream);
+            }
+            else
+                _lz4_stream_reader.ResetRead();
+            return _lz4_stream_reader;
+        }
 
         #region Create GZ File
 
@@ -442,113 +455,94 @@ namespace FH
         /// </summary>
         /// <param name="root_dir"></param>
         /// <param name="searchPattern"></param>
-        /// <param name="dest_gz_file"></param>
+        /// <param name="dest_zip_file_path"></param>
         /// <param name="compressed"></param>
-        public static void CreateZipFile(string root_dir, string searchPattern, string dest_gz_file, bool compressed = false)
+        public static void CreateZipFile(string root_dir, string searchPattern, string dest_zip_file_path, bool compressed = false)
         {
-            DirectoryInfo di = new DirectoryInfo(root_dir);
-            FileInfo[] files = di.GetFiles(searchPattern, SearchOption.AllDirectories);
-            if (files.Length == 0 || files.Length > C_MAX_FILE_COUNT)
-                return;
-
-            CreateZipFile(root_dir, files, dest_gz_file, compressed);
+            var input_file_list = Creator.FormatInputFiles(root_dir, searchPattern);
+            Creator.CreateZipFile(input_file_list, dest_zip_file_path, compressed);
         }
 
-
-        public static void CreateZipFile(string root_dir, FileInfo[] files, string dest_gz_file, bool compressed = false)
+        public static void CreateZipFile(List<(string inner_path, FileInfo src_file)> input_files, string dest_zip_file_path, bool compressed = false)
         {
-            GZipFileCreater.CreateZipFile(root_dir, files, dest_gz_file, compressed);
-        }
-
-        public static void CreateZipFile(
-          List<Lz4ZipFile.ZipFileInput> input_files,
-          string dest_gz_file,
-          bool compressed = false)
-        {
-            GZipFileCreater.CreateZipFile(input_files, dest_gz_file, compressed);
-        }
-
-        #endregion
-
-        // 查找文件
-        public Lz4ZipEntryInfo _find_file_info(string path)
-        {
-            Lz4ZipEntryInfo ret = null;
-            _file_dict.TryGetValue(path, out ret);
-            return ret;
-        }
-
-        //获取内部的读取流，会根据 file info 是否压缩来判断 使用什么流
-        public Stream _get_inner_stream_reader(Lz4ZipEntryInfo file_info)
-        {
-            if (null != _last_stream)
-            {
-                _last_stream.Close();
-                _last_stream = null;
-            }
-            _file_stream.Seek(file_info.GetOffset(), SeekOrigin.Begin);
-
-            if (!file_info._compressed)
-                return _file_stream;
-
-            if (null == _lz4_stream_reader)
-            {
-                _lz4_stream_reader = new LZ4.LZ4Stream(
-                    _file_stream
-                    , System.IO.Compression.CompressionMode.Decompress
-                    , LZ4.LZ4StreamFlags.IsolateInnerStream);
-            }
-            else
-                _lz4_stream_reader.ResetRead();
-            return _lz4_stream_reader;
+            Creator.CreateZipFile(input_files, dest_zip_file_path, compressed);
         }
 
         //单独的创建 zip 的类
-        internal static class GZipFileCreater
+        private static class Creator
         {
 
-            public class GZipFileInfoWrite
+            private class GZipFileInfoWrite
             {
-                public Lz4ZipEntryInfo _info;
+                public Lz4ZipEntryInfo EntryInfo;
+                public FileInfo FileInfo;
                 public uint _self_offset;
                 public uint _self_size;
-
-                public GZipFileInfoWrite(Lz4ZipEntryInfo file)
-                {
-                    _info = file;
-                }
             }
 
-
-            public static void CreateZipFile(string root_dir, FileInfo[] files, string dest_gz_file, bool compressed = false)
+            public static List<(string inner_path, FileInfo src_file)> FormatInputFiles(string root_dir, string searchPattern)
             {
-                Lz4ZipFile.ZipFileInput input = new Lz4ZipFile.ZipFileInput();
-                input._files = files;
-                input._root_dir = root_dir;
-                List<Lz4ZipFile.ZipFileInput> input_files = new List<Lz4ZipFile.ZipFileInput>();
-                input_files.Add(input);
-                CreateZipFile(input_files, dest_gz_file, compressed);
+                DirectoryInfo di = new DirectoryInfo(root_dir);
+                FileInfo[] files = di.GetFiles(searchPattern, SearchOption.AllDirectories);
+                if (files.Length == 0 || files.Length > C_MAX_FILE_COUNT)
+                    return null;
+
+                string full_root_path = di.FullName;
+                full_root_path = full_root_path.Replace('\\', '/');
+                if (!full_root_path.EndsWith("/"))
+                    full_root_path = full_root_path + "/";
+
+                List<(string inner_path, FileInfo src_file)> ret = new List<(string inner_path, FileInfo src_file)>();
+                for (int i = 0; i < files.Length; i++)
+                {
+                    FileInfo file_info = files[i];
+                    string file_full_name = file_info.FullName;
+                    file_full_name = file_full_name.Replace('\\', '/');
+
+                    if (!file_full_name.StartsWith(full_root_path))
+                    {
+                        continue;
+                    }
+                    string file_name = file_full_name.Substring(full_root_path.Length);
+
+
+                    ret.Add((file_name, file_info));
+                }
+                return ret;
             }
 
             //主要入口
-            public static void CreateZipFile(
-                List<Lz4ZipFile.ZipFileInput> input_files,
-                string dest_gz_file,
-                bool compressed = false)
+            public static void CreateZipFile(List<(string inner_path, FileInfo src_file)> input_files, string dest_zip_file_path, bool compressed = false)
             {
-                Dictionary<string, FileInfo> file_map;
-                List<GZipFileInfoWrite> zip_file_info_list;
+                List<GZipFileInfoWrite> zip_file_info_list = new List<GZipFileInfoWrite>(input_files.Count);
+                Dictionary<string, GZipFileInfoWrite> file_map = new Dictionary<string, GZipFileInfoWrite>(input_files.Count);
 
-                //1. 创建文件列表
-                _create_file_dict(input_files, compressed, out file_map, out zip_file_info_list);
+                //1. 生成Dict
+                foreach (var input in input_files)
+                {
+                    Lz4ZipEntryInfo entry_info = new Lz4ZipEntryInfo(
+                        input.inner_path
+                        , 0
+                        , (uint)input.src_file.Length
+                        , (uint)input.src_file.Length
+                        , compressed);
 
+                    GZipFileInfoWrite write_info = new GZipFileInfoWrite()
+                    {
+                        EntryInfo = entry_info,
+                        FileInfo = input.src_file,
+                    };
+
+                    zip_file_info_list.Add(write_info);
+                    file_map.Add(input.inner_path, write_info);
+                }
 
                 //2. 创建stream，如果原来文件存在，删除
-                if (System.IO.File.Exists(dest_gz_file))
+                if (System.IO.File.Exists(dest_zip_file_path))
                 {
-                    System.IO.File.Delete(dest_gz_file);
+                    System.IO.File.Delete(dest_zip_file_path);
                 }
-                Stream fout = File.OpenWrite(dest_gz_file);
+                Stream fout = File.OpenWrite(dest_zip_file_path);
 
                 /*
         Header: 
@@ -574,7 +568,7 @@ namespace FH
 
                 //4. 写入文件列表
                 {
-                    _write_file_list(fout, zip_file_info_list);
+                    _WriteFileList(fout, zip_file_info_list);
                 }
 
                 //5. 写入文件
@@ -584,58 +578,13 @@ namespace FH
                 for (int i = 0; i < zip_file_info_list.Count; i++)
                 {
                     GZipFileInfoWrite zip_file_info = zip_file_info_list[i];
-                    FileInfo file_info = file_map[zip_file_info._info._file_name];
-                    _write_single_file(fout, zip_file_info, file_info, temp_buffer, compress_ratio);
+                    _WriteSingleFile(fout, zip_file_info, temp_buffer, compress_ratio);
                 }
                 fout.Close();
             }
 
 
-            public static void _create_file_dict(
-                List<Lz4ZipFile.ZipFileInput> file_list
-                , bool default_compress
-                , out Dictionary<string, FileInfo> out_file_dict
-                , out List<GZipFileInfoWrite> out_file_list)
-            {
-                out_file_dict = new Dictionary<string, FileInfo>();
-                out_file_list = new List<GZipFileInfoWrite>();
-                foreach (var input in file_list)
-                {
-                    DirectoryInfo di = new DirectoryInfo(input._root_dir);
-                    string full_root_path = di.FullName;
-
-                    full_root_path = full_root_path.Replace('\\', '/');
-                    if (!full_root_path.EndsWith("/"))
-                        full_root_path = full_root_path + "/";
-
-                    for (int i = 0; i < input._files.Length; i++)
-                    {
-                        FileInfo file_info = input._files[i];
-                        string file_full_name = file_info.FullName;
-                        file_full_name = file_full_name.Replace('\\', '/');
-
-                        if (!file_full_name.StartsWith(full_root_path))
-                        {
-                            continue;
-                        }
-                        string file_name = file_full_name.Substring(full_root_path.Length);
-
-                        //先把数据填进去
-                        Lz4ZipEntryInfo gzip_file_info = new Lz4ZipEntryInfo(
-                            file_name
-                            , 0
-                            , (uint)file_info.Length
-                            , (uint)file_info.Length
-                            , default_compress);
-
-                        out_file_dict.Add(file_name, file_info);
-                        out_file_list.Add(new GZipFileInfoWrite(gzip_file_info));
-                    }
-                }
-            }
-
-
-            public static void _write_file_list(Stream fout, List<GZipFileInfoWrite> zip_file_info_list)
+            private static void _WriteFileList(Stream fout, List<GZipFileInfoWrite> zip_file_info_list)
             {
                 byte[] data_bytes = BitConverter.GetBytes(zip_file_info_list.Count);
                 fout.Write(data_bytes, 0, data_bytes.Length);
@@ -656,23 +605,23 @@ namespace FH
                     GZipFileInfoWrite fi = zip_file_info_list[i];
                     //写文件名
                     {
-                        byte[] name_bytes = System.Text.Encoding.UTF8.GetBytes(fi._info.GetFileName());
+                        byte[] name_bytes = System.Text.Encoding.UTF8.GetBytes(fi.EntryInfo.FileName);
                         byte[] temp_bytes = BitConverter.GetBytes((ushort)name_bytes.Length);
                         fout.Write(temp_bytes, 0, temp_bytes.Length);
                         fout.Write(name_bytes, 0, name_bytes.Length);
                     }
 
                     {
-                        byte[] temp_bytes = BitConverter.GetBytes(fi._info.GetFileOrigSize());
+                        byte[] temp_bytes = BitConverter.GetBytes(fi.EntryInfo.OrigSize);
                         fout.Write(temp_bytes, 0, temp_bytes.Length);
 
-                        temp_bytes = BitConverter.GetBytes(fi._info.GetOffset());
+                        temp_bytes = BitConverter.GetBytes(fi.EntryInfo.Offset);
                         fout.Write(temp_bytes, 0, temp_bytes.Length);
 
-                        temp_bytes = BitConverter.GetBytes(fi._info.GetFileCompresedSize());
+                        temp_bytes = BitConverter.GetBytes(fi.EntryInfo.CompresedSize);
                         fout.Write(temp_bytes, 0, temp_bytes.Length);
 
-                        if (fi._info._compressed)
+                        if (fi.EntryInfo._Compressed)
                         {
                             fout.WriteByte(1);
                         }
@@ -687,37 +636,36 @@ namespace FH
             }
 
 
-            public static void _write_single_file(
+            private static void _WriteSingleFile(
                 Stream fout
                 , GZipFileInfoWrite zip_file_info
-                , FileInfo file_info
                 , byte[] temp_buffer
                 , float compress_ratio)
             {
                 //1. 先记录当前的offset
-                zip_file_info._info._offset = (uint)fout.Position;
+                zip_file_info.EntryInfo._Offset = (uint)fout.Position;
 
                 //2. 开始写文件        
-                if (zip_file_info._info._compressed)
+                if (zip_file_info.EntryInfo._Compressed)
                 {
-                    long file_size_write = _write_single_file_compressed(new EmptyStreamWriter(), file_info, temp_buffer);
+                    long file_size_write = _WriteSingleFile_Compressed(new EmptyStreamWriter(), zip_file_info.FileInfo, temp_buffer);
 
                     //如果压缩率太低了，就改用非压缩模式
-                    if (file_size_write >= (zip_file_info._info._orig_len * compress_ratio))
+                    if (file_size_write >= (zip_file_info.EntryInfo._OrigSize * compress_ratio))
                     {
-                        zip_file_info._info._compressed = false;
+                        zip_file_info.EntryInfo._Compressed = false;
                     }
                 }
 
-                if (zip_file_info._info._compressed)
+                if (zip_file_info.EntryInfo._Compressed)
                 {
-                    long file_size_write = _write_single_file_compressed(fout, file_info, temp_buffer);
-                    zip_file_info._info._compressed_len = (uint)file_size_write;
+                    long file_size_write = _WriteSingleFile_Compressed(fout, zip_file_info.FileInfo, temp_buffer);
+                    zip_file_info.EntryInfo._CompressedLength = (uint)file_size_write;
                 }
                 else
                 {
-                    long file_size_write = _write_single_file_no_compressed(fout, file_info, temp_buffer);
-                    zip_file_info._info._compressed_len = (uint)file_size_write;
+                    long file_size_write = _WriteSingleFile_No_Compressed(fout, zip_file_info.FileInfo, temp_buffer);
+                    zip_file_info.EntryInfo._CompressedLength = (uint)file_size_write;
                 }
 
 
@@ -726,13 +674,13 @@ namespace FH
                 long offset = zip_file_info._self_size + zip_file_info._self_offset - 9;
                 fout.Seek(offset, SeekOrigin.Begin);
 
-                byte[] temp_bytes = BitConverter.GetBytes(zip_file_info._info.GetOffset());
+                byte[] temp_bytes = BitConverter.GetBytes(zip_file_info.EntryInfo.Offset);
                 fout.Write(temp_bytes, 0, temp_bytes.Length);
 
-                temp_bytes = BitConverter.GetBytes(zip_file_info._info.GetFileCompresedSize());
+                temp_bytes = BitConverter.GetBytes(zip_file_info.EntryInfo.CompresedSize);
                 fout.Write(temp_bytes, 0, temp_bytes.Length);
 
-                if (zip_file_info._info._compressed)
+                if (zip_file_info.EntryInfo._Compressed)
                     fout.WriteByte(1);
                 else
                     fout.WriteByte(0);
@@ -742,7 +690,7 @@ namespace FH
             }
 
 
-            public static long _write_single_file_compressed(
+            public static long _WriteSingleFile_Compressed(
                 Stream fout
                 , FileInfo file_info
                 , byte[] temp_buffer)
@@ -766,7 +714,7 @@ namespace FH
                 return fout.Position - start_pos;
             }
 
-            public static long _write_single_file_no_compressed(
+            public static long _WriteSingleFile_No_Compressed(
                 Stream fout
                 , FileInfo file_info
                 , byte[] temp_buffer)
@@ -787,7 +735,7 @@ namespace FH
         }
 
         //空的stream writer，在创建 gzip的时候，用来判断写入长度的
-        internal class EmptyStreamWriter : Stream
+        private class EmptyStreamWriter : Stream
         {
             public long _pos = 0;
             public override bool CanRead { get { return false; } }
@@ -823,14 +771,16 @@ namespace FH
             }
         }
 
+        #endregion
+
 
         //一个套接stream
-        internal class GzipFileReadStream : Stream
+        private class EntryReadStream : Stream
         {
             public Stream _orig_stream;
             public uint _file_len;
             public long _pos;
-            public GzipFileReadStream(Stream orig, uint file_len)
+            public EntryReadStream(Stream orig, uint file_len)
             {
                 _orig_stream = orig;
                 _file_len = file_len;

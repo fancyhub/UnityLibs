@@ -50,6 +50,8 @@ namespace FH
             FileLog._ = TagLogger.Create(FileLog._.Tag, config.LogLvl);
 
             FileMgrImplement file_mgr = new FileMgrImplement();
+            file_mgr.SetBaseTags(config.BaseTags);
+            file_mgr.Init();
             _ = new CPtr<IFileMgr>(file_mgr);
         }
 

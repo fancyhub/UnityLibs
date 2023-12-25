@@ -20,9 +20,13 @@ namespace FH.FileManagement
 
         private FileCollection _FileCollection;
 
-        private HashSet<string> _Tags = new HashSet<string>() { FileSetting.TagBase };
+        private HashSet<string> _Tags = new HashSet<string>() { };
 
         public FileMgrImplement()
+        {            
+        }
+
+        public void Init()
         {
             //1. 加载 Manifest
             _Manifest_Base = _LoadBaseManifest();
