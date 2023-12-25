@@ -24,7 +24,7 @@ namespace FH
         {
             GameObject.DontDestroyOnLoad(gameObject);
             UnityEngine.Application.targetFrameRate = 30;
-            _Init();
+            _Init();            
         }
 
         private void _Init()

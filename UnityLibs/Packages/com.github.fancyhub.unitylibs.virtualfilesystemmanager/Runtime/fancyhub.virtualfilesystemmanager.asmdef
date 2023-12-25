@@ -1,0 +1,18 @@
+{
+    "name": "fancyhub.virtualfilesystemmanager",
+    "rootNamespace": "",
+    "references": [
+        "GUID:fd3e1939cfeaae345a28d38349cb6f69",
+        "GUID:4face68fd9d2caf47807180bedf4b0b5",
+        "GUID:2792cdbca7cb2c242871b73364138d4e"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
