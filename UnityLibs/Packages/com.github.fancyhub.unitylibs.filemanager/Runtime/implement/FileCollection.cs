@@ -32,15 +32,11 @@ namespace FH.FileManagement
             _FilesInStreamingAssets.Clear();
             foreach (var f in files)
             {
-                string file_name = System.IO.Path.GetFileName(f);
-                string file_path = FileSetting.StreamingAssetsDir + file_name;
-                file_path = file_path.Replace('\\', '/');
-                _FilesInStreamingAssets.Add(file_name, file_path);
+                string file_name = System.IO.Path.GetFileName(f);                
+                _FilesInStreamingAssets.Add(file_name, f);
 
-                FileLog._.D("StreamingAssets Collect {0} -> {1}", file_name, file_path);
+                FileLog._.D("StreamingAssets Collect {0} -> {1}", file_name, f);
             }
-
-
         }
 
         public bool IsExist(string file_name)

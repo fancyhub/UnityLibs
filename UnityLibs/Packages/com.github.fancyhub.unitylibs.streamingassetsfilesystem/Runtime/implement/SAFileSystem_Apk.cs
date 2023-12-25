@@ -20,14 +20,20 @@ namespace FH.StreamingAssetsFileSystem
     // https://docs.unity3d.com/2019.3/Documentation/Manual/WindowsPlayerCPlusPlusSourceCodePluginsForIL2CPP.html
     internal sealed class SAFileSystem_Apk : ISAFileSystem
     {
+        private static string[] _S_IgnoreFileList = new string[] { "/", "device_features/", "license/", "bin/Data/" };
+
         private const string C_JAVA_CLASS = "com.github.fancyhub.nativeio.JNIContext";
         private const string C_JAVA_CLASS_INIT_FUNC = "Init";
         private const string C_JAVA_Func_FetchAllFiles = "FetchAllFiles";
 
         private List<string> _FileList;
         private AndroidJavaClass _JNIContext;
+        private string _StreamingAssetsDir;
         public SAFileSystem_Apk()
         {
+            _StreamingAssetsDir = Application.streamingAssetsPath;
+            if (!_StreamingAssetsDir.EndsWith("/"))
+                _StreamingAssetsDir += "/";
         }
 
         //只是针对 StreamingAssets 里面的文件
@@ -35,8 +41,12 @@ namespace FH.StreamingAssetsFileSystem
         {
             if (string.IsNullOrEmpty(file_path))
                 return null;
+            if (!file_path.StartsWith(_StreamingAssetsDir))
+                return null;
+
             _InitAndroidJNIContext();
-            IntPtr fhandle = AndroidNativeIO.native_io_file_open(file_path);
+            string file_relative_path = file_path.Substring(_StreamingAssetsDir.Length);
+            IntPtr fhandle = AndroidNativeIO.fh_native_io_file_open(file_relative_path, (int)AndroidNativeIO.EAssetOpenMode.AASSET_MODE_STREAMING);
             if (fhandle == IntPtr.Zero)
                 return null;
             return new AndroidStreamingAssetStream(fhandle);
@@ -60,7 +70,9 @@ namespace FH.StreamingAssetsFileSystem
             return ret;
         }
 
-        public List<string> GetAllFileList()
+
+        private const int C_FILE_NAME_BUFF_SIZE = 1024;
+        public unsafe List<string> GetAllFileList()
         {
             if (_FileList != null)
                 return _FileList;
@@ -69,15 +81,30 @@ namespace FH.StreamingAssetsFileSystem
                 return null;
             _JNIContext.CallStatic(C_JAVA_Func_FetchAllFiles);
 
-            int count = AndroidNativeIO.native_io_get_file_count();
+            int count = AndroidNativeIO.fh_native_io_get_file_count();
             _FileList = new List<string>(count);
-            for (int i = 0; i < count; i++)
             {
-                IntPtr p_str = AndroidNativeIO.native_io_get_file(i);
-                if (p_str == IntPtr.Zero)
-                    break;
-                string file_name = Marshal.PtrToStringAnsi(p_str);
-                _FileList.Add(file_name);
+                byte* buff = stackalloc byte[C_FILE_NAME_BUFF_SIZE];
+                for (int i = 0; i < count; i++)
+                {
+                    int name_len = AndroidNativeIO.fh_native_io_get_file(i, buff, C_FILE_NAME_BUFF_SIZE);
+                    if (name_len < 0)
+                        continue;
+                    string file_name = System.Text.Encoding.UTF8.GetString(buff, name_len);
+
+                    bool ignore = false;
+                    foreach (var p in _S_IgnoreFileList)
+                    {
+                        if (file_name.StartsWith(p))
+                        {
+                            ignore = true;
+                            break;
+                        }
+                    }
+
+                    if (!ignore)
+                        _FileList.Add(_StreamingAssetsDir + file_name);
+                }
             }
             return _FileList;
         }
@@ -97,49 +124,62 @@ namespace FH.StreamingAssetsFileSystem
 
         internal static class AndroidNativeIO
         {
+            //https://developer.android.google.cn/ndk/reference/group/asset
+            public enum EAssetOpenMode
+            {
+                AASSET_MODE_UNKNOWN = 0,
+                AASSET_MODE_RANDOM = 1,
+                AASSET_MODE_STREAMING = 2,
+                AASSET_MODE_BUFFER = 3
+            }
+
+
             public const string C_DLL_NAME = "fhnativeio";
 
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr native_io_file_open(string file_path);
+            public static extern IntPtr fh_native_io_file_open(string file_path, int mode);
 
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-            public static extern void native_io_file_close(IntPtr fhandle);
+            public static extern void fh_native_io_file_close(IntPtr fhandle);
 
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-            public static extern long native_io_file_get_len(IntPtr fhandle);
+            public static extern long fh_native_io_file_get_len(IntPtr fhandle);
 
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-            public static extern long native_io_file_seek(IntPtr fhandle, long offset, int whence);
+            public static extern long fh_native_io_file_seek(IntPtr fhandle, long offset, int whence);
 
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-            public static extern int native_io_file_read(IntPtr fhandle, IntPtr buff, int count);
+            public static extern int fh_native_io_file_read(IntPtr fhandle, byte[] buff, int offset, int count);
+
+            /// <summary>
+            /// Get File Count
+            /// </summary>
+            [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern int fh_native_io_get_file_count();
+
+            /// <summary>
+            /// Get File Name
+            /// </summary>            
+            [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern unsafe int fh_native_io_get_file(int index, byte* buff, int buff_size);
 
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-            public static extern int native_io_get_file_count();
+            public static extern IntPtr fh_native_io_malloc(int count);
 
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr native_io_get_file(int index);
-
-            [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr native_io_malloc(int count);
-
-            [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-            public static extern void native_io_free(IntPtr buff_handle);
+            public static extern void fh_native_io_free(IntPtr buff_handle);
         }
 
         internal class AndroidStreamingAssetStream : System.IO.Stream
         {
-            public const int C_BUFF_SIZE = 1024;
             public IntPtr _fhandle;
-            public IntPtr _buf_handle;
             public long _len;
             public long _pos;
 
             public AndroidStreamingAssetStream(System.IntPtr fhandle)
             {
                 _fhandle = fhandle;
-                _len = AndroidNativeIO.native_io_file_get_len(fhandle);
-                _buf_handle = AndroidNativeIO.native_io_malloc(C_BUFF_SIZE);
+                _len = AndroidNativeIO.fh_native_io_file_get_len(fhandle);
                 _pos = 0;
             }
 
@@ -154,14 +194,8 @@ namespace FH.StreamingAssetsFileSystem
                 base.Close();
                 if (_fhandle != IntPtr.Zero)
                 {
-                    AndroidNativeIO.native_io_file_close(_fhandle);
+                    AndroidNativeIO.fh_native_io_file_close(_fhandle);
                     _fhandle = IntPtr.Zero;
-                }
-
-                if (_buf_handle != IntPtr.Zero)
-                {
-                    AndroidNativeIO.native_io_free(_buf_handle);
-                    _buf_handle = IntPtr.Zero;
                 }
             }
 
@@ -173,14 +207,8 @@ namespace FH.StreamingAssetsFileSystem
                 {
                     if (_fhandle != IntPtr.Zero)
                     {
-                        AndroidNativeIO.native_io_file_close(_fhandle);
+                        AndroidNativeIO.fh_native_io_file_close(_fhandle);
                         _fhandle = IntPtr.Zero;
-                    }
-
-                    if (_buf_handle != IntPtr.Zero)
-                    {
-                        AndroidNativeIO.native_io_free(_buf_handle);
-                        _buf_handle = IntPtr.Zero;
                     }
                 }
             }
@@ -202,22 +230,19 @@ namespace FH.StreamingAssetsFileSystem
 
             public override int Read(byte[] buffer, int offset, int count)
             {
-                int ret_count = 0;
-                for (; count > 0;)
-                {
-                    int count_2_read = System.Math.Min(count, C_BUFF_SIZE);
-                    int readed_count = AndroidNativeIO.native_io_file_read(_fhandle, _buf_handle, count_2_read);
-                    if (readed_count == 0)
-                        break;
+                if (buffer == null)
+                    return 0;
 
-                    Marshal.Copy(_buf_handle, buffer, offset, readed_count);
+                if (offset >= buffer.Length)
+                    return 0;
+                count = Math.Min(buffer.Length - offset, count);
+                if (count <= 0)
+                    return 0;
 
-                    _pos += readed_count;
-                    offset += readed_count;
-                    ret_count += readed_count;
-                    count -= count_2_read;
-                }
-                return ret_count;
+                int readed_count = AndroidNativeIO.fh_native_io_file_read(_fhandle, buffer, offset, count);
+                _pos += readed_count;
+                count -= readed_count;
+                return readed_count;
             }
 
             public override long Seek(long offset, SeekOrigin origin)

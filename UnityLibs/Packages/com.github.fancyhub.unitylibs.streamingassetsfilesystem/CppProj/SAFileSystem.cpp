@@ -92,109 +92,129 @@ JNIEXPORT void JNICALL Java_com_github_fancyhub_nativeio_JNIContext_nativeAddFol
 }
 
 
-AAsset* native_io_file_open(const char* file_path) {
+AAsset* fh_native_io_file_open(const char* file_path,int mode) {
     if(g_asset_mgr== NULL)
     {
-        LOGE("native_io_file_open g_asset_mgr is NULl");
+        LOGE("fh_native_io_file_open g_asset_mgr is NULl");
         return NULL;
     }
 
-    LOGD("native_io_file_open g_asset_mgr is not null: %s",file_path);
-    AAsset* ret= AAssetManager_open(g_asset_mgr,file_path,AASSET_MODE_STREAMING );
+    LOGD("fh_native_io_file_open g_asset_mgr is not null: %s",file_path);
+    AAsset* ret= AAssetManager_open(g_asset_mgr,file_path,mode );
     if(ret == NULL)
-        LOGE("native_io_file_open Failed: %s", file_path);
+        LOGE("fh_native_io_file_open Failed: %s", file_path);
     else
-        LOGD("native_io_file_open Succ: %p, %s",ret, file_path);
+        LOGD("fh_native_io_file_open Succ: %p, %s",ret, file_path);
     return ret;
 }
 
-void native_io_file_close(AAsset* fhandle)
+void fh_native_io_file_close(AAsset* fhandle)
 {    
-    LOGD("native_io_file_close: %p",fhandle);
+    LOGD("fh_native_io_file_close: %p",fhandle);
     if(fhandle == NULL)
     {
-        LOGE("native_io_file_close: handle is null");
+        LOGE("fh_native_io_file_close: handle is null");
         return;
     }
     AAsset_close(fhandle);
 }
 
-long long  native_io_file_get_len(AAsset* fhandle)
+long long  fh_native_io_file_get_len(AAsset* fhandle)
 {
-    LOGD("native_io_file_get_len : %p", fhandle);
+    LOGD("fh_native_io_file_get_len : %p", fhandle);
     if(fhandle == NULL)
     {
-        LOGE("native_io_file_get_len: handle is null");
+        LOGE("fh_native_io_file_get_len: handle is null");
         return 0;
     }
         
     long long ret= AAsset_getLength64(fhandle);
-    LOGD("native_io_file_get_len : %p, %lld", fhandle,ret);
+    LOGD("fh_native_io_file_get_len : %p, %lld", fhandle,ret);
     return ret;
 }
 
-long long   native_io_file_seek(AAsset* fhandle,long long  offset, int whence)
+long long   fh_native_io_file_seek(AAsset* fhandle,long long  offset, int whence)
 {
     if(fhandle==NULL)
     {
-        LOGE("native_io_file_seek: handle is null");
+        LOGE("fh_native_io_file_seek: handle is null");
         return 0;
     }
-    LOGD("native_io_file_seek : %p, %lld,%d", fhandle,offset,whence);
+    LOGD("fh_native_io_file_seek : %p, %lld,%d", fhandle,offset,whence);
     long long ret = AAsset_seek64(fhandle,offset,whence);
-    LOGD("native_io_file_seek : result %lld", ret);
+    LOGD("fh_native_io_file_seek : result %lld", ret);
     return ret;
 }
 
-int native_io_file_read(AAsset* fhandle,char* buf,int len)
+int fh_native_io_file_read(AAsset* fhandle,unsigned char* buf,int offset, int count)
 {
-    LOGD("native_io_file_read : %p, %p, %d", fhandle,buf,len);
+    LOGD("fh_native_io_file_read : %p, %p, %d,%d", fhandle,buf,offset,count);
     if(buf == NULL)
     {
-        LOGE("native_io_file_read : buf is NULl");
+        LOGE("fh_native_io_file_read : buf is NULl");
         return 0;
     }
     if(fhandle==NULL)
     {
-        LOGE("native_io_file_read : Handle is NULl");
+        LOGE("fh_native_io_file_read : Handle is NULl");
         return 0;
     }
-
-    if(len <=0)
+    if(offset<0)
     {
-        LOGD("native_io_file_read : len <=0, %d",len);
+        LOGD("fh_native_io_file_read : offset <0, %d",offset);
         return 0;
     }
 
-    int ret= AAsset_read(fhandle,buf,len);
-    LOGD("native_io_file_read : readed count %d", ret);
+    if(count <=0)
+    {
+        LOGD("fh_native_io_file_read : count <=0, %d",count);
+        return 0;
+    }
+
+    int ret= AAsset_read(fhandle,buf+offset,count);
+    LOGD("fh_native_io_file_read : readed count %d", ret);
     return ret;
 }
 
-int native_io_get_file_count()
+int fh_native_io_get_file_count()
 {
     return (int)g_fh_file_list.size();
 }
 
-const char* native_io_get_file(int index)
+int fh_native_io_get_file(int index,unsigned char* buff,int buff_size)
 {
     if(index<0 || index>=g_fh_file_list.size())
-        return NULL;
-    return g_fh_file_list[index].c_str();
+        return -1;
+    
+    if(buff==NULL)
+    {
+        LOGE("fh_native_io_get_file: buff is null");
+        return -1;
+    }
+
+    const std::string& file_name =  g_fh_file_list[index];
+    if(buff_size< file_name.size())
+    {
+        LOGE("fh_native_io_get_file: buff size is less than file name len , %d < %d, %s",buff_size,(int)file_name.size(),file_name.c_str());
+        return -1;
+    }
+
+    memcpy(buff,file_name.c_str(),file_name.size());    
+    return (int)file_name.size();
 }
  
-char* native_io_malloc(int count)
+char* fh_native_io_malloc(int count)
 {
-    LOGD("native_io_malloc : %d",count);
+    LOGD("fh_native_io_malloc : %d",count);
     auto ret= malloc(count);
 
-    LOGD("native_io_malloc : %p, %d ",ret,count);
+    LOGD("fh_native_io_malloc : %p, %d ",ret,count);
     return static_cast<char *>(ret);
 }
 
-void native_io_free(char* buf)
+void fh_native_io_free(char* buf)
 {
-    LOGD("native_io_free : %p ",buf);
+    LOGD("fh_native_io_free : %p ",buf);
     if(buf == NULL)
         return;
     free(buf);

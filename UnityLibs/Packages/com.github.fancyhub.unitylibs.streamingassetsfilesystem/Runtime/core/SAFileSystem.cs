@@ -14,9 +14,7 @@ using UnityEngine;
 namespace FH
 {
     /// <summary>
-    /// 路径格式
-    /// 比如 Assets/StreamingAssets/a/b.txt
-    /// 读取的路径应该是 a/b.txt
+    /// 路径格式 都是 Application.StreamingAssetsPath 开始
     /// </summary>
     public interface ISAFileSystem : IDisposable
     {
@@ -94,47 +92,33 @@ namespace FH
             if (out_file_list == null || dir == null)
                 return;
 
-            dir = _StripPath(dir);
+            if (!dir.StartsWith(Application.streamingAssetsPath))
+                return;
 
 
             var file_list = inst.GetAllFileList();
-            if (dir == string.Empty)
+
+            if (!dir.EndsWith("/"))
+                dir = dir + "/";
+
+            if (include_sub_folder)
             {
-                if (include_sub_folder)
-                    out_file_list.AddRange(file_list);
-                else
+                foreach (var p in file_list)
                 {
-                    foreach (var p in file_list)
-                    {
-                        if (p.IndexOf('/') < 0)
-                            out_file_list.Add(p);
-                    }
+                    if (!p.StartsWith(dir))
+                        continue;
+                    out_file_list.Add(p);
                 }
             }
             else
             {
-                if (!dir.EndsWith("/"))
-                    dir = dir + "/";
-
-                if (include_sub_folder)
+                foreach (var p in file_list)
                 {
-                    foreach (var p in file_list)
-                    {
-                        if (!p.StartsWith(dir))
-                            continue;
+                    if (!p.StartsWith(dir))
+                        continue;
+
+                    if (p.IndexOf('/', dir.Length) < 0)
                         out_file_list.Add(p);
-                    }
-                }
-                else
-                {
-                    foreach (var p in file_list)
-                    {
-                        if (!p.StartsWith(dir))
-                            continue;
-
-                        if (p.IndexOf('/', dir.Length) < 0)
-                            out_file_list.Add(p);
-                    }
                 }
             }
         }
@@ -147,7 +131,9 @@ namespace FH
             if (string.IsNullOrEmpty(file_path))
                 return null;
 
-            file_path = _StripPath(file_path);
+            if (!file_path.StartsWith(Application.streamingAssetsPath))
+                return null;
+
             return inst.ReadAllBytes(file_path);
         }
 
@@ -159,30 +145,10 @@ namespace FH
                 return null;
             if (string.IsNullOrEmpty(file_path))
                 return null;
+            if (!file_path.StartsWith(Application.streamingAssetsPath))
+                return null;
 
-            file_path = _StripPath(file_path);
             return inst.OpenRead(file_path);
-        }
-
-
-        private static string _StreamingAssetPath;
-        private static string _StripPath(string path)
-        {
-            if (string.IsNullOrEmpty(path))
-                return path;
-            if (_StreamingAssetPath == null)
-                _StreamingAssetPath = UnityEngine.Application.streamingAssetsPath;
-
-            if (!path.StartsWith(_StreamingAssetPath))
-                return path;
-
-            if (path.Length == _StreamingAssetPath.Length)
-                return "";
-
-            if (path[_StreamingAssetPath.Length] != '/') //错误
-                return path;
-
-            return path.Substring(_StreamingAssetPath.Length + 1);
         }
     }
 }

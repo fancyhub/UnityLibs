@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TestSAFileSystem : MonoBehaviour
 {
@@ -15,7 +16,7 @@ public class TestSAFileSystem : MonoBehaviour
             Debug.LogError("<NativeIO> Start Test StreamingAssets");
             Debug.LogError($"<NativeIO> StreamingAssetsPath: {Application.streamingAssetsPath}");
             Debug.LogError($"<NativeIO> DataPath: {Application.dataPath}");
-            byte[] bytes = FH.SAFileSystem.ReadAllBytes("Test.txt");
+            byte[] bytes = FH.SAFileSystem.ReadAllBytes(Application.streamingAssetsPath + "/Android/file_manifest.json");
             if (bytes != null)
             {
                 string str = System.Text.Encoding.UTF8.GetString(bytes);
@@ -26,7 +27,7 @@ public class TestSAFileSystem : MonoBehaviour
 
 
             List<string> file_list = new List<string>();
-            FH.SAFileSystem.GetFileList("A", true, file_list);
+            FH.SAFileSystem.GetAllFileList(file_list);
             Debug.LogError("<NativeIO> 文件数量: " + file_list.Count);
 
             foreach (var f in file_list)

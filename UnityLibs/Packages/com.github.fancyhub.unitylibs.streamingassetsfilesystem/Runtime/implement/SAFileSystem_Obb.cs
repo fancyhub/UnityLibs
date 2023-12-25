@@ -18,12 +18,16 @@ namespace FH.StreamingAssetsFileSystem
     {
         private const string CAssetDir = "assets/";
         private string _ObbPath;
+        private string _StreamingAssetsDir;
 
         private List<string> _FileList;
 
         public SAFileSystem_Obb(string ObbPath)
         {
             _ObbPath = ObbPath;
+            _StreamingAssetsDir = Application.streamingAssetsPath;
+            if (!_StreamingAssetsDir.EndsWith("/"))
+                _StreamingAssetsDir += "/";
         }
 
         public void Dispose()
@@ -34,8 +38,10 @@ namespace FH.StreamingAssetsFileSystem
         {
             if (string.IsNullOrEmpty(file_path))
                 return null;
-
-            string path = System.IO.Path.Combine(CAssetDir, file_path);
+            if (!file_path.StartsWith(_StreamingAssetsDir))
+                return null;
+            
+            string path = CAssetDir + file_path.Substring(_StreamingAssetsDir.Length);
 
             return ZipEntryStream.Create(_ObbPath, path);
         }
@@ -44,10 +50,12 @@ namespace FH.StreamingAssetsFileSystem
         {
             if (string.IsNullOrEmpty(file_path))
                 return null;
+            if (!file_path.StartsWith(_StreamingAssetsDir))
+                return null;
 
+            string path = CAssetDir + file_path.Substring(_StreamingAssetsDir.Length);
             try
-            {
-                string path = System.IO.Path.Combine(CAssetDir, file_path);
+            {                
                 using ZipArchive archive = ZipFile.OpenRead(_ObbPath);
                 ZipArchiveEntry entry = archive.GetEntry(path);
 
@@ -84,7 +92,9 @@ namespace FH.StreamingAssetsFileSystem
                     string path = p.FullName;
                     if (!path.StartsWith(CAssetDir))
                         continue;
-                    _FileList.Add(path.Substring(CAssetDir.Length));
+
+                    string file_path = _StreamingAssetsDir + path.Substring(CAssetDir.Length);
+                    _FileList.Add(file_path);
                 }
             }
             catch (Exception e)
