@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace FH.SceneManagement.SampleExternalLoader
+namespace FH.SampleExternalLoader
 {
 #if UNITY_EDITOR
     public class SceneExternaLoader_Assetdatabase : ISceneMgr.IExternalLoader

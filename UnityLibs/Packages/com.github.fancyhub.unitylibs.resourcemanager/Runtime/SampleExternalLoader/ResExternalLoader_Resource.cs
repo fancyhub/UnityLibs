@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace FH.ResManagement.SampleExternalLoader
+namespace FH.SampleExternalLoader
 {
     public class ResExternalLoader_Resource : CPtrBase, IResMgr.IExternalLoader
     {

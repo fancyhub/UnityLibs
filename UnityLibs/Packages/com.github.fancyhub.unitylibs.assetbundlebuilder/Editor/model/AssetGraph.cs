@@ -19,7 +19,7 @@ namespace FH.AssetBundleBuilder.Ed
         [Serializable]
         public sealed class Asset
         {
-            public int Id;
+            public int Index;
             public bool Export;
             public string Path;
             public string Address;
@@ -39,11 +39,21 @@ namespace FH.AssetBundleBuilder.Ed
         [Serializable]
         public sealed class Bundle
         {
-            public int Id;
+            public int Index;
             public string Name;
             public string FileHash;
             public int[] Deps;
             public int[] Assets;
+            public string[] Tags;
+        }         
+
+        public void GetAssetPathListInBundle(int bundle_index, List<string> out_asset_path_list)
+        {
+            Bundle bundle = Bundles[bundle_index];
+            foreach (var p in bundle.Assets)
+            {
+                out_asset_path_list.Add(Assets[p].Path);
+            }
         }
 
         public void GetBundleAllDeps(int bundle_index, HashSet<int> out_bundle_index_set)
@@ -61,7 +71,7 @@ namespace FH.AssetBundleBuilder.Ed
             }
         }
 
-        public static AssetGraph CreateFrom(BundleNodeMap bundle_map)
+        public static AssetGraph CreateFromBundleNodeMap(BundleNodeMap bundle_map)
         {
             HashSet<AssetObj> assets_set = bundle_map.GetAllAssetObjects();
             List<Asset> assets_list = new List<Asset>(assets_set.Count);
@@ -74,7 +84,7 @@ namespace FH.AssetBundleBuilder.Ed
                 {
                     var asset = new Asset()
                     {
-                        Id = index,
+                        Index = index,
                         Path = p.FilePath,
                         Export = p.NeedExport,
                         Address = p.AddressName
@@ -99,7 +109,7 @@ namespace FH.AssetBundleBuilder.Ed
                         {
                             throw new Exception($"找不到Asset {p2.FilePath}");
                         }
-                        temp_deps.Add(asset.Id);
+                        temp_deps.Add(asset.Index);
                     }
 
                     asset_dict.TryGetValue(p.FilePath, out Asset self);
@@ -124,7 +134,7 @@ namespace FH.AssetBundleBuilder.Ed
                 {
                     Bundle bundle = new Bundle()
                     {
-                        Id = index,
+                        Index = index,
                         Name = p.GetNodeName(),
                     };
 
@@ -140,7 +150,7 @@ namespace FH.AssetBundleBuilder.Ed
                         {
                             throw new Exception($"找不到Asset {p2.FilePath}");
                         }
-                        temp_assets.Add(asset.Id);
+                        temp_assets.Add(asset.Index);
                     }
                     bundle.Assets = temp_assets.ToArray();
                 }
@@ -159,7 +169,7 @@ namespace FH.AssetBundleBuilder.Ed
                         {
                             throw new Exception($"找不到Bundle {p2.GetNodeName()}");
                         }
-                        temp_deps.Add(bundle.Id);
+                        temp_deps.Add(bundle.Index);
                     }
                     bundle_dict.TryGetValue(p.GetNodeName(), out var self);
                     if (self == null)

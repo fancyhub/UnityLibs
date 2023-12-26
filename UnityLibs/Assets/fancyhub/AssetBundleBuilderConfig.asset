@@ -12,6 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65b27d11bf94e9649b51c91602197269, type: 3}
   m_Name: PreBuild_Log
   m_EditorClassIdentifier: 
+  Enable: 1
+--- !u!114 &-7189807817530061608
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ea063df5fced2144bcc525aaa388ebd, type: 3}
+  m_Name: TagRuler_AssetTagConfig
+  m_EditorClassIdentifier: 
+  Name: 
+  Enable: 1
+  Config: {fileID: 11400000, guid: 5fafba931ae9d5d4a98a3e3b776e2834, type: 2}
 --- !u!114 &-7057009503913387643
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24,6 +40,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0259da093f5de149835f8f4f106e3a3, type: 3}
   m_Name: PostBuild_SaveBunldeMgrManifest
   m_EditorClassIdentifier: 
+  Enable: 1
 --- !u!114 &-6210324049705765230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -36,6 +53,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd1f91fe5368df5469ac166c7e86591e, type: 3}
   m_Name: PostBuild_SaveGraph
   m_EditorClassIdentifier: 
+  Enable: 1
+  FileName: graph.json
 --- !u!114 &-6171372005339789729
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -48,7 +67,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95aef1dba6775204e987d6ae828271db, type: 3}
   m_Name: BundleRuler_Simple
   m_EditorClassIdentifier: 
-  Enable: 1
+  Enable: 0
   RulerName: default
   BundleName: test
   OnlyExportFile: 1
@@ -67,14 +86,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95aef1dba6775204e987d6ae828271db, type: 3}
   m_Name: BundleRuler_Simple
   m_EditorClassIdentifier: 
-  Enable: 1
+  Enable: 0
   RulerName: Scene
   BundleName: s
   OnlyExportFile: 1
   PatternList:
   - Pattern: '*.unity'
     IgnoreCase: 1
---- !u!114 &-2576945627375757616
+--- !u!114 &-378453670168858969
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -83,12 +102,32 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f413d43d18e558c498663009e00123f7, type: 3}
-  m_Name: AssetCollector_Folder
+  m_Script: {fileID: 11500000, guid: f74e6240d98962e43ab7dff39234b46f, type: 3}
+  m_Name: AssetDependency_Unity
   m_EditorClassIdentifier: 
-  Folders:
-  - Assets/Res
-  - Assets/Scenes/Scenes
+  IgnoreAssetPathList: []
+  IngoreExtList:
+  - .dll
+  - .cs
+  AtlasDirs:
+  - Path: Assets/Res/UI/Atlas
+--- !u!114 &-285979145751056945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71b766096f6802347be3cc6eed938d3e, type: 3}
+  m_Name: TagRuler_Bundle
+  m_EditorClassIdentifier: 
+  Name: Test Bundle Tag
+  Enable: 0
+  Tags: base;tag_a;tag_b
+  EnablePattern: 1
+  PatternList: []
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -110,14 +149,23 @@ MonoBehaviour:
     BuildOptions: 768
   OSX:
     BuildOptions: 768
-  AssetCollector: {fileID: -2576945627375757616}
-  AssetDependency: {fileID: 2520550354463717286}
+  AssetCollector:
+  - {fileID: 2025067351490501056}
+  - {fileID: 8874996120352380956}
+  AssetDependency:
+  - {fileID: -378453670168858969}
   BundleRulers:
   - {fileID: 343812129609068264}
   - {fileID: -4920360229105867983}
   - {fileID: -6171372005339789729}
+  - {fileID: 4093512310837149485}
+  TagRulers:
+  - {fileID: -285979145751056945}
+  - {fileID: 7091622530271296509}
+  - {fileID: -7189807817530061608}
   PreBuild:
   - {fileID: -7376883222277061226}
+  - {fileID: 8404584807897614919}
   PostBuild:
   - {fileID: -6210324049705765230}
   - {fileID: -7057009503913387643}
@@ -133,7 +181,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3451f6ab97d53894287f3698132fdf58, type: 3}
   m_Name: BundleRuler_Regular
   m_EditorClassIdentifier: 
-  Enable: 1
+  Enable: 0
   RulerName: "atlas \u89C4\u5219 "
   OnlyExportFile: 0
   RegularString: /([a-zA-Z0-9]*)[.]
@@ -144,7 +192,7 @@ MonoBehaviour:
     IgnoreCase: 1
   - Pattern: '*.spriteatlas'
     IgnoreCase: 1
---- !u!114 &2520550354463717286
+--- !u!114 &2025067351490501056
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -153,12 +201,67 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f74e6240d98962e43ab7dff39234b46f, type: 3}
-  m_Name: AssetDependency_Unity
+  m_Script: {fileID: 11500000, guid: 5cd0e598f56bd174791c5508ee22fc20, type: 3}
+  m_Name: AssetCollector_AssetsInputConfig
   m_EditorClassIdentifier: 
-  IgnoreAssetPathList: []
-  IngoreExtList:
-  - .dll
-  - .cs
-  AtlasDirs:
-  - Assets/Res/UI/Atlas
+  Config: {fileID: 11400000, guid: 5fafba931ae9d5d4a98a3e3b776e2834, type: 2}
+--- !u!114 &4093512310837149485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc5b0e1d56e0ebe4ba0010cc4b344008, type: 3}
+  m_Name: BundleRuler_AssetsInputConfig
+  m_EditorClassIdentifier: 
+  Enable: 1
+  RulerName: 
+  Config: {fileID: 11400000, guid: 5fafba931ae9d5d4a98a3e3b776e2834, type: 2}
+--- !u!114 &7091622530271296509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96a1b74ef5580484589f42e976f330d0, type: 3}
+  m_Name: TagRuler_AssetPattern
+  m_EditorClassIdentifier: 
+  Name: Test Asset Pattern
+  Enable: 0
+  Tags: 
+  PatternList: []
+--- !u!114 &8404584807897614919
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: affdca55e6dffdc40878253fe89c0f62, type: 3}
+  m_Name: PreBuild_AssetsInputConfig
+  m_EditorClassIdentifier: 
+  Enable: 1
+  Config: {fileID: 11400000, guid: 5fafba931ae9d5d4a98a3e3b776e2834, type: 2}
+--- !u!114 &8874996120352380956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f413d43d18e558c498663009e00123f7, type: 3}
+  m_Name: AssetCollector_Folder
+  m_EditorClassIdentifier: 
+  Folders:
+  - Path: Assets/Res
+  - Path: Assets/Scenes/Scenes

@@ -8,7 +8,7 @@ using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace FH
+namespace FH.SampleExternalLoader
 {
     public sealed class SceneExternalLoader_Bundle : ISceneMgr.IExternalLoader
     {

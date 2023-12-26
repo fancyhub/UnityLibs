@@ -10,40 +10,89 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using System.IO.Compression;
 
 namespace FH.VFSManagement.Builder
 {
-    public enum EDestFormat
-    {
-        Zip,
-        Lz4ZipStore,
-        Lz4ZipCompress,
-    }
-
-
+    [CreateAssetMenu(fileName = "VfsBuilderConfig", menuName = "fanchhub/VfsBuilderConfig")]
     [Serializable]
-    public sealed class BuilderConfig
+    public sealed class BuilderConfig : ScriptableObject
     {
-        public string Name;
-        public EDestFormat Format;
-        [Header("eg:base;tag_a;tag_b")]
-        public string Tags = "";
-
-        public List<InputDir> Dirs = new List<InputDir>();
-
-        
-
-        public List<(string reletive_file_path, FileInfo file_info)> GetAllFiles()
+        public enum EFormat
         {
-            List<(string reletive_file_path, FileInfo file_info)> ret = new List<(string reletive_file_path, FileInfo file_info)>();
-            foreach (var p in Dirs)
-                p.GetAllFiles(ret);
-            return ret;
+            Lz4ZipStore,
+            Lz4ZipCompress,
+            ZipStore,
+            ZipCompress,            
         }
 
         [Serializable]
-        public class InputDir
+        public sealed class ZipItem
         {
+            public string Name;
+            public EFormat Format;
+            [Header("eg: base;tag_a;tag_b ")]
+            public string Tags = "";
+            public List<DirItem> Dirs = new List<DirItem>();
+
+
+
+#if UNITY_EDITOR
+            public List<(string reletive_file_path, FileInfo file_info)> EdGetAllFiles()
+            {
+                List<(string reletive_file_path, FileInfo file_info)> ret = new List<(string reletive_file_path, FileInfo file_info)>();
+                foreach (var p in Dirs)
+                    p.EdGetAllFiles(ret);
+                return ret;
+            }
+
+            public string EdBuildZip(string out_dir)
+            {
+                string path = System.IO.Path.Combine(out_dir, Name);
+                if (System.IO.File.Exists(path))
+                    System.IO.File.Delete(path);
+
+                switch (Format)
+                {
+                    case EFormat.Lz4ZipStore:
+                    case EFormat.Lz4ZipCompress:
+                        {
+                            var all_files = EdGetAllFiles();
+                            Lz4ZipFile.CreateZipFile(all_files, path, Format == EFormat.Lz4ZipCompress);
+                            return path;
+                        }
+
+                    case EFormat.ZipStore:
+                    case EFormat.ZipCompress:
+                        {
+                            List<(string reletive_file_path, FileInfo file_info)> all_files = EdGetAllFiles();
+                            if (all_files.Count == 0)
+                            {
+                                UnityEngine.Debug.LogWarning($"Build Zip, File Is Empty {Name}");
+                            }
+
+                            var zipArchive = ZipFile.Open(path, ZipArchiveMode.Create);
+                            foreach (var f in all_files)
+                            {
+                                zipArchive.CreateEntryFromFile(f.file_info.FullName, f.reletive_file_path);
+                            }
+                            zipArchive.Dispose();
+                            return path;
+                        }
+                }
+                return null;
+            }
+#endif
+        }
+
+        [Serializable]
+        public sealed class DirItem
+        {
+            /// <summary>
+            /// 就是方便显示用的
+            /// </summary>
+            public string Name;
+
             /// <summary>
             /// 根目录
             /// </summary>
@@ -54,12 +103,14 @@ namespace FH.VFSManagement.Builder
             /// </summary>
             public string SpecSubDir = "./";
 
+
             public bool IncludeSub = true;
 
             [Header("eg: *.txt;*.json")]
             public string SearchPatterns;
 
-            public void GetAllFiles(List<(string reletive_file_path, FileInfo file_info)> out_list)
+#if UNITY_EDITOR
+            public void EdGetAllFiles(List<(string reletive_file_path, FileInfo file_info)> out_list)
             {
                 //1. format paths
                 string root_full_dir = Path.GetFullPath(RootDir);
@@ -107,13 +158,22 @@ namespace FH.VFSManagement.Builder
                 }
             }
 
-            public List<(string reletive_file_path, FileInfo file_info)> GetAllFiles()
+            public List<(string reletive_file_path, FileInfo file_info)> EdGetAllFiles()
             {
                 List<(string reletive_path, FileInfo file_info)> ret = new List<(string reletive_path, FileInfo file_info)>();
-                GetAllFiles(ret);
+                EdGetAllFiles(ret);
 
                 return ret;
             }
+
+#endif
         }
+
+
+        public List<ZipItem> Items = new List<ZipItem>();
+
+
+
+
     }
 }

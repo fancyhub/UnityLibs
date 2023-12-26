@@ -1,5 +1,21 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7090512732746861786
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81356611d4013e74e82e59e0242c898a, type: 3}
+  m_Name: BuildCopyStreamingAsset_Tags
+  m_EditorClassIdentifier: 
+  Name: 
+  Enable: 1
+  Tags:
+  - base
 --- !u!114 &-2045977716326401409
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12,25 +28,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6db904592c731ca47ac4bfd266684df0, type: 3}
   m_Name: FileBuildStep_BuildZip
   m_EditorClassIdentifier: 
-  Name: Build Zip
+  Name: Build Vfs Zip
   Enable: 1
-  ZipConfigs:
-  - Name: lua
-    Format: 0
-    Tags: base;
-    Dirs:
-    - RootDir: ../ClientData
-      SpecSubDir: LuaProj
-      IncludeSub: 1
-      SearchPatterns: '*.lua'
-  - Name: config
-    Format: 0
-    Tags: 
-    Dirs:
-    - RootDir: ../ClientData
-      SpecSubDir: Config
-      IncludeSub: 1
-      SearchPatterns: '*.json'
+  BuilderConfig: {fileID: 11400000, guid: 6391484e906e5344f8de151ba727b78c, type: 2}
   OutputDir: Bundle/Builder
 --- !u!114 &11400000
 MonoBehaviour:
@@ -50,8 +50,9 @@ MonoBehaviour:
   - {fileID: -2045977716326401409}
   - {fileID: 2352148290529512183}
   - {fileID: 5932817073366880787}
-  TagsNeedCopy2StreamingAssets:
-  - base
+  CopyStreamingAsset:
+  - {fileID: 6191568943613744893}
+  - {fileID: -7090512732746861786}
 --- !u!114 &2352148290529512183
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66,17 +67,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Build Bundle With Tags
   Enable: 1
-  Tags:
-    AssetTags:
-    - Asset:
-        Path: Assets/Res/UI/Prefab
-      Tags: ui;
-    - Asset:
-        Path: Assets/Res/UI/Sprite
-      Tags: ui_sprite;base;
-    - Asset:
-        Path: Assets/Res/UI/Texture
-      Tags: ui_texture;base;
 --- !u!114 &5932817073366880787
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -91,16 +81,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Fetch Bundle Info With Tags
   Enable: 0
-  Tags:
-    AssetTags:
-    - Asset:
-        Path: Assets/Res/UI/Prefab
-      Tags: ui;
-    - Asset:
-        Path: Assets/Res/UI/Sprite
-      Tags: ui_sprite;base;
-    - Asset:
-        Path: Assets/Res/UI/Texture
-      Tags: ui_texture;base;
   InputDir: Bundle/Builder
   AssetGraphFileName: graph.json
+--- !u!114 &6191568943613744893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91381a2b35f203c4f9796fe4427fe303, type: 3}
+  m_Name: BuildCopyStreamingAsset_All
+  m_EditorClassIdentifier: 
+  Name: 
+  Enable: 1

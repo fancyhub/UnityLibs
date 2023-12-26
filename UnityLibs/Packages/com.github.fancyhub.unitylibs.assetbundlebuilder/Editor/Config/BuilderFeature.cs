@@ -47,9 +47,9 @@ namespace FH.AssetBundleBuilder.Ed
         public string GetBundleName(string asset_path, EAssetObjType asset_type, bool need_export);
     }
 
-    public abstract class BuilderFeature : ScriptableObject
+    public interface ITagRuler
     {
-        public bool Enable = true;
+        public void GetTags(string bundle_name, List<string> assets_list, HashSet<string> out_tags);
     }
 
     public abstract class BuilderAssetCollector : ScriptableObject, IAssetCollector
@@ -76,16 +76,36 @@ namespace FH.AssetBundleBuilder.Ed
 
         public abstract string GetBundleName(string asset_path, EAssetObjType asset_type, bool need_export);
 
-        public virtual IBundleRuler GetBundleRuler() { return this; }
+        public virtual IBundleRuler GetBundleRuler()
+        {
+            return Enable ? this : null;
+        }
     }
 
     public abstract class BuilderPreBuild : ScriptableObject, IPreBuild
     {
+        public bool Enable = true;        
         public abstract void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target);
     }
 
     public abstract class BuilderPostBuild : ScriptableObject, IPostBuild
     {
+        public bool Enable = true;
         public abstract void OnPostBuild(PostBuildContext context);
     }
+
+
+    public abstract class BuilderTagRuler : ScriptableObject, ITagRuler
+    {
+        public string Name;
+        public bool Enable = true;
+
+        public virtual ITagRuler GetTagRuler()
+        {
+            return Enable ? this : null;            
+        }
+
+        public abstract void GetTags(string bundle_name, List<string> assets_list, HashSet<string> out_tags);
+    }
+
 }

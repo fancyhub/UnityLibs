@@ -12,8 +12,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using UnityEditor;
+using FH.ResManagement;
 
-namespace FH.ResManagement.SampleExternalLoader
+namespace FH.SampleExternalLoader
 {
     public class ResExternalLoader_AssetDatabase : CPtrBase, IResMgr.IExternalLoader
     {

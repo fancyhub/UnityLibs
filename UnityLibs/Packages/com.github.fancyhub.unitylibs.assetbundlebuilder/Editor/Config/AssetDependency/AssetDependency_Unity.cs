@@ -17,7 +17,7 @@ namespace FH.AssetBundleBuilder.Ed
     {
         public List<string> IgnoreAssetPathList = new List<string>();
         public List<string> IngoreExtList = new List<string>() { ".dll", ".cs" };
-        public string[] AtlasDirs = new string[0];
+        public AssetPath<UnityEditor.DefaultAsset>[] AtlasDirs = new AssetPath<UnityEditor.DefaultAsset>[0];
 
         public UnityDependencyUtil _UnityDepCollection;
         public AtlasUtil _AtlasUtil;
@@ -30,7 +30,12 @@ namespace FH.AssetBundleBuilder.Ed
             _UnityDepCollection.AddIgnoreExtList(IngoreExtList);
 
             _AtlasUtil = new AtlasUtil();
-            _AtlasUtil.BuildCache(AtlasDirs);
+            List<string> atlas_dir = new List<string>();
+            foreach (var p in AtlasDirs)
+            {
+                atlas_dir.Add(p.Path);
+            }
+            _AtlasUtil.BuildCache(atlas_dir.ToArray());
 
             var config = ShaderDBAsset.Load();
             if (config == null)
@@ -61,7 +66,7 @@ namespace FH.AssetBundleBuilder.Ed
             }
             else
             {
-                return _UnityDepCollection.CollectDirectDeps(asset_path, asset_type);                
+                return _UnityDepCollection.CollectDirectDeps(asset_path, asset_type);
             }
         }
     }

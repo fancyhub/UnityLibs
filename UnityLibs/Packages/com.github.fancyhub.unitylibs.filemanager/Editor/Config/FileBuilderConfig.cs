@@ -13,12 +13,6 @@ using UnityEditor;
 
 namespace FH.FileManagement.Ed
 {
-
-    public interface IBuildStep
-    {
-        void Build(BuildContext context);
-    }
-
     [CreateAssetMenu(fileName = "FileBuilderConfig", menuName = "fanchhub/FileBuilderConfig")]
     public class FileBuilderConfig : ScriptableObject
     {
@@ -30,8 +24,7 @@ namespace FH.FileManagement.Ed
 
         [HideInInspector] public List<BuildStep> BuildSteps = new List<BuildStep>();
 
-
-        public List<string> TagsNeedCopy2StreamingAssets = new List<string>();
+        [HideInInspector] public List<BuildCopyStreamingAsset> CopyStreamingAsset = new List<BuildCopyStreamingAsset>();
 
         public List<IBuildStep> GetBuildSteps()
         {
@@ -44,6 +37,20 @@ namespace FH.FileManagement.Ed
             }
 
             return ret;
+        }
+
+        public IBuildCopyStreamingAsset GetCopyStreamingAsset()
+        {
+            foreach (var p in CopyStreamingAsset)
+            {
+                if (p == null)
+                    continue;
+                var r = p.GetCopyStreamingAsset();
+                if (r == null)
+                    continue;
+                return r;
+            }
+            return null;
         }
 
         public static FileBuilderConfig GetDefault()
@@ -60,76 +67,5 @@ namespace FH.FileManagement.Ed
             }
             return _Default;
         }
-    }
-
-
-    public class BuildFileInfo
-    {
-        public string FilePath;
-        public string FileHash;
-        public List<string> Tags = new List<string>();
-    }
-
-    public sealed class BuildContext
-    {
-        public BuildTarget BuildTarget;
-        public List<BuildFileInfo> FileList = new List<BuildFileInfo>();
-
-        public void AddFileInfo(string file_path, string file_hash, string tags)
-        {
-            FileList.Add(new BuildFileInfo()
-            {
-                FilePath = file_path,
-                FileHash = file_hash,
-                Tags = new List<string>(tags.Split(';', StringSplitOptions.RemoveEmptyEntries)),
-            });
-        }
-
-        public void AddFileInfo(string file_path, string file_hash, List<string> tags)
-        {
-            FileList.Add(new BuildFileInfo()
-            {
-                FilePath = file_path,
-                FileHash = file_hash,
-                Tags = tags,
-            });
-        }
-
-        public string Target2Name()
-        {
-            return Target2Name(BuildTarget);
-        }
-
-        public static string Target2Name(UnityEditor.BuildTarget target)
-        {
-            switch (target)
-            {
-                case BuildTarget.Android:
-                    return "Android";
-                case BuildTarget.iOS:
-                    return "IOS";
-                case BuildTarget.StandaloneWindows:
-                case BuildTarget.StandaloneWindows64:
-                    return "Win";
-                case BuildTarget.StandaloneOSX:
-                    return "OSX";
-                default:
-                    return null;
-            }
-        }
-    }
-
-
-    public abstract class BuildStep : ScriptableObject, IBuildStep
-    {
-        public string Name;
-        public bool Enable = true;
-        public virtual IBuildStep GetBuildStep()
-        {
-            if (Enable)
-                return this;
-            return null;
-        }
-        public abstract void Build(BuildContext context);
     }
 }

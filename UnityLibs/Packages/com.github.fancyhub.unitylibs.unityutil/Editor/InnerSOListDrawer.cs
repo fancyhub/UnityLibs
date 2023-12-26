@@ -157,7 +157,8 @@ namespace FH.Ed
 
 
             //4. 渲染
-            EditorGUILayout.TextField(title, EditorStyles.label);
+            EditorGUILayout.TextField(title, EditorStyles.linkLabel);
+            DrawHorizontalGUILine();
             EditorGUI.indentLevel++;
             foreach (var p in _List)
             {
@@ -171,6 +172,20 @@ namespace FH.Ed
             {
                 _GetGenericMenu().ShowAsContext();
             }
+        }
+
+        private static void DrawHorizontalGUILine(int height = 1)
+        {
+            GUILayout.Space(4);
+
+            Rect rect = GUILayoutUtility.GetRect(10, height, GUILayout.ExpandWidth(true));
+            rect.height = height;
+            rect.xMin = 0;
+            rect.xMax = EditorGUIUtility.currentViewWidth;
+
+            Color lineColor = new Color(0.10196f, 0.10196f, 0.10196f, 1);
+            EditorGUI.DrawRect(rect, lineColor);
+            GUILayout.Space(4);
         }
 
         private GenericMenu _GenericMenu;

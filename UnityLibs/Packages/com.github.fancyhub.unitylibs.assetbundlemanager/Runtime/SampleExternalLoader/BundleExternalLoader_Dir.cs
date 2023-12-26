@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace FH.ABManagement.SampleBundleLoader
+namespace FH.SampleExternalLoader
 {
     public class BundleExternalLoader_Dir : CPtrBase, IBundleMgr.IExternalLoader
     {

@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using FH.Ed;
 
 namespace FH.AssetBundleBuilder.Ed
 {
@@ -25,33 +26,17 @@ namespace FH.AssetBundleBuilder.Ed
         public BuilderParam Windows;
         public BuilderParam OSX;
 
-        public string Target2Name(UnityEditor.BuildTarget target)
-        {
-            switch (target)
-            {
-                case BuildTarget.Android:
-                    return "Android";
-                case BuildTarget.iOS:
-                    return "IOS";
-                case BuildTarget.StandaloneWindows:
-                case BuildTarget.StandaloneWindows64:
-                    return "Win";
-                case BuildTarget.StandaloneOSX:
-                    return "OSX";
-                default:
-                    return null;
-            }
-        }
-
+         
         public string GetOutputDir(UnityEditor.BuildTarget target)
         {
-            return System.IO.Path.Combine(OutputDir, Target2Name(target));
+            return System.IO.Path.Combine(OutputDir, target.Ext2Name());
         }
 
-        [HideInInspector] public BuilderAssetCollector AssetCollector;
-        [HideInInspector] public BuilderAssetDependency AssetDependency;
+        [HideInInspector] public List<BuilderAssetCollector> AssetCollector = new List<BuilderAssetCollector>();
+        [HideInInspector] public List<BuilderAssetDependency> AssetDependency = new List<BuilderAssetDependency>();
 
         [HideInInspector] public List<BuilderBundleRuler> BundleRulers = new List<BuilderBundleRuler>();
+        [HideInInspector] public List<BuilderTagRuler> TagRulers = new List<BuilderTagRuler>();
 
         [HideInInspector] public List<BuilderPreBuild> PreBuild = new List<BuilderPreBuild>();
 
@@ -59,17 +44,26 @@ namespace FH.AssetBundleBuilder.Ed
 
         public IAssetCollector GetAssetCollector()
         {
-            return AssetCollector.GetAssetCollector();
+            if (AssetCollector.Count == 0)
+                return null;
+            return AssetCollector[0].GetAssetCollector();
         }
 
         public IAssetDependency GetAssetDependency()
         {
-            return AssetDependency.GetAssetDependency();
+            if (AssetDependency.Count == 0)
+                return null;
+            return AssetDependency[0].GetAssetDependency();
         }
 
         public IBundleRuler GetBundleRuler()
         {
             return new BuilderBundleRulerGroup(BundleRulers);
+        }
+
+        public ITagRuler GetTagRuler()
+        {
+            return new BuilderTagRulerGroup(TagRulers);
         }
 
         public static AssetBundleBuilderConfig GetDefault()
@@ -102,6 +96,34 @@ namespace FH.AssetBundleBuilder.Ed
             }
         }
 
+        private sealed class BuilderTagRulerGroup : ITagRuler
+        {
+            private List<ITagRuler> _Rulers;
+            public BuilderTagRulerGroup(List<BuilderTagRuler> rulers)
+            {
+                _Rulers = new List<ITagRuler>();
+                if (rulers != null)
+                {
+                    foreach (var p in rulers)
+                    {
+                        if (p == null)
+                            continue;
+                        var r = p.GetTagRuler();
+                        if (r != null)
+                            _Rulers.Add(r);
+                    }
+                }
+            }
+            public void GetTags(string bundle_name, List<string> assets_list, HashSet<string> out_tags)
+            {
+                foreach (var p in _Rulers)
+                {
+                    p.GetTags(bundle_name, assets_list, out_tags);
+                }
+            }
+        }
+
+
         private sealed class BuilderBundleRulerGroup : IBundleRuler
         {
             private List<IBundleRuler> _Rulers;
@@ -112,9 +134,11 @@ namespace FH.AssetBundleBuilder.Ed
                 {
                     foreach (var p in rulers)
                     {
-                        if (p == null || !p.Enable)
+                        if (p == null)
                             continue;
-                        _Rulers.Add(p.GetBundleRuler());
+                        var r = p.GetBundleRuler();
+                        if (r != null)
+                            _Rulers.Add(r);
                     }
                 }
 

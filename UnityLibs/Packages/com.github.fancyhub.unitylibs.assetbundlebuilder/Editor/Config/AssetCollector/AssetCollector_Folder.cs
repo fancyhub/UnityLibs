@@ -13,7 +13,7 @@ namespace FH.AssetBundleBuilder.Ed
 {
     public class AssetCollector_Folder : BuilderAssetCollector
     {
-        public List<string> Folders;
+        public List<AssetPath<UnityEditor.DefaultAsset>> Folders;
 
         public override List<(string path, string address)> GetAllAssets()
         {
@@ -21,7 +21,7 @@ namespace FH.AssetBundleBuilder.Ed
 
             foreach (var p in this.Folders)
             {
-                foreach (var p2 in System.IO.Directory.GetFiles(p, "*.*", System.IO.SearchOption.AllDirectories))
+                foreach (var p2 in System.IO.Directory.GetFiles(p.Path, "*.*", System.IO.SearchOption.AllDirectories))
                 {
                     if (p2.EndsWith(".meta"))
                         continue;

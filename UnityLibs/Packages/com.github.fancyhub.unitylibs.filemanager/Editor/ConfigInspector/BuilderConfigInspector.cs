@@ -17,25 +17,36 @@ namespace FH.FileManagement.Ed
     [CustomEditor(typeof(FileBuilderConfig))]
     public class FileBuilderConfigInspector : Editor
     {
-
-        private InnerSOListDrawer<BuildStep> _StepDrawer;        
+        private InnerSOListDrawer<BuildStep> _StepDrawer;
+        private InnerSOListDrawer<BuildCopyStreamingAsset> _CopyStreamingAssetDrawer;
 
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
-            FileBuilderConfig config = (FileBuilderConfig)target;            
+            FileBuilderConfig config = (FileBuilderConfig)target;
 
             EditorGUILayout.Space(10);
             if (_StepDrawer == null)
             {
                 _StepDrawer = new InnerSOListDrawer<BuildStep>(ref config.BuildSteps, AssetDatabase.GetAssetPath(target), "Add Step", (a) =>
                 {
-                    return a.Name;
+                    return (a.Enable ? "√" : "X") + " : " + (string.IsNullOrEmpty(a.Name) ? a.GetType().Name : a.Name);
                 });
             }
 
             EditorGUILayout.Space(10);
-            _StepDrawer.Draw("Build Steps");              
+            _StepDrawer.Draw("[Build Steps]");
+
+
+            if (_CopyStreamingAssetDrawer == null)
+            {
+                _CopyStreamingAssetDrawer = new InnerSOListDrawer<BuildCopyStreamingAsset>(ref config.CopyStreamingAsset, AssetDatabase.GetAssetPath(target), "Add Copy Streaming Asset", (a) =>
+                {
+                    return (a.Enable ? "√" : "X") + " : " + (string.IsNullOrEmpty(a.Name) ? a.GetType().Name : a.Name);
+                });
+            }
+            EditorGUILayout.Space(10);
+            _CopyStreamingAssetDrawer.Draw("[Copy Streaming Assets] ( Only First Enabled)");
         }
     }
 }

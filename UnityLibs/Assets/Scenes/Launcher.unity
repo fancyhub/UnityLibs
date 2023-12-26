@@ -570,6 +570,8 @@ MonoBehaviour:
   AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
   FileMgrConfig:
     LogLvl: 1
+    BaseTags:
+    - base
   BundleMgrConfig:
     LogLvl: 1
   ResMgrConfig:
@@ -587,26 +589,9 @@ MonoBehaviour:
       InstWaitFrameCount: 10
   SceneMgrConfig:
     LogLvl: 1
-  VfsConfig:
-    MgrConfig:
-      LogLvl: 0
-    BuilderConfigs:
-    - Name: lua
-      Format: 0
-      Tags: base
-      Dirs:
-      - RootDir: ../ClientData
-        SpecSubDir: LuaProj
-        IncludeSub: 1
-        SearchPatterns: '*.lua'
-    - Name: config
-      Format: 0
-      Tags: base
-      Dirs:
-      - RootDir: ../ClientData
-        SpecSubDir: Config
-        IncludeSub: 1
-        SearchPatterns: '*.json'
+  VfsMgrConfig:
+    LogLvl: 1
+  VfsBuilderConfig: {fileID: 11400000, guid: 6391484e906e5344f8de151ba727b78c, type: 2}
 --- !u!1 &2098590053
 GameObject:
   m_ObjectHideFlags: 0
