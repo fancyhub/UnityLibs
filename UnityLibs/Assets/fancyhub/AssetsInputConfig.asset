@@ -39,7 +39,7 @@ MonoBehaviour:
     BundleName: ui_prefab
     Tags: base
   - Asset:
-      Path: Assets/Scenes/Scenes/b.unity
+      Path: Assets/Scenes/Scenes/a.unity
     AddressMode: 0
     BundleName: scene_b
     Tags: base

@@ -5,6 +5,7 @@
  * Desc    : 
 *************************************************************************************/
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace FH.FileManagement
@@ -22,8 +23,19 @@ namespace FH.FileManagement
 
         private HashSet<string> _Tags = new HashSet<string>() { };
 
-        public FileMgrImplement()
-        {            
+        private AndroidExtractStreamingAssetsOp _ExtractOp;
+
+        public FileMgrImplement(IFileMgr.Config config)
+        {
+            _Tags.Clear();
+            foreach (var p in config.BaseTags)
+            {
+                _Tags.Add(p);
+            }
+
+            _FileCollection = new FileCollection();
+            _FileCollection.CollectStreamingAssets();
+            _ExtractOp = new AndroidExtractStreamingAssetsOp(_FileCollection, config.AndroidExtractTag);
         }
 
         public void Init()
@@ -35,9 +47,6 @@ namespace FH.FileManagement
             _Manifest_Local = _LoadLocalManifest();
 
             //2. 收集文件
-            _FileCollection = new FileCollection();
-            _FileCollection.CollectStreamingAssets();
-
             if (_Manifest_Local != null)
             {
                 if (_CheckFileExists(_FileCollection, _Manifest_Local, _Tags))
@@ -53,17 +62,43 @@ namespace FH.FileManagement
 
             if (_Manifest_Current == null && _Manifest_Base != null)
             {
+                _Manifest_Current = _Manifest_Base;
+                FileLog._.D("使用StreamingAssets 里面的 FileManifest,Version: {0}", _Manifest_Base.Version);
+
                 if (_CheckFileExists(_FileCollection, _Manifest_Base, _Tags))
                 {
-                    FileLog._.D("使用StreamingAssets 里面的 FileManifest,Version: {0}", _Manifest_Base.Version);
+                    FileLog._.D("StreamingAssets的FileManifest有文件不存在");
                     _Manifest_Current = _Manifest_Base;
-
-                }
-                else
-                {
-                    FileLog._.D("StreamingAssets的FileManifest有文件不存在, 所以不能使用");
                 }
             }
+
+            _ExtractOp.StartAsync(_Manifest_Base);            
+        }
+
+        public ExtractStreamingAssetsOperation GetExtractOperation()
+        {
+            return _ExtractOp;
+        }
+
+        public bool CopyFromStreamingAsset2CacheDir(string name)
+        {
+            if (_Manifest_Current == null)
+            {
+                FileLog._.D("Current FileManifest Is Null");
+                return false;
+            }
+
+            var item = _Manifest_Current.FindFile(name);
+            if (item == null)
+            {
+                FileLog._.D("找不到文件 {0}", name);
+                return false;
+            }
+
+            
+
+            _FileCollection.CollectCacheDir();
+            return true;
         }
 
         public void Destroy()
@@ -123,14 +158,7 @@ namespace FH.FileManagement
             return null;
         }
 
-        public void SetBaseTags(List<string> tags)
-        {
-            _Tags.Clear();
-            foreach (var p in tags)
-            {
-                _Tags.Add(p);
-            }
-        }
+       
 
         public string GetFilePath(string name)
         {
@@ -238,6 +266,6 @@ namespace FH.FileManagement
             }
 
             return ret;
-        }
+        }        
     }
 }

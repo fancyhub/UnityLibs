@@ -19,7 +19,7 @@ namespace FH.ResManagement.Ed
             //BundleMgrManifest manifest = BundleMgrManifest.EdCreateFromManifest(context.Manifest, context.BundleBuildArray);
             BundleManifest manifest = _CreateFromGraph(context.AssetGraph);
 
-            string path = System.IO.Path.Combine(context.Config.GetOutputDir(context.Target), ResService.BunldeManifestName);
+            string path = System.IO.Path.Combine(context.Config.GetOutputDir(context.Target), FH.BundleManifest.DefaultFileName);
             System.IO.File.WriteAllText(path, UnityEngine.JsonUtility.ToJson(manifest, true));
         }
 

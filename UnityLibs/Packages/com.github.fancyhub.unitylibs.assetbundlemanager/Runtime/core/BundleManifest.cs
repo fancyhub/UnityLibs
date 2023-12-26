@@ -14,6 +14,8 @@ namespace FH
     [Serializable]
     public class BundleManifest
     {
+        public const string DefaultFileName = "bundle_manifest.json";
+
         private static HashSet<int> S_TempSet = new HashSet<int>();
 
 

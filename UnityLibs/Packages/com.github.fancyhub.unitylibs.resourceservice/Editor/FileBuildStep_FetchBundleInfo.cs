@@ -8,7 +8,7 @@
 using System;
 using FH.AssetBundleBuilder.Ed;
 using System.Collections.Generic;
-using System.IO;
+using UnityEngine;
 using FH.Ed;
 using FH.FileManagement.Ed;
 
@@ -18,6 +18,8 @@ namespace FH.ResManagement.Ed
     {
         public string InputDir = "Bundle/Builder";
         public string AssetGraphFileName = "graph.json";
+        [Header("eg: tag_a;tag_b")]
+        public string BundleManifestTags = "base";
 
         public override List<BuildFileInfo> Build(BuildContext context)
         {            
@@ -35,6 +37,20 @@ namespace FH.ResManagement.Ed
                     FilePath = file_path,
                     FileHash = p.FileHash,
                     Tags = new List<string>(p.Tags),
+                });
+            }
+
+            {
+                string bundle_manifest_path = System.IO.Path.Combine(dir, BundleManifest.DefaultFileName);
+                if (!System.IO.File.Exists(bundle_manifest_path))
+                {
+                    throw new Exception($"找不到Bundle Manifest: {bundle_manifest_path}");
+                }
+                ret.Add(new BuildFileInfo()
+                {
+                    FilePath = bundle_manifest_path,
+                    FileHash = MD5Helper.ComputeFile(bundle_manifest_path),
+                    Tags = new List<string>(BundleManifestTags.Split(';', StringSplitOptions.RemoveEmptyEntries)),
                 });
             }
 

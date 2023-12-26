@@ -15,7 +15,7 @@ MonoBehaviour:
   Items:
   - Name: client_config
     Format: 0
-    Tags: base
+    Tags: base;android
     Dirs:
     - Name: config
       RootDir: ../ClientData
@@ -24,10 +24,10 @@ MonoBehaviour:
       SearchPatterns: '*.json'
   - Name: lua
     Format: 0
-    Tags: base
+    Tags: base;android
     Dirs:
     - Name: lua_proj
       RootDir: ../ClientData
       SpecSubDir: LuaProj
       IncludeSub: 1
-      SearchPatterns: '*.json'
+      SearchPatterns: '*.lua'

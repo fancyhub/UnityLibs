@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: BuildCopyStreamingAsset_Tags
   m_EditorClassIdentifier: 
   Name: 
-  Enable: 1
+  Enable: 0
   Tags:
   - base
 --- !u!114 &-2045977716326401409
@@ -46,6 +46,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   OutputDir: Bundle/Server
   DefaultExt: .bytes
+  GenGZ: 1
   BuildSteps:
   - {fileID: -2045977716326401409}
   - {fileID: 2352148290529512183}
@@ -65,8 +66,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b9eb4227a63e104fa633c7bb154e797, type: 3}
   m_Name: FileBuildStep_BuildBundle
   m_EditorClassIdentifier: 
-  Name: Build Bundle With Tags
+  Name: Build Bundle
   Enable: 1
+  ABBuilderConfig: {fileID: 11400000, guid: afc6bfbe5ee333f45b93dbf1fae4c3ad, type: 2}
+  BundleManifestTags: base
 --- !u!114 &5932817073366880787
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -79,10 +82,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2d0dfaf98db2ac42903fd1098e2112b, type: 3}
   m_Name: FileBuildStep_FetchBundleInfo
   m_EditorClassIdentifier: 
-  Name: Fetch Bundle Info With Tags
+  Name: Fetch Bundle Asset Graph
   Enable: 0
   InputDir: Bundle/Builder
   AssetGraphFileName: graph.json
+  BundleManifestTags: base
 --- !u!114 &6191568943613744893
 MonoBehaviour:
   m_ObjectHideFlags: 0

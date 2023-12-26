@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace FH.Ed
+namespace FH
 {
     public static class MD5Helper
     {
@@ -28,12 +28,9 @@ namespace FH.Ed
             return _StringBuilder.ToString();
         }
 
-        public static string ComputeString(string file_path)
+        public static string ComputeString(string content)
         {
-            using var fs = System.IO.File.OpenRead(file_path);
-
-
-            byte[] hash = _Md5.ComputeHash(fs);
+            byte[] hash = _Md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(content));
 
             _StringBuilder.Clear();
             foreach (var b in hash)

@@ -10,6 +10,12 @@ using UnityEngine;
 
 namespace FH
 {
+    public abstract class ExtractStreamingAssetsOperation : CustomYieldInstruction
+    {
+        public abstract bool IsDone { get; }
+        public abstract float Progress { get; }
+    }
+
     public enum EFileStatus
     {
         NotExist,
@@ -21,10 +27,11 @@ namespace FH
     {
         public VersionInfo GetVersionInfo();
         public bool UpgradeManifest();
-        public void SetBaseTags(List<string> tags);
 
         public string GetFilePath(string name);
         public EFileStatus GetFileStatus(string name);
+
+        public ExtractStreamingAssetsOperation GetExtractOperation();
 
         public byte[] ReadAllBytes(string name);
     }
@@ -49,12 +56,21 @@ namespace FH
             }
             FileLog._ = TagLogger.Create(FileLog._.Tag, config.LogLvl);
 
-            FileMgrImplement file_mgr = new FileMgrImplement();
-            file_mgr.SetBaseTags(config.BaseTags);
+            FileMgrImplement file_mgr = new FileMgrImplement(config);
             file_mgr.Init();
             _ = new CPtr<IFileMgr>(file_mgr);
         }
 
+        public static ExtractStreamingAssetsOperation GetExtractOperation()
+        {
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                FileLog._.E("FileMgr Is Null");
+                return default;
+            }
+            return mgr.GetExtractOperation();
+        }
 
         public static VersionInfo GetVersionInfo()
         {
@@ -66,6 +82,7 @@ namespace FH
             }
             return mgr.GetVersionInfo();
         }
+
         public static bool UpgradeManifest()
         {
             var mgr = _.Val;
@@ -75,16 +92,6 @@ namespace FH
                 return false;
             }
             return mgr.UpgradeManifest();
-        }
-        public static void SetBaseTags(List<string> tags)
-        {
-            var mgr = _.Val;
-            if (mgr == null)
-            {
-                FileLog._.E("FileMgr Is Null");
-                return;
-            }
-            mgr.SetBaseTags(tags);
         }
 
         public static string GetFilePath(string name)

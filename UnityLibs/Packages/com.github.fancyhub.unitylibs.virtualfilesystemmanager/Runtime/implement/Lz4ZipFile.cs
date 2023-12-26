@@ -124,7 +124,7 @@ namespace FH
                 int read_size = file_stream.Read(temp_buff, 0, 8);
                 if (read_size < 8)
                 {
-                    Log.E("Gzip load failed {0}", 0);
+                    VfsLog._.E("Gzip load failed {0}", 0);
                     file_stream.Close();
                     return null;
                 }
@@ -132,14 +132,14 @@ namespace FH
                 uint file_sign = BitConverter.ToUInt32(temp_buff, 0);
                 if (file_sign != C_FILE_SIGN)
                 {
-                    Log.E("Gzip load failed {0}", 1);
+                    VfsLog._.E("Gzip load failed {0}", 1);
                     file_stream.Close();
                     return null;
                 }
                 uint file_version = BitConverter.ToUInt32(temp_buff, 4);
                 if (file_version != C_FILE_VERSION)
                 {
-                    Log.E("Gzip load failed {0}", 2);
+                    VfsLog._.E("Gzip load failed {0}", 2);
                     file_stream.Close();
                     return null;
                 }
@@ -151,7 +151,7 @@ namespace FH
                 int read_size = file_stream.Read(temp_buff, 0, 4);
                 if (read_size < 4)
                 {
-                    Log.E("Gzip load failed {0}", 3);
+                    VfsLog._.E("Lz4Zip load failed {0}", 3);
                     file_stream.Close();
                     return null;
                 }
@@ -159,13 +159,13 @@ namespace FH
                 file_count = BitConverter.ToUInt32(temp_buff, 0);
                 if (file_count == 0 || file_count > C_MAX_FILE_COUNT)
                 {
-                    Log.E("Gzip load failed {0}", 4);
+                    VfsLog._.E("Lz4Zip load failed {0}", 4);
                     file_stream.Close();
                     return null;
                 }
             }
-
-            //3. 读取 GZipFileInfo 列表
+             
+            //3. 读取 Lz4ZipEntryInfo 列表
             uint max_orig_file_size = 0;
             Lz4ZipEntryInfo[] file_list = new Lz4ZipEntryInfo[file_count];
             {
@@ -184,14 +184,14 @@ namespace FH
                         int read_size = file_stream.Read(temp_buff, 0, 2);
                         if (read_size < 2)
                         {
-                            Log.E("Gzip load failed {0}", 4);
+                            VfsLog._.E("Lz4Zip load failed {0}", 4);
                             file_stream.Close();
                             return null;
                         }
                         string_len = BitConverter.ToUInt16(temp_buff, 0);
                         if (string_len == 0 || string_len > C_MAX_FILE_NAME_LEN)
                         {
-                            Log.E("Gzip load failed {0}", 5);
+                            VfsLog._.E("Lz4Zip load failed {0}", 5);
                             file_stream.Close();
                             return null;
                         }
@@ -203,7 +203,7 @@ namespace FH
                         int read_size = file_stream.Read(temp_buff, 0, string_len + 13);
                         if (read_size < (string_len + 13))
                         {
-                            Log.E("Gzip load failed {0}", 6);
+                            VfsLog._.E("Lz4Zip load failed {0}", 6);
                             file_stream.Close();
                             return null;
                         }
@@ -238,14 +238,13 @@ namespace FH
 
         public static Lz4ZipFile LoadFromFile(string file)
         {
+            VfsLog._.D("Load Lz4File {0}", file);
             if (!System.IO.File.Exists(file))
             {
                 VfsLog._.E("file[{0}] doesn't exist!", file);
                 return null;
             }
-
             FileStream fs = System.IO.File.OpenRead(file);
-
             Lz4ZipFile ret = LoadFromStream(fs);
             return ret;
         }
@@ -300,7 +299,7 @@ namespace FH
             uint file_size = file_info.OrigSize;
             if ((buffer.Length - offset) < file_size)
             {
-                Log.D("Gzip Load File failde,becuase given buffer is too small");
+                VfsLog._.D("Lz4Zip Load File failde,becuase given buffer is too small");
                 return -1;
             }
 
@@ -472,7 +471,7 @@ namespace FH
         private static class Creator
         {
 
-            private class GZipFileInfoWrite
+            private class FileInfoWrite
             {
                 public Lz4ZipEntryInfo EntryInfo;
                 public FileInfo FileInfo;
@@ -514,8 +513,8 @@ namespace FH
             //主要入口
             public static void CreateZipFile(List<(string inner_path, FileInfo src_file)> input_files, string dest_zip_file_path, bool compressed = false)
             {
-                List<GZipFileInfoWrite> zip_file_info_list = new List<GZipFileInfoWrite>(input_files.Count);
-                Dictionary<string, GZipFileInfoWrite> file_map = new Dictionary<string, GZipFileInfoWrite>(input_files.Count);
+                List<FileInfoWrite> zip_file_info_list = new List<FileInfoWrite>(input_files.Count);
+                Dictionary<string, FileInfoWrite> file_map = new Dictionary<string, FileInfoWrite>(input_files.Count);
 
                 //1. 生成Dict
                 foreach (var input in input_files)
@@ -527,7 +526,7 @@ namespace FH
                         , (uint)input.src_file.Length
                         , compressed);
 
-                    GZipFileInfoWrite write_info = new GZipFileInfoWrite()
+                    FileInfoWrite write_info = new FileInfoWrite()
                     {
                         EntryInfo = entry_info,
                         FileInfo = input.src_file,
@@ -577,14 +576,14 @@ namespace FH
                 byte[] temp_buffer = new byte[4096];
                 for (int i = 0; i < zip_file_info_list.Count; i++)
                 {
-                    GZipFileInfoWrite zip_file_info = zip_file_info_list[i];
+                    FileInfoWrite zip_file_info = zip_file_info_list[i];
                     _WriteSingleFile(fout, zip_file_info, temp_buffer, compress_ratio);
                 }
                 fout.Close();
             }
 
 
-            private static void _WriteFileList(Stream fout, List<GZipFileInfoWrite> zip_file_info_list)
+            private static void _WriteFileList(Stream fout, List<FileInfoWrite> zip_file_info_list)
             {
                 byte[] data_bytes = BitConverter.GetBytes(zip_file_info_list.Count);
                 fout.Write(data_bytes, 0, data_bytes.Length);
@@ -602,7 +601,7 @@ namespace FH
                     //FileCompressedLen: UInt32
                     //FileCompress:Bool
 
-                    GZipFileInfoWrite fi = zip_file_info_list[i];
+                    FileInfoWrite fi = zip_file_info_list[i];
                     //写文件名
                     {
                         byte[] name_bytes = System.Text.Encoding.UTF8.GetBytes(fi.EntryInfo.FileName);
@@ -638,7 +637,7 @@ namespace FH
 
             private static void _WriteSingleFile(
                 Stream fout
-                , GZipFileInfoWrite zip_file_info
+                , FileInfoWrite zip_file_info
                 , byte[] temp_buffer
                 , float compress_ratio)
             {

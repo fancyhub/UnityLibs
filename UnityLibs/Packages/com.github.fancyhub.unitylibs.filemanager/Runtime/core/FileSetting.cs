@@ -84,7 +84,7 @@ namespace FH
         }
         #endregion
 
-                
+
         private static string _CacheDir;
         public static string CacheDir
         {
@@ -98,6 +98,7 @@ namespace FH
                 else
                     _CacheDir = System.IO.Path.Combine(Application.persistentDataPath, "Files");
 
+                _CacheDir = System.IO.Path.GetFullPath(_CacheDir);
                 _CacheDir = _CacheDir.Replace("\\", "/");
                 if (!_CacheDir.EndsWith("/"))
                     _CacheDir += "/";

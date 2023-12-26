@@ -21,8 +21,12 @@ namespace FH
             public string Name;
             public string FullName;
             public int Size;
+            public uint Crc32;
+
+            /// <summary>
+            /// 如果是true, size 是Gz文件的大小, Crc32 是Gz文件的Crc            
+            /// </summary>
             public bool UseGz;
-            public int GzSize;
         }
 
         [Serializable]
@@ -71,7 +75,7 @@ namespace FH
             foreach (var p in _SharedSet)
             {
                 out_file_list.Add(Files[p]);
-            }            
+            }
         }
 
         public void GetFilesWithTag(string tag, List<FileItem> out_file_list)

@@ -5,7 +5,6 @@
  * Desc    : 
 *************************************************************************************/
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace FH.FileManagement
 {
@@ -13,11 +12,25 @@ namespace FH.FileManagement
     {
         //Key: file_name, Value: full_path
         private Dictionary<string, string> _FilesInStreamingAssets = new();
-        private string _CacheDir;
+        private Dictionary<string, string> _FilesInCache = new();
+
+        private readonly string _CacheDir;
 
         public FileCollection()
         {
             _CacheDir = FileSetting.CacheDir;
+        }
+
+        public void CollectCacheDir()
+        {
+            Dictionary<string, string> new_Dict = new Dictionary<string, string>();
+            string[] files = System.IO.Directory.GetFiles(_CacheDir, "*.*", System.IO.SearchOption.TopDirectoryOnly);
+            foreach (var p in files)
+            {
+                string file_name = System.IO.Path.GetFileName(p);
+                new_Dict[file_name] = p;
+            }
+            _FilesInCache = new_Dict;
         }
 
         public void CollectStreamingAssets()
@@ -32,7 +45,7 @@ namespace FH.FileManagement
             _FilesInStreamingAssets.Clear();
             foreach (var f in files)
             {
-                string file_name = System.IO.Path.GetFileName(f);                
+                string file_name = System.IO.Path.GetFileName(f);
                 _FilesInStreamingAssets.Add(file_name, f);
 
                 FileLog._.D("StreamingAssets Collect {0} -> {1}", file_name, f);
@@ -44,11 +57,11 @@ namespace FH.FileManagement
             if (string.IsNullOrEmpty(file_name))
                 return false;
 
+            if (_FilesInCache.ContainsKey(file_name))
+                return true;
             if (_FilesInStreamingAssets.ContainsKey(file_name))
                 return true;
-
-            string full_path = _CacheDir + file_name;
-            return System.IO.File.Exists(full_path);
+            return false;
         }
 
         public string GetFullPath(string file_name)
@@ -56,10 +69,11 @@ namespace FH.FileManagement
             if (string.IsNullOrEmpty(file_name))
                 return null;
 
-            if (_FilesInStreamingAssets.TryGetValue(file_name, out string full_path))
-                return full_path;
-
-            return _CacheDir + file_name;
+            if (_FilesInCache.TryGetValue(file_name, out var path))
+                return path;
+            if (_FilesInStreamingAssets.TryGetValue(file_name, out path))
+                return path;
+            return null;
         }
     }
 }

@@ -569,9 +569,10 @@ MonoBehaviour:
   Mode: 1
   AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
   FileMgrConfig:
-    LogLvl: 1
+    LogLvl: 0
     BaseTags:
     - base
+    AndroidExtractTag: android
   BundleMgrConfig:
     LogLvl: 1
   ResMgrConfig:
@@ -590,7 +591,7 @@ MonoBehaviour:
   SceneMgrConfig:
     LogLvl: 1
   VfsMgrConfig:
-    LogLvl: 1
+    LogLvl: 0
   VfsBuilderConfig: {fileID: 11400000, guid: 6391484e906e5344f8de151ba727b78c, type: 2}
 --- !u!1 &2098590053
 GameObject:

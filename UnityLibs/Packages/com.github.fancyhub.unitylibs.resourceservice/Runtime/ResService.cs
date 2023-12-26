@@ -6,7 +6,6 @@ namespace FH
 {
     public class ResService : MonoBehaviour
     {
-        public const string BunldeManifestName = "bundle_manifest.json";
         public enum EMode
         {
             AssetDatabase,
@@ -26,12 +25,13 @@ namespace FH
         {
             GameObject.DontDestroyOnLoad(gameObject);
             UnityEngine.Application.targetFrameRate = 30;
-            _Init();
+            StartCoroutine(_Init());
         }
 
-        private void _Init()
+        private System.Collections.IEnumerator _Init()
         {
             LogRecorderMgr.Init();
+
 
 #if UNITY_EDITOR
             if (Mode == EMode.AssetDatabase)
@@ -46,7 +46,7 @@ namespace FH
                 FH.SceneMgr.InitMgr(SceneMgrConfig, scene_loader);
                 VfsMgr.InitMgr(VfsMgrConfig);
 
-                if(VfsBuilderConfig!=null)
+                if (VfsBuilderConfig != null)
                 {
                     foreach (var p in VfsBuilderConfig.Items)
                     {
@@ -58,15 +58,16 @@ namespace FH
                         VfsMgr.Mount(fs);
                     }
                 }
-                return;
+                yield break;
             }
 #endif
 
             {
                 //FH.SAFileSystem.EdSetObbPath(@"E:\fancyHub\UnityLibs\UnityLibs\Bundle\Player\Android\split.main.obb");
                 FileMgr.Init(FileMgrConfig);
+                
 
-                IBundleMgr.IExternalLoader bundle_loader = new FH.SampleExternalLoader.BundleExternalLoader_FileMgr(FileMgr.Inst, BunldeManifestName);
+                IBundleMgr.IExternalLoader bundle_loader = new FH.SampleExternalLoader.BundleExternalLoader_FileMgr(FileMgr.Inst, FH.BundleManifest.DefaultFileName);
 
                 BundleMgr.InitMgr(BundleMgrConfig, bundle_loader);
 
@@ -77,21 +78,34 @@ namespace FH
                 FH.SceneMgr.InitMgr(SceneMgrConfig, scene_loader);
 
                 VfsMgr.InitMgr(VfsMgrConfig);
+                yield return FileMgr.GetExtractOperation();
 
                 if (VfsBuilderConfig != null)
                 {
+                    
                     foreach (var p in VfsBuilderConfig.Items)
                     {
-
-                        FH.VirtualFileSystem_Dir fs = new VirtualFileSystem_Dir(p.Name);
-                        foreach (var p2 in p.Dirs)
+                        switch (p.Format)
                         {
-                            fs.AddDir(p2.RootDir, p2.SpecSubDir);
+                            case VFSManagement.Builder.BuilderConfig.EFormat.ZipStore:
+                            case VFSManagement.Builder.BuilderConfig.EFormat.ZipCompress:
+                                throw new Exception("目前不支持");
+                                break;
+
+                            case VFSManagement.Builder.BuilderConfig.EFormat.Lz4ZipStore:
+                            case VFSManagement.Builder.BuilderConfig.EFormat.Lz4ZipCompress:
+                                Lz4ZipFile zip_file = Lz4ZipFile.LoadFromFile(FileMgr.GetFilePath(p.Name));
+                                if (zip_file != null)
+                                {
+                                    VirtualFileSystem_Lz4Zip fs_zip = new VirtualFileSystem_Lz4Zip(p.Name, zip_file);
+                                    VfsMgr.Mount(fs_zip);
+                                }
+                                break;
                         }
-                        VfsMgr.Mount(fs);
                     }
                 }
             }
+
         }
 
         private string _AtlasTag2Path(string tag)
@@ -112,5 +126,4 @@ namespace FH
             FH.ResMgr.Destroy();
         }
     }
-
 }

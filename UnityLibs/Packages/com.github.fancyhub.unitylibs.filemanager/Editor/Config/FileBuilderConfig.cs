@@ -21,6 +21,7 @@ namespace FH.FileManagement.Ed
 
         public string OutputDir = "Bundle/Server";
         public string DefaultExt = ".bytes";
+        public bool GenGZ = false;
 
         [HideInInspector] public List<BuildStep> BuildSteps = new List<BuildStep>();
 

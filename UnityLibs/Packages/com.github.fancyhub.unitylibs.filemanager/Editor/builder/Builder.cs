@@ -34,7 +34,7 @@ namespace FH.FileManagement.Ed
 
             //2. 复制到Output
             string dst_dir = System.IO.Path.Combine(config.OutputDir, context.Target2Name());
-            FileManifest file_manifest = _CopyFiles(all_file, dst_dir, false, config.DefaultExt);
+            FileManifest file_manifest = _CopyFiles(all_file, dst_dir, config.GenGZ, config.DefaultExt);
             file_manifest.Version = VersionInfo.EdCreateResVersionInfo().ToResVersion();
 
 
@@ -90,14 +90,31 @@ namespace FH.FileManagement.Ed
                 _CopySingleFile(p.Key, dest_file, gen_gz_file);
 
                 //1.4 添加
-                ret.Files.Add(new FileManifest.FileItem()
+                var item = new FileManifest.FileItem()
                 {
                     Name = file_name,
                     FullName = dest_file_name,
                     Size = _GetFileSize(dest_file),
                     UseGz = false,
-                    GzSize = 0,
-                });
+                };
+
+                string gz_path = dest_file + ".gz";
+                if (gen_gz_file)
+                {
+                    int size = _GetFileSize(gz_path);
+                    if (size < item.Size)
+                    {
+                        item.UseGz = true;
+                        item.Size = size;
+                    }
+                }
+
+                if (item.UseGz)
+                    item.Crc32 = Crc32Helper.ComputeFile(gz_path);
+                else
+                    item.Crc32 = Crc32Helper.ComputeFile(dest_file);
+
+                ret.Files.Add(item);
             }
 
             //2. tag
@@ -137,7 +154,7 @@ namespace FH.FileManagement.Ed
                 if (file_names.Contains(file_name))
                     continue;
                 System.IO.File.Delete(p);
-                _delete_file(p + ".meta");
+                _DeleteFile(p + ".meta");
             }
 
             //5.3 复制新文件
@@ -173,7 +190,6 @@ namespace FH.FileManagement.Ed
 
         private static void _CopySingleFile(string src_file, string dest_file, bool gen_gz_file)
         {
-
             bool need_copy = false;
             //1. check 是否需要copy
             {
@@ -195,11 +211,10 @@ namespace FH.FileManagement.Ed
             if (!need_copy)
                 return;
 
-
             if (gen_gz_file)
             {
                 string gz_file_dest = dest_file + ".gz";
-                _delete_file(gz_file_dest);
+                _DeleteFile(gz_file_dest);
 
                 using FileStream fs_out = new FileStream(gz_file_dest, FileMode.OpenOrCreate, FileAccess.Write);
                 using System.IO.Compression.GZipStream gz_stream = new System.IO.Compression.GZipStream(fs_out, System.IO.Compression.CompressionMode.Compress);
@@ -210,11 +225,11 @@ namespace FH.FileManagement.Ed
                 fs_out.Close();
             }
 
-            _delete_file(dest_file);
+            _DeleteFile(dest_file);
             File.Copy(src_file, dest_file, true);
         }
 
-        public static void _delete_file(string path)
+        private static void _DeleteFile(string path)
         {
             if (File.Exists(path))
             {
