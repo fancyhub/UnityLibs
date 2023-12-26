@@ -77,7 +77,7 @@ namespace FH
                 return false;
             }
 
-            if(!Directory.Exists(sub_path))
+            if (!Directory.Exists(sub_path))
             {
                 VfsLog._.E("添加Dir 失败 子目录{0}  不存在", sub_path);
                 return false;
@@ -134,6 +134,32 @@ namespace FH
                 string full_file_path = p.root_dir + file_path;
                 if (File.Exists(full_file_path))
                     return File.Open(full_file_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                else
+                {
+                    VfsLog._.D("不存在 {0}->{1}", file_path, full_file_path);
+                }
+            }
+            return null;
+        }
+
+        public string ReadAllText(string file_path)
+        {
+            if (string.IsNullOrEmpty(file_path))
+            {
+                VfsLog._.E("file path is null or empty");
+                return null;
+            }
+
+            foreach (var p in _Dirs)
+            {
+                if (!file_path.StartsWith(p.sub_dir_name))
+                    continue;
+
+                string full_file_path = p.root_dir + file_path;
+                if (File.Exists(full_file_path))
+                {
+                    return System.IO.File.ReadAllText(full_file_path);
+                }
                 else
                 {
                     VfsLog._.D("不存在 {0}->{1}", file_path, full_file_path);

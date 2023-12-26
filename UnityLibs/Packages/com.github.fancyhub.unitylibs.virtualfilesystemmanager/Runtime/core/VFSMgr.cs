@@ -18,11 +18,8 @@ namespace FH
         public string Name { get; }
 
         public byte[] ReadAllBytes(string file_path);
-
-        /// <summary>
-        /// 这个比较特殊，用的时候，一定要读取完之后，直接关闭
-        /// 不能同时打开两个
-        /// </summary>        
+        public string ReadAllText(string file_path);
+        
         public Stream OpenRead(string file_path);
 
         public bool Exist(string file_path);
@@ -41,6 +38,7 @@ namespace FH
         public List<IVirtualFileSystem> GetAll();
 
         public byte[] ReadAllBytes(string file_path);
+        public string ReadAllText(string file_path);
 
         /// <summary>
         /// 这个比较特殊，用的时候，一定要读取完之后，直接关闭
@@ -135,10 +133,14 @@ namespace FH
 
         public static string ReadAllText(string file_path)
         {
-            byte[] ret = ReadAllBytes(file_path);
-            if (null == ret)
+            IVfsMgr mgr = _.Val;
+            if (mgr == null)
+            {
+                VfsLog._.E("VfsMgr Is Null");
                 return null;
-            return System.Text.Encoding.UTF8.GetString(ret);
+            }
+
+            return mgr.ReadAllText(file_path);            
         }
 
 

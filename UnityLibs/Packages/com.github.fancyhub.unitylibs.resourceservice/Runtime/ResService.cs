@@ -65,7 +65,7 @@ namespace FH
             {
                 //FH.SAFileSystem.EdSetObbPath(@"E:\fancyHub\UnityLibs\UnityLibs\Bundle\Player\Android\split.main.obb");
                 FileMgr.Init(FileMgrConfig);
-                
+
 
                 IBundleMgr.IExternalLoader bundle_loader = new FH.SampleExternalLoader.BundleExternalLoader_FileMgr(FileMgr.Inst, FH.BundleManifest.DefaultFileName);
 
@@ -82,22 +82,24 @@ namespace FH
 
                 if (VfsBuilderConfig != null)
                 {
-                    
+
                     foreach (var p in VfsBuilderConfig.Items)
                     {
+                        string path = FileMgr.GetFilePath(p.Name);
                         switch (p.Format)
                         {
                             case VFSManagement.Builder.BuilderConfig.EFormat.ZipStore:
                             case VFSManagement.Builder.BuilderConfig.EFormat.ZipCompress:
-                                throw new Exception("目前不支持");
+                                {
+                                    VirtualFileSystem_Zip fs_zip = VirtualFileSystem_Zip.CreateFromFile(p.Name, path);
+                                    VfsMgr.Mount(fs_zip);
+                                }
                                 break;
 
                             case VFSManagement.Builder.BuilderConfig.EFormat.Lz4ZipStore:
                             case VFSManagement.Builder.BuilderConfig.EFormat.Lz4ZipCompress:
-                                Lz4ZipFile zip_file = Lz4ZipFile.LoadFromFile(FileMgr.GetFilePath(p.Name));
-                                if (zip_file != null)
                                 {
-                                    VirtualFileSystem_Lz4Zip fs_zip = new VirtualFileSystem_Lz4Zip(p.Name, zip_file);
+                                    VirtualFileSystem_Lz4Zip fs_zip = VirtualFileSystem_Lz4Zip.CreateFromFile(p.Name, path);
                                     VfsMgr.Mount(fs_zip);
                                 }
                                 break;

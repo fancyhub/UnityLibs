@@ -94,6 +94,21 @@ namespace FH.VFSManagement
             return null;
         }
 
+        public string ReadAllText(string file_path)
+        {
+            VfsLog._.D("ReadAllBytes {0}", file_path);
+
+            for (int i = 0; i < _file_system_list.Count; ++i)
+            {
+                IVirtualFileSystem sub_system = _file_system_list[i];
+                string ret = sub_system.ReadAllText(file_path);
+                if (null != ret)
+                    return ret;
+            }
+            VfsLog._.E("找不到  {0}", file_path);
+            return null;
+        }
+
         public byte[] ReadAllBytes(string file_path)
         {
             VfsLog._.D("ReadAllBytes {0}", file_path);
@@ -118,5 +133,7 @@ namespace FH.VFSManagement
             }
             return -1;
         }
+
+        
     }
 }

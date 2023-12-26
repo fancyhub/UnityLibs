@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Items:
   - Name: client_config
-    Format: 0
+    Format: 2
     Tags: base;android
     Dirs:
     - Name: config
@@ -23,7 +23,7 @@ MonoBehaviour:
       IncludeSub: 1
       SearchPatterns: '*.json'
   - Name: lua
-    Format: 0
+    Format: 2
     Tags: base;android
     Dirs:
     - Name: lua_proj

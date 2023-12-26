@@ -111,17 +111,17 @@ namespace FH
         /// <summary>
         /// 如果在外部调用方法，要注意该流会被关闭
         /// </summary>
-        public static Lz4ZipFile LoadFromStream(Stream stream_in)
+        public static unsafe Lz4ZipFile LoadFromStream(Stream stream_in)
         {
             if (stream_in == null) return null;
             if (!stream_in.CanRead) return null;
             System.IO.Stream file_stream = stream_in;
 
-            byte[] temp_buff = new byte[4096];
+            Span<byte> temp_buff = stackalloc byte[4096];
 
             //1.读取文件头
             {
-                int read_size = file_stream.Read(temp_buff, 0, 8);
+                int read_size = file_stream.Read(temp_buff.Slice(0, 8));
                 if (read_size < 8)
                 {
                     VfsLog._.E("Gzip load failed {0}", 0);
@@ -129,14 +129,14 @@ namespace FH
                     return null;
                 }
 
-                uint file_sign = BitConverter.ToUInt32(temp_buff, 0);
+                uint file_sign = BitConverter.ToUInt32(temp_buff.Slice(0, 4));
                 if (file_sign != C_FILE_SIGN)
                 {
                     VfsLog._.E("Gzip load failed {0}", 1);
                     file_stream.Close();
                     return null;
                 }
-                uint file_version = BitConverter.ToUInt32(temp_buff, 4);
+                uint file_version = BitConverter.ToUInt32(temp_buff.Slice(4, 4));
                 if (file_version != C_FILE_VERSION)
                 {
                     VfsLog._.E("Gzip load failed {0}", 2);
@@ -148,7 +148,7 @@ namespace FH
             uint file_count = 0;
             //2. 读取 GZipFileInfo 的count
             {
-                int read_size = file_stream.Read(temp_buff, 0, 4);
+                int read_size = file_stream.Read(temp_buff.Slice(0, 4));
                 if (read_size < 4)
                 {
                     VfsLog._.E("Lz4Zip load failed {0}", 3);
@@ -156,7 +156,7 @@ namespace FH
                     return null;
                 }
 
-                file_count = BitConverter.ToUInt32(temp_buff, 0);
+                file_count = BitConverter.ToUInt32(temp_buff.Slice(0, 4));
                 if (file_count == 0 || file_count > C_MAX_FILE_COUNT)
                 {
                     VfsLog._.E("Lz4Zip load failed {0}", 4);
@@ -164,7 +164,7 @@ namespace FH
                     return null;
                 }
             }
-             
+
             //3. 读取 Lz4ZipEntryInfo 列表
             uint max_orig_file_size = 0;
             Lz4ZipEntryInfo[] file_list = new Lz4ZipEntryInfo[file_count];
@@ -181,14 +181,14 @@ namespace FH
                     //3.1 读取string的size
                     ushort string_len = 0;
                     {
-                        int read_size = file_stream.Read(temp_buff, 0, 2);
+                        int read_size = file_stream.Read(temp_buff.Slice(0, 2));
                         if (read_size < 2)
                         {
                             VfsLog._.E("Lz4Zip load failed {0}", 4);
                             file_stream.Close();
                             return null;
                         }
-                        string_len = BitConverter.ToUInt16(temp_buff, 0);
+                        string_len = BitConverter.ToUInt16(temp_buff.Slice(0, 2));
                         if (string_len == 0 || string_len > C_MAX_FILE_NAME_LEN)
                         {
                             VfsLog._.E("Lz4Zip load failed {0}", 5);
@@ -200,7 +200,7 @@ namespace FH
                     //3.2 读取 string，并且后面的几个字节也读取
                     {
                         //额外13个字节
-                        int read_size = file_stream.Read(temp_buff, 0, string_len + 13);
+                        int read_size = file_stream.Read(temp_buff.Slice(0, string_len + 13));
                         if (read_size < (string_len + 13))
                         {
                             VfsLog._.E("Lz4Zip load failed {0}", 6);
@@ -209,11 +209,11 @@ namespace FH
                         }
                     }
 
-                    string file_name = System.Text.Encoding.UTF8.GetString(temp_buff, 0, string_len);
-                    uint orig_len = BitConverter.ToUInt32(temp_buff, string_len);
+                    string file_name = System.Text.Encoding.UTF8.GetString(temp_buff.Slice(0, string_len));
+                    uint orig_len = BitConverter.ToUInt32(temp_buff.Slice(string_len, 4));
 
-                    uint offset = BitConverter.ToUInt32(temp_buff, string_len + 4);
-                    uint compressed_len = BitConverter.ToUInt32(temp_buff, string_len + 8);
+                    uint offset = BitConverter.ToUInt32(temp_buff.Slice(string_len + 4, 4));
+                    uint compressed_len = BitConverter.ToUInt32(temp_buff.Slice(string_len + 8, 4));
                     bool compressed_flag = temp_buff[string_len + 12] == 1;
 
                     Lz4ZipEntryInfo file_info = new Lz4ZipEntryInfo(
@@ -307,6 +307,21 @@ namespace FH
 
             int read_size = stream_in.Read(buffer, offset, (int)file_size);
             return read_size;
+        }
+
+        public string ReadAllText(string path)
+        {
+            Lz4ZipEntryInfo file_info = _FindEntry(path);
+            if (file_info == null)
+                return null;
+
+            Stream stream_in = _get_inner_stream_reader(file_info);
+            Span<byte> buff = stackalloc byte[(int)file_info.OrigSize];
+
+            int read_size = stream_in.Read(buff);
+            if (read_size < buff.Length)
+                return null;
+            return System.Text.Encoding.UTF8.GetString(buff);
         }
 
         public byte[] ReadFileAllBytes(string path)
@@ -819,7 +834,6 @@ namespace FH
             public override bool CanSeek { get { return false; } }
 
             public override bool CanWrite { get { return false; } }
-
         }
     }
 }

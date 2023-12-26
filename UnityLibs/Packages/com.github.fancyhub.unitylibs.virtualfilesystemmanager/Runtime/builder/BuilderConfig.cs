@@ -23,7 +23,7 @@ namespace FH.VFSManagement.Builder
             Lz4ZipStore,
             Lz4ZipCompress,
             ZipStore,
-            ZipCompress,            
+            ZipCompress,
         }
 
         [Serializable]
@@ -71,10 +71,17 @@ namespace FH.VFSManagement.Builder
                                 UnityEngine.Debug.LogWarning($"Build Zip, File Is Empty {Name}");
                             }
 
+                            System.IO.Compression.CompressionLevel lvl = System.IO.Compression.CompressionLevel.Optimal;
+                            if (Format == EFormat.ZipStore)
+                            {
+                                //这个好像无效
+                                lvl = System.IO.Compression.CompressionLevel.NoCompression;
+                            }
+
                             var zipArchive = ZipFile.Open(path, ZipArchiveMode.Create);
                             foreach (var f in all_files)
                             {
-                                zipArchive.CreateEntryFromFile(f.file_info.FullName, f.reletive_file_path);
+                                zipArchive.CreateEntryFromFile(f.file_info.FullName, f.reletive_file_path, lvl);                                
                             }
                             zipArchive.Dispose();
                             return path;
