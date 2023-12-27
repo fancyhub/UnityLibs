@@ -35,8 +35,6 @@ namespace FH.VFSManagement.Builder
             public string Tags = "";
             public List<DirItem> Dirs = new List<DirItem>();
 
-
-
 #if UNITY_EDITOR
             public List<(string reletive_file_path, FileInfo file_info)> EdGetAllFiles()
             {
@@ -172,15 +170,9 @@ namespace FH.VFSManagement.Builder
 
                 return ret;
             }
-
 #endif
         }
 
-
         public List<ZipItem> Items = new List<ZipItem>();
-
-
-
-
     }
 }

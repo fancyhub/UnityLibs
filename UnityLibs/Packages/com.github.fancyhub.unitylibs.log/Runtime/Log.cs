@@ -76,6 +76,14 @@ namespace FH
 
         public static ELogMask UnityMask = ELogMask.All;
 
+
+        public static ELogMask Lvl2Mask(ELogLvl lvl)
+        {
+            uint m = 1U << (int)lvl;
+            ELogMask mask = (ELogMask)(~(m - 1));
+            return mask;
+        }
+
         /// <summary>
         /// Debug Info
         /// </summary>
@@ -374,11 +382,16 @@ namespace FH
             TraceMask = allow_mask;
         }
 
+        public void SetMasks(ELogLvl log_lvl)
+        {
+            AllowMask = Log.Lvl2Mask(log_lvl);
+            UnityMask = AllowMask;
+            TraceMask = AllowMask;
+        }
+
         public static TagLogger Create(string tag_name, ELogLvl log_lvl = ELogLvl.Info)
         {
-            uint m = 1U << (int)log_lvl;
-            ELogMask mask = (ELogMask)(~(m - 1));
-            return new TagLogger(tag_name, mask);
+            return new TagLogger(tag_name, Log.Lvl2Mask(log_lvl));
         }
 
         /// <summary>
@@ -665,6 +678,16 @@ namespace FH
         public static ELogMask AllowMask = ELogMask.Info | ELogMask.Warning | ELogMask.Assert | ELogMask.Error | ELogMask.Exception;
         public static ELogMask UnityMask = AllowMask;
         public static ELogMask TraceMask = AllowMask;
+
+
+        public static void SetMasks(ELogLvl log_lvl)
+        {
+            AllowMask = Log.Lvl2Mask(log_lvl);
+            UnityMask = AllowMask;
+            TraceMask = AllowMask;
+        }
+
+
         /// <summary>
         /// Debug Info
         /// </summary>

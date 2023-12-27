@@ -12,16 +12,37 @@ public class UIViewTest : MonoBehaviour
     void Start()
     {
         _btn = FH.UI.UIBaseView.CreateView<FH.UI.UIButtonView>(Canvas.transform);
-        _btn.OnClick = _OnOpen;
+        _btn.OnClick = _OnOpenView;
     }
 
     public void OnEnable()
     {
     }
 
-    public void _OnOpen()
+    public void _DownloadFile()
     {
-        string content =  VfsMgr.ReadAllText("Config/test.json");
+        TaskQueue.Init(10);
+
+        string url = "http://127.0.0.1:8080/Apps.ppkg";
+        string local_path = "Bundle/Download/Apps.ppkg";
+        HttpDownloaderError error = default;
+        TaskQueue.AddTask(() =>
+        {
+            error = HttpDownloader.Download(url, local_path, (current, total) =>
+            {
+                Debug.Log($"Download: {current}/{total} {(float)current/total}");
+            }, 0, System.Threading.CancellationToken.None);
+        },
+        () =>
+        {
+            Debug.Log("Download All: ");
+            error.PrintLog();
+        });
+    }
+
+    public void _OnOpenView()
+    {
+        string content = VfsMgr.ReadAllText("Config/test.json");
         Debug.Log($"Config/test.json {content}");
 
         content = VfsMgr.ReadAllText("LuaProj/main.lua");
@@ -41,7 +62,7 @@ public sealed class UIPageScene : CPoolItemBase
     public List<SceneRef> _SceneRefList = new List<SceneRef>();
 
     public static UIPageScene Create(Transform root, MonoBehaviour behaviour)
-    {        
+    {
         var ret = GPool.New<UIPageScene>();
         ret._UIRoot = root;
         ret._Behaviour = behaviour;

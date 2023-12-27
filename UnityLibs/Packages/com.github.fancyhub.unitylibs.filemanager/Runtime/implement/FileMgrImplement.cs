@@ -72,7 +72,7 @@ namespace FH.FileManagement
                 }
             }
 
-            _ExtractOp.StartAsync(_Manifest_Base);            
+            _ExtractOp.StartAsync(_Manifest_Base);
         }
 
         public ExtractStreamingAssetsOperation GetExtractOperation()
@@ -95,7 +95,7 @@ namespace FH.FileManagement
                 return false;
             }
 
-            
+
 
             _FileCollection.CollectCacheDir();
             return true;
@@ -158,10 +158,8 @@ namespace FH.FileManagement
             return null;
         }
 
-       
-
         public string GetFilePath(string name)
-        {
+        {   
             if (_Manifest_Current == null)
             {
                 FileLog._.D("Current FileManifest Is Null");
@@ -266,6 +264,6 @@ namespace FH.FileManagement
             }
 
             return ret;
-        }        
+        }
     }
 }

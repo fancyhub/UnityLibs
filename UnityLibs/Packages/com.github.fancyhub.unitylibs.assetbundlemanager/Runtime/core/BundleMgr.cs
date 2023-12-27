@@ -76,28 +76,28 @@ namespace FH
         {
             if (config == null)
             {
-                BundleLog._.E("BundleMgrConfig is Null");
+                BundleLog.E("BundleMgrConfig is Null");
                 return false;
             }
 
             if (_.Val != null)
             {
-                BundleLog._.E("BundleMgr 已经创建了");
+                BundleLog.E("BundleMgr 已经创建了");
                 return false;
             }
 
             if (external_loader == null)
             {
-                BundleLog._.E("BundlerLoader is Null");
+                BundleLog.E("BundlerLoader is Null");
                 return false;
             }
 
-            BundleLog._ = TagLogger.Create(BundleLog._.Tag, config.LogLvl);
+            BundleLog.SetMasks(config.LogLvl);
 
             var manifest = external_loader.LoadManifest();
             if (manifest == null)
             {
-                BundleLog._.E("bundle manifest is Null");
+                BundleLog.E("bundle manifest is Null");
                 return false;
             }
 

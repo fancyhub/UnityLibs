@@ -60,7 +60,7 @@ namespace FH.ABManagement
             _AssetDict.TryGetValue(asset, out Bundle b);
             if(b==null)
             {
-                BundleLog._.E("找不到 {0} 对应的bundle", asset);
+                BundleLog.E("找不到 {0} 对应的bundle", asset);
             }
             return b;
         }
@@ -79,7 +79,7 @@ namespace FH.ABManagement
             _AssetDict.TryGetValue(asset, out Bundle b);
             if (b == null)
             {
-                BundleLog._.E("找不到 {0} 对应的bundle", asset);
+                BundleLog.E("找不到 {0} 对应的bundle", asset);
                 return null;
             }
 

@@ -1,6 +1,6 @@
 /*************************************************************************************
  * Author  : cunyu.fan
- * Time    : 2023/12/12
+ * Time    : 2021/5/13 15:50:32
  * Title   : 
  * Desc    : 
 *************************************************************************************/
@@ -8,9 +8,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace FH.ABManagement
+namespace FH
 {
-    internal sealed class BundleLog : TagLoggerT<BundleLog>
-    {        
+    public static class HttpDownloaderLog
+    {
+        public static TagLogger _ = TagLogger.Create("Http");
     }
 }

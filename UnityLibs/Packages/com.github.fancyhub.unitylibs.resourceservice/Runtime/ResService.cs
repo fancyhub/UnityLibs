@@ -28,6 +28,23 @@ namespace FH
             StartCoroutine(_Init());
         }
 
+        // Update is called once per frame
+        void Update()
+        {
+            FH.ResMgr.Update();
+            FH.SceneMgr.Update();
+        }
+
+        public void OnDestroy()
+        {
+            FH.ResMgr.Destroy();
+        }
+
+        private string _AtlasTag2Path(string tag)
+        {
+            return string.Format(AtlasPathFormater, tag);
+        }
+
         private System.Collections.IEnumerator _Init()
         {
             LogRecorderMgr.Init();
@@ -66,9 +83,8 @@ namespace FH
                 //FH.SAFileSystem.EdSetObbPath(@"E:\fancyHub\UnityLibs\UnityLibs\Bundle\Player\Android\split.main.obb");
                 FileMgr.Init(FileMgrConfig);
 
-
                 IBundleMgr.IExternalLoader bundle_loader = new FH.SampleExternalLoader.BundleExternalLoader_FileMgr(FileMgr.Inst, FH.BundleManifest.DefaultFileName);
-
+                
                 BundleMgr.InitMgr(BundleMgrConfig, bundle_loader);
 
                 IResMgr.IExternalLoader res_loader = new FH.SampleExternalLoader.ResExternalLoader_Bundle(BundleMgr.Inst, _AtlasTag2Path);
@@ -82,7 +98,6 @@ namespace FH
 
                 if (VfsBuilderConfig != null)
                 {
-
                     foreach (var p in VfsBuilderConfig.Items)
                     {
                         string path = FileMgr.GetFilePath(p.Name);
@@ -107,25 +122,6 @@ namespace FH
                     }
                 }
             }
-
-        }
-
-        private string _AtlasTag2Path(string tag)
-        {
-            return string.Format(AtlasPathFormater, tag);
-        }
-
-
-        // Update is called once per frame
-        void Update()
-        {
-            FH.ResMgr.Update();
-            FH.SceneMgr.Update();
-        }
-
-        public void OnDestroy()
-        {
-            FH.ResMgr.Destroy();
-        }
+        }      
     }
 }

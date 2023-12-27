@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-
-#if UNITY_EDITOR
 using UnityEditor;
-#endif
 
 namespace FH.UI
 {
@@ -55,7 +52,7 @@ namespace FH.UI
             return false;
         }
 
-#if UNITY_EDITOR
+
         public string EdGetSelfPath()
         {
             return AssetDatabase.GetAssetPath(this);
@@ -92,9 +89,7 @@ namespace FH.UI
             Debug.Assert(ret != null, "加载 UIViewGenConfig 失败 " + DefaultPath);
             return ret;
         }
-#endif
 
-#if UNITY_EDITOR
         public Type _BaseViewClass;
         public List<Type> _CompTypeList = new List<Type>();
 
@@ -115,7 +110,6 @@ namespace FH.UI
 
             return null;
         }
-#endif
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {

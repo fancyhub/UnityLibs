@@ -54,11 +54,11 @@ namespace FH.ABManagement
         {
             if (_LoadStatus != EBundleLoadStatus.Loaded)
             {
-                BundleLog._.E("Bundle {0}:{1} Is Not Load, Can't Inc ref count", _Config.Name, _LoadStatus);
+                BundleLog.E("Bundle {0}:{1} Is Not Load, Can't Inc ref count", _Config.Name, _LoadStatus);
                 return 0;
             }
             _RefCount++;
-            BundleLog._.D("Bundle {0} RefCount {1} -> {2}", _Config.Name, _RefCount - 1, _RefCount);
+            BundleLog.D("Bundle {0} RefCount {1} -> {2}", _Config.Name, _RefCount - 1, _RefCount);
             return _RefCount;
         }
 
@@ -68,11 +68,11 @@ namespace FH.ABManagement
         {
             if (_LoadStatus != EBundleLoadStatus.Loaded)
             {
-                BundleLog._.E("Bundle {0}:{1} Is Not Load, Can't Dec ref count", _Config.Name, _LoadStatus);
+                BundleLog.E("Bundle {0}:{1} Is Not Load, Can't Dec ref count", _Config.Name, _LoadStatus);
                 return 0;
             }
 
-            BundleLog._.D("Bundle {0} RefCount {1} -> {2}", _Config.Name, _RefCount, _RefCount - 1);
+            BundleLog.D("Bundle {0} RefCount {1} -> {2}", _Config.Name, _RefCount, _RefCount - 1);
             _RefCount--;
             if (_RefCount > 0)
                 return _RefCount;
@@ -80,12 +80,12 @@ namespace FH.ABManagement
 
             if (_DepRefCount > 0)
             {
-                BundleLog._.D("Bundle {0} DepRefCount {1}>0, Don't Need Unload", _Config.Name, _DepRefCount);
+                BundleLog.D("Bundle {0} DepRefCount {1}>0, Don't Need Unload", _Config.Name, _DepRefCount);
                 _LoadStatus = EBundleLoadStatus.LoadedByDep;
                 return _RefCount;
             }
 
-            BundleLog._.D("Bundle {0} Unload ", _Config.Name);
+            BundleLog.D("Bundle {0} Unload ", _Config.Name);
             _LoadStatus = EBundleLoadStatus.None;
             this._AssetBundle.Unload(false);
             return _RefCount;
@@ -95,12 +95,12 @@ namespace FH.ABManagement
         {
             if (_LoadStatus != EBundleLoadStatus.Loaded)
             {
-                BundleLog._.E("Bundle {0} Is Not Loaded {1}, Load Asset Fail {2}  ", _Config.Name, _LoadStatus, path);
+                BundleLog.E("Bundle {0} Is Not Loaded {1}, Load Asset Fail {2}  ", _Config.Name, _LoadStatus, path);
                 return null;
             }
             if (_AssetBundle == null)
             {
-                BundleLog._.E("Bundle {0} AssetBundle Is Null ", _Config.Name);
+                BundleLog.E("Bundle {0} AssetBundle Is Null ", _Config.Name);
                 return null;
             }
 
@@ -111,12 +111,12 @@ namespace FH.ABManagement
         {
             if (_LoadStatus != EBundleLoadStatus.Loaded)
             {
-                BundleLog._.E("Bundle {0} Is Not Loaded {1}, Load Asset Fail {2}  ", _Config.Name, _LoadStatus, path);
+                BundleLog.E("Bundle {0} Is Not Loaded {1}, Load Asset Fail {2}  ", _Config.Name, _LoadStatus, path);
                 return null;
             }
             if (_AssetBundle == null)
             {
-                BundleLog._.E("Bundle {0} AssetBundle Is Null ", _Config.Name);
+                BundleLog.E("Bundle {0} AssetBundle Is Null ", _Config.Name);
                 return null;
             }
 
@@ -147,18 +147,18 @@ namespace FH.ABManagement
                     return false;
 
                 case EBundleLoadStatus.None:
-                    BundleLog._.D("Load Bundle {0} Load", _Config.Name);
+                    BundleLog.D("Load Bundle {0} Load", _Config.Name);
                     IBundleMgr.IExternalLoader loader = _ExternalLoader.Val;
                     if (loader == null)
                     {
-                        BundleLog._.E("BundleLoader is null");
+                        BundleLog.E("BundleLoader is null");
                         return false;
                     }
 
                     IBundleMgr.EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
                     if (bundleStatus != IBundleMgr.EBundleFileStatus.Exist)
                     {
-                        BundleLog._.D("Bundle {0} Is {1}", _Config.Name, bundleStatus);
+                        BundleLog.D("Bundle {0} Is {1}", _Config.Name, bundleStatus);
                         return false;
                     }
 
@@ -176,7 +176,7 @@ namespace FH.ABManagement
                             case EBundleLoadStatus.None:
                                 if (!p.IsDownloaded())
                                 {
-                                    BundleLog._.D("Bundle {0} Dep {1} Is not Downloaded", _Config.Name, p._Config.Name);
+                                    BundleLog.D("Bundle {0} Dep {1} Is not Downloaded", _Config.Name, p._Config.Name);
                                     return false;
                                 }
                                 break;
@@ -211,7 +211,7 @@ namespace FH.ABManagement
 
                     if (_AssetBundle != null)
                     {
-                        BundleLog._.D("Bundle {0} Load Succ", _Config.Name);
+                        BundleLog.D("Bundle {0} Load Succ", _Config.Name);
                         _LoadStatus = EBundleLoadStatus.Loaded;
                         return true;
                     }
@@ -228,19 +228,19 @@ namespace FH.ABManagement
             switch (_LoadStatus)
             {
                 case EBundleLoadStatus.None:
-                    BundleLog._.D("Load Dep Bundle {0} Load", _Config.Name);
+                    BundleLog.D("Load Dep Bundle {0} Load", _Config.Name);
 
                     IBundleMgr.IExternalLoader loader = _ExternalLoader.Val;
                     if (loader == null)
                     {
-                        BundleLog._.E("BundleLoader is null");
+                        BundleLog.E("BundleLoader is null");
                         return false;
                     }
 
                     IBundleMgr.EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
                     if (bundleStatus != IBundleMgr.EBundleFileStatus.Exist)
                     {
-                        BundleLog._.D("Bundle {0} Is {1}", _Config.Name, bundleStatus);
+                        BundleLog.D("Bundle {0} Is {1}", _Config.Name, bundleStatus);
                         return false;
                     }
 
@@ -255,12 +255,12 @@ namespace FH.ABManagement
 
                     if (_AssetBundle == null)
                     {
-                        BundleLog._.E("Bundle {0} Load Dep Fail", _Config.Name);
+                        BundleLog.E("Bundle {0} Load Dep Fail", _Config.Name);
                         _LoadStatus = EBundleLoadStatus.Error;
                         return false;
                     }
 
-                    BundleLog._.D("Bundle {0} Load Dep Succ", _Config.Name);
+                    BundleLog.D("Bundle {0} Load Dep Succ", _Config.Name);
                     _LoadStatus = EBundleLoadStatus.LoadedByDep;
                     return true;
 
@@ -289,7 +289,7 @@ namespace FH.ABManagement
             if (_RefCount > 0)
                 return;
 
-            BundleLog._.D("Bundle {0} Unload By DepRef", _Config.Name);
+            BundleLog.D("Bundle {0} Unload By DepRef", _Config.Name);
             _AssetBundle.Unload(false);
             _AssetBundle = null;
             _Stream?.Close();

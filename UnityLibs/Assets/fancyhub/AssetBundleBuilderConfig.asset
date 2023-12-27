@@ -142,11 +142,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   OutputDir: Bundle/Builder
   Android:
-    BuildOptions: 768
+    BuildOptions: 13056
   IOS:
     BuildOptions: 768
   Windows:
-    BuildOptions: 768
+    BuildOptions: 13056
   OSX:
     BuildOptions: 768
   AssetCollector:
