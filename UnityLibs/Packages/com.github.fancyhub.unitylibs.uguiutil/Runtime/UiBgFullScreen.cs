@@ -1,10 +1,19 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2021/5/25
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace FH.UI
 {
+    /// <summary>
+    /// 全屏
+    /// </summary>
     [RequireComponent(typeof(RectTransform))]
-    public class UiBgFullScreen : UnityEngine.EventSystems.UIBehaviour
+    public class UIBgFullScreen : UnityEngine.EventSystems.UIBehaviour
     {
         public void Adjust()
         {

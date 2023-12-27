@@ -1,3 +1,9 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2021/5/25
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
 using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
@@ -5,6 +11,9 @@ using System.Collections.Generic;
 namespace FH.UI
 {
 #if UNITY_EDITOR
+    /// <summary>
+    /// 编辑模式下,鼠标 中键 选中可点击对象
+    /// </summary>
     public class UIObjFinder : MonoBehaviour
     {
         private static UIObjFinder _;
@@ -17,6 +26,7 @@ namespace FH.UI
 
         public void Awake()
         {
+            
             _ = this;
         }
 
