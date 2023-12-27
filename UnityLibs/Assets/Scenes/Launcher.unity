@@ -569,14 +569,14 @@ MonoBehaviour:
   Mode: 1
   AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
   FileMgrConfig:
-    LogLvl: 0
+    LogLvl: 1
     BaseTags:
     - base
     AndroidExtractTag: android
   BundleMgrConfig:
     LogLvl: 1
   ResMgrConfig:
-    LogLevel: 1
+    LogLevel: 0
     MaxAsyncResLoaderSlot: 5
     MaxAsyncGameObjectStep: 1
     PreInst:
