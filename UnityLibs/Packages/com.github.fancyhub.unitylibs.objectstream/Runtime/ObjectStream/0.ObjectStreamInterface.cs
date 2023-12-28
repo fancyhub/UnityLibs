@@ -10,34 +10,26 @@ using System.Collections.Generic;
 
 namespace FH
 {
-    public interface IObjectStream
+    public interface IObjectStreamIn<T>
     {
-        bool IsClosed();
-        void Close();
+        bool Read(out T data);
+        int Read(T[] data, int offset, int count);
+        int Read(Span<T> data);
+
+        bool IsClosedIn();
+        void CloseIn();
     }
 
-    public interface IObjectInStream<T> : IObjectStream
+    public interface IObjectStreamOut<T>
     {
-        bool Read(out T out_v);
+        bool Write(T data);
+        int Write(T[] data, int offset, int count);
+        int Write(ReadOnlySpan<T> data);
+        bool IsClosedOut();
+        void CloseOut();
     }
 
-    public interface IObjectArraryInStream<T> : IObjectStream
+    public interface IObjectStream<T> : IObjectStreamIn<T>, IObjectStreamOut<T>
     {
-        int Read(T[] buff, int offset, int count);
-    }
-
-    public interface IObjectOutStream<T> : IObjectStream
-    {
-        bool Write(T target);
-    }
-
-    public interface IObjectArrayOutStream<T> : IObjectStream
-    {
-        int Write(T[] buff,int offset,int count);
-    }
-
-    public static class ArrayExt
-    {
-        
     }
 }
