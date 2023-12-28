@@ -108,14 +108,14 @@ namespace FH
         public EventSet2(IEqualityComparer<TKey> equality_comparer = null)
         {
             if (equality_comparer == null)
-                equality_comparer = EqualityComparer<TKey>.Default;
+                equality_comparer = MyEqualityComparer<TKey>.Default;
             _dict = new Dictionary<TKey, ActionList>(equality_comparer);
         }
 
         public EventSet2(int cap, IEqualityComparer<TKey> equality_comparer = null)
         {
             if (equality_comparer == null)
-                equality_comparer = EqualityComparer<TKey>.Default;
+                equality_comparer = MyEqualityComparer<TKey>.Default;
             _dict = new Dictionary<TKey, ActionList>(cap, equality_comparer);
         }
 
@@ -179,7 +179,7 @@ namespace FH
             return action_list.Fire(ref val);
         }
 
-        public bool FireDelay(TKey key, TValue val)
+        public bool FireAsync(TKey key, TValue val)
         {
             if (_event_queue == null)
                 _event_queue = new();

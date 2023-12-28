@@ -14,9 +14,9 @@ namespace FH
     /// <summary>
     /// A Type Of Event Key
     /// </summary>
-    public readonly struct EventKey : IEquatable<EventKey>
+    public readonly struct EventKey : IEquatable<EventKey>, IEqualityComparer<EventKey>
     {
-        public static IEqualityComparer<EventKey> EqualityComparer = new EqualityComparerImp();
+        public static IEqualityComparer<EventKey> EqualityComparer = new EventKey();
 
         public readonly string Name;
         public readonly int Id;
@@ -35,10 +35,8 @@ namespace FH
 
         public static bool operator !=(EventKey left, EventKey right) { return !(left == right); }
 
-        private class EqualityComparerImp : IEqualityComparer<EventKey>
-        {
-            public bool Equals(EventKey x, EventKey y) { return x.Equals(y); }
-            public int GetHashCode(EventKey obj) { return obj.GetHashCode(); }
-        }
+
+        bool IEqualityComparer<EventKey>.Equals(EventKey x, EventKey y) { return x.Equals(y); }
+        int IEqualityComparer<EventKey>.GetHashCode(EventKey obj) { return obj.GetHashCode(); }
     }
 }

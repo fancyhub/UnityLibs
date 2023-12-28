@@ -21,9 +21,9 @@ namespace FH.EventSet2Sample
             EventMgr.Inst.Fire(self, value);
         }
 
-        public static void ExtFireDelay(this EventKey self, object value)
+        public static void ExtFireAsync(this EventKey self, object value)
         {
-            EventMgr.Inst.FireDelay(self, value);
+            EventMgr.Inst.FireAsync(self, value);
         }
     }
 }

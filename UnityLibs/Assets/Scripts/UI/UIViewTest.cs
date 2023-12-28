@@ -25,6 +25,8 @@ public class UIViewTest : MonoBehaviour
         {
             UISafeAreaPanel.ChangeSafeArea(ui_resolution, safe_area, Canvas.transform);
         }
+
+        UIRedDotData.Inst.Update();
     }
 
     public void OnEnable()
@@ -122,10 +124,13 @@ public sealed class UIPageScene : CPoolItemBase
     {
         yield return new WaitForSeconds(1.0f);
 
-        var scene_a = SceneMgr.LoadScene("Assets/Scenes/Scenes/a.unity", true);
-        var scene_b = SceneMgr.LoadScene("Assets/Scenes/Scenes/a.unity", true);
+        var scene_a = SceneMgr.LoadScene("Assets/Scenes/a.unity", true);
+        var scene_b = SceneMgr.LoadScene("Assets/Scenes/a.unity", true);
+
+
         _SceneRefList.Add(scene_a);
         _SceneRefList.Add(scene_b);
+        UIRedDotData.Set("test.scenecount", _SceneRefList.Count);         
     }
 
     private void _OnCloseClick()
@@ -157,6 +162,8 @@ public sealed class UIPageScene : CPoolItemBase
             return;
         _SceneRefList[0].Unload();
         _SceneRefList.RemoveAt(0);
+
+        UIRedDotData.Set("test.scenecount", _SceneRefList.Count);
     }
 
 
@@ -166,6 +173,6 @@ public sealed class UIPageScene : CPoolItemBase
             return;
         _SceneRefList[_SceneRefList.Count - 1].Unload();
         _SceneRefList.RemoveAt(_SceneRefList.Count - 1);
-
+        UIRedDotData.Set("test.scenecount", _SceneRefList.Count);
     }
 }

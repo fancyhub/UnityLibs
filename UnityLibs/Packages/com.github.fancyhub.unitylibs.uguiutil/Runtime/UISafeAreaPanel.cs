@@ -122,9 +122,7 @@ namespace FH.UI
         [ContextMenu("ResetRect")]
         public void ResetRect()
         {
-            RectTransform rect = this.GetComponent<RectTransform>();
-            if (transform.parent != null)
-                _ResetRectTransform(transform.parent.GetComponent<RectTransform>());
+            RectTransform rect = this.GetComponent<RectTransform>();            
             _ResetRectTransform(rect);
         }
 

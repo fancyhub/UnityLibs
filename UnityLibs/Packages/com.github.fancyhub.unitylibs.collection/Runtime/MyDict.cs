@@ -25,7 +25,7 @@ namespace FH
                 if (_Default == null && !(t.IsEnum || t.IsPrimitive || t == typeof(string)))
                 {
                     Debug.LogError($"{t} 没有 EqualityComparer, 需要注册 MyEqualityComparer.Reg");
-                }                
+                }
 #endif
                 return _Default == null ? EqualityComparer<T>.Default : _Default;
             }
@@ -39,6 +39,12 @@ namespace FH
             if (equalityComparer == null)
                 return;
             MyEqualityComparer<T>._Default = equalityComparer;
+        }
+
+        public static void Reg<T>() where T : IEqualityComparer<T>, new()
+        {
+            if (MyEqualityComparer<T>._Default == null)
+                MyEqualityComparer<T>._Default = new T();
         }
     }
 

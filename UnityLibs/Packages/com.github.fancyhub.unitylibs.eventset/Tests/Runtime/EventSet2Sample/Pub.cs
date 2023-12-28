@@ -17,7 +17,7 @@ namespace FH.EventSet2Sample
 
         public void OnDisable()
         {
-            EventEnable.ExtFireDelay("hello Disable Delay"); 
+            EventEnable.ExtFireAsync("hello Disable Delay"); 
         }
     }
 }

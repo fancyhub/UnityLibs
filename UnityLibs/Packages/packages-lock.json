@@ -52,12 +52,6 @@
         "com.github.fancyhub.unitylibs.collection": "1.0.0"
       }
     },
-    "com.github.fancyhub.unitylibs.filedownloadmanager": {
-      "version": "file:com.github.fancyhub.unitylibs.filedownloadmanager",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
-    },
     "com.github.fancyhub.unitylibs.filemanager": {
       "version": "file:com.github.fancyhub.unitylibs.filemanager",
       "depth": 0,
@@ -181,6 +175,14 @@
         "com.unity.ugui": "1.0.0"
       }
     },
+    "com.github.fancyhub.unitylibs.uireddot": {
+      "version": "file:com.github.fancyhub.unitylibs.uireddot",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.ugui": "1.0.0"
+      }
+    },
     "com.github.fancyhub.unitylibs.uiviewgen": {
       "version": "file:com.github.fancyhub.unitylibs.uiviewgen",
       "depth": 0,
@@ -196,6 +198,14 @@
       "source": "embedded",
       "dependencies": {
         "com.github.fancyhub.unitylibs.log": "1.0.0"
+      }
+    },
+    "com.github.fancyhub.unitylibs.valuetree": {
+      "version": "file:com.github.fancyhub.unitylibs.valuetree",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.ugui": "1.0.0"
       }
     },
     "com.github.fancyhub.unitylibs.virtualfilesystemmanager": {
