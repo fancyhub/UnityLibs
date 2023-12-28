@@ -17,7 +17,7 @@ namespace FH.ResManagement.Ed
     {
         public FH.VFSManagement.Builder.BuilderConfig BuilderConfig;
 
-        public string OutputDir = "Bundle/Builder";
+        public string OutputDir = "ProjTemp/Build/Output/{Target}";
 
         public override List<BuildFileInfo> Build(BuildContext context)
         {
@@ -25,7 +25,7 @@ namespace FH.ResManagement.Ed
                 return null;
 
             List<BuildFileInfo> ret = new List<BuildFileInfo>();
-            string dest_dir = System.IO.Path.Combine(OutputDir, context.Target2Name());
+            string dest_dir = OutputDir.Replace("{Target}", context.BuildTarget.Ext2Name());
 
             foreach (var p in BuilderConfig.Items)
             {

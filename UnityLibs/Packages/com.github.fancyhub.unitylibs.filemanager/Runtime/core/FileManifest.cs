@@ -13,6 +13,8 @@ namespace FH
     [Serializable]
     public sealed class FileManifest
     {
+        public const string CDefaultFileName = "file_manifest.json";
+
         public string Version;
 
         [Serializable]
@@ -124,6 +126,12 @@ namespace FH
 
             _TagDict.TryGetValue(tag, out TagItem item);
             return item;
+        }         
+
+        public void SaveTo(string file_path)
+        {
+            string content = UnityEngine.JsonUtility.ToJson(this, true);
+            System.IO.File.WriteAllText(file_path, content);
         }
     }
 }

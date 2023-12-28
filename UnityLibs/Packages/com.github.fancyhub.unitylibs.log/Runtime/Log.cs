@@ -6,29 +6,31 @@
 *************************************************************************************/
 
 //在这里写控制宏定义
-//#if UNITY_EDITOR
+#if UNITY_EDITOR
 #define ENABLE_LOG_Debug
 #define ENABLE_LOG_Info
-#define ENABLE_LOG_Warning
+#define ENABLE_LOG_Warning 
 #define ENABLE_LOG_Assert
-//#endif
+#endif
 
 #define ENABLE_LOG_Error
 #define ENABLE_LOG_Exception
+
+//using ZString = Cysharp.Text.ZString; //https://github.com/Cysharp/ZString
+using ZString = System.String;
 
 namespace FH
 {
     using System;
     using System.Diagnostics;
     using UnityEngine;
+    using System.Collections.Generic;
     using System.Runtime.CompilerServices;
-    using ZString = System.String;
-
 
     internal static class LogConditional
     {
-        private const string TRUE = "CSHARP_7_3_OR_NEWER"; //这个名字只要保证 编译的时候指定就行了
-        private const string FALSE = "FALSE"; //随意写一些, 只要编译的时候不指定就行了
+        private const string TRUE = "UNITY_5_3_OR_NEWER"; //这个名字只要保证 编译的时候指定就行了
+        private const string FALSE = "__FALSE"; //随意写一些, 只要编译的时候不指定就行了
 
 #if ENABLE_LOG_Debug
         public const string COND_DEBUG = TRUE;
@@ -76,6 +78,35 @@ namespace FH
 
         public static ELogMask UnityMask = ELogMask.All;
 
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnEnterPlayMode]
+        [UnityEditor.InitializeOnLoadMethod]
+#endif
+        public static void AutoInit()
+        {
+            //LogRecorder_Udp recorder_udp= new LogRecorder_Udp(LogRecorder_Udp.CreateRemoteIP("", 4));
+            LogRecorder_File recorder_file = new LogRecorder_File(LogRecorder_File.GetLogFileDirPath());
+            LogRecorderMgr.Init(new ILogRecorder[] { recorder_file });
+        }
+
+        public static void Init(bool enable_file = true, string upd_address = null, int udp_port = 1000)
+        {
+            List<ILogRecorder> recorder_list = new List<ILogRecorder>();
+            if (enable_file)
+            {
+                recorder_list.Add(new LogRecorder_File(LogRecorder_File.GetLogFileDirPath()));
+            }
+            if (!string.IsNullOrEmpty(upd_address))
+            {
+                var remote = LogRecorder_Udp.CreateRemoteIP(upd_address, udp_port);
+                if (remote != null)
+                {
+                    recorder_list.Add(new LogRecorder_Udp(remote));
+                }
+            }
+
+            LogRecorderMgr.Init(recorder_list.ToArray());
+        }
 
         public static ELogMask Lvl2Mask(ELogLvl lvl)
         {

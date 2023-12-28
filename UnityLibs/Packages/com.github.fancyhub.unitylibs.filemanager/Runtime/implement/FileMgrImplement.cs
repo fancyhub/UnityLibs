@@ -43,7 +43,7 @@ namespace FH.FileManagement
             //1. 加载 Manifest
             _Manifest_Base = _LoadBaseManifest();
             if (_Manifest_Base == null && !Application.isEditor)
-                FileLog._.E("加载本地{0} 失败", FileSetting.ManifestName);
+                FileLog._.E("加载本地{0} 失败", FileManifest.CDefaultFileName);
             _Manifest_Local = _LoadLocalManifest();
 
             //2. 收集文件
@@ -131,7 +131,7 @@ namespace FH.FileManagement
                 return false;
             }
 
-            System.IO.File.Move(FileSetting.CacheDir + FileSetting.ManifestUpgradeName, FileSetting.CacheDir + FileSetting.ManifestName);
+            System.IO.File.Move(FileSetting.LocalDir + FileSetting.ManifestUpgradeName, FileSetting.LocalDir + FileManifest.CDefaultFileName);
 
             _Manifest_Local = new_manifest;
             _Manifest_Current = new_manifest;
@@ -191,7 +191,7 @@ namespace FH.FileManagement
 
         private FileManifest _LoadUpgradeManifest()
         {
-            string file_path = FileSetting.CacheDir + FileSetting.ManifestUpgradeName;
+            string file_path = FileSetting.LocalDir + FileSetting.ManifestUpgradeName;
             if (!System.IO.File.Exists(file_path))
             {
                 FileLog._.D("新的FileManifest不存在 {0}", file_path);
@@ -205,7 +205,7 @@ namespace FH.FileManagement
 
         private FileManifest _LoadLocalManifest()
         {
-            string file_path = FileSetting.CacheDir + FileSetting.ManifestName;
+            string file_path = FileSetting.LocalDir + FileManifest.CDefaultFileName;
             if (!System.IO.File.Exists(file_path))
             {
                 FileLog._.D("缓存里面FileManifest不存在: {0}", file_path);
@@ -222,7 +222,7 @@ namespace FH.FileManagement
 
         private FileManifest _LoadBaseManifest()
         {
-            string file_path = FileSetting.StreamingAssetsDir + FileSetting.ManifestName;
+            string file_path = FileSetting.StreamingAssetsDir + FileManifest.CDefaultFileName;
             byte[] bytes = FH.SAFileSystem.ReadAllBytes(file_path);
             if (bytes == null)
             {

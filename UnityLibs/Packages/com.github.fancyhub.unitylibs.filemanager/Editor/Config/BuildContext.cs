@@ -12,15 +12,9 @@ using UnityEngine;
 using UnityEditor;
 using FH.Ed;
 namespace FH.FileManagement.Ed
-{
-   
+{   
     public sealed class BuildContext
     {
-        public BuildTarget BuildTarget;         
-
-        public string Target2Name()
-        {
-            return BuildTarget.Ext2Name();
-        }         
+        public BuildTarget BuildTarget;        
     }     
 }

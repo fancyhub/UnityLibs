@@ -1,18 +1,30 @@
 using FH;
+using FH.UI;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIViewTest : MonoBehaviour
 {
     public Canvas Canvas;
     private FH.UI.UIButtonView _btn;
-
+    private FH.UI.ScreenSafeAreaCalculator _screenSafeAreaCalculator;
     // Start is called before the first frame update
     void Start()
     {
         _btn = FH.UI.UIBaseView.CreateView<FH.UI.UIButtonView>(Canvas.transform);
         _btn.OnClick = _OnOpenView;
+        _screenSafeAreaCalculator = new FH.UI.ScreenSafeAreaCalculator(Canvas.GetComponent<CanvasScaler>());
+
+    }
+
+    public void Update()
+    {
+        if (_screenSafeAreaCalculator.CalcSafeArea(out var ui_resolution, out var safe_area))
+        {
+            UISafeAreaPanel.ChangeSafeArea(ui_resolution, safe_area, Canvas.transform);
+        }
     }
 
     public void OnEnable()
@@ -30,7 +42,7 @@ public class UIViewTest : MonoBehaviour
         {
             error = HttpDownloader.Download(url, local_path, (current, total) =>
             {
-                Debug.Log($"Download: {current}/{total} {(float)current/total}");
+                Debug.Log($"Download: {current}/{total} {(float)current / total}");
             }, 0, System.Threading.CancellationToken.None);
         },
         () =>

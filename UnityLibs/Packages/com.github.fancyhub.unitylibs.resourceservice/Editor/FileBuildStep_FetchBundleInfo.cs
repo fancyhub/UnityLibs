@@ -16,15 +16,14 @@ namespace FH.ResManagement.Ed
 {
     public class FileBuildStep_FetchBundleInfo : FH.FileManagement.Ed.BuildStep
     {
-        public string InputDir = "Bundle/Builder";
-        public string AssetGraphFileName = "graph.json";
+        public AssetBundleBuilderConfig ABBuilderConfig;
         [Header("eg: tag_a;tag_b")]
         public string BundleManifestTags = "base";
 
         public override List<BuildFileInfo> Build(BuildContext context)
-        {            
-            string dir = System.IO.Path.Combine(InputDir, context.Target2Name());
-            string path = System.IO.Path.Combine(dir, AssetGraphFileName);
+        {
+            string dir = ABBuilderConfig.GetOutputDir(context.BuildTarget);
+            string path = System.IO.Path.Combine(dir, AssetGraph.CDefaultName);
 
             AssetGraph graph = AssetGraph.LoadFromFile(path);
 

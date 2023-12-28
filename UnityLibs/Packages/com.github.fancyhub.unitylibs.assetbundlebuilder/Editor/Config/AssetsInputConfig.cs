@@ -27,8 +27,9 @@ namespace FH.AssetBundleBuilder.Ed
         public sealed class Item
         {
             public AssetPath<UnityEngine.Object> Asset;
+            public string SearchPattern = "*.*";
             public EAddressMode AddressMode;
-            public string BundleName;            
+            public string BundleName;
             public string Tags;
 
 
@@ -78,16 +79,16 @@ namespace FH.AssetBundleBuilder.Ed
         }
 
         public void GetTags(string asset_path, HashSet<string> tags)
-        {            
+        {
             _Dict.TryGetValue(asset_path, out var item);
             if (item == null || item.Tags.Length == 0)
                 return;
             foreach (var p in item.Tags)
             {
-                
+
                 tags.Add(p);
             }
-                
+
         }
 
         public void BuildCache()
@@ -113,7 +114,7 @@ namespace FH.AssetBundleBuilder.Ed
                 }
                 else if (System.IO.Directory.Exists(p.Asset.Path))
                 {
-                    foreach (var file in System.IO.Directory.GetFiles(p.Asset.Path, "*.*", System.IO.SearchOption.AllDirectories))
+                    foreach (var file in System.IO.Directory.GetFiles(p.Asset.Path, p.SearchPattern, System.IO.SearchOption.AllDirectories))
                     {
                         if (file.EndsWith(".meta"))
                             continue;

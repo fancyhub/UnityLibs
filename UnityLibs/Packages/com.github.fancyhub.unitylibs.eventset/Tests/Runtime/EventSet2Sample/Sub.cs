@@ -8,7 +8,7 @@ namespace FH.EventSet2Sample
         public PtrList _ptrlist;
         public void Start()
         {
-            LogRecorderMgr.Init();
+            Log.AutoInit();
         }
 
         public void OnEnable()

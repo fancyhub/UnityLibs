@@ -13,6 +13,8 @@ namespace FH.AssetBundleBuilder.Ed
     [Serializable]
     public sealed class AssetGraph
     {
+        public const string CDefaultName = "graph.json";
+
         public List<Asset> Assets = new List<Asset>();
         public List<Bundle> Bundles = new List<Bundle>();
 
@@ -45,7 +47,15 @@ namespace FH.AssetBundleBuilder.Ed
             public int[] Deps;
             public int[] Assets;
             public string[] Tags;
-        }         
+        }
+
+
+        public void SaveToDir(string dir)
+        {
+            string path = System.IO.Path.Combine(dir, CDefaultName);
+            string content = UnityEngine.JsonUtility.ToJson(this, true);
+            System.IO.File.WriteAllText(path, content);
+        }
 
         public void GetAssetPathListInBundle(int bundle_index, List<string> out_asset_path_list)
         {

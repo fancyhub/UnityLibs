@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: 
   Enable: 0
-  Tags:
-  - base
+  Tags: base
 --- !u!114 &-2045977716326401409
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31,7 +30,7 @@ MonoBehaviour:
   Name: Build Vfs Zip
   Enable: 1
   BuilderConfig: {fileID: 11400000, guid: 6391484e906e5344f8de151ba727b78c, type: 2}
-  OutputDir: Bundle/Builder
+  OutputDir: ProjTemp/Build/Output/{Target}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -44,7 +43,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57c2968c92f25554d86a4a41fdbf0957, type: 3}
   m_Name: FileBuilderConfig
   m_EditorClassIdentifier: 
-  OutputDir: Bundle/Server
+  _OutputDir: ProjTemp/Build/Server/{Target}
   DefaultExt: .bytes
   GenGZ: 1
   BuildSteps:
@@ -84,8 +83,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Fetch Bundle Asset Graph
   Enable: 0
-  InputDir: Bundle/Builder
-  AssetGraphFileName: graph.json
+  ABBuilderConfig: {fileID: 11400000, guid: afc6bfbe5ee333f45b93dbf1fae4c3ad, type: 2}
   BundleManifestTags: base
 --- !u!114 &6191568943613744893
 MonoBehaviour:

@@ -54,7 +54,6 @@ MonoBehaviour:
   m_Name: PostBuild_SaveGraph
   m_EditorClassIdentifier: 
   Enable: 1
-  FileName: graph.json
 --- !u!114 &-6171372005339789729
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -140,7 +139,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e144c75478c5b24197b999353964f8b, type: 3}
   m_Name: AssetBundleBuilderConfig
   m_EditorClassIdentifier: 
-  OutputDir: Bundle/Builder
+  _OutputDir: ProjTemp/Build/Output/{Target}
   Android:
     BuildOptions: 13056
   IOS:
@@ -263,5 +262,9 @@ MonoBehaviour:
   m_Name: AssetCollector_Folder
   m_EditorClassIdentifier: 
   Folders:
-  - Path: Assets/Res
-  - Path: Assets/Scenes/Scenes
+  - Folder:
+      Path: Assets/Res
+    SearchPattern: '*.*'
+  - Folder:
+      Path: Assets/Scenes
+    SearchPattern: '*.unity'

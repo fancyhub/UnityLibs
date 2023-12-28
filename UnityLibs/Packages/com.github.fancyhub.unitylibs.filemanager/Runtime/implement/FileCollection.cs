@@ -18,7 +18,7 @@ namespace FH.FileManagement
 
         public FileCollection()
         {
-            _CacheDir = FileSetting.CacheDir;
+            _CacheDir = FileSetting.LocalDir;
         }
 
         public void CollectCacheDir()

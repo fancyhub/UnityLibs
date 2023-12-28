@@ -71,7 +71,7 @@ namespace FH.UI
             ui_resolution = _LastUIResolution;
             ui_resolution_safe_area = _LastUIResolutionSafeArea;
 
-            Debug.Log($"UIResolution:{_LastUIResolution} \nScreenSize:{new Vector2(Screen.width, Screen.height)}, \nSafeArea:{_LastScreenSafeArea}\n UISafeArea:{_LastUIResolutionSafeArea}");
+            //Debug.Log($"UIResolution:{_LastUIResolution} \nScreenSize:{new Vector2(Screen.width, Screen.height)}, \nSafeArea:{_LastScreenSafeArea}\n UISafeArea:{_LastUIResolutionSafeArea}");
             return true;
         }
     }

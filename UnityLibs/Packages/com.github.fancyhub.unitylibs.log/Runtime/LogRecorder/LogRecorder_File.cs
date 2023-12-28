@@ -17,12 +17,47 @@ namespace FH
         public const string C_FILE_NAME = "applog.txt";
         public const string C_OLD_FILE_NAME = "applog_{0:yyyy_MM_dd_HH_mm_ss_fff}.txt";
         private string _file_path;
+        private string _dir_path;
         private StreamWriter _stream_writer;
 #if UNITY_EDITOR
         private bool _succ;
 #endif
 
-        public LogRecorder_File()
+        public LogRecorder_File(string log_dir_path)
+        {
+            _dir_path = log_dir_path;
+        }
+
+        public void Start()
+        {
+            _file_path = System.IO.Path.Combine(_dir_path, C_FILE_NAME);
+
+            if (System.IO.File.Exists(_file_path))
+            {
+                DateTime modify_time = System.IO.File.GetLastWriteTime(_file_path);
+                string dest_log_path = System.IO.Path.Combine(_dir_path, string.Format(C_OLD_FILE_NAME, modify_time));
+                System.IO.File.Move(_file_path, dest_log_path);
+            }
+
+            //3. Create New Log File
+            if (!System.IO.Directory.Exists(_dir_path))
+            {
+                Directory.CreateDirectory(_dir_path);
+                //UnityEngine.Debug.LogError("Log Dir not exist " + System.IO.Path.GetFullPath(dir));
+                //return;
+            }
+
+            var fileStream = new FileStream(_file_path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+            _stream_writer = new StreamWriter(fileStream);
+
+#if UNITY_EDITOR
+            _succ = true;
+            _stream_writer.Close();
+            _stream_writer = null;
+#endif
+        }
+
+        public static string GetLogFileDirPath()
         {
             //1. Dir
             string dir = "Logs";
@@ -41,32 +76,7 @@ namespace FH
                     dir = System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, dir);
                     break;
             }
-
-            //2. Move Old Log File
-            _file_path = System.IO.Path.Combine(dir, C_FILE_NAME);
-            if (System.IO.File.Exists(_file_path))
-            {
-                DateTime modify_time = System.IO.File.GetLastWriteTime(_file_path);
-                string dest_log_path = System.IO.Path.Combine(dir, string.Format(C_OLD_FILE_NAME, modify_time));
-                System.IO.File.Move(_file_path, dest_log_path);
-            }
-
-            //3. Create New Log File
-            if (!System.IO.Directory.Exists(dir))
-            {
-                Directory.CreateDirectory(dir);
-                //UnityEngine.Debug.LogError("Log Dir not exist " + System.IO.Path.GetFullPath(dir));
-                //return;
-            }
-
-            var fileStream = new FileStream(_file_path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-            _stream_writer = new StreamWriter(fileStream);
-
-#if UNITY_EDITOR
-            _succ = true;
-            _stream_writer.Close();
-            _stream_writer = null;
-#endif
+            return dir;
         }
 
         public void Record(List<string> messages)

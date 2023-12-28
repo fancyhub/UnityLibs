@@ -47,7 +47,7 @@ namespace FH
 
         private System.Collections.IEnumerator _Init()
         {
-            LogRecorderMgr.Init();
+            Log.AutoInit();
 
 
 #if UNITY_EDITOR
@@ -84,7 +84,7 @@ namespace FH
                 FileMgr.Init(FileMgrConfig);
 
                 IBundleMgr.IExternalLoader bundle_loader = new FH.SampleExternalLoader.BundleExternalLoader_FileMgr(FileMgr.Inst, FH.BundleManifest.DefaultFileName);
-                
+
                 BundleMgr.InitMgr(BundleMgrConfig, bundle_loader);
 
                 IResMgr.IExternalLoader res_loader = new FH.SampleExternalLoader.ResExternalLoader_Bundle(BundleMgr.Inst, _AtlasTag2Path);
@@ -122,6 +122,6 @@ namespace FH
                     }
                 }
             }
-        }      
+        }
     }
 }

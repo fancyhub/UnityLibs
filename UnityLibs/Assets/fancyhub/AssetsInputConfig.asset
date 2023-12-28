@@ -15,36 +15,43 @@ MonoBehaviour:
   Items:
   - Asset:
       Path: Assets/Res/UI/Atlas
+    SearchPattern: '*.*'
     AddressMode: 0
     BundleName: atlas
     Tags: base
   - Asset:
       Path: Assets/Res/UI/Prefab
+    SearchPattern: '*.*'
     AddressMode: 0
     BundleName: ui_prefab
     Tags: base
   - Asset:
       Path: Assets/Res/UI/Sprite
+    SearchPattern: '*.*'
     AddressMode: 0
     BundleName: sprite
     Tags: base
   - Asset:
       Path: Assets/Res/UI/Texture
+    SearchPattern: '*.*'
     AddressMode: 0
     BundleName: texture
     Tags: base
   - Asset:
       Path: Assets/Res/TestCycle
+    SearchPattern: '*.*'
     AddressMode: 0
     BundleName: ui_prefab
     Tags: base
   - Asset:
-      Path: Assets/Scenes/Scenes/a.unity
+      Path: Assets/Scenes/a.unity
+    SearchPattern: '*.*'
     AddressMode: 0
     BundleName: scene_b
     Tags: base
   - Asset:
-      Path: Assets/Scenes/Scenes/b.unity
+      Path: Assets/Scenes/b.unity
+    SearchPattern: '*.*'
     AddressMode: 0
     BundleName: scene_b
     Tags: base

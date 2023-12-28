@@ -19,10 +19,15 @@ namespace FH.FileManagement.Ed
         private static FileBuilderConfig _Default;
         public const string CPath = "Assets/fancyhub/FileBuilderConfig.asset";
 
-        public string OutputDir = "Bundle/Server";
+        [SerializeField]
+        private string _OutputDir = "ProjTemp/Build/Server/{Target}";
         public string DefaultExt = ".bytes";
         public bool GenGZ = false;
 
+        public string GetOutputDir(UnityEditor.BuildTarget target)
+        {
+            return _OutputDir.Replace("{Target}", target.ToString());
+        }
         [HideInInspector] public List<BuildStep> BuildSteps = new List<BuildStep>();
 
         [HideInInspector] public List<BuildCopyStreamingAsset> CopyStreamingAsset = new List<BuildCopyStreamingAsset>();

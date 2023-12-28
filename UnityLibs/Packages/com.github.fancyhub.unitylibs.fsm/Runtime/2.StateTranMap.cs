@@ -14,7 +14,7 @@ namespace FH
     /// <summary>
     /// 就是一个简单的状态迁移表, TState 可以是枚举
     /// </summary>
-    public class FsmStateTranMapSimple<TState> : IFsmStateTranMap<TState, TState> where TState : struct
+    public class FsmStateTranMapSimple<TState> : IFsmStateTranMap<TState, TState>
     {
         protected bool _AllowSameStateTran;
         protected TState _StartState;
@@ -53,7 +53,7 @@ namespace FH
             next_state = result;
             if (_AllowSameStateTran)
                 return true;
-            return state.GetHashCode() != result.GetHashCode();
+            return !MyEqualityComparer<TState>.Default.Equals(state, next_state);
         }
     }
 
@@ -61,52 +61,79 @@ namespace FH
     /// 状态迁移表，无状态的
     /// </summary>
     public class StateTranMap<TState, TResult> : IFsmStateTranMap<TState, TResult>
-        where TState : struct, IConvertible
-        where TResult : struct, IConvertible
     {
-        protected Dictionary<ulong, TState> _Dict;
+        protected struct InnerKey
+        {
+            public readonly TState State;
+            public readonly TResult Result;
+
+            public InnerKey(TState state, TResult result)
+            {
+                this.State = state;
+                this.Result = result;
+            }
+        }
+
+        protected sealed class InnerKeyComparer : IEqualityComparer<InnerKey>
+        {
+            public static InnerKeyComparer _ = new InnerKeyComparer();
+
+            public bool Equals(InnerKey x, InnerKey y)
+            {
+                if (MyEqualityComparer<TState>.Default.Equals(x.State, y.State)
+                    && MyEqualityComparer<TResult>.Default.Equals(x.Result, y.Result))
+                    return true;
+                return false;
+            }
+
+            public int GetHashCode(InnerKey obj)
+            {
+                return System.HashCode.Combine(
+                    MyEqualityComparer<TState>.Default.GetHashCode(obj.State),
+                    MyEqualityComparer<TResult>.Default.GetHashCode(obj.Result));
+            }
+        }
+
+        protected Dictionary<InnerKey, TState> _Dict;
         protected TState _StartState;
         public struct TranAddHelper
         {
-            public StateTranMap<TState, TResult> _map;
-            public TState _start;
-            public TranAddHelper(StateTranMap<TState, TResult> map, TState start)
+            private StateTranMap<TState, TResult> _Map;
+            private TState _State;
+            public TranAddHelper(StateTranMap<TState, TResult> map, TState state)
             {
-                _map = map;
-                _start = start;
+                _Map = map;
+                _State = state;
             }
 
             public TranAddHelper Add(TResult result, TState next)
             {
-                _map.AddTran(_start, result, next);
+                _Map.AddTran(_State, result, next);
                 return this;
             }
 
-            public TranAddHelper Next(TState start)
+            public TranAddHelper Next(TState state)
             {
-                return new TranAddHelper(_map, start);
+                return new TranAddHelper(_Map, state);
             }
         }
 
         public StateTranMap(TState start)
         {
-            _Dict = new Dictionary<ulong, TState>();
+            _Dict = new Dictionary<InnerKey, TState>(InnerKeyComparer._);
             _StartState = start;
         }
 
         public StateTranMap(TState start, int cap)
         {
             _StartState = start;
-            _Dict = new Dictionary<ulong, TState>(cap);
+            _Dict = new Dictionary<InnerKey, TState>(cap);
         }
 
         public bool Contains(TState state, TResult result)
         {
-            uint key1 = BitUtil.Struct2Uint(state);
-            uint key2 = BitUtil.Struct2Uint(result);
-            ulong key = BitUtil.MakePair(key1, key2);
-
-            return _Dict.TryGetValue(key, out var _);
+            InnerKey key = new InnerKey(state, result);
+            return _Dict.ContainsKey(key);
         }
 
         //开始
@@ -122,23 +149,13 @@ namespace FH
 
         }
 
-        //只有值发生变化的时候，才会返回true
+        /// <summary>
+        /// 完全按照表格,  不管 next_state 和 state是否相同, 由构建的时候决定的
+        /// </summary>        
         public virtual bool Next(TState state, TResult result, out TState next_state)
         {
-            uint key1 = BitUtil.Struct2Uint(state);
-            uint key2 = BitUtil.Struct2Uint(result);
-            ulong key = BitUtil.MakePair(key1, key2);
-
-            bool ret = _Dict.TryGetValue(key, out next_state);
-            if (!ret)
-                return false;
-            ulong key3 = BitUtil.Struct2Uint(next_state);
-            if (key1 == key3)
-            {
-                next_state = default;
-                return false;
-            }
-            return true;
+            InnerKey key = new InnerKey(state, result);
+            return _Dict.TryGetValue(key, out next_state);
         }
 
         public TranAddHelper Begin(TState start_state)
@@ -148,10 +165,7 @@ namespace FH
 
         public StateTranMap<TState, TResult> AddTran(TState state, TResult result, TState next_state)
         {
-            uint key1 = BitUtil.Struct2Uint(state);
-            uint key2 = BitUtil.Struct2Uint(result);
-            ulong key = BitUtil.MakePair(key1, key2);
-
+            InnerKey key = new InnerKey(state, result);
             _Dict.Add(key, next_state);
             return this;
         }
@@ -160,16 +174,15 @@ namespace FH
     /// <summary>
     /// 状态迁移表， 有状态的
     /// </summary>
-    public class StateTranMap2<TState, TResult> : StateTranMap<TState, TResult>
-        where TState : struct, IConvertible
-        where TResult : struct, IConvertible
+    public class StateTranMapHistory<TState, TResult> : StateTranMap<TState, TResult>
     {
         protected LinkedList<TState> _StateStack;
 
         //设置返回的 result 是什么
-        public int _BackResult = int.MinValue;
+        public TResult _BackResult = default;
+        public bool _HasBackResult = false;
 
-        public StateTranMap2(TState start)
+        public StateTranMapHistory(TState start)
             : base(start)
         {
             _StateStack = new LinkedList<TState>();
@@ -177,7 +190,8 @@ namespace FH
 
         public void SetBackResult(TResult result)
         {
-            _BackResult = BitUtil.Struct2Int(result);
+            _BackResult = result;
+            _HasBackResult = true;
         }
 
         public override bool Start(out TState state)
@@ -196,8 +210,7 @@ namespace FH
         //只有值发生变化的时候，才会返回true
         public override bool Next(TState state, TResult result, out TState next_state)
         {
-            int int_result = BitUtil.Struct2Int(result);
-            if (int_result == _BackResult)
+            if (_HasBackResult && MyEqualityComparer<TResult>.Default.Equals(result, _BackResult))
             {
                 return _StateStack.ExtPopLast(out next_state);
             }

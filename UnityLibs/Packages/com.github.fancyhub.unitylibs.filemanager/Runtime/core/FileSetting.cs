@@ -84,30 +84,53 @@ namespace FH
         }
         #endregion
 
-
-        private static string _CacheDir;
-        public static string CacheDir
+        private static string _PersistentDir;
+        public static string PersistentDir
         {
             get
             {
-                if (_CacheDir != null)
-                    return _CacheDir;
+                if (_PersistentDir != null)
+                    return _PersistentDir;
 
                 if (Application.isEditor || Platform == EFilePlatform.Win)
-                    _CacheDir = System.IO.Path.Combine("Bundle/Cache", Platform.ToString());
+                    _PersistentDir = System.IO.Path.Combine("ProjTemp/Persistent", Platform.ToString());
                 else
-                    _CacheDir = System.IO.Path.Combine(Application.persistentDataPath, "Files");
+                    _PersistentDir = Application.persistentDataPath;
 
-                _CacheDir = System.IO.Path.GetFullPath(_CacheDir);
-                _CacheDir = _CacheDir.Replace("\\", "/");
-                if (!_CacheDir.EndsWith("/"))
-                    _CacheDir += "/";
-
-                FileUtil.CreateDir(_CacheDir);
-                return _CacheDir;
+                _PersistentDir = System.IO.Path.GetFullPath(_LocalDir);
+                _PersistentDir = _PersistentDir.Replace("\\", "/");
+                if (!_PersistentDir.EndsWith("/"))
+                    _PersistentDir += "/";
+                return _PersistentDir;
             }
         }
 
+
+        private static string _LocalDir;
+        public static string LocalDir
+        {
+            get
+            {
+                if (_LocalDir != null)
+                    return _LocalDir;
+                _LocalDir = PersistentDir + "/Files/";
+                FileUtil.CreateDir(_LocalDir);
+                return _LocalDir;
+            }
+        }
+
+        private static string _DownloadDir;
+        public static string DownloadDir
+        {
+            get
+            {
+                if (_DownloadDir != null)
+                    return _DownloadDir;
+                _DownloadDir = PersistentDir + "/Download/";
+                FileUtil.CreateDir(_DownloadDir);
+                return _DownloadDir;
+            }
+        }
 
         private static string _StreamingAssetsDir;
         /// <summary>
@@ -128,7 +151,7 @@ namespace FH
         }
 
 
-        public const string ManifestName = "file_manifest.json";
+        
         public const string ManifestUpgradeName = "file_manifest_upgrade.json";
     }
 }

@@ -19,17 +19,18 @@ namespace FH.AssetBundleBuilder.Ed
         private static AssetBundleBuilderConfig _Default;
         public const string CPath = "Assets/fancyhub/AssetBundleBuilderConfig.asset";
 
-        public string OutputDir;
+        [SerializeField]
+        private string _OutputDir = "ProjTemp/Build/Output/{Target}";
 
         public BuilderParam Android;
         public BuilderParam IOS;
         public BuilderParam Windows;
         public BuilderParam OSX;
 
-         
+
         public string GetOutputDir(UnityEditor.BuildTarget target)
         {
-            return System.IO.Path.Combine(OutputDir, target.Ext2Name());
+            return _OutputDir.Replace("{Target}", target.Ext2Name());
         }
 
         [HideInInspector] public List<BuilderAssetCollector> AssetCollector = new List<BuilderAssetCollector>();

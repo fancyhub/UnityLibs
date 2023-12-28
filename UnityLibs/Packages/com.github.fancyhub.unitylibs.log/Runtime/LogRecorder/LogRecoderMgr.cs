@@ -13,6 +13,7 @@ namespace FH
 {
     public interface ILogRecorder : IDisposable
     {
+        public void Start();
         public void Record(List<string> messages);
     }
 
@@ -25,25 +26,27 @@ namespace FH
         private Queue<string> _msg_queue;
         private AutoResetEvent _auto_reset_evt;
 
-#if UNITY_EDITOR
-        [UnityEditor.InitializeOnEnterPlayMode]
-        [UnityEditor.InitializeOnLoadMethod]
-#endif
-        public static void Init()
+        public static void Init(ILogRecorder[] log_recorders)
         {
             if (_ != null)
                 return;
 
             LogRecorderMgr mgr = new LogRecorderMgr();
-            mgr._recorders.Add(new LogRecorder_File());
-            //_._recorders.Add(new LogRecorder_Udp());
+
+            foreach(var p in log_recorders)
+            {
+                mgr._recorders.Add(p);
+            }
 
             mgr._auto_reset_evt = new AutoResetEvent(false);
             mgr._msg_queue = new Queue<string>(1000);
             mgr._CreateThread();
+            foreach (var p in log_recorders)
+            {
+                p.Start();
+            }
+
             _ = mgr;
-
-
             Record($"================ Start {DateTime.Now:yy_MM_dd HH:mm:ss:fff} ============\n\tIsPlaying:{UnityEngine.Application.isPlaying} \n\tVersion:{UnityEngine.Application.version} \n\tUnityVersion:{UnityEngine.Application.unityVersion}");
         }
 

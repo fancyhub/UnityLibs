@@ -52,6 +52,12 @@
         "com.github.fancyhub.unitylibs.collection": "1.0.0"
       }
     },
+    "com.github.fancyhub.unitylibs.filedownloadmanager": {
+      "version": "file:com.github.fancyhub.unitylibs.filedownloadmanager",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.github.fancyhub.unitylibs.filemanager": {
       "version": "file:com.github.fancyhub.unitylibs.filemanager",
       "depth": 0,

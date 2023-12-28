@@ -35,11 +35,15 @@ namespace FH
 
         public int PtrVer { get; set; }
 
-        public FsmNoVT(EFsmMode mode = EFsmMode.sync, TStateTranMap state_tran_map = default)
+        public FsmNoVT(
+            EFsmMode mode = EFsmMode.sync,
+            TStateTranMap state_tran_map = default,
+            IFsmStateListener<TState, TMsg> listener = default)
         {
             _Mode = mode;
             _MsgQueue = new LinkedList<TMsg>();
             _StateTranMap = state_tran_map;
+            _Listener = listener;
         }
 
         public TStateTranMap StateTranMap
@@ -157,8 +161,11 @@ namespace FH
     /// </summary>
     public class FsmNoVT<TState, TMsg> : FsmNoVT<TState, TMsg, IFsmStateTranMap<TState, TMsg>>
     {
-        public FsmNoVT(EFsmMode mode = EFsmMode.sync, IFsmStateTranMap<TState, TMsg> state_tran_map = default)
-            : base(mode, state_tran_map)
+        public FsmNoVT(
+            EFsmMode mode = EFsmMode.sync,
+            IFsmStateTranMap<TState, TMsg> state_tran_map = default,
+            IFsmStateListener<TState, TMsg> listener = default)
+            : base(mode, state_tran_map, listener)
         {
         }
     }

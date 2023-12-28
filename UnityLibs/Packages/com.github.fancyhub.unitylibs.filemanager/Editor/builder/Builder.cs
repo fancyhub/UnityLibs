@@ -33,16 +33,15 @@ namespace FH.FileManagement.Ed
             }
 
             //2. 复制到Output
-            string dst_dir = System.IO.Path.Combine(config.OutputDir, context.Target2Name());
+            string dst_dir = config.GetOutputDir(context.BuildTarget);
             FileManifest file_manifest = _CopyFiles(all_file, dst_dir, config.GenGZ, config.DefaultExt);
             file_manifest.Version = VersionInfo.EdCreateResVersionInfo().ToResVersion();
 
 
-            //3. 保存 File Manifest
-            string file_manifest_path = System.IO.Path.Combine(dst_dir, FileSetting.ManifestName);
+            //3. 保存 File Manifest            
+            string file_manifest_path = System.IO.Path.Combine(dst_dir, FileManifest.CDefaultFileName);
             file_manifest_path = _FileNameAppendHash(file_manifest_path, file_manifest.Version);
-            string content = UnityEngine.JsonUtility.ToJson(file_manifest, true);
-            System.IO.File.WriteAllText(file_manifest_path, content);
+            file_manifest.SaveTo(file_manifest_path);
 
 
             //4. save last version
@@ -59,7 +58,7 @@ namespace FH.FileManagement.Ed
 
             //6 复制FileManifest
             {
-                string dst_file = System.IO.Path.Combine(streamingassets_dir, FileSetting.ManifestName);
+                string dst_file = System.IO.Path.Combine(streamingassets_dir, FileManifest.CDefaultFileName);
                 System.IO.File.Copy(file_manifest_path, dst_file, true);
             }
         }

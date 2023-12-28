@@ -7,35 +7,39 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
-using System.Threading;
-
 
 namespace FH
 {
-     
-     
+
     public class LogRecorder_Udp : ILogRecorder
     {
         public const int C_UDP_PACKAGE_SIZE = 600;
-        public const string C_REMOTE_ADDRESS = "";
-        public const int C_REMOTE_PORT = 1000;
-
+        
         private StringWriter _string_writer;
         public System.Net.Sockets.UdpClient _client;
         public System.Net.IPEndPoint _remote;
-        public System.Net.IPAddress[] _remote_address;
 
-        public LogRecorder_Udp()
+        public LogRecorder_Udp(IPEndPoint remote)
         {
-            var host_entry = Dns.GetHostEntry(C_REMOTE_ADDRESS);
-            if (host_entry == null || host_entry.AddressList == null || host_entry.AddressList.Length == 0)
-                return;
-            _remote_address = host_entry.AddressList;
-            _client = new System.Net.Sockets.UdpClient();
-            _remote = new IPEndPoint(_remote_address[0], C_REMOTE_PORT);
+            _remote = remote;
             _string_writer = new StringWriter(C_UDP_PACKAGE_SIZE, System.Text.Encoding.UTF8);
+        }
+
+        public static IPEndPoint CreateRemoteIP(string address,int port)
+        {
+            var host_entry = Dns.GetHostEntry(address);
+            if (host_entry == null )
+                return null;
+            System.Net.IPAddress[] address_list = host_entry.AddressList;
+            if (address_list == null || address_list.Length == 0)
+                return null;
+            return new IPEndPoint(address_list[0], port);
+        }
+
+        public void Start()
+        {
+            _client = new System.Net.Sockets.UdpClient();
         }
 
         public void Record(List<string> msg_list)

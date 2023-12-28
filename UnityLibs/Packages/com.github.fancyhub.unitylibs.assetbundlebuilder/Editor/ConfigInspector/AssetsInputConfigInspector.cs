@@ -17,8 +17,8 @@ namespace FH.AssetBundleBuilder.Ed
     [CustomEditor(typeof(AssetsInputConfig))]
     public class AssetsInputConfigInspector : UnityEditor.Editor
     {
-        private static string[] _HeaderList = new string[] { "Asset(Drag)", "AddressMode", "BundleName", "Tags(eg: tag_a;tag_b)" };
-        private static string[] _NameList = new string[] { "Asset", "AddressMode", "BundleName", "Tags" };
+        private static string[] _HeaderList = new string[] { "Asset(Drag)", "SearchPattern", "AddressMode", "BundleName", "Tags(eg: tag_a;tag_b)" };
+        private static string[] _NameList = new string[] { "Asset", "SearchPattern", "AddressMode", "BundleName", "Tags" };
 
         private ReorderableList _List;
 

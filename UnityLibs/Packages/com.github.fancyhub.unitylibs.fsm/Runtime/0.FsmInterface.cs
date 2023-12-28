@@ -44,14 +44,14 @@ namespace FH
     public interface IFsmStateTranMap<TState, TResult>
     {
         bool Start(out TState start_state);
-        bool Next(TState state, TResult result, out TState next_status);
+        bool Next(TState state, TResult result, out TState next_state);
         void Reset();
     }
 
     /// <summary>
     /// 里面需要含有 TransMap了
     /// </summary>
-    public interface IFsm<TState, TMsg, TResult, TStateTranMap> : IFsm<TState, TMsg> 
+    public interface IFsm<TState, TMsg, TResult, TStateTranMap> : IFsm<TState, TMsg>
         where TStateTranMap : IFsmStateTranMap<TState, TResult>
     {
         TStateTranMap StateTranMap { get; set; }
