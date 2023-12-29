@@ -31,10 +31,16 @@ namespace FH.UI
                 return;
 
             UnBind();
-            if (UIRedDotData.Reg(_BindPath, this))
+            if (UIRedDotMgr.Reg(_BindPath, this))
+            {
                 _HasReg = true;
+                OnEvent(_BindPath, UIRedDotMgr.Get(_BindPath));
+            }
             else
+            {
                 OnEvent(_BindPath, 0);
+            }
+
         }
 
         public void OnDisable()
@@ -78,7 +84,7 @@ namespace FH.UI
         public void Bind()
         {
             UnBind();
-            if (UIRedDotData.Reg(_BindPath, this))
+            if (UIRedDotMgr.Reg(_BindPath, this))
                 _HasReg = true;
             else
                 OnEvent(_BindPath, 0);
@@ -89,7 +95,7 @@ namespace FH.UI
         {
             if (!_HasReg)
                 return;
-            UIRedDotData.UnReg(_BindPath, this);
+            UIRedDotMgr.UnReg(_BindPath, this);
             _HasReg = false;
 
             OnEvent(_BindPath, 0);
@@ -99,7 +105,7 @@ namespace FH.UI
         {
             if (!_HasReg)
                 return;
-            UIRedDotData.UnReg(_BindPath, this);
+            UIRedDotMgr.UnReg(_BindPath, this);
             _HasReg = false;
         }
 

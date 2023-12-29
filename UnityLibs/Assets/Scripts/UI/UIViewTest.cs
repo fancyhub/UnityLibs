@@ -13,10 +13,14 @@ public class UIViewTest : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        UIObjFinder.Show();
+
         _btn = FH.UI.UIBaseView.CreateView<FH.UI.UIButtonView>(Canvas.transform);
         _btn.OnClick = _OnOpenView;
         _screenSafeAreaCalculator = new FH.UI.ScreenSafeAreaCalculator(Canvas.GetComponent<CanvasScaler>());
 
+        UIRedDotMgr.Init();
+        UIRedDotMgr.Link("root.test.scene", "vroot.test.scene.vscene");
     }
 
     public void Update()
@@ -25,12 +29,16 @@ public class UIViewTest : MonoBehaviour
         {
             UISafeAreaPanel.ChangeSafeArea(ui_resolution, safe_area, Canvas.transform);
         }
-
-        UIRedDotData.Inst.Update();
+        UIRedDotMgr.Update();
     }
 
     public void OnEnable()
     {
+    }
+
+    public void OnApplicationQuit()
+    {
+        UIRedDotMgr.Clear();
     }
 
     public void _DownloadFile()
@@ -128,14 +136,33 @@ public sealed class UIPageScene : CPoolItemBase
         var scene_b = SceneMgr.LoadScene("Assets/Scenes/a.unity", true);
 
 
-        _SceneRefList.Add(scene_a);
-        _SceneRefList.Add(scene_b);
-        UIRedDotData.Set("test.scenecount", _SceneRefList.Count);         
+        for (; ; )
+        {
+            if (scene_a.IsDone)
+            {
+                _SceneRefList.Add(scene_a);
+                UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
+                break;
+            }
+            yield return string.Empty;
+        }
+
+        for (; ; )
+        {
+            if (scene_b.IsDone)
+            {
+                _SceneRefList.Add(scene_b);
+                UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
+                break;
+            }
+            yield return string.Empty;
+        }
     }
 
     private void _OnCloseClick()
     {
         this.Destroy();
+        UIRedDotMgr.Set("root.test.scene", 0);
     }
 
     protected override void OnPoolRelease()
@@ -163,7 +190,7 @@ public sealed class UIPageScene : CPoolItemBase
         _SceneRefList[0].Unload();
         _SceneRefList.RemoveAt(0);
 
-        UIRedDotData.Set("test.scenecount", _SceneRefList.Count);
+        UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
     }
 
 
@@ -173,6 +200,6 @@ public sealed class UIPageScene : CPoolItemBase
             return;
         _SceneRefList[_SceneRefList.Count - 1].Unload();
         _SceneRefList.RemoveAt(_SceneRefList.Count - 1);
-        UIRedDotData.Set("test.scenecount", _SceneRefList.Count);
+        UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
     }
 }

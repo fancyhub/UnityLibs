@@ -279,7 +279,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 264484100873295935, guid: ac2baeed247956f4da31dbe09275feae, type: 3}
       propertyPath: _Path
-      value: test.scenecount
+      value: vroot.test.scene
       objectReference: {fileID: 0}
     - target: {fileID: 264484100873295935, guid: ac2baeed247956f4da31dbe09275feae, type: 3}
       propertyPath: _AutoBind
@@ -369,6 +369,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: RedDotCommon
       objectReference: {fileID: 0}
+    - target: {fileID: 4120992521279711619, guid: ac2baeed247956f4da31dbe09275feae, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -389,7 +393,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 264484100873295935, guid: ac2baeed247956f4da31dbe09275feae, type: 3}
       propertyPath: _Path
-      value: test.scenecount
+      value: root.test.scene
       objectReference: {fileID: 0}
     - target: {fileID: 264484100873295935, guid: ac2baeed247956f4da31dbe09275feae, type: 3}
       propertyPath: _AutoBind

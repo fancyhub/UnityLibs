@@ -3,5 +3,8 @@ using System.Collections.Generic;
 
 namespace FH.UI
 {
-    public sealed class UIRedDotLog : TagLoggerT<UIRedDotLog> { }
+    public sealed class UIRedDotLog : TagLoggerT<UIRedDotLog>
+    {
+
+    }
 }

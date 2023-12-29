@@ -5,25 +5,22 @@
  * Desc    : 
 *************************************************************************************/
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-
 namespace FH
 {
     public sealed class ValueTree<T> : IPoolItem, ICPtr
     {
+        public const char CPathSeparator = '.';
+
+        
+        #region IPoolItem, ICPtr
         private IPool ___pool = null;
         private bool ___in_pool = false;
         IPool IPoolItem.Pool { get => ___pool; set => ___pool = value; }
         bool IPoolItem.InPool { get => ___in_pool; set => ___in_pool = value; }
-
         private int ___ptr_ver = 0;
         int ICPtr.PtrVer => ___ptr_ver;
-
-        public const char C_PATH_SPLIT = '.';
+        #endregion
+                
 
         public T Data { get; set; }
         //自己在父节点的名字
@@ -39,7 +36,6 @@ namespace FH
         {
             return _Children.ContainsKey(key);
         }
-
 
         public Idx Key { get { return _Key; } }
 
@@ -103,12 +99,12 @@ namespace FH
                 if (string.IsNullOrEmpty(path))
                     return null;
 
-                if (path.IndexOf(C_PATH_SPLIT) < 0)
+                if (path.IndexOf(CPathSeparator) < 0)
                     return Get(path, false);
 
                 Str str = path;
                 ValueTree<T> v = this;
-                foreach (var p in str.Split(C_PATH_SPLIT))
+                foreach (var p in str.Split(CPathSeparator))
                 {
                     v = v.Get(p, false);
                     if (v == null)
@@ -121,7 +117,7 @@ namespace FH
                 if (string.IsNullOrEmpty(path))
                     return;
 
-                if (path.IndexOf(C_PATH_SPLIT) < 0)
+                if (path.IndexOf(CPathSeparator) < 0)
                 {
                     Set(path, value);
                     return;
@@ -129,7 +125,7 @@ namespace FH
 
                 Str str = path;
                 ValueTree<T> v = this;
-                foreach (var p in str.Split(C_PATH_SPLIT))
+                foreach (var p in str.Split(CPathSeparator))
                     v = v.Get(p, true);
 
                 ValueTree<T> parent = v._Parent;
@@ -217,7 +213,7 @@ namespace FH
                 return null;
 
             ValueTree<T> temp = root;
-            foreach (var sub in path.Split(ValueTree<T>.C_PATH_SPLIT))
+            foreach (var sub in path.Split(ValueTree<T>.CPathSeparator))
             {
                 temp = temp.Get(sub, auto_create);
                 if (temp == null)

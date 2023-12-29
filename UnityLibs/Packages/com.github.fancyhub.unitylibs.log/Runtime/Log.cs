@@ -705,7 +705,7 @@ namespace FH
 
     public abstract class TagLoggerT<TSub> where TSub : new()
     {
-        public static string Tag = nameof(TSub);
+        public static string Tag = typeof(TSub).Name;
         public static ELogMask AllowMask = ELogMask.Info | ELogMask.Warning | ELogMask.Assert | ELogMask.Error | ELogMask.Exception;
         public static ELogMask UnityMask = AllowMask;
         public static ELogMask TraceMask = AllowMask;

@@ -22,68 +22,65 @@ namespace FH.UI
         }
 
         public const int C_COUNT_MAX = 100;
-        public Dictionary<Str, HashSet<Str>> _virtual_link;
-        public UIRedDotTree _rd_tree;
+        private Dictionary<Str, HashSet<Str>> _RealPath2VirtualPathMap;
+        private UIRedDotTree _Tree;
         public UIRedDotVirual(UIRedDotTree tree)
         {
-            _rd_tree = tree;
-            _virtual_link = new Dictionary<Str, HashSet<Str>>(StrEqualityComparer._);
+            _Tree = tree;
+            _RealPath2VirtualPathMap = new Dictionary<Str, HashSet<Str>>(StrEqualityComparer._);
         }
 
-        public HashSet<Str> Find(Str path)
+        public HashSet<Str> Find(Str real_path)
         {
-            _virtual_link.TryGetValue(path, out var ret);
+            _RealPath2VirtualPathMap.TryGetValue(real_path, out var ret);
             return ret;
         }
 
-        public bool Add(Str real_path, Str virtual_path, List<(Str, int)> out_change_list)
+        public bool Link(string real_path, string virtual_path, List<(Str, int)> out_change_list)
         {
-            if (real_path.IsEmpty() || virtual_path.IsEmpty())
+            if (string.IsNullOrEmpty(real_path) || string.IsNullOrEmpty(virtual_path))
                 return false;
 
-            _virtual_link.TryGetValue(real_path, out HashSet<Str> list);
+            _RealPath2VirtualPathMap.TryGetValue(real_path, out HashSet<Str> list);
             if (list == null)
             {
                 list = new HashSet<Str>(StrEqualityComparer._);
-                _virtual_link.Add(real_path, list);
+                _RealPath2VirtualPathMap.Add(real_path, list);
             }
             list.Add(virtual_path);
 
-            if (_rd_tree.TryGet(real_path, out var src_data))
+            if (_Tree.TryGet(real_path, out var src_data))
             {
-                _rd_tree.Set(virtual_path, src_data.Value, EUIRedDotDataType.VirtualNode);
+                _Tree.Set(virtual_path, src_data.Value, EUIRedDotNodeType.VirtualNode);
                 out_change_list.Add((virtual_path, src_data.Value));
-                _rd_tree.UpdateParent(virtual_path, out_change_list);
+                _Tree.UpdateParent(virtual_path, out_change_list);
             }
             else
             {
-                _rd_tree.Set(virtual_path, 0, EUIRedDotDataType.VirtualNode);
+                _Tree.Set(virtual_path, 0, EUIRedDotNodeType.VirtualNode);
                 out_change_list.Add((virtual_path, 0));
-                _rd_tree.UpdateParent(virtual_path, out_change_list);
+                _Tree.UpdateParent(virtual_path, out_change_list);
             }
             return true;
         }
 
-        public bool Remove(Str real_path, Str virtual_path, List<(Str, int)> out_change_list)
+        public bool Unlink(string real_path, string virtual_path, List<(Str path, int value)> out_change_list)
         {
-            if (real_path.IsEmpty() || virtual_path.IsEmpty())
+            if (string.IsNullOrEmpty(real_path) || string.IsNullOrEmpty(virtual_path))
                 return false;
 
-            _virtual_link.TryGetValue(real_path, out HashSet<Str> list);
-            if (list == null)
+            _RealPath2VirtualPathMap.TryGetValue(real_path, out HashSet<Str> virtual_path_set);
+            if (virtual_path_set == null || !virtual_path_set.Remove(virtual_path))
                 return false;
 
-            list.Remove(virtual_path);
-            if (list.Count == 0)
-            {
-                _virtual_link.Remove(real_path);
-            }
+            if (virtual_path_set.Count == 0)
+                _RealPath2VirtualPathMap.Remove(real_path);
 
-            _rd_tree.Delete(virtual_path, out_change_list);
+            _Tree.Delete(virtual_path, out_change_list);
             return true;
         }
 
-        public void Update(List<(Str, int)> inout_change_list)
+        public void Update(List<(Str path, int value)> inout_change_list)
         {
             int count = inout_change_list.Count;
             //更新所有的虚拟节点
@@ -92,18 +89,20 @@ namespace FH.UI
                 if (i >= inout_change_list.Count)
                     break;
 
-                var data = inout_change_list[i];
-                HashSet<Str> vir_set = Find(data.Item1);
-                if (vir_set == null)
+                var item = inout_change_list[i];
+                HashSet<Str> virtual_path_set = Find(item.path);
+                if (virtual_path_set == null)
                     continue;
-                foreach (var vir_path in vir_set)
+
+                foreach (Str virtual_path in virtual_path_set)
                 {
-                    if (!_rd_tree.Set(vir_path, data.Item2))
+                    if (!_Tree.Set(virtual_path, item.value))
                         continue;
 
                     //虚拟节点不要发出消息
-                    //_changed_list.Add((vir_path, data.Item2));
-                    _rd_tree.UpdateParent(vir_path, inout_change_list);
+                    //inout_change_list.Add((virtual_path, item.value));
+
+                    _Tree.UpdateParent(virtual_path, inout_change_list);
                 }
 
                 if (count > (inout_change_list.Count + C_COUNT_MAX))

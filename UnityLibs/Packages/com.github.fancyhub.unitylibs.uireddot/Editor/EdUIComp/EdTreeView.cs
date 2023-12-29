@@ -40,12 +40,12 @@ namespace FH.UI.Ed
 
             public void SetData(ValueTree<T> node_val, IEdTreeViewData<T> data_getter)
             {
+                children.Clear();
                 _node_val = node_val;
                 _data_getter = data_getter;
                 if (_node_val == null)
                 {
-                    displayName = "";
-                    children.Clear();
+                    displayName = "";                    
                     return;
                 }
 
@@ -55,33 +55,13 @@ namespace FH.UI.Ed
                     icon = data_getter.GetIcon(node_val);
                 }
 
-                //1. 覆盖并创建新的子节点
-                int now_children_count = children.Count;
-                int index = 0;
                 foreach (var p in _node_val.GetChildren())
                 {
-                    EdTreeViewItem sub_item = null;
-                    if (index >= now_children_count)
-                    {
-                        sub_item = new EdTreeViewItem();
-                        sub_item.depth = depth + 1;
-                        AddChild(sub_item);
-                    }
-                    else
-                    {
-                        sub_item = children[index] as EdTreeViewItem;
-                    }
-
+                    EdTreeViewItem sub_item = new EdTreeViewItem();
+                    sub_item.depth = depth + 1;
                     sub_item.SetData(p.Value, _data_getter);
-                }
-
-                //2. 删除多余的节点
-                int data_count = _node_val.GetChildren().Count;
-                now_children_count = children.Count;
-                for (int i = now_children_count - 1; i >= data_count; i--)
-                {
-                    children.RemoveAt(i);
-                }
+                    AddChild(sub_item);
+                }               
             }
         }
 
@@ -244,7 +224,6 @@ namespace FH.UI.Ed
     {
         public EdTreeView<T> _tree_view;
         public SearchField _search_field;
-        public ValueTree<T> _root;
 
         public Action<ValueTree<T>> EvtItemClick
         {
@@ -262,7 +241,6 @@ namespace FH.UI.Ed
         {
             _search_field = new SearchField();
             _tree_view = new EdTreeView<T>();
-            _root = ValueTree<T>.Create();
         }
 
         public void SetData(ValueTree<T> data, IEdTreeViewData<T> data_getter)

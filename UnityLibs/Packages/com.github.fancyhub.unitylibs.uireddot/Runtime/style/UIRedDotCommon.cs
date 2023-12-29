@@ -18,8 +18,9 @@ namespace FH.UI
 
         protected override void OnEvent(Str key, int val)
         {
-            if (_obj != null && _obj != this.gameObject)
-                _obj.SetActive(val > 0);
+            if (_obj != null )            
+                _obj.SetActive(val > 0);           
+                
 
             if (_text != null)
                 _text.text = val.ToString();
