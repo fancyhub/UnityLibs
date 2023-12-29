@@ -7,15 +7,34 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace FH.UI
 {
-#if UNITY_EDITOR
+
     /// <summary>
     /// 编辑模式下,鼠标 中键 选中可点击对象
     /// </summary>
     public class UIObjFinder : MonoBehaviour
     {
+        [Conditional("UNITY_EDITOR")]
+        public static void Show()
+        {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                return;
+
+            if (_ != null)
+                return;
+
+            GameObject obj = new GameObject("UIObjFinder");
+            obj.hideFlags = HideFlags.HideInHierarchy;
+            obj.AddComponent<UIObjFinder>();
+            Object.DontDestroyOnLoad(obj);
+#endif
+        }
+
+#if UNITY_EDITOR
         private static UIObjFinder _;
 
         public List<RaycastResult> _ray_list;
@@ -30,19 +49,7 @@ namespace FH.UI
             _ = this;
         }
 
-        public static void Show()
-        {
-            if (!Application.isPlaying)
-                return;
-
-            if (_ != null)
-                return;
-
-            GameObject obj = new GameObject("UIObjFinder");
-            obj.hideFlags = HideFlags.HideInHierarchy;
-            obj.AddComponent<UIObjFinder>();
-            Object.DontDestroyOnLoad(obj);
-        }
+        
 
         public void LateUpdate()
         {
@@ -113,7 +120,7 @@ namespace FH.UI
             pos = Input.mousePosition;
             return true;
         }
-    }
 #endif
+    }
 }
 
