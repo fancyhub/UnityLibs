@@ -32,8 +32,8 @@ namespace FH.UI.ViewGenerate.Ed
 
             List<EdUIViewDesc> all_desc = _CodeAnylyser.ParseAll(config.Csharp.CodeFolder);
 
-            _DBDesc = new EdUIViewDescDB(config, all_desc);
-            _Context = new EdUIViewGenContext(_DBDesc);
+            _DBDesc = new EdUIViewDescDB(all_desc);
+            _Context = new EdUIViewGenContext(config, _DBDesc);
             _Exporters = new List<ICodeExporter>()
             {
                 new CodeExporter_CSharpRes(config.Csharp),
@@ -99,11 +99,12 @@ namespace FH.UI.ViewGenerate.Ed
             HashSet<string> validate_file_names = new HashSet<string>();
             foreach (var p in _DBDesc.GetAllDesc())
             {
-                validate_file_names.Add(p.GetCsFileNameRes());
-                validate_file_names.Add(p.GetCsFileNameRes() + ".meta");
+                string class_name = _Config.Csharp.GenClassName(p.PrefabName);
+                validate_file_names.Add(class_name + UIViewGeneratorConfig.CSharpConfig.ResSuffix);
+                validate_file_names.Add(class_name + UIViewGeneratorConfig.CSharpConfig.ResSuffix + ".meta");
 
-                validate_file_names.Add(p.GetCsFileNameExt());
-                validate_file_names.Add(p.GetCsFileNameExt() + ".meta");
+                validate_file_names.Add(class_name + UIViewGeneratorConfig.CSharpConfig.ExtSuffix);
+                validate_file_names.Add(class_name + UIViewGeneratorConfig.CSharpConfig.ExtSuffix + ".meta");
             }
 
             string[] files = System.IO.Directory.GetFiles(_Config.Csharp.CodeFolder);
@@ -114,6 +115,6 @@ namespace FH.UI.ViewGenerate.Ed
                     continue;
                 File.Delete(file_name);
             }
-        }       
+        }
     }
 }

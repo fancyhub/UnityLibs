@@ -26,7 +26,11 @@ namespace FH
         {
             ZipArchive zipArchive = ZipFile.OpenRead(file_path);
             if (zipArchive == null)
+            {
+                VfsLog._.E("加载失败 {0}:{1}", name, file_path);
                 return null;
+            }
+
             return new VirtualFileSystem_Zip(name, zipArchive);
         }
 
@@ -45,16 +49,24 @@ namespace FH
         public Stream OpenRead(string file_path)
         {
             ZipArchiveEntry entry = _ZipArchive.GetEntry(file_path);
-            if (entry != null)
-                return entry.Open();
-            return null;
+            if (entry == null)
+            {
+                VfsLog._.D("{0}: Can't find {1}", _Name, file_path);
+                return null;
+            }
+
+            return entry.Open();
+
         }
 
         public byte[] ReadAllBytes(string file_path)
         {
             ZipArchiveEntry entry = _ZipArchive.GetEntry(file_path);
             if (entry == null)
+            {
+                VfsLog._.D("{0}: Can't find {1}", _Name, file_path);
                 return null;
+            }
 
             byte[] ret = new byte[entry.Length];
             var stream = entry.Open();
@@ -73,8 +85,15 @@ namespace FH
         {
             ZipArchiveEntry entry = _ZipArchive.GetEntry(file_path);
             if (entry == null)
+            {
+                VfsLog._.D("{0}: Can't find {1}", _Name, file_path);
                 return null;
+            }
 
+            if(entry.Length>1024)
+            {
+
+            }
 
             Span<byte> buff = stackalloc byte[(int)entry.Length];
 

@@ -14,13 +14,12 @@ namespace FH.UI.ViewGenerate.Ed
     public class EdUIView
     {
         public bool _ProcessedParentListFields = false;
-
-        public string ParentViewName;
-        public EdUIView ParentView; //继承的类
-        public bool IsVariant = false;
-
+        
+        public EdUIViewDesc ParentDesc;
         public EdUIViewDesc Desc;
         public GameObject Prefab;
+
+        public EdUIView ParentView; //继承的类
 
         public List<EdUIField> Fields = new List<EdUIField>();
         public List<EdUIViewListField> ListFields = new List<EdUIViewListField>();

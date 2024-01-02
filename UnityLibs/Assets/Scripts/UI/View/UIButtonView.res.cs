@@ -8,17 +8,19 @@ using UnityEngine.UI;
 namespace FH.UI
 {
 
+    //PrefabPath:"Assets/Res/UI/Prefab/Button.prefab", ParentPrefabPath:"", CsClassName:"UIButtonView", ParentCsClassName:"FH.UI.UIBaseView"
     public partial class UIButtonView : FH.UI.UIBaseView
     {
-        public  const string C_AssetPath = "Assets/Res/UI/Prefab/Button.prefab";
-        public  const string C_ResoucePath = "";
+        public  const string CPrefabName = "Button";
+        public  const string CAssetPath = "Assets/Res/UI/Prefab/Button.prefab";
+        public  const string CResoucePath = "";
 
 		public UnityEngine.UI.Button _Button;
 		public UnityEngine.UI.Text _Text;
 
         #region AutoGen 1
-        public override string GetAssetPath() { return C_AssetPath; }
-        public override string GetResoucePath() { return C_ResoucePath; }
+        public override string GetAssetPath() { return CAssetPath; }
+        public override string GetResoucePath() { return CResoucePath; }
 
         protected override void _AutoInit()
         {

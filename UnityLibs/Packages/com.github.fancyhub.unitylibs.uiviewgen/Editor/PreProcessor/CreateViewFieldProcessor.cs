@@ -82,7 +82,7 @@ namespace FH.UI.ViewGenerate.Ed
 
                 EdUIField field = new EdUIField();
                 field.Path = go_path;
-                field.FieldType = EdUIFieldType.CreateSubView(dep_conf.ClassName);
+                field.FieldType = EdUIFieldType.CreateSubView(dep_conf);
                 field.Fieldname = _GenFiledName(target.name);
 
                 return field;

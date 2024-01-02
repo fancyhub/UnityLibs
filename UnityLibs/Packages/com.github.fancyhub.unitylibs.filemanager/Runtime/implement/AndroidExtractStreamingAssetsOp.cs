@@ -17,10 +17,11 @@ namespace FH.FileManagement
         private List<string> _FileList = new List<string>();
         private FileCollection _FileCollection;
         private string _Tag;
-        private CPtr<ITask> _Task;
+        private Thread _Thread;
         private int _TotalCount = 0;
         private int _DoneCount = 0;
         private string _Version;
+
 
         public AndroidExtractStreamingAssetsOp(FileCollection file_collection, string tag)
         {
@@ -44,12 +45,12 @@ namespace FH.FileManagement
 
         public void StartAsync(FileManifest manifest)
         {
-            if (!_Task.Null )
+            if (_Thread != null)
                 return;
 
             if (manifest == null || FileSetting.Platform != EFilePlatform.Android)
                 return;
-            
+
             _TotalCount = 0;
             _DoneCount = 0;
             string path = FileSetting.LocalDir + CVERSION_FILE_NAME;
@@ -71,9 +72,11 @@ namespace FH.FileManagement
             _TotalCount = _FileList.Count;
             if (_TotalCount == 0)
                 return;
-            FileLog._.D("Begin Extra Streamign Assets {0}",_TotalCount);
-
-            _Task = new CPtr<ITask>(TaskQueue.AddTask(_CopyTask, _FileCollection.CollectCacheDir));
+            FileLog._.D("Begin Extra Streamign Assets {0}", _TotalCount);
+            _Thread = new Thread(_CopyTask);
+            _Thread.IsBackground = true;
+            _Thread.Priority = ThreadPriority.Normal;
+            _Thread.Start();
         }
 
         private void _CopyTask()
@@ -99,7 +102,8 @@ namespace FH.FileManagement
             string path = FileSetting.LocalDir + CVERSION_FILE_NAME;
             if (System.IO.File.Exists(path))
                 System.IO.File.Delete(path);
-            System.IO.File.WriteAllText(path, _Version);            
+            System.IO.File.WriteAllText(path, _Version);
+            _FileCollection.CollectCacheDir();
         }
     }
 }

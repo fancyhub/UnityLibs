@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection.Emit;
 
 namespace FH.UI.ViewGenerate.Ed
 {
@@ -64,9 +65,9 @@ namespace " + config.NameSpace + "\n{";
 
         public void Export(EdUIViewGenContext context)
         {
-            foreach(var view in context.ViewList)
+            foreach (var view in context.ViewList)
             {
-                string file_path = Path.Combine(_Config.CodeFolder, view.Desc.GetCsFileNameExt());
+                string file_path = _Config.GenFilePath_Ext(view.Desc.PrefabName);
                 if (File.Exists(file_path))
                     return;
                 using StreamWriter sw = new StreamWriter(file_path);
@@ -77,14 +78,18 @@ namespace " + config.NameSpace + "\n{";
                 string code = _GenStrFormatter(view).Format(C_PARTIAL_CODE);
 
                 sw.WriteLine(code);
-            }          
+            }
         }
 
-        private static EdStrFormatter _GenStrFormatter(EdUIView view)
+        private EdStrFormatter _GenStrFormatter(EdUIView view)
         {
             EdStrFormatter formater = new EdStrFormatter();
-            formater.Add("class_name", view.Desc.ClassName);
-            formater.Add("parent_class_name", view.ParentViewName);
+            formater.Add("class_name", _Config.GenClassName(view.Desc.PrefabName));
+            if (view.ParentDesc != null)
+                formater.Add("parent_class_name", _Config.GenClassName(view.ParentDesc.PrefabName));
+            else
+                formater.Add("parent_class_name", _Config.BaseClassName);
+
             return formater;
         }
     }

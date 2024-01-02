@@ -584,7 +584,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce6d81fca33831c4f9a035f3176f03a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Mode: 0
+  Mode: 1
   AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
   FileMgrConfig:
     LogLvl: 1
@@ -594,7 +594,7 @@ MonoBehaviour:
   BundleMgrConfig:
     LogLvl: 1
   ResMgrConfig:
-    LogLevel: 1
+    LogLevel: 0
     MaxAsyncResLoaderSlot: 5
     MaxAsyncGameObjectStep: 1
     PreInst:
@@ -609,7 +609,7 @@ MonoBehaviour:
   SceneMgrConfig:
     LogLvl: 1
   VfsMgrConfig:
-    LogLvl: 1
+    LogLvl: 0
   VfsBuilderConfig: {fileID: 11400000, guid: 6391484e906e5344f8de151ba727b78c, type: 2}
 --- !u!1 &2098590053
 GameObject:

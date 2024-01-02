@@ -8,10 +8,12 @@ using UnityEngine.UI;
 namespace FH.UI
 {
 
+    //PrefabPath:"Assets/Res/UI/Prefab/Panel.prefab", ParentPrefabPath:"", CsClassName:"UIPanelView", ParentCsClassName:"FH.UI.UIBaseView"
     public partial class UIPanelView : FH.UI.UIBaseView
     {
-        public  const string C_AssetPath = "Assets/Res/UI/Prefab/Panel.prefab";
-        public  const string C_ResoucePath = "";
+        public  const string CPrefabName = "Panel";
+        public  const string CAssetPath = "Assets/Res/UI/Prefab/Panel.prefab";
+        public  const string CResoucePath = "";
 
 		public UnityEngine.RectTransform _Panel;
 		public UnityEngine.UI.RawImage _bg;
@@ -22,11 +24,11 @@ namespace FH.UI
 		public UnityEngine.UI.Image _img_2;
 		public UIButtonVariantView _btn_2;
 		public List<UnityEngine.UI.Image> _img_list = new List<UnityEngine.UI.Image>();
-		public List<UIButtonView> _btn_list = new List<UIButtonView>();
+		public List<FH.UI.UIBaseView> _btn_list = new List<FH.UI.UIBaseView>();
 
         #region AutoGen 1
-        public override string GetAssetPath() { return C_AssetPath; }
-        public override string GetResoucePath() { return C_ResoucePath; }
+        public override string GetAssetPath() { return CAssetPath; }
+        public override string GetResoucePath() { return CResoucePath; }
 
         protected override void _AutoInit()
         {

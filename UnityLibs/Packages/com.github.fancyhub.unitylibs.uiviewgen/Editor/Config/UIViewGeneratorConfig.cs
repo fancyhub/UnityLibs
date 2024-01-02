@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System.IO;
 
 namespace FH.UI.ViewGenerate.Ed
 {
@@ -26,36 +27,29 @@ namespace FH.UI.ViewGenerate.Ed
 
 
             public string NameSpace = "FH.UI";
-            public string ClassPrefix = "UI"; //自动生成的 class 前缀
-            public string ClassSuffix = "View";
+            public string Prefix = "UI"; //自动生成的 class 前缀
+            public string Suffix = "View";
             public string BaseClassName = "FH.UI.UIBaseView";
             public string CodeFolder = "Assets/Scripts/UI/View";
 
             public Type _BaseViewClass;
 
 
-            /// <summary>
-            /// 从 prefab的名字生成 class name
-            /// </summary>
-            public string GenClassNameFromPath(string prefab_path)
+            public string GenClassName(string prefab_path)
             {
-                string prefab_name = System.IO.Path.GetFileNameWithoutExtension(prefab_path);
-                prefab_name = prefab_name.Replace(' ', '_');
-                string[] name_split = prefab_name.Split('_');
-                string class_name = string.Empty;
-                foreach (string s in name_split)
-                {
-                    class_name += _UpperFirstAlpha(s);
-                }
-                return ClassPrefix + class_name + ClassSuffix;
+                return ClassNameUtil.GenClassNameFromPath(prefab_path, Prefix, Suffix);
             }
 
-            private static string _UpperFirstAlpha(string s)
+            public string GenFilePath_Ext(string prefab_path)
             {
-                if (string.IsNullOrEmpty(s)) return s;
-                if (s[0] < 'a' || s[0] > 'z') return s;
-                string start = ((char)(s[0] + 'A' - 'a')).ToString().ToUpper();
-                return s.Remove(0, 1).Insert(0, start);
+                string class_name = GenClassName(prefab_path);
+                return System.IO.Path.Combine(CodeFolder, class_name + ExtSuffix);
+            }
+
+            public string GenFilePath_Res(string prefab_path)
+            {
+                string class_name = GenClassName(prefab_path);
+                return System.IO.Path.Combine(CodeFolder, class_name + ResSuffix);
             }
         }
 
@@ -130,7 +124,7 @@ namespace FH.UI.ViewGenerate.Ed
             return ret;
         }
 
-        
+
         public List<Type> _PriorityCompTypeList = new List<Type>();
 
         public Component GetComponent(Transform target, Transform root)
@@ -168,7 +162,7 @@ namespace FH.UI.ViewGenerate.Ed
                     Debug.LogError("找不View的基类 " + Csharp.BaseClassName);
                 }
             }
-           
+
 
             UnityEditor.TypeCache.TypeCollection sub_class_list = UnityEditor.TypeCache.GetTypesDerivedFrom<UnityEngine.Component>();
             foreach (var p in PriorityCompTypeList)

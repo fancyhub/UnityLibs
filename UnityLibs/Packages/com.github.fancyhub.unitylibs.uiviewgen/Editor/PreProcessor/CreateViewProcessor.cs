@@ -41,8 +41,7 @@ namespace FH.UI.ViewGenerate.Ed
                         EdUIView ret = new EdUIView();
                         ret.Desc = desc;
                         ret.Prefab = prefab;
-                        ret.IsVariant = false;
-                        ret.ParentViewName = context.Config.Csharp.BaseClassName;
+                        ret.ParentDesc = null;
                         return ret;
                     }
 
@@ -52,12 +51,11 @@ namespace FH.UI.ViewGenerate.Ed
                         string orig_prefab_path = AssetDatabase.GetAssetPath(orig_prefab);
                         if (context.Config.IsPrefabPathValid(orig_prefab_path))
                         {
-                            var parent_conf = context.AddDependPath_Variant(orig_prefab_path);
+                            var parent_desc = context.AddDependPath_Variant(orig_prefab_path);
                             EdUIView ret = new EdUIView();
                             ret.Desc = desc;
                             ret.Prefab = prefab;
-                            ret.ParentViewName = parent_conf.ClassName;
-                            ret.IsVariant = true;
+                            ret.ParentDesc = parent_desc;
                             return ret;
                         }
                         else
@@ -66,8 +64,7 @@ namespace FH.UI.ViewGenerate.Ed
                             EdUIView ret = new EdUIView();
                             ret.Desc = desc;
                             ret.Prefab = prefab;
-                            ret.ParentViewName = context.Config.Csharp.BaseClassName;
-                            ret.IsVariant = false;
+                            ret.ParentDesc = null;
                             return ret;
                         }
                     }
@@ -77,6 +74,6 @@ namespace FH.UI.ViewGenerate.Ed
                     return null;
             }
         }
-         
+
     }
 }

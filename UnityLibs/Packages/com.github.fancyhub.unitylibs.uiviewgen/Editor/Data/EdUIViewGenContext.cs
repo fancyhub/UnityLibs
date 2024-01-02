@@ -37,11 +37,11 @@ namespace FH.UI.ViewGenerate.Ed
 
         public List<EdUIView> ViewList;
 
-        public EdUIViewGenContext(EdUIViewDescDB conf_db, EMode mode = EMode.AutoDependency)
+        public EdUIViewGenContext(UIViewGeneratorConfig config, EdUIViewDescDB db_desc, EMode mode = EMode.AutoDependency)
         {
-            this.Config = conf_db.Config;
+            this.Config = config;
             _Mode = mode;
-            _DBDesc = conf_db;
+            _DBDesc = db_desc;
             _PathPool = new EdUIViewPathPool();
         }
 
@@ -60,7 +60,7 @@ namespace FH.UI.ViewGenerate.Ed
             EdUIViewDesc conf = _DBDesc.FindDescWithPrefabPath(prefab_path);
             if (null == conf)
             {
-                conf = _CreateConfWithPath( prefab_path);
+                conf = _CreateConfWithPath(prefab_path);
                 _DBDesc.AddConf(conf);
             }
 
@@ -123,23 +123,18 @@ namespace FH.UI.ViewGenerate.Ed
 
         private EdUIViewDesc _CreateConfWithPath(string prefab_path)
         {
-            string class_name = Config.Csharp.GenClassNameFromPath(prefab_path);
-            string parent_class_name = Config.Csharp.BaseClassName;
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefab_path);
+            if (prefab == null)
+                return null;
 
+            string parent_prefab_path = null;
+            UnityEngine.GameObject orig_prefab = EdUIViewGenPrefabUtil.GetOrigPrefabWithVariant(prefab);
+            if (orig_prefab != null)
             {
-                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefab_path);
-                UnityEngine.GameObject orig_prefab = EdUIViewGenPrefabUtil.GetOrigPrefabWithVariant(prefab);
-                if (orig_prefab != null)
-                {
-                    string parent_path = AssetDatabase.GetAssetPath(orig_prefab);
-                    parent_class_name = Config.Csharp.GenClassNameFromPath(parent_path);
-                }
+                parent_prefab_path = AssetDatabase.GetAssetPath(orig_prefab);
             }
 
-            EdUIViewDesc ret = new EdUIViewDesc();
-            ret.ClassName = class_name;
-            ret.PrefabPath = prefab_path;
-            ret.ParentClassName = parent_class_name;
+            EdUIViewDesc ret = new EdUIViewDesc(prefab_path, parent_prefab_path);
             return ret;
         }
     }

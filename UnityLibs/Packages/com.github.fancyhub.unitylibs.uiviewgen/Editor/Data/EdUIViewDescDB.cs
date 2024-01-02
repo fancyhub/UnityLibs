@@ -18,21 +18,20 @@ namespace FH.UI.ViewGenerate.Ed
     /// </summary>
     public class EdUIViewDescDB
     {
-        public UIViewGeneratorConfig Config;
+        //public UIViewGeneratorConfig Config;
         private List<EdUIViewDesc> _AllDesc = new();
 
-        //key is class name
-        private Dictionary<string, EdUIViewDesc> _Class2Desc = new();
+        //key is cs prefab name, Lower
+        private Dictionary<string, EdUIViewDesc> _PrefabName2Desc = new();
+
         // key is prefab path
         private Dictionary<string, EdUIViewDesc> _Path2Desc = new();
 
-        public EdUIViewDescDB(UIViewGeneratorConfig config,List<EdUIViewDesc> list)
+        public EdUIViewDescDB(List<EdUIViewDesc> list)
         {
-            Config = config;
             _AllDesc.AddRange(list);
-
             _BuildCache();
-        }         
+        }
 
         public List<EdUIViewDesc> GetAllDesc()
         {
@@ -53,29 +52,32 @@ namespace FH.UI.ViewGenerate.Ed
             return ret;
         }
 
-        public EdUIViewDesc FindDescWithClassName(string class_name)
+        public EdUIViewDesc FindDescWithPrefabName(string prefab_name)
         {
-            if (string.IsNullOrEmpty(class_name))
+            if (string.IsNullOrEmpty(prefab_name))
                 return null;
             EdUIViewDesc ret = null;
-            _Class2Desc.TryGetValue(class_name, out ret);
+            _PrefabName2Desc.TryGetValue(prefab_name.ToLower(), out ret);
             return ret;
         }
 
-        private static List<string> _parent_class_list0 = new List<string>();
-        private static List<string> _parent_class_list1 = new List<string>();
+        private static List<EdUIViewDesc> _parent_class_list0 = new List<EdUIViewDesc>();
+        private static List<EdUIViewDesc> _parent_class_list1 = new List<EdUIViewDesc>();
 
-        public string GetCommonBase(string class_name1, string class_name2)
+        public EdUIViewDesc GetCommonBase(EdUIViewDesc prefab_name1, EdUIViewDesc prefab_name2)
         {
-            if (class_name1 == class_name2)
-                return class_name1;
+            if (prefab_name1 == prefab_name2)
+                return prefab_name1;
 
-            GetParentClassList(class_name1, ref _parent_class_list0);
-            GetParentClassList(class_name2, ref _parent_class_list1);
+            if (prefab_name1 == null || prefab_name2 == null)
+                return null;
+
+            GetParentClassList(prefab_name1, ref _parent_class_list0);
+            GetParentClassList(prefab_name2, ref _parent_class_list1);
 
             if (_parent_class_list0.Count == 0 || _parent_class_list1.Count == 0)
             {
-                return Config.Csharp.BaseClassName;
+                return null;
             }
 
             int count = System.Math.Min(_parent_class_list0.Count, _parent_class_list1.Count);
@@ -85,15 +87,15 @@ namespace FH.UI.ViewGenerate.Ed
                     return _parent_class_list0[i];
             }
 
-            return Config.Csharp.BaseClassName;
+            return null;
         }
 
-        public bool IsParentClass(string class_name, string parent_class_name)
+        public bool IsParentClass(EdUIViewDesc self, EdUIViewDesc parent)
         {
-            GetParentClassList(class_name, ref _parent_class_list0);
+            GetParentClassList(self, ref _parent_class_list0);
             for (int i = _parent_class_list0.Count - 2; i >= 0; i--)
             {
-                if (parent_class_name == _parent_class_list1[i])
+                if (parent == _parent_class_list1[i])
                     return true;
             }
             return false;
@@ -101,31 +103,27 @@ namespace FH.UI.ViewGenerate.Ed
 
 
         //0: 是Base, 最后一个是自己
-        public void GetParentClassList(string class_name, ref List<string> out_list)
+        public void GetParentClassList(EdUIViewDesc self, ref List<EdUIViewDesc> out_list)
         {
             out_list.Clear();
 
-            EdUIViewDesc desc = FindDescWithClassName(class_name);
-            if (desc == null)
-                return;
-
+            EdUIViewDesc temp = self;
             for (; ; )
             {
-                out_list.Add(desc.ClassName);
+                out_list.Add(temp);
 
-                if (desc.ParentClassName == Config.Csharp.BaseClassName)
-                {
-                    out_list.Add(desc.ParentClassName);
+                if (string.IsNullOrEmpty(temp.ParentPrefabName))
                     break;
-                }
-                desc = FindDescWithClassName(desc.ParentClassName);
-                if (desc == null)
+
+                var parent = FindDescWithPrefabName(temp.ParentPrefabName);
+                if (parent == null)
                 {
-                    UnityEngine.Debug.LogError("Error " + desc.ClassName + " : " + desc.ParentClassName);
+                    UnityEngine.Debug.LogError("Error " + temp.PrefabName + " : " + temp.ParentPrefabName);
                     //出错了
                     out_list.Clear();
                     break;
                 }
+                temp = parent;
             }
 
             out_list.Reverse();
@@ -135,7 +133,7 @@ namespace FH.UI.ViewGenerate.Ed
         {
             _CheckExist(conf);
             _Path2Desc.Add(conf.PrefabPath, conf);
-            _Class2Desc.Add(conf.ClassName, conf);
+            _PrefabName2Desc.Add(conf.PrefabName.ToLower(), conf);
             _AllDesc.Add(conf);
             return true;
         }
@@ -161,12 +159,12 @@ namespace FH.UI.ViewGenerate.Ed
         private void _CheckExist(EdUIViewDesc desc)
         {
             EdUIViewDesc old_desc;
-            _Class2Desc.TryGetValue(desc.ClassName, out old_desc);
+            _PrefabName2Desc.TryGetValue(desc.PrefabName.ToLower(), out old_desc);
             if (null == old_desc)
                 return;
 
             UnityEngine.Debug.LogErrorFormat("出现了重复,prefab可能移动过目录，但生成的res代码文件中路径还是原来的: {0} \nPath1: {1}\nPath2: {2}\n\n"
-                , desc.ClassName
+                , desc.PrefabName
                 , desc.PrefabPath
                 , old_desc.PrefabPath);
         }
@@ -174,15 +172,13 @@ namespace FH.UI.ViewGenerate.Ed
         private void _BuildCache()
         {
             _Path2Desc.Clear();
-            _Class2Desc.Clear();
+            _PrefabName2Desc.Clear();
 
             foreach (EdUIViewDesc desc in _AllDesc)
             {
                 _Path2Desc.Add(desc.PrefabPath, desc);
-                _Class2Desc.Add(desc.ClassName, desc);
+                _PrefabName2Desc.Add(desc.PrefabName.ToLower(), desc);
             }
         }
     }
-
-   
 }

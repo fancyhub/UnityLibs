@@ -8,17 +8,19 @@ namespace FH.UI.ViewGenerate.Ed
     {
         private const string C_CLASS_BEIGN =
             @"
+    //PrefabPath:""{asset_path}"", ParentPrefabPath:""{parent_asset_path}"", CsClassName:""{class_name}"", ParentCsClassName:""{parent_class_name}""
     public partial class {class_name} : {parent_class_name}
     {
-        public {new_flag} const string C_AssetPath = ""{asset_path}"";
-        public {new_flag} const string C_ResoucePath = ""{resource_path}"";
+        public {new_flag} const string CPrefabName = ""{prefab_name}"";
+        public {new_flag} const string CAssetPath = ""{asset_path}"";
+        public {new_flag} const string CResoucePath = ""{resource_path}"";
 ";
 
         public const string C_CODE_INIT_BEGIN =
             @"
         #region AutoGen 1
-        public override string GetAssetPath() { return C_AssetPath; }
-        public override string GetResoucePath() { return C_ResoucePath; }
+        public override string GetAssetPath() { return CAssetPath; }
+        public override string GetResoucePath() { return CResoucePath; }
 
         protected override void _AutoInit()
         {
@@ -48,7 +50,7 @@ namespace FH.UI.ViewGenerate.Ed
         private const string C_CLASS_END = @"
         #endregion
     }
-"; 
+";
 
         private UIViewGeneratorConfig.CSharpConfig _Config;
         public CodeExporter_CSharpRes(UIViewGeneratorConfig.CSharpConfig config)
@@ -58,10 +60,10 @@ namespace FH.UI.ViewGenerate.Ed
 
         public void Export(EdUIViewGenContext context)
         {
-            foreach(var view in context.ViewList)
+            foreach (var view in context.ViewList)
             {
                 //1. 生成 xxx.res.cs
-                string file_path = Path.Combine(_Config.CodeFolder, view.Desc.GetCsFileNameRes());
+                string file_path = _Config.GenFilePath_Res(view.Desc.PrefabPath);
                 using StreamWriter sw = new StreamWriter(file_path);
                 using var file_scope = CSFileScope.Create(sw, _Config);
 
@@ -71,17 +73,17 @@ namespace FH.UI.ViewGenerate.Ed
                 //1. 变量声明
                 {
                     //public Transform _btn;
-                    FieldExporter.Export_Declaration(sw, view.Fields);
+                    FieldExporter.Export_Declaration(_Config, sw, view.Fields);
 
                     //public List<Transform> _btn_list;
-                    ListFieldExporter.Export_Declaration(sw, view.ListFields);
+                    ListFieldExporter.Export_Declaration(_Config, sw, view.ListFields);
                 }
 
                 //2. 变量初始化
                 {
                     sw.WriteLine(formater.Format(C_CODE_INIT_BEGIN));
 
-                    FieldExporter.Export_Init(sw, view.Fields);
+                    FieldExporter.Export_Init(_Config,sw, view.Fields);
                     ListFieldExporter.Export_Init(sw, view.ListFields);
                     sw.WriteLine(C_CODE_INIT_END);
                 }
@@ -97,16 +99,26 @@ namespace FH.UI.ViewGenerate.Ed
 
                 //4. 输出结尾
                 sw.WriteLine(C_CLASS_END);
-            }            
+            }
         }
 
-        private static EdStrFormatter _GenStrFormatter(EdUIView view)
+        private EdStrFormatter _GenStrFormatter(EdUIView view)
         {
             EdStrFormatter formater = new EdStrFormatter();
-            formater.Add("class_name", view.Desc.ClassName);
-            formater.Add("new_flag", view.IsVariant ? " new " : "");
-            formater.Add("parent_class_name", view.ParentViewName);
+            formater.Add("class_name", _Config.GenClassName(view.Desc.PrefabName));
+            if (view.ParentDesc == null)
+            {
+                formater.Add("new_flag", "");
+                formater.Add("parent_class_name", _Config.BaseClassName);
+            }
+            else
+            {
+                formater.Add("new_flag", " new ");
+                formater.Add("parent_class_name", _Config.GenClassName(view.ParentDesc.PrefabName));
+            }
+
             formater.Add("asset_path", view.Desc.PrefabPath);
+            formater.Add("parent_asset_path", view.Desc.ParentPrefabPath);
             formater.Add("resource_path", _GetResourcePath(view.Desc.PrefabPath));
             formater.Add("prefab_name", Path.GetFileNameWithoutExtension(view.Desc.PrefabPath));
 
@@ -131,7 +143,7 @@ namespace FH.UI.ViewGenerate.Ed
             /// 输出 成员变量的获取， 输出的情况
             /// 没有parent 才能声明成员变量
             /// </summary>
-            public static void Export_Declaration(StreamWriter sw, List<EdUIViewListField> fields)
+            public static void Export_Declaration(UIViewGeneratorConfig.CSharpConfig config, StreamWriter sw, List<EdUIViewListField> fields)
             {
                 foreach (var field in fields)
                 {
@@ -144,7 +156,7 @@ namespace FH.UI.ViewGenerate.Ed
                         continue;
                     }
 
-                    sw.WriteLine("\t\tpublic List<{0}> {1}_list = new List<{0}>();", field._field_type.Name, field._field_name);
+                    sw.WriteLine("\t\tpublic List<{0}> {1}_list = new List<{0}>();", _GetFieldTypeName(config, field._field_type), field._field_name);
                 }
             }
 
@@ -186,6 +198,17 @@ namespace FH.UI.ViewGenerate.Ed
                     return true;
                 return false;
             }
+
+
+            private static string _GetFieldTypeName(UIViewGeneratorConfig.CSharpConfig config, EdUIFieldType field_type)
+            {
+                if (field_type.Type == EdUIFieldType.EType.Component)
+                    return field_type.CompType.FullName;
+
+                if (field_type.ViewType == null)
+                    return config.BaseClassName;
+                return config.GenClassName(field_type.ViewType.PrefabName);
+            }
         }
 
         private static class FieldExporter
@@ -193,26 +216,36 @@ namespace FH.UI.ViewGenerate.Ed
             /// <summary>
             /// 输出 成员变量
             /// </summary>
-            public static void Export_Declaration(StreamWriter sw, List<EdUIField> fields)
+            public static void Export_Declaration(UIViewGeneratorConfig.CSharpConfig config, StreamWriter sw, List<EdUIField> fields)
             {
                 foreach (var field in fields)
-                    sw.WriteLine("\t\tpublic {0} {1};", field.FieldType.Name, field.Fieldname);
+                {
+                    sw.WriteLine("\t\tpublic {0} {1};", _GetFieldTypeName(config,field.FieldType), field.Fieldname);
+                }
+            }
+
+            private static string _GetFieldTypeName(UIViewGeneratorConfig.CSharpConfig config, EdUIFieldType field_type)
+            {
+                if (field_type.Type == EdUIFieldType.EType.Component)
+                    return field_type.CompType.FullName;
+
+                return config.GenClassName(field_type.ViewType.PrefabName);
             }
 
             /// <summary>
             /// 输出 成员变量的获取
             /// </summary>
-            public static void Export_Init(StreamWriter sw, List<EdUIField> fields)
+            public static void Export_Init(UIViewGeneratorConfig.CSharpConfig config, StreamWriter sw, List<EdUIField> fields)
             {
                 foreach (var field in fields)
                 {
                     switch (field.FieldType.Type)
                     {
                         case EdUIFieldType.EType.Component:
-                            sw.WriteLine("\t\t\t{0} = refs.GetComp<{1}>(\"{0}\");", field.Fieldname, field.FieldType.Name);
+                            sw.WriteLine("\t\t\t{0} = refs.GetComp<{1}>(\"{0}\");", field.Fieldname, _GetFieldTypeName(config, field.FieldType));
                             break;
                         case EdUIFieldType.EType.SubView:
-                            sw.WriteLine("\t\t\t{0} = _CreateSub<{1}>(refs.GetObj(\"{0}\"));", field.Fieldname, field.FieldType.Name);
+                            sw.WriteLine("\t\t\t{0} = _CreateSub<{1}>(refs.GetObj(\"{0}\"));", field.Fieldname, _GetFieldTypeName(config, field.FieldType));
                             break;
                     }
                 }
@@ -232,6 +265,6 @@ namespace FH.UI.ViewGenerate.Ed
                     }
                 }
             }
-        }                 
+        }
     }
 }

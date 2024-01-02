@@ -97,7 +97,7 @@ namespace FH
                 else
                     _PersistentDir = Application.persistentDataPath;
 
-                _PersistentDir = System.IO.Path.GetFullPath(_LocalDir);
+                _PersistentDir = System.IO.Path.GetFullPath(_PersistentDir);
                 _PersistentDir = _PersistentDir.Replace("\\", "/");
                 if (!_PersistentDir.EndsWith("/"))
                     _PersistentDir += "/";

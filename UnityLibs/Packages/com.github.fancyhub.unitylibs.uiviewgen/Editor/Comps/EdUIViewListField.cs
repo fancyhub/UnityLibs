@@ -41,12 +41,12 @@ namespace FH.UI.ViewGenerate.Ed
             });
         }
 
-        public bool PostProcess(EdUIViewDescDB config, EdUIViewListField parent_list_field)
+        public bool PostProcess(EdUIViewDescDB db_desc, EdUIViewListField parent_list_field)
         {
             //1. 如果没有父结构, 直接处理自己
             if (parent_list_field == null)
             {
-                _PostProcessSelf(config);
+                _PostProcessSelf(db_desc);
                 return true;
             }
 
@@ -80,7 +80,7 @@ namespace FH.UI.ViewGenerate.Ed
                                 continue;
                             }
 
-                            if (!config.IsParentClass(field.FieldType.Name, _field_type.Name))
+                            if (!db_desc.IsParentClass(field.FieldType.ViewType, _field_type.ViewType))
                             {
                                 _field_list.RemoveAt(i);
                                 continue;
@@ -131,7 +131,7 @@ namespace FH.UI.ViewGenerate.Ed
                         _field_list.RemoveAt(i);
                         continue;
                     }
-                    _field_type.Name = config.GetCommonBase(_field_type.Name, field.FieldType.Name);
+                    _field_type.ViewType = config.GetCommonBase(_field_type.ViewType, field.FieldType.ViewType);
                 }
             }
         }

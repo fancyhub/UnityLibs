@@ -8,17 +8,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 
 namespace FH.UI.ViewGenerate.Ed
 {
- 
-
     public class CodeAnalyser_CSharp : ICodeAnalyser
     {
-        private static Regex C_CLASS_NAME_REG = new Regex(@"[\t\s\w]*public\s*partial\s*class\s*(?<class_name>[a-zA-Z0-9_]*)\s*:\s*(?<parent_class_name>[a-zA-Z0-9_\.]*)\s*");
-        private static Regex C_ASSET_PATH_REG = new Regex(@"[\t\s\w]*const\s*string\s*C_AssetPath\s*=\s*""(?<path>[_/\w\.]*)"";");
+        private const string CReg_PrefabPath = @"PrefabPath:""(?<PrefabPath>[a-zA-Z0-9_\./]*)""";
+        private const string CReg_ParentPrefabPath = @"ParentPrefabPath:""(?<ParentPrefabPath>[a-zA-Z0-9_\./]*)""";
+        private const string CReg_CsClassName = @"CsClassName:""(?<CsClassName>[a-zA-Z0-9_]*)""";
+        private const string CReg_ParentCsClassName = @"ParentCsClassName:""(?<ParentCsClassName>[a-zA-Z0-9_\.]*)""";
+
+        private static Regex CReg = new Regex(@$"//{CReg_PrefabPath},\s*{CReg_ParentPrefabPath},\s*{CReg_CsClassName},\s*{CReg_ParentCsClassName}");
 
         public List<EdUIViewDesc> ParseAll(string cs_file_folder)
         {
@@ -42,33 +45,27 @@ namespace FH.UI.ViewGenerate.Ed
 
             string[] all_lines = File.ReadAllLines(cs_file_path);
 
-            string prefab_path = null;
-            string class_name = null;
-            string parent_class_name = null;
 
             foreach (string line in all_lines)
             {
-                var nameMatchResult = C_CLASS_NAME_REG.Match(line);
-                if (nameMatchResult.Success)
-                {
-                    class_name = nameMatchResult.Groups["class_name"].ToString();
-                    parent_class_name = nameMatchResult.Groups["parent_class_name"].ToString();
+                if (!line.Contains("//PrefabPath:"))
                     continue;
-                }
-                var matchResult = C_ASSET_PATH_REG.Match(line);
-                if (matchResult.Success)
-                {
-                    prefab_path = matchResult.Groups["path"].ToString().Trim();
-                    break;
-                }
-            }
+                var match_result = CReg.Match(line);
+                if (!match_result.Success)
+                    continue;
 
-            EdUIViewDesc ret = new EdUIViewDesc();
-            ret.CsFilePath = cs_file_path;
-            ret.ClassName = class_name;
-            ret.PrefabPath = prefab_path;
-            ret.ParentClassName = parent_class_name;
-            return ret;
+                string prefab_path = match_result.Groups["PrefabPath"].ToString();
+                string parent_prefab_path = match_result.Groups["ParentPrefabPath"].ToString();
+                string class_name = match_result.Groups["CsClassName"].ToString();
+                string parent_class_name = match_result.Groups["ParentCsClassName"].ToString();
+
+                EdUIViewDesc ret = new EdUIViewDesc(prefab_path, parent_prefab_path);
+                //ret.CsClassName = class_name;
+                //ret.CsParentClassName = parent_class_name;
+
+                return ret;
+            }
+            return null;
         }
     }
 }

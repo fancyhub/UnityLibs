@@ -20,14 +20,17 @@ namespace FH.UI.ViewGenerate.Ed
         }
 
         public EType Type;
-        public string Name;
-        
+
+        public Type CompType;
+        public EdUIViewDesc ViewType;
+
         public EdUIFieldType Clone()
         {
             return new EdUIFieldType()
             {
                 Type = Type,
-                Name = Name
+                CompType = CompType,
+                ViewType = ViewType
             };
         }
 
@@ -35,25 +38,23 @@ namespace FH.UI.ViewGenerate.Ed
         {
             return new EdUIFieldType()
             {
-
                 Type = EType.Component,
-                Name = comp_type.FullName,
+                CompType = comp_type,
             };
         }
 
-        public static EdUIFieldType CreateSubView(string class_name)
+        public static EdUIFieldType CreateSubView(EdUIViewDesc view_type)
         {
             return new EdUIFieldType()
             {
-
                 Type = EType.SubView,
-                Name = class_name
+                ViewType = view_type
             };
         }
 
         public bool Equals(EdUIFieldType other)
         {
-            return Type == other.Type && Name == other.Name;
+            return Type == other.Type && ViewType == other.ViewType && CompType == other.CompType;
         }
     }
 

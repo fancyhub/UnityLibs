@@ -22,18 +22,18 @@ namespace FH.UI.ViewGenerate.Ed
             Dictionary<string, EdUIView> dict = new Dictionary<string, EdUIView>(context.ViewList.Count);
             foreach (var p in context.ViewList)
             {
-                dict.Add(p.Desc.ClassName, p);
+                dict.Add(p.Desc.PrefabName, p);
             }
 
             //把父类link起来
             foreach (EdUIView view in context.ViewList)
             {
-                if (!view.IsVariant)
+                if (view.ParentDesc == null)
                     continue;
 
-                if(!dict.TryGetValue(view.ParentViewName,out view.ParentView) || view.ParentView==null)
+                if (!dict.TryGetValue(view.ParentDesc.PrefabName, out view.ParentView) || view.ParentView == null)
                 {
-                    Debug.LogError("can't find parent class " + view.ParentViewName);
+                    Debug.LogError("can't find parent class " + view.ParentDesc.PrefabName);
                 }
             }
         }

@@ -12,14 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06cc6fe67bab23747b0cbadfc0653c7f, type: 3}
   m_Name: UIViewGeneratorConfig
   m_EditorClassIdentifier: 
-  NameSpace: FH.UI
-  ClassPrefix: UI
-  ClassSuffix: View
-  BaseClassName: FH.UI.UIBaseView
-  CodeFolder: Assets/Scripts/UI/View
+  Csharp:
+    NameSpace: FH.UI
+    Prefix: UI
+    Suffix: View
+    BaseClassName: FH.UI.UIBaseView
+    CodeFolder: Assets/Scripts/UI/View
   ResourcesFolderList:
   - Assets/Res/UI/Prefab
-  CompTypeList:
+  PriorityCompTypeList:
   - UnityEngine.UI.Button
   - UnityEngine.UI.Toggle
   - UnityEngine.UI.Slider
@@ -29,3 +30,4 @@ MonoBehaviour:
   - UnityEngine.UI.Scrollbar
   - UnityEngine.UI.RawImage
   - UnityEngine.UI.Image
+  - UnityEngine.RectTransform

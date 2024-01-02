@@ -89,7 +89,7 @@ public sealed class UIPageScene : CPoolItemBase
     private void _Open()
     {
         _Holder = ResMgr.CreateHolder(false, false);
-        _Holder.PreCreate(FH.UI.UIPanelVariantView.C_AssetPath);
+        _Holder.PreCreate(FH.UI.UIPanelVariantView.CAssetPath);
         _PtrList += _Holder;
 
         _Routinues.Add(_Behaviour.StartCoroutine(_OpenView()));
