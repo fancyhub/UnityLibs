@@ -12,14 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06cc6fe67bab23747b0cbadfc0653c7f, type: 3}
   m_Name: UIGeneratorConfig
   m_EditorClassIdentifier: 
-  NameSpace: FH.UI.Sample.
-  ClassPrefix: UI
-  ClassSuffix: View
-  BaseClassName: FH.UI.Sample.UIBaseView
-  CodeFolder: Packages/com.github.fancyhub.unitylibs.uiview/Tests/Runtime/GenView
+  Csharp:
+    NameSpace: FH.UI.Sample
+    Prefix: UI
+    Suffix: View
+    BaseClassName: FH.UI.Sample.UIBaseView
+    CodeFolder: Packages/com.github.fancyhub.unitylibs.uiviewgen/Tests/Runtime/GenView
+    PathMode: 0
+    ResourcePath: /Resources/
   ResourcesFolderList:
-  - Packages/com.github.fancyhub.unitylibs.uiview/Tests/Runtime
-  CompTypeList:
+  - Packages/com.github.fancyhub.unitylibs.uiviewgen/Tests/Runtime/Prefabs
+  PriorityCompTypeList:
   - UnityEngine.UI.Button
   - UnityEngine.UI.Toggle
   - UnityEngine.UI.Slider
@@ -29,3 +32,4 @@ MonoBehaviour:
   - UnityEngine.UI.Scrollbar
   - UnityEngine.UI.RawImage
   - UnityEngine.UI.Image
+  - UnityEngine.RectTransform

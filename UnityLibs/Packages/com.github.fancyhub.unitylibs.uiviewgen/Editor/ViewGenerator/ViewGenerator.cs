@@ -43,7 +43,6 @@ namespace FH.UI.ViewGenerate.Ed
             _Preprocessors = new List<IViewGeneratePreprocessor>()
             {
                 new CreateViewProcessor(),
-                new CreateViewFieldProcessor(),
                 new LinkViewProcessor(),
                 new ListFiledsProcessor(),
                 new ViewCompReferenceProcessor(),

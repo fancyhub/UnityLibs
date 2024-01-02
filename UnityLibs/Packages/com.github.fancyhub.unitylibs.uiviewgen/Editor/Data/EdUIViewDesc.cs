@@ -19,16 +19,20 @@ namespace FH.UI.ViewGenerate.Ed
     public sealed class EdUIViewDesc
     {
         public readonly string PrefabPath;
-        public readonly string ParentPrefabPath;
-
         public readonly string PrefabName;
-        public readonly string ParentPrefabName;
+
+        public string ParentPrefabPath;
+        public string ParentPrefabName;
 
         public EdUIViewDesc(string prefab_path, string parent_prefab_path)
         {
             PrefabPath = prefab_path;
             PrefabName = Path.GetFileNameWithoutExtension(prefab_path);
-            
+            SetParentPrefabPath(parent_prefab_path);
+        }
+
+        public void SetParentPrefabPath(string parent_prefab_path)
+        {
             if (string.IsNullOrEmpty(parent_prefab_path))
             {
                 ParentPrefabPath = "";
@@ -38,7 +42,7 @@ namespace FH.UI.ViewGenerate.Ed
             {
                 ParentPrefabPath = parent_prefab_path;
                 ParentPrefabName = Path.GetFileNameWithoutExtension(ParentPrefabPath);
-            }                
+            }
         }
 
         //public string CsClassName;

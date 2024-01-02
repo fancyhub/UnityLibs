@@ -38,7 +38,7 @@ namespace FH.UI.Sample
         public static T CreateView<T>(Transform parent, IUIResHolder res_holder = null) where T : UIBaseView, new()
         {
             T ret = new T();
-            string path = ret.GetResoucePath();
+            string path = ret.GetPath();
             if (string.IsNullOrEmpty(path))
                 return null;
             if (parent == null)

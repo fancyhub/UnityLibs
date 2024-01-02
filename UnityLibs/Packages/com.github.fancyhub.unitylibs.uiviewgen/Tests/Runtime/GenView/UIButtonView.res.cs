@@ -8,27 +8,26 @@ using UnityEngine.UI;
 namespace FH.UI.Sample
 {
 
+    //PrefabPath:"Packages/com.github.fancyhub.unitylibs.uiviewgen/Tests/Runtime/Prefabs/Button.prefab", ParentPrefabPath:"", CsClassName:"UIButtonView", ParentCsClassName:"FH.UI.Sample.UIBaseView"
     public partial class UIButtonView : FH.UI.Sample.UIBaseView
     {
-        public  const string C_AssetPath = "Packages/com.github.fancyhub.unitylibs.uiview/Tests/Runtime/Prefabs/Button.prefab";
-        public  const string C_ResoucePath = "";
+        public  const string CPath = "Packages/com.github.fancyhub.unitylibs.uiviewgen/Tests/Runtime/Prefabs/Button.prefab";
 
-		public UnityEngine.RectTransform _Button;
-		public UnityEngine.RectTransform _Text;
+		public UnityEngine.UI.Button _Button;
+		public UnityEngine.UI.Text _Text;
 
         #region AutoGen 1
-        public override string GetAssetPath() { return C_AssetPath; }
-        public override string GetResoucePath() { return C_ResoucePath; }
+        public override string GetPath() { return CPath; }
 
         protected override void _AutoInit()
         {
             base._AutoInit();
-            UIViewCompReference refs = _FindViewReference("Button");
+            var refs = _FindViewReference("{prefab_name}");
             if (refs == null)
                 return;
 
-			_Button = refs.GetComp<UnityEngine.RectTransform>("_Button");
-			_Text = refs.GetComp<UnityEngine.RectTransform>("_Text");
+			_Button = refs.GetComp<UnityEngine.UI.Button>("_Button");
+			_Text = refs.GetComp<UnityEngine.UI.Text>("_Text");
 
         }
 

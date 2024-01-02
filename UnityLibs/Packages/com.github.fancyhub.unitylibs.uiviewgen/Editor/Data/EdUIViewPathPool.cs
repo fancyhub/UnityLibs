@@ -32,5 +32,5 @@ namespace FH.UI.ViewGenerate.Ed
             _prefab_paths.Add(prefab_path);
             _prefab_paths_todo.Enqueue(prefab_path);
         }
-    }     
+    }
 }

@@ -11,9 +11,7 @@ namespace FH.UI
     //PrefabPath:"Assets/Res/UI/Prefab/Panel.prefab", ParentPrefabPath:"", CsClassName:"UIPanelView", ParentCsClassName:"FH.UI.UIBaseView"
     public partial class UIPanelView : FH.UI.UIBaseView
     {
-        public  const string CPrefabName = "Panel";
-        public  const string CAssetPath = "Assets/Res/UI/Prefab/Panel.prefab";
-        public  const string CResoucePath = "";
+        public  const string CPath = "Assets/Res/UI/Prefab/Panel.prefab";
 
 		public UnityEngine.RectTransform _Panel;
 		public UnityEngine.UI.RawImage _bg;
@@ -24,16 +22,15 @@ namespace FH.UI
 		public UnityEngine.UI.Image _img_2;
 		public UIButtonVariantView _btn_2;
 		public List<UnityEngine.UI.Image> _img_list = new List<UnityEngine.UI.Image>();
-		public List<FH.UI.UIBaseView> _btn_list = new List<FH.UI.UIBaseView>();
+		public List<UIButtonView> _btn_list = new List<UIButtonView>();
 
         #region AutoGen 1
-        public override string GetAssetPath() { return CAssetPath; }
-        public override string GetResoucePath() { return CResoucePath; }
+        public override string GetPath() { return CPath; }
 
         protected override void _AutoInit()
         {
             base._AutoInit();
-            var refs = _FindViewReference("Panel");
+            var refs = _FindViewReference("{prefab_name}");
             if (refs == null)
                 return;
 

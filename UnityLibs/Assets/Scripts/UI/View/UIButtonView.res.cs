@@ -11,21 +11,18 @@ namespace FH.UI
     //PrefabPath:"Assets/Res/UI/Prefab/Button.prefab", ParentPrefabPath:"", CsClassName:"UIButtonView", ParentCsClassName:"FH.UI.UIBaseView"
     public partial class UIButtonView : FH.UI.UIBaseView
     {
-        public  const string CPrefabName = "Button";
-        public  const string CAssetPath = "Assets/Res/UI/Prefab/Button.prefab";
-        public  const string CResoucePath = "";
+        public  const string CPath = "Assets/Res/UI/Prefab/Button.prefab";
 
 		public UnityEngine.UI.Button _Button;
 		public UnityEngine.UI.Text _Text;
 
         #region AutoGen 1
-        public override string GetAssetPath() { return CAssetPath; }
-        public override string GetResoucePath() { return CResoucePath; }
+        public override string GetPath() { return CPath; }
 
         protected override void _AutoInit()
         {
             base._AutoInit();
-            var refs = _FindViewReference("Button");
+            var refs = _FindViewReference("{prefab_name}");
             if (refs == null)
                 return;
 

@@ -15,10 +15,25 @@ namespace FH.UI.ViewGenerate.Ed
 {
     public enum EEDUIObjType
     {
-        prefab_self, //属于prefab 自己的
-        prefab_inner_root, //属于 内部prefab的 的root 节点
-        prefab_inner_obj, //属于内部 prefab的 节点
-        prefab_variant, //整个prefab的根节点，但是该节点也是 一个 variant变体
+        /// <summary>
+        /// 属于prefab 自己的
+        /// </summary>
+        Prefab_Self,
+
+        /// <summary>
+        /// 属于 内部prefab的 的root 节点
+        /// </summary>
+        Prefab_Inner_Root,
+
+        /// <summary>
+        /// 属于内部 prefab的 节点
+        /// </summary>
+        Prefab_Inner_Object,
+
+        /// <summary>
+        /// 整个prefab的根节点，但是该节点也是 一个 variant变体
+        /// </summary>
+        Prefab_Variant, 
     }
 
     public static class EdUIViewGenPrefabUtil
@@ -88,15 +103,15 @@ namespace FH.UI.ViewGenerate.Ed
         public static EEDUIObjType GetTargetType(Transform target, Transform prefab_root)
         {
             if (!_IsInnerPrefab(target.gameObject, prefab_root.gameObject))
-                return EEDUIObjType.prefab_self;
+                return EEDUIObjType.Prefab_Self;
 
             if (!_IsInnerPrefabRoot(target.gameObject))
-                return EEDUIObjType.prefab_inner_obj;
+                return EEDUIObjType.Prefab_Inner_Object;
 
             if (target == prefab_root)
-                return EEDUIObjType.prefab_variant;
+                return EEDUIObjType.Prefab_Variant;
 
-            return EEDUIObjType.prefab_inner_root;
+            return EEDUIObjType.Prefab_Inner_Root;
         }
 
         /// <summary>
@@ -207,13 +222,13 @@ namespace FH.UI.ViewGenerate.Ed
 
                 switch (obj_type)
                 {
-                    case EEDUIObjType.prefab_self:
-                    case EEDUIObjType.prefab_inner_obj:
-                    case EEDUIObjType.prefab_variant:
+                    case EEDUIObjType.Prefab_Self:
+                    case EEDUIObjType.Prefab_Inner_Object:
+                    case EEDUIObjType.Prefab_Variant:
                         //不处理
                         break;
 
-                    case EEDUIObjType.prefab_inner_root:
+                    case EEDUIObjType.Prefab_Inner_Root:
                         string inner_prefab_path = GetInnerPrefabAssetPath(a.gameObject);
                         out_list.Add(a.gameObject, inner_prefab_path);
                         break;

@@ -18,6 +18,8 @@ MonoBehaviour:
     Suffix: View
     BaseClassName: FH.UI.UIBaseView
     CodeFolder: Assets/Scripts/UI/View
+    PathMode: 0
+    ResourcePath: /Resources/
   ResourcesFolderList:
   - Assets/Res/UI/Prefab
   PriorityCompTypeList:

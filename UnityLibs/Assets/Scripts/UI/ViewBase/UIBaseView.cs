@@ -22,8 +22,7 @@ namespace FH.UI
 
 
         #region Don't Need Impeplemnt
-        public virtual string GetAssetPath() { return null; }
-        public virtual string GetResoucePath() { return null; }
+        public virtual string GetPath() { return null; }
         public virtual string GetDebugName() { return this.GetType().Name; }
         protected virtual void _AutoInit() { }
         protected virtual void _AutoDestroy() { }
@@ -71,8 +70,7 @@ namespace FH.UI
         public UICanvasOrder CanvasOrder => _canvas_order;
 
         #region Don't Need Impeplemnt
-        public virtual string GetAssetPath() { return null; }
-        public virtual string GetResoucePath() { return null; }
+        public virtual string GetPath() { return null; }
         public virtual string GetDebugName() { return this.GetType().Name; }
         protected virtual void _AutoInit() { }
         protected virtual void _AutoDestroy() { }

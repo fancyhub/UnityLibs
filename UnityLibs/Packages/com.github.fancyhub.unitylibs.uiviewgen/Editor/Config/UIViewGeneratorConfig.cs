@@ -9,6 +9,13 @@ namespace FH.UI.ViewGenerate.Ed
     [CreateAssetMenu(menuName = "UIView/UI View Gen Config", fileName = "UIViewGeneratorConfig")]
     public class UIViewGeneratorConfig : ScriptableObject, ISerializationCallbackReceiver
     {
+        public enum EPathMode
+        {
+            AssetPath,
+            ResourcePath,
+            PrefabName,
+        }
+
         public const string DefaultPath = "Assets/fancyhub/UIViewGeneratorConfig.asset";
         public const string C_EditorPrefs_Key = "fancyhub.uiview.gen.path";
 
@@ -25,12 +32,14 @@ namespace FH.UI.ViewGenerate.Ed
             public const string ExtSuffix = ".ext.cs";
             public const string ResSuffix = ".res.cs";
 
-
             public string NameSpace = "FH.UI";
             public string Prefix = "UI"; //自动生成的 class 前缀
             public string Suffix = "View";
             public string BaseClassName = "FH.UI.UIBaseView";
             public string CodeFolder = "Assets/Scripts/UI/View";
+
+            public EPathMode PathMode = EPathMode.AssetPath;
+            public string ResourcePath = "/Resources/";
 
             public Type _BaseViewClass;
 

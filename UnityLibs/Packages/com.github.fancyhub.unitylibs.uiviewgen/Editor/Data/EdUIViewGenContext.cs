@@ -99,7 +99,9 @@ namespace FH.UI.ViewGenerate.Ed
                 case EMode.AutoDependency:
                     {
                         if (conf == null)
+                        {
                             _PathPool.Push(prefab_path);
+                        }
                     }
                     break;
 
@@ -125,7 +127,10 @@ namespace FH.UI.ViewGenerate.Ed
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefab_path);
             if (prefab == null)
+            {
+                UnityEngine.Debug.LogError($"Load Prefab Error {prefab_path}");
                 return null;
+            }
 
             string parent_prefab_path = null;
             UnityEngine.GameObject orig_prefab = EdUIViewGenPrefabUtil.GetOrigPrefabWithVariant(prefab);

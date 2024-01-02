@@ -8,12 +8,10 @@ using UnityEngine.UI;
 namespace FH.UI
 {
 
-    //PrefabPath:"Assets/Res/UI/Prefab/Panel_Variant.prefab", ParentPrefabPath:"", CsClassName:"UIPanelVariantView", ParentCsClassName:"UIPanelView"
+    //PrefabPath:"Assets/Res/UI/Prefab/Panel_Variant.prefab", ParentPrefabPath:"Assets/Res/UI/Prefab/Panel.prefab", CsClassName:"UIPanelVariantView", ParentCsClassName:"UIPanelView"
     public partial class UIPanelVariantView : UIPanelView
     {
-        public  new  const string CPrefabName = "Panel_Variant";
-        public  new  const string CAssetPath = "Assets/Res/UI/Prefab/Panel_Variant.prefab";
-        public  new  const string CResoucePath = "";
+        public  new  const string CPath = "Assets/Res/UI/Prefab/Panel_Variant.prefab";
 
 		public UnityEngine.UI.Image _img_3;
 		public UIButton2View _btn_3;
@@ -21,13 +19,12 @@ namespace FH.UI
 		public UIButtonVariantView _btn_4;
 
         #region AutoGen 1
-        public override string GetAssetPath() { return CAssetPath; }
-        public override string GetResoucePath() { return CResoucePath; }
+        public override string GetPath() { return CPath; }
 
         protected override void _AutoInit()
         {
             base._AutoInit();
-            var refs = _FindViewReference("Panel_Variant");
+            var refs = _FindViewReference("{prefab_name}");
             if (refs == null)
                 return;
 
@@ -37,6 +34,7 @@ namespace FH.UI
 			_btn_4 = _CreateSub<UIButtonVariantView>(refs.GetObj("_btn_4"));
 			_img_list.Add(_img_3);
 			_img_list.Add(_img_4);
+			_btn_list.Add(_btn_4);
 
         }
 
@@ -47,6 +45,7 @@ namespace FH.UI
 			_btn_3.Destroy();
 			_btn_4.Destroy();
 			_img_list.Clear();
+			_btn_list.Clear();
 
         }
 

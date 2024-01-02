@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace FH.UI.ViewGenerate.Ed
@@ -8,19 +9,16 @@ namespace FH.UI.ViewGenerate.Ed
     {
         private const string C_CLASS_BEIGN =
             @"
-    //PrefabPath:""{asset_path}"", ParentPrefabPath:""{parent_asset_path}"", CsClassName:""{class_name}"", ParentCsClassName:""{parent_class_name}""
+    //PrefabPath:""{prefab_path}"", ParentPrefabPath:""{parent_prefab_path}"", CsClassName:""{class_name}"", ParentCsClassName:""{parent_class_name}""
     public partial class {class_name} : {parent_class_name}
     {
-        public {new_flag} const string CPrefabName = ""{prefab_name}"";
-        public {new_flag} const string CAssetPath = ""{asset_path}"";
-        public {new_flag} const string CResoucePath = ""{resource_path}"";
+        public {new_flag} const string CPath = ""{path}"";
 ";
 
         public const string C_CODE_INIT_BEGIN =
             @"
         #region AutoGen 1
-        public override string GetAssetPath() { return CAssetPath; }
-        public override string GetResoucePath() { return CResoucePath; }
+        public override string GetPath() { return CPath; }
 
         protected override void _AutoInit()
         {
@@ -83,7 +81,7 @@ namespace FH.UI.ViewGenerate.Ed
                 {
                     sw.WriteLine(formater.Format(C_CODE_INIT_BEGIN));
 
-                    FieldExporter.Export_Init(_Config,sw, view.Fields);
+                    FieldExporter.Export_Init(_Config, sw, view.Fields);
                     ListFieldExporter.Export_Init(sw, view.ListFields);
                     sw.WriteLine(C_CODE_INIT_END);
                 }
@@ -116,23 +114,35 @@ namespace FH.UI.ViewGenerate.Ed
                 formater.Add("new_flag", " new ");
                 formater.Add("parent_class_name", _Config.GenClassName(view.ParentDesc.PrefabName));
             }
+            formater.Add("prefab_path", view.Desc.PrefabPath);
+            formater.Add("parent_prefab_path", view.Desc.ParentPrefabPath);
 
-            formater.Add("asset_path", view.Desc.PrefabPath);
-            formater.Add("parent_asset_path", view.Desc.ParentPrefabPath);
-            formater.Add("resource_path", _GetResourcePath(view.Desc.PrefabPath));
-            formater.Add("prefab_name", Path.GetFileNameWithoutExtension(view.Desc.PrefabPath));
 
+            switch (_Config.PathMode)
+            {
+                case UIViewGeneratorConfig.EPathMode.AssetPath:
+                    formater.Add("path", view.Desc.PrefabPath);
+                    break;
+                case UIViewGeneratorConfig.EPathMode.ResourcePath:
+                    formater.Add("path", _GetResourcePath(_Config.ResourcePath, view.Desc.PrefabPath));
+                    break;
+                case UIViewGeneratorConfig.EPathMode.PrefabName:
+                    formater.Add("path", Path.GetFileNameWithoutExtension(view.Desc.PrefabPath));
+                    break;
+            }
             return formater;
         }
 
-        private static string _GetResourcePath(string asset_path)
+        private static string _GetResourcePath(string resource_folder_name, string asset_path)
         {
-            string resources_folder = "/Resources/";
-            int start_pos = asset_path.LastIndexOf(resources_folder);
+            int start_pos = asset_path.LastIndexOf(resource_folder_name);
             if (start_pos < 0)
+            {
+                UnityEngine.Debug.LogError($"Path: {asset_path} Doesn't Contain \"{resource_folder_name}\"");
                 return "";
+            }                
 
-            start_pos += resources_folder.Length;
+            start_pos += resource_folder_name.Length;
             int end_pos = asset_path.Length - ".prefab".Length;
             return asset_path.Substring(start_pos, end_pos - start_pos);
         }
@@ -150,26 +160,26 @@ namespace FH.UI.ViewGenerate.Ed
                     if (!_ShouldExport(field))
                         continue;
 
-                    if (null != field._parent)
+                    if (null != field.Parent)
                     {
                         //在parent 里面声明该对象
                         continue;
                     }
 
-                    sw.WriteLine("\t\tpublic List<{0}> {1}_list = new List<{0}>();", _GetFieldTypeName(config, field._field_type), field._field_name);
+                    sw.WriteLine("\t\tpublic List<{0}> {1}_list = new List<{0}>();", _GetFieldTypeName(config, field.FieldType), field.FieldName);
                 }
             }
 
             public static void Export_Init(StreamWriter sw, List<EdUIViewListField> fields)
             {
-                foreach (var field in fields)
+                foreach (var list_field in fields)
                 {
-                    if (!_ShouldExport(field))
+                    if (!_ShouldExport(list_field))
                         return;
 
-                    foreach (EdUIField field_comp in field._field_list)
+                    foreach (var field in list_field.FieldList)
                     {
-                        sw.WriteLine("\t\t\t{0}_list.Add({1});", field._field_name, field_comp.Fieldname);
+                        sw.WriteLine("\t\t\t{0}_list.Add({1});", list_field.FieldName, field.Field.Fieldname);
                     }
                 }
             }
@@ -181,7 +191,7 @@ namespace FH.UI.ViewGenerate.Ed
                     if (!_ShouldExport(field))
                         return;
 
-                    sw.WriteLine("\t\t\t{0}_list.Clear();", field._field_name);
+                    sw.WriteLine("\t\t\t{0}_list.Clear();", field.FieldName);
                 }
             }
 
@@ -189,12 +199,12 @@ namespace FH.UI.ViewGenerate.Ed
             //只有 field_list.Count ==1 并且没有parent，没有child，那就完全不输出了
             private static bool _ShouldExport(EdUIViewListField field)
             {
-                if (field._field_list.Count > 1)
+                if (field.FieldList.Count > 1)
                     return true;
 
-                if (null != field._parent)
+                if (null != field.Parent)
                     return true;
-                if (field._has_child)
+                if (field.HasChild)
                     return true;
                 return false;
             }
@@ -220,7 +230,7 @@ namespace FH.UI.ViewGenerate.Ed
             {
                 foreach (var field in fields)
                 {
-                    sw.WriteLine("\t\tpublic {0} {1};", _GetFieldTypeName(config,field.FieldType), field.Fieldname);
+                    sw.WriteLine("\t\tpublic {0} {1};", _GetFieldTypeName(config, field.FieldType), field.Fieldname);
                 }
             }
 

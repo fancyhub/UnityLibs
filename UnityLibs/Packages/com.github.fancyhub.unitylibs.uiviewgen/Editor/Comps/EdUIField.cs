@@ -20,7 +20,6 @@ namespace FH.UI.ViewGenerate.Ed
         }
 
         public EType Type;
-
         public Type CompType;
         public EdUIViewDesc ViewType;
 
