@@ -21,7 +21,7 @@ namespace FH.UI.ViewGenerate.Ed
 
         public const string C_MENU_Gen_Select = "Assets/Gen UIView Code";
         public const string C_MENU_Gen_ALL = "Tools/UI/Regen All UIView Code";
-        public const string C_MENU_Clear_Unused_Class = "Tools/UI/Clear UIView Code";
+        public const string C_MENU_Clear_Unused_Class = "Tools/UI/Clear Unused UIView Code";
         public const string C_MENU_Export_Class_Usage = "Tools/UI/Gen Class Usage";
 
         public CSharpConfig Csharp = new CSharpConfig();

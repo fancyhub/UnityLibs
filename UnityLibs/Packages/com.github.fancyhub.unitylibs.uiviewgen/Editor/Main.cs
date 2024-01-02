@@ -14,7 +14,7 @@ using UnityEditor;
 
 namespace FH.UI.ViewGenerate.Ed
 {
-    public static class EdUIViewGenMain
+    public static class Main
     {
         [MenuItem(UIViewGeneratorConfig.C_MENU_Gen_Select, true, 200)]
         public static bool GenCode_Select_Valid()
@@ -69,7 +69,7 @@ namespace FH.UI.ViewGenerate.Ed
             EditorUtility.DisplayDialog("完成", "结束", "确认");
         }
 
-        [MenuItem(UIViewGeneratorConfig.C_MENU_Gen_ALL, false, 200)]
+        [MenuItem(UIViewGeneratorConfig.C_MENU_Gen_ALL, false, 100)]
         public static void ReGenCodeAll()
         {
             UIViewGeneratorConfig config = UIViewGeneratorConfig.LoadDefault();
@@ -88,7 +88,7 @@ namespace FH.UI.ViewGenerate.Ed
         /// <summary>
         /// 删除不要的代码
         /// </summary>
-        [MenuItem(UIViewGeneratorConfig.C_MENU_Clear_Unused_Class, false, 200)]
+        [MenuItem(UIViewGeneratorConfig.C_MENU_Clear_Unused_Class, false, 150)]
         public static void RemoveInvalidateCS()
         {
             UIViewGeneratorConfig config = UIViewGeneratorConfig.LoadDefault();
@@ -126,8 +126,6 @@ namespace FH.UI.ViewGenerate.Ed
             }
             sw.Close();
             UnityEngine.Debug.Log("Done");
-        }
-
-      
+        }      
     }
 }
