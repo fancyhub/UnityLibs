@@ -6,17 +6,32 @@
 *************************************************************************************/
 
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEditor;
 
-namespace FH.UI.View.Gen.ED
+namespace FH.UI.ViewGenerate.Ed
 {
-    public partial class EdUIFactory
+    public class CreateViewProcessor : IViewGeneratePreprocessor
     {
-        public EdUIView CreateView(EdUIViewConf conf)
+        public void Process(EdUIViewGenContext context)
         {
-            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(conf.PrefabPath);
+            List<EdUIView> view_list = new List<EdUIView>();
+            for (; ; )
+            {
+                EdUIViewDesc next_conf = context.GetNextPrefabConf();
+                if (null == next_conf)
+                    break;
+                EdUIView view = CreateView(context, next_conf);
+                view_list.Add(view);
+            }
+
+            context.ViewList = view_list;
+        }
+
+
+        public static EdUIView CreateView(EdUIViewGenContext context, EdUIViewDesc desc)
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(desc.PrefabPath);
 
             var type = PrefabUtility.GetPrefabAssetType(prefab);
             switch (type)
@@ -24,10 +39,10 @@ namespace FH.UI.View.Gen.ED
                 case PrefabAssetType.Regular:
                     {
                         EdUIView ret = new EdUIView();
-                        ret.Conf = conf;
+                        ret.Desc = desc;
                         ret.Prefab = prefab;
                         ret.IsVariant = false;
-                        ret.ParentClass = _data.Config.BaseClassName;
+                        ret.ParentViewName = context.Config.Csharp.BaseClassName;
                         return ret;
                     }
 
@@ -35,23 +50,23 @@ namespace FH.UI.View.Gen.ED
                     {
                         GameObject orig_prefab = EdUIViewGenPrefabUtil.GetOrigPrefabWithVariant(prefab);
                         string orig_prefab_path = AssetDatabase.GetAssetPath(orig_prefab);
-                        if (_data.Config.IsPrefabPathValid(orig_prefab_path))
+                        if (context.Config.IsPrefabPathValid(orig_prefab_path))
                         {
-                            var parent_conf = _data.AddDependPath_Variant(orig_prefab_path);
+                            var parent_conf = context.AddDependPath_Variant(orig_prefab_path);
                             EdUIView ret = new EdUIView();
-                            ret.Conf = conf;
+                            ret.Desc = desc;
                             ret.Prefab = prefab;
-                            ret.ParentClass = parent_conf.ClassName;
+                            ret.ParentViewName = parent_conf.ClassName;
                             ret.IsVariant = true;
                             return ret;
                         }
                         else
                         {
-                            UnityEngine.Debug.LogErrorFormat("Prefab 路径不合法\n Prefab : [{0}] \n Variant Prefab : [{1}]\n", orig_prefab_path, conf.PrefabPath);
+                            UnityEngine.Debug.LogErrorFormat("Prefab 路径不合法\n Prefab : [{0}] \n Variant Prefab : [{1}]\n", orig_prefab_path, desc.PrefabPath);
                             EdUIView ret = new EdUIView();
-                            ret.Conf = conf;
+                            ret.Desc = desc;
                             ret.Prefab = prefab;
-                            ret.ParentClass = _data.Config.BaseClassName;
+                            ret.ParentViewName = context.Config.Csharp.BaseClassName;
                             ret.IsVariant = false;
                             return ret;
                         }
@@ -62,5 +77,6 @@ namespace FH.UI.View.Gen.ED
                     return null;
             }
         }
+         
     }
 }

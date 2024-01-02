@@ -6,16 +6,22 @@
 *************************************************************************************/
 
 using System.Collections.Generic;
-using System.IO;
-using UnityEngine;
-using UnityEditor;
 using System.Text;
+using UnityEngine;
 
-namespace FH.UI.View.Gen.ED
+namespace FH.UI.ViewGenerate.Ed
 {
-    public partial class EdUIFactory
+    public class CreateViewFieldProcessor : IViewGeneratePreprocessor
     {
-        public List<EdUIField> CreateFields(GameObject prefab)
+        public void Process(EdUIViewGenContext context)
+        {
+            foreach (var view in context.ViewList)
+            {
+                view.Fields = CreateFields(context,view.Prefab);
+            }
+        }
+
+        public static List<EdUIField> CreateFields(EdUIViewGenContext context,GameObject prefab)
         {
             List<EdUIField> ret = new List<EdUIField>();
             Transform root_tran = prefab.transform;
@@ -27,7 +33,7 @@ namespace FH.UI.View.Gen.ED
                 {
                     case EEDUIObjType.prefab_self:
                         {
-                            EdUIField field = _CreateField_Component(root_tran, tran);
+                            EdUIField field = _CreateField_Component(context,root_tran, tran);
                             if (null != field)
                                 ret.Add(field);
                         }
@@ -42,7 +48,7 @@ namespace FH.UI.View.Gen.ED
 
                     case EEDUIObjType.prefab_inner_root:
                         {
-                            EdUIField field = _CreateField_Prefab(root_tran, tran, _data);
+                            EdUIField field = _CreateField_Prefab(context,root_tran, tran);
                             if (null != field)
                                 ret.Add(field);
                         }
@@ -62,17 +68,17 @@ namespace FH.UI.View.Gen.ED
             return ret;
         }
 
-        private EdUIField _CreateField_Prefab(Transform root, Transform target, EdUIViewData view_data)
+        private static EdUIField _CreateField_Prefab(EdUIViewGenContext context, Transform root, Transform target)
         {
             if (!target.name.StartsWith("_"))
                 return null;
 
             string inner_prefab_path = EdUIViewGenPrefabUtil.GetInnerPrefabAssetPath(target.gameObject);
 
-            if (view_data.Config.IsPrefabPathValid(inner_prefab_path))
+            if (context.Config.IsPrefabPathValid(inner_prefab_path))
             {
                 string go_path = _GetHierarchyPath(target, root);
-                var dep_conf = view_data.AddDependPath(inner_prefab_path);
+                var dep_conf = context.AddDependPath(inner_prefab_path);
 
                 EdUIField field = new EdUIField();
                 field.Path = go_path;
@@ -89,7 +95,7 @@ namespace FH.UI.View.Gen.ED
                 if (root != target && !target_name.StartsWith("_"))
                     return null;
 
-                Component component = Config.EdGetComponent(target, root);
+                Component component = context.Config.GetComponent(target, root);
                 if (null == component)
                     return null;
 
@@ -105,14 +111,14 @@ namespace FH.UI.View.Gen.ED
         }
 
 
-        private EdUIField _CreateField_Component(Transform root, Transform target)
+        private static EdUIField _CreateField_Component(EdUIViewGenContext context, Transform root, Transform target)
         {
             string target_name = target.name;
             //如果不是根节点，必须要以 下划线开头才能导出 _
             if (root != target && !target_name.StartsWith("_"))
                 return null;
 
-            Component component = Config.EdGetComponent(target, root);
+            Component component = context.Config.GetComponent(target, root);
             if (null == component)
                 return null;
 

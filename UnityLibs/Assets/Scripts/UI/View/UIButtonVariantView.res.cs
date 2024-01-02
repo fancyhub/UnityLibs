@@ -11,7 +11,7 @@ namespace FH.UI
     public partial class UIButtonVariantView : UIButtonView
     {
         public  new  const string C_AssetPath = "Assets/Res/UI/Prefab/Button_Variant.prefab";
-        public  new  const string C_ResoucePath = "UI/Prefab/Button_Variant";
+        public  new  const string C_ResoucePath = "";
 
 
         #region AutoGen 1
@@ -21,7 +21,7 @@ namespace FH.UI
         protected override void _AutoInit()
         {
             base._AutoInit();
-            UIViewCompReference refs = _FindViewReference("Button_Variant");
+            var refs = _FindViewReference("Button_Variant");
             if (refs == null)
                 return;
 

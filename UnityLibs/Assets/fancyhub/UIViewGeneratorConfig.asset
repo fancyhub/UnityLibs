@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 06cc6fe67bab23747b0cbadfc0653c7f, type: 3}
-  m_Name: UIGeneratorConfig
+  m_Name: UIViewGeneratorConfig
   m_EditorClassIdentifier: 
   NameSpace: FH.UI
   ClassPrefix: UI

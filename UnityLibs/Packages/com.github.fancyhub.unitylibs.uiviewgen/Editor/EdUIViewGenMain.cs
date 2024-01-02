@@ -12,18 +12,18 @@ using UnityEngine;
 using UnityEditor;
 
 
-namespace FH.UI.View.Gen.ED
+namespace FH.UI.ViewGenerate.Ed
 {
     public static class EdUIViewGenMain
     {
-        [MenuItem(UIViewGenConfig.C_MENU_Gen_Select, true, 200)]
+        [MenuItem(UIViewGeneratorConfig.C_MENU_Gen_Select, true, 200)]
         public static bool GenCode_Select_Valid()
         {
             GameObject[] selections = Selection.gameObjects;
             if (null == selections)
                 return false;
 
-            UIViewGenConfig config = UIViewGenConfig.EdLoadDefault();
+            UIViewGeneratorConfig config = UIViewGeneratorConfig.LoadDefault();
             if (config == null)
                 return false;
 
@@ -41,10 +41,10 @@ namespace FH.UI.View.Gen.ED
         /// <summary>
         /// 生成代码，只是当前选中的 prefab
         /// </summary>
-        [MenuItem(UIViewGenConfig.C_MENU_Gen_Select, false, 200)]
+        [MenuItem(UIViewGeneratorConfig.C_MENU_Gen_Select, false, 200)]
         public static void GenCode_Select()
         {
-            UIViewGenConfig config = UIViewGenConfig.EdLoadDefault();
+            UIViewGeneratorConfig config = UIViewGeneratorConfig.LoadDefault();
             if (config == null)
                 return;
 
@@ -54,24 +54,11 @@ namespace FH.UI.View.Gen.ED
                 Debug.LogError("选中 prefab 才能生成");
                 return;
             }
+
             foreach (GameObject obj in selections)
-            {
-                string path = AssetDatabase.GetAssetPath(obj);
-                if (string.IsNullOrEmpty(path))
-                {
-                    Debug.LogErrorFormat("{0}不是prefab, 选中prefab才允许生成", obj.name);
-                    return;
-                }
-                if (!config.IsPrefabPathValid(path))
-                {
-                    Debug.LogErrorFormat("{0}路径不合法, 不允许生成代码", obj.name);
-                    return;
-                }
-
-                EdUIViewData data = new EdUIViewData(EdUIViewConfDb.LoadConfFromCSCode(config));
-                data.AddInitPath(path);
-
-                EdUIViewGen.GenCode(data);
+            { 
+                ViewGenerator view_generator = new ViewGenerator(config);
+                view_generator.GenCode(obj);
             }
 
             //这里之前不加refresh可能是因为生成代码对prefab没有影响
@@ -82,38 +69,49 @@ namespace FH.UI.View.Gen.ED
             EditorUtility.DisplayDialog("完成", "结束", "确认");
         }
 
-        [MenuItem(UIViewGenConfig.C_MENU_Gen_ALL, false, 200)]
+        [MenuItem(UIViewGeneratorConfig.C_MENU_Gen_ALL, false, 200)]
         public static void ReGenCodeAll()
         {
-            UIViewGenConfig config = UIViewGenConfig.EdLoadDefault();
+            UIViewGeneratorConfig config = UIViewGeneratorConfig.LoadDefault();
             if (config == null)
                 return;
 
-            EdUIViewConfDb conf_db = EdUIViewConfDb.LoadConfFromCSCode(config);
-            conf_db.RemoveInvalidatePath();
+            ViewGenerator view_generator = new ViewGenerator(config);
+            view_generator.RegenAllCode();
 
-            EdUIViewData data = new EdUIViewData(conf_db);
-            data.AddInitPaths(conf_db.GetPathList());
-
-            EdUIViewGen.GenCode(data);
 
             AssetDatabase.Refresh();
             Debug.Log("DONE");
             EditorUtility.DisplayDialog("完成", "结束", "确认");
         }
 
-        [MenuItem(UIViewGenConfig.C_MENU_Export_Class_Usage, false, 200)]
+        /// <summary>
+        /// 删除不要的代码
+        /// </summary>
+        [MenuItem(UIViewGeneratorConfig.C_MENU_Clear_Unused_Class, false, 200)]
+        public static void RemoveInvalidateCS()
+        {
+            UIViewGeneratorConfig config = UIViewGeneratorConfig.LoadDefault();
+            if (config == null)
+                return;
+
+            ViewGenerator view_generator = new ViewGenerator(config);
+            view_generator.RemoveInvalidateCodeFiles();
+            Debug.Log("DONE");
+        }
+
+        [MenuItem(UIViewGeneratorConfig.C_MENU_Export_Class_Usage, false, 200)]
         public static void GenClassUsage()
         {
-            UIViewGenConfig config = UIViewGenConfig.EdLoadDefault();
-            if (config == null || config._BaseViewClass==null)
+            UIViewGeneratorConfig config = UIViewGeneratorConfig.LoadDefault();
+            if (config == null || config.Csharp._BaseViewClass == null)
                 return;
 
             string file_path = UnityEditor.EditorUtility.SaveFilePanel("保存", null, null, "csv");
             if (string.IsNullOrEmpty(file_path))
                 return;
 
-            var all_types = EdUIViewUsageFinder.Find(config._BaseViewClass);
+            var all_types = EdUIViewUsageFinder.Find(config.Csharp._BaseViewClass);
             System.IO.StreamWriter sw = new System.IO.StreamWriter(file_path);
             sw.WriteLine("Type,Owner");
             foreach (var p in all_types)
@@ -130,39 +128,6 @@ namespace FH.UI.View.Gen.ED
             UnityEngine.Debug.Log("Done");
         }
 
-        /// <summary>
-        /// 删除不要的代码
-        /// </summary>
-        [MenuItem(UIViewGenConfig.C_MENU_Clear_Unused_Class, false, 200)]
-        public static void RemoveInvalidateCS()
-        {
-            UIViewGenConfig config = UIViewGenConfig.EdLoadDefault();
-            if (config == null)
-                return;
-
-            EdUIViewConfDb conf_db = EdUIViewConfDb.LoadConfFromCSCode(config);
-            conf_db.RemoveInvalidatePath();
-
-            HashSet<string> validate_file_names = new HashSet<string>();
-            foreach (var p in conf_db.GetAllConfigs())
-            {
-                validate_file_names.Add(p.GetCsFileNameRes());
-                validate_file_names.Add(p.GetCsFileNameRes() + ".meta");
-
-                validate_file_names.Add(p.GetCsFileNameExt());
-                validate_file_names.Add(p.GetCsFileNameExt() + ".meta");
-            }
-
-            string[] files = System.IO.Directory.GetFiles(config.CodeFolder);
-            foreach (string file_name in files)
-            {
-                string name = System.IO.Path.GetFileName(file_name);
-                if (validate_file_names.Contains(name))
-                    continue;
-                File.Delete(file_name);
-            }
-
-            Debug.Log("DONE");
-        }
+      
     }
 }

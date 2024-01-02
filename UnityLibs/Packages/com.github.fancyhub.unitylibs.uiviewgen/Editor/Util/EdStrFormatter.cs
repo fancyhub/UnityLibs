@@ -9,11 +9,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace FH.UI.View.Gen.ED
+namespace FH.UI.ViewGenerate.Ed
 {
     //用来format用的，和 string.format 很像，不过 里面的内容不是 {0}, 而是具体的key {abc}
     //_key_value_dict 里面要填写  abc=real_name
-    public class EdStrFormatter
+    public sealed class EdStrFormatter
     {
         public Dictionary<string, string> _key_value_dict =
             new Dictionary<string, string>();

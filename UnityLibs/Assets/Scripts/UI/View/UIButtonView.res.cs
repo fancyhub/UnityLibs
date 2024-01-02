@@ -11,7 +11,7 @@ namespace FH.UI
     public partial class UIButtonView : FH.UI.UIBaseView
     {
         public  const string C_AssetPath = "Assets/Res/UI/Prefab/Button.prefab";
-        public  const string C_ResoucePath = "UI/Prefab/Button";
+        public  const string C_ResoucePath = "";
 
 		public UnityEngine.UI.Button _Button;
 		public UnityEngine.UI.Text _Text;
@@ -23,7 +23,7 @@ namespace FH.UI
         protected override void _AutoInit()
         {
             base._AutoInit();
-            UIViewCompReference refs = _FindViewReference("Button");
+            var refs = _FindViewReference("Button");
             if (refs == null)
                 return;
 

@@ -10,16 +10,10 @@ using System.IO;
 using UnityEngine;
 using UnityEditor;
 
-namespace FH.UI.View.Gen.ED
+namespace FH.UI.ViewGenerate.Ed
 {
-    public partial class EdUIFactory
+    public interface IViewGeneratePreprocessor
     {
-        public UIViewGenConfig Config;
-        public EdUIViewData _data;
-        public EdUIFactory(EdUIViewData data)
-        {
-            _data = data;
-            Config = data.Config;
-        } 
-    }
+        public void Process(EdUIViewGenContext context);
+    }       
 }

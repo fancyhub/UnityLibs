@@ -10,64 +10,55 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace FH.UI.View.Gen.ED
+namespace FH.UI.ViewGenerate.Ed
 {
     /// <summary>
     /// 配置，描述了 EdSmUiConf的集合
     /// 给了一些搜索，添加，保存，加载的方法
     /// </summary>
-    public class EdUIViewConfDb
+    public class EdUIViewDescDB
     {
-
-        public UIViewGenConfig Config;
-
-        private List<EdUIViewConf> _all_confs = new();
+        public UIViewGeneratorConfig Config;
+        private List<EdUIViewDesc> _AllDesc = new();
 
         //key is class name
-        private Dictionary<string, EdUIViewConf> _class_2_conf = new();
+        private Dictionary<string, EdUIViewDesc> _Class2Desc = new();
         // key is prefab path
-        private Dictionary<string, EdUIViewConf> _path_2_conf = new();
+        private Dictionary<string, EdUIViewDesc> _Path2Desc = new();
 
-        public static EdUIViewConfDb LoadConfFromCSCode(UIViewGenConfig config)
+        public EdUIViewDescDB(UIViewGeneratorConfig config,List<EdUIViewDesc> list)
         {
-            EdUIViewConfDb ret = new EdUIViewConfDb();
-            ret.Config = config;
-            string[] files = System.IO.Directory.GetFiles(config.CodeFolder,"*"+ EdUIViewConf.C_CS_RES_SUFFIX);
-            foreach (string file in files)
-            {
-                EdUIViewConf conf = EdUIViewConf.ParseFromCsFile(file);
-                if (conf != null)
-                    ret._all_confs.Add(conf);
-            }
-            ret._BuildCache();
-            return ret;
-        }
+            Config = config;
+            _AllDesc.AddRange(list);
 
-        public List<EdUIViewConf> GetAllConfigs()
+            _BuildCache();
+        }         
+
+        public List<EdUIViewDesc> GetAllDesc()
         {
-            return _all_confs;
+            return _AllDesc;
         }
         public IEnumerable<string> GetPathList()
         {
-            return _path_2_conf.Keys;
+            return _Path2Desc.Keys;
         }
 
-        public EdUIViewConf FindConfWithPrefabPath(string prefab_path)
+        public EdUIViewDesc FindDescWithPrefabPath(string prefab_path)
         {
             if (string.IsNullOrEmpty(prefab_path))
                 return null;
 
-            EdUIViewConf ret = null;
-            _path_2_conf.TryGetValue(prefab_path, out ret);
+            EdUIViewDesc ret = null;
+            _Path2Desc.TryGetValue(prefab_path, out ret);
             return ret;
         }
 
-        public EdUIViewConf FindConfWithClassName(string class_name)
+        public EdUIViewDesc FindDescWithClassName(string class_name)
         {
             if (string.IsNullOrEmpty(class_name))
                 return null;
-            EdUIViewConf ret = null;
-            _class_2_conf.TryGetValue(class_name, out ret);
+            EdUIViewDesc ret = null;
+            _Class2Desc.TryGetValue(class_name, out ret);
             return ret;
         }
 
@@ -84,7 +75,7 @@ namespace FH.UI.View.Gen.ED
 
             if (_parent_class_list0.Count == 0 || _parent_class_list1.Count == 0)
             {
-                return Config.BaseClassName;
+                return Config.Csharp.BaseClassName;
             }
 
             int count = System.Math.Min(_parent_class_list0.Count, _parent_class_list1.Count);
@@ -94,7 +85,7 @@ namespace FH.UI.View.Gen.ED
                     return _parent_class_list0[i];
             }
 
-            return Config.BaseClassName;
+            return Config.Csharp.BaseClassName;
         }
 
         public bool IsParentClass(string class_name, string parent_class_name)
@@ -114,23 +105,23 @@ namespace FH.UI.View.Gen.ED
         {
             out_list.Clear();
 
-            EdUIViewConf conf = FindConfWithClassName(class_name);
-            if (conf == null)
+            EdUIViewDesc desc = FindDescWithClassName(class_name);
+            if (desc == null)
                 return;
 
             for (; ; )
             {
-                out_list.Add(conf.ClassName);
+                out_list.Add(desc.ClassName);
 
-                if (conf.ParentClassName == Config.BaseClassName)
+                if (desc.ParentClassName == Config.Csharp.BaseClassName)
                 {
-                    out_list.Add(conf.ParentClassName);
+                    out_list.Add(desc.ParentClassName);
                     break;
                 }
-                conf = FindConfWithClassName(conf.ParentClassName);
-                if (conf == null)
+                desc = FindDescWithClassName(desc.ParentClassName);
+                if (desc == null)
                 {
-                    UnityEngine.Debug.LogError("Error " + conf.ClassName + " : " + conf.ParentClassName);
+                    UnityEngine.Debug.LogError("Error " + desc.ClassName + " : " + desc.ParentClassName);
                     //出错了
                     out_list.Clear();
                     break;
@@ -140,24 +131,24 @@ namespace FH.UI.View.Gen.ED
             out_list.Reverse();
         }
 
-        public bool AddConf(EdUIViewConf conf)
+        public bool AddConf(EdUIViewDesc conf)
         {
             _CheckExist(conf);
-            _path_2_conf.Add(conf.PrefabPath, conf);
-            _class_2_conf.Add(conf.ClassName, conf);
-            _all_confs.Add(conf);
+            _Path2Desc.Add(conf.PrefabPath, conf);
+            _Class2Desc.Add(conf.ClassName, conf);
+            _AllDesc.Add(conf);
             return true;
         }
 
         public void RemoveInvalidatePath()
         {
             bool changed = false;
-            for (int i = _all_confs.Count - 1; i >= 0; --i)
+            for (int i = _AllDesc.Count - 1; i >= 0; --i)
             {
-                EdUIViewConf conf = _all_confs[i];
-                if (!File.Exists(conf.PrefabPath))
+                EdUIViewDesc desc = _AllDesc[i];
+                if (!File.Exists(desc.PrefabPath))
                 {
-                    _all_confs.RemoveAt(i);
+                    _AllDesc.RemoveAt(i);
                     changed = true;
                 }
             }
@@ -167,29 +158,31 @@ namespace FH.UI.View.Gen.ED
         }
 
 
-        private void _CheckExist(EdUIViewConf conf)
+        private void _CheckExist(EdUIViewDesc desc)
         {
-            EdUIViewConf old_conf;
-            _class_2_conf.TryGetValue(conf.ClassName, out old_conf);
-            if (null == old_conf)
+            EdUIViewDesc old_desc;
+            _Class2Desc.TryGetValue(desc.ClassName, out old_desc);
+            if (null == old_desc)
                 return;
 
             UnityEngine.Debug.LogErrorFormat("出现了重复,prefab可能移动过目录，但生成的res代码文件中路径还是原来的: {0} \nPath1: {1}\nPath2: {2}\n\n"
-                , conf.ClassName
-                , conf.PrefabPath
-                , old_conf.PrefabPath);
+                , desc.ClassName
+                , desc.PrefabPath
+                , old_desc.PrefabPath);
         }
 
         private void _BuildCache()
         {
-            _path_2_conf.Clear();
-            _class_2_conf.Clear();
+            _Path2Desc.Clear();
+            _Class2Desc.Clear();
 
-            foreach (EdUIViewConf conf in _all_confs)
+            foreach (EdUIViewDesc desc in _AllDesc)
             {
-                _path_2_conf.Add(conf.PrefabPath, conf);
-                _class_2_conf.Add(conf.ClassName, conf);
+                _Path2Desc.Add(desc.PrefabPath, desc);
+                _Class2Desc.Add(desc.ClassName, desc);
             }
         }
     }
+
+   
 }

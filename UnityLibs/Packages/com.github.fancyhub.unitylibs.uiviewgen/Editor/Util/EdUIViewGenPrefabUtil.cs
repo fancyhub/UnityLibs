@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-namespace FH.UI.View.Gen.ED
+namespace FH.UI.ViewGenerate.Ed
 {
     public enum EEDUIObjType
     {
@@ -61,7 +61,7 @@ namespace FH.UI.View.Gen.ED
         public static UIViewCompReference GetViewReference(GameObject prefab_root, bool belong_self)
         {
             UIViewCompReference ret = null;
-            var comp_list = prefab_root.GetComponents<UIViewCompReference>();
+            UIViewCompReference[]  comp_list = prefab_root.GetComponents<UIViewCompReference>();
             if (!belong_self)
             {
                 if (comp_list.Length == 0)
@@ -69,10 +69,10 @@ namespace FH.UI.View.Gen.ED
                 return comp_list[0];
             }
 
-            foreach (var comp in comp_list)
+            foreach (UIViewCompReference comp in comp_list)
             {
                 //拿到mono的原始版本，这时候再去获取gameobject name才是他本来的名字
-                var ee = PrefabUtility.GetCorrespondingObjectFromOriginalSource(comp);
+                UIViewCompReference ee = PrefabUtility.GetCorrespondingObjectFromOriginalSource(comp);
                 if (!string.Equals(ee.gameObject.name, prefab_root.name))
                     continue;
 
@@ -87,10 +87,10 @@ namespace FH.UI.View.Gen.ED
 
         public static EEDUIObjType GetTargetType(Transform target, Transform prefab_root)
         {
-            if (!IsInnerPrefab(target.gameObject, prefab_root.gameObject))
+            if (!_IsInnerPrefab(target.gameObject, prefab_root.gameObject))
                 return EEDUIObjType.prefab_self;
 
-            if (!IsInnerPrefabRoot(target.gameObject))
+            if (!_IsInnerPrefabRoot(target.gameObject))
                 return EEDUIObjType.prefab_inner_obj;
 
             if (target == prefab_root)
@@ -103,7 +103,7 @@ namespace FH.UI.View.Gen.ED
         /// 判断对象是否是 prefab 里面的嵌套 prefab节点
         /// 传入的obj一定是没有实例化出来的，才能保证正确，否则参考下面的接口
         /// </summary>
-        public static bool IsInnerPrefab(GameObject asset_obj, GameObject obj_root)
+        private static bool _IsInnerPrefab(GameObject asset_obj, GameObject obj_root)
         {
             GameObject prefab_outer = PrefabUtility.GetOutermostPrefabInstanceRoot(asset_obj);
 
@@ -155,7 +155,7 @@ namespace FH.UI.View.Gen.ED
         /// <summary>
         /// 判断对象是否是 prefab 里面的嵌套 prefab节点，是否为嵌套prefab的根节点
         /// </summary>
-        public static bool IsInnerPrefabRoot(GameObject obj)
+        private static bool _IsInnerPrefabRoot(GameObject obj)
         {
             GameObject prefab_inner = PrefabUtility.GetOutermostPrefabInstanceRoot(obj);
             if (obj == prefab_inner)
@@ -223,32 +223,6 @@ namespace FH.UI.View.Gen.ED
                         break;
                 }
             }
-        }
-
-
-        /// <summary>
-        /// 从 prefab的名字生成 class name
-        /// </summary>
-        public static string GenClassNameFromPrefabPath(UIViewGenConfig config, string prefab_path)
-        {
-            string prefab_name = Path.GetFileNameWithoutExtension(prefab_path);
-            prefab_name = prefab_name.Replace(' ', '_');
-            string[] name_split = prefab_name.Split('_');
-            string class_name = string.Empty;
-            foreach (string s in name_split)
-            {
-                class_name += _UpperFirstAlpha(s);
-            }
-
-            return config.ClassPrefix + class_name + config.ClassSuffix;
-        }
-
-        private static string _UpperFirstAlpha(string s)
-        {
-            if (string.IsNullOrEmpty(s)) return s;
-            if (s[0] < 'a' || s[0] > 'z') return s;
-            string start = ((char)(s[0] + 'A' - 'a')).ToString().ToUpper();
-            return s.Remove(0, 1).Insert(0, start);
-        }
+        }         
     }
 }

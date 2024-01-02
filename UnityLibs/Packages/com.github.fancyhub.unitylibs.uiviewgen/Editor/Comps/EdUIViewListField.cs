@@ -10,7 +10,7 @@ using System.IO;
 using UnityEngine;
 using UnityEditor;
 
-namespace FH.UI.View.Gen.ED
+namespace FH.UI.ViewGenerate.Ed
 {
     public class EdUIViewListField
     {
@@ -41,7 +41,7 @@ namespace FH.UI.View.Gen.ED
             });
         }
 
-        public bool PostProcess(EdUIViewConfDb config, EdUIViewListField parent_list_field)
+        public bool PostProcess(EdUIViewDescDB config, EdUIViewListField parent_list_field)
         {
             //1. 如果没有父结构, 直接处理自己
             if (parent_list_field == null)
@@ -106,7 +106,7 @@ namespace FH.UI.View.Gen.ED
         }
 
 
-        private void _PostProcessSelf(EdUIViewConfDb config)
+        private void _PostProcessSelf(EdUIViewDescDB config)
         {
             _field_type = _field_list[0].FieldType.Clone();
 

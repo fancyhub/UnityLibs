@@ -164,6 +164,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3637897936700125877}
   - component: {fileID: 264484100873295935}
+  - component: {fileID: 1582846492226471577}
   m_Layer: 5
   m_Name: RedDotCommon
   m_TagString: Untagged
@@ -207,6 +208,22 @@ MonoBehaviour:
   _AutoBind: 0
   _obj: {fileID: 5567924431714918372}
   _text: {fileID: 4447256408355833927}
+--- !u!114 &1582846492226471577
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4120992521279711619}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b7adb81dcb45784b925597c2db7b90c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _prefab_name: RedDotCommon
+  _objs:
+  - name: _RedDotCommon
+    obj: {fileID: 4120992521279711619}
 --- !u!1 &5567924431714918372
 GameObject:
   m_ObjectHideFlags: 0

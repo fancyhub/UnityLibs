@@ -6,11 +6,8 @@
 *************************************************************************************/
 
 using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
-using UnityEditor;
-using UnityEngine;
 
-namespace FH.UI.View.Gen.ED
+namespace FH.UI.ViewGenerate.Ed
 {
     /// <summary>
     /// 描述了哪些路径 需要处理，运行时候的数据
@@ -35,6 +32,5 @@ namespace FH.UI.View.Gen.ED
             _prefab_paths.Add(prefab_path);
             _prefab_paths_todo.Enqueue(prefab_path);
         }
-    }
-     
+    }     
 }

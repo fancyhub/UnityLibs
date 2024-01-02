@@ -6,15 +6,60 @@
 *************************************************************************************/
 
 using System.Collections.Generic;
-using System.IO;
-using UnityEngine;
-using UnityEditor;
 
-namespace FH.UI.View.Gen.ED
-{
-    public partial class EdUIFactory
+namespace FH.UI.ViewGenerate.Ed
+{ 
+    public class ListFiledsProcessor : IViewGeneratePreprocessor
     {
-        public List<EdUIViewListField> CreateListField(EdUIView ui_view)
+        private class ListFieldElemDesc
+        {
+            public EdUIField _field;
+            public string _name;
+            public int _index;
+        }
+
+        public void Process(EdUIViewGenContext context)
+        {
+            //1. 先创建
+            foreach (var p in context.ViewList)
+            {
+                p.ListFields = _CreateListField(p);
+            }
+
+            //2. 把field list link起来
+            // 因为可能 父类里面已经声明了该对象，需要link起来
+            // 比如 UIViewA 还有 List<Lable> _lbl_list;
+            // UIViewB: UIViewA, B里面也有一个 _lbl,需要添加父结构里面的 _lbl_list 里面
+            foreach (EdUIView view in context.ViewList)
+            {
+                _PostProcessListFields(view, context.DBDesc);
+            }
+        }         
+
+        private void _PostProcessListFields(EdUIView view, EdUIViewDescDB db)
+        {
+            if (view._ProcessedParentListFields)
+                return;
+
+            if (view.ParentView != null)
+            {
+                _PostProcessListFields(view.ParentView, db);
+            }
+
+            for (int i = view.ListFields.Count - 1; i >= 0; i--)
+            {
+                var field = view.ListFields[i];
+                EdUIViewListField parent_list_field = view._FindListFieldInParent(field._field_name);
+                if (!field.PostProcess(db, parent_list_field))
+                {
+                    view.ListFields.RemoveAt(i);
+                }
+            }
+            view._ProcessedParentListFields = true;
+        }
+
+
+        private List<EdUIViewListField> _CreateListField(EdUIView ui_view)
         {
             List<EdUIViewListField> ret = new List<EdUIViewListField>();
             foreach (EdUIField field in ui_view.Fields)
@@ -28,7 +73,6 @@ namespace FH.UI.View.Gen.ED
                 _AddFieldList(ret, field_desc);
             }
 
-
             foreach (var e in ret)
             {
                 e.Sort();
@@ -37,12 +81,6 @@ namespace FH.UI.View.Gen.ED
             return ret;
         }
 
-        private class ListFieldElemDesc
-        {
-            public EdUIField _field;
-            public string _name;
-            public int _index;
-        }
 
         private static ListFieldElemDesc _CreateFieldDesc(EdUIField field)
         {
@@ -66,6 +104,7 @@ namespace FH.UI.View.Gen.ED
             };
         }
 
+
         private static void _AddFieldList(List<EdUIViewListField> list_field_list, ListFieldElemDesc field_desc)
         {
             //1. 找到现存的
@@ -84,5 +123,4 @@ namespace FH.UI.View.Gen.ED
             list_field_list.Add(new_list_field);
         }
     }
-
 }

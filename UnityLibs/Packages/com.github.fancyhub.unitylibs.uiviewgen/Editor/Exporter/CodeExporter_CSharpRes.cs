@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace FH.UI.View.Gen.ED
+namespace FH.UI.ViewGenerate.Ed
 {
-    public class EdUIViewCodeExporter_CSharp
+    public sealed class CodeExporter_CSharpRes : ICodeExporter
     {
-        public const string C_CLASS_BEIGN =
+        private const string C_CLASS_BEIGN =
             @"
     public partial class {class_name} : {parent_class_name}
     {
@@ -23,119 +23,92 @@ namespace FH.UI.View.Gen.ED
         protected override void _AutoInit()
         {
             base._AutoInit();
-            UIViewReference refs = _FindViewReference(""{prefab_name}"");
+            var refs = _FindViewReference(""{prefab_name}"");
             if (refs == null)
                 return;
 ";
 
 
 
-        public const string C_CODE_INIT_END =
+        private const string C_CODE_INIT_END =
             @"
         }";
 
-
-
-        public const string C_CODE_DESTROY_BEGIN =
+        private const string C_CODE_DESTROY_BEGIN =
             @"
         protected override void _AutoDestroy()
         {
             base._AutoDestroy();
 ";
 
-        public const string C_CODE_DESTROY_END = @"
+        private const string C_CODE_DESTROY_END = @"
         }
 ";
 
-        public const string C_CLASS_END = @"
+        private const string C_CLASS_END = @"
         #endregion
     }
-";
+"; 
 
-
-        public const string C_PARTIAL_CODE =
-            @"
-    public partial class {class_name} // : {parent_class_name} 
-    {
-        //public override void OnCreate()
-        //{
-        //    base.OnCreate();
-        //}
-
-        //public override void OnDestroy()
-        //{
-        //    base.OnDestroy();    
-        //}
-    }
-";
-
-        public static void Export(UIViewGenConfig config, EdUIView view)
+        private UIViewGeneratorConfig.CSharpConfig _Config;
+        public CodeExporter_CSharpRes(UIViewGeneratorConfig.CSharpConfig config)
         {
-            //1. 生成 xxx.res.cs
-            string file_path = Path.Combine(config.CodeFolder, view.Conf.GetCsFileNameRes());
-            using (StreamWriter sw = new StreamWriter(file_path))
+            _Config = config;
+        }
+
+        public void Export(EdUIViewGenContext context)
+        {
+            foreach(var view in context.ViewList)
             {
-                using (var t = CreateFileScope(sw,config))
+                //1. 生成 xxx.res.cs
+                string file_path = Path.Combine(_Config.CodeFolder, view.Desc.GetCsFileNameRes());
+                using StreamWriter sw = new StreamWriter(file_path);
+                using var file_scope = CSFileScope.Create(sw, _Config);
+
+                EdStrFormatter formater = _GenStrFormatter(view);
+                sw.WriteLine(formater.Format(C_CLASS_BEIGN));
+
+                //1. 变量声明
                 {
-                    EdStrFormatter formater = _GenStrFormatter(view);
-                    sw.WriteLine(formater.Format(C_CLASS_BEIGN));
+                    //public Transform _btn;
+                    FieldExporter.Export_Declaration(sw, view.Fields);
 
-                    //1. 变量声明
-                    {
-                        //public Transform _btn;
-                        FieldExporter.Export_Declaration(sw, view.Fields);
-
-                        //public List<Transform> _btn_list;
-                        ListFieldExporter.Export_Declaration(sw, view.ListFields);
-                    }
-
-                    //2. 变量初始化
-                    {
-                        sw.WriteLine(formater.Format(C_CODE_INIT_BEGIN));
-
-                        FieldExporter.Export_Init(sw, view.Fields);
-                        ListFieldExporter.Export_Init(sw, view.ListFields);
-                        sw.WriteLine(C_CODE_INIT_END);
-                    }
-
-
-                    //3. 变量 Destroy
-                    {
-                        sw.WriteLine(C_CODE_DESTROY_BEGIN);
-                        FieldExporter.Export_Destroy(sw, view.Fields);
-                        ListFieldExporter.Export_Destroy(sw, view.ListFields);
-                        sw.WriteLine(C_CODE_DESTROY_END);
-                    }
-
-                    //4. 输出结尾
-                    sw.WriteLine(C_CLASS_END);
+                    //public List<Transform> _btn_list;
+                    ListFieldExporter.Export_Declaration(sw, view.ListFields);
                 }
-            }
 
-            //2. 生成 xxx.ext.cs
-            file_path = Path.Combine(config.CodeFolder, view.Conf.GetCsFileNameExt());
-            if (File.Exists(file_path))
-                return;
-            using (StreamWriter sw = new StreamWriter(file_path))
-            {
-                using (var t = CreateFileScope(sw,config))
+                //2. 变量初始化
                 {
-                    //生成默认的 ext.cs 代码
-                    string code = _GenStrFormatter(view).Format(C_PARTIAL_CODE);
-                    sw.WriteLine(code);
+                    sw.WriteLine(formater.Format(C_CODE_INIT_BEGIN));
+
+                    FieldExporter.Export_Init(sw, view.Fields);
+                    ListFieldExporter.Export_Init(sw, view.ListFields);
+                    sw.WriteLine(C_CODE_INIT_END);
                 }
-            }
+
+
+                //3. 变量 Destroy
+                {
+                    sw.WriteLine(C_CODE_DESTROY_BEGIN);
+                    FieldExporter.Export_Destroy(sw, view.Fields);
+                    ListFieldExporter.Export_Destroy(sw, view.ListFields);
+                    sw.WriteLine(C_CODE_DESTROY_END);
+                }
+
+                //4. 输出结尾
+                sw.WriteLine(C_CLASS_END);
+            }            
         }
 
         private static EdStrFormatter _GenStrFormatter(EdUIView view)
         {
             EdStrFormatter formater = new EdStrFormatter();
-            formater.Add("class_name", view.Conf.ClassName);
+            formater.Add("class_name", view.Desc.ClassName);
             formater.Add("new_flag", view.IsVariant ? " new " : "");
-            formater.Add("parent_class_name", view.ParentClass);
-            formater.Add("asset_path", view.Conf.PrefabPath);
-            formater.Add("resource_path", _GetResourcePath(view.Conf.PrefabPath));
-            formater.Add("prefab_name", Path.GetFileNameWithoutExtension(view.Conf.PrefabPath));
+            formater.Add("parent_class_name", view.ParentViewName);
+            formater.Add("asset_path", view.Desc.PrefabPath);
+            formater.Add("resource_path", _GetResourcePath(view.Desc.PrefabPath));
+            formater.Add("prefab_name", Path.GetFileNameWithoutExtension(view.Desc.PrefabPath));
 
             return formater;
         }
@@ -259,41 +232,6 @@ namespace FH.UI.View.Gen.ED
                     }
                 }
             }
-        }
-
-
-        private static FileScope CreateFileScope(StreamWriter sw, UIViewGenConfig config)
-        {
-            string start = @"
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
-namespace " + config.NameSpace + "\n{";
-
-            return new FileScope(sw, start, "}");
-        }        
-
-        private class FileScope : IDisposable
-        {
-            public string _begin;
-            public string _end;
-            public StreamWriter _sw;
-            public FileScope(StreamWriter sw, string begin, string end)
-            {
-                _sw = sw;
-                _begin = begin;
-                _end = end;
-
-                sw.WriteLine(_begin);
-            }
-
-            public void Dispose()
-            {
-                _sw.WriteLine(_end);
-            }
-        }
+        }                 
     }
 }

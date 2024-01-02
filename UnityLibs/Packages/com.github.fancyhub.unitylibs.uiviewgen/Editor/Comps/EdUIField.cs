@@ -7,11 +7,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using UnityEngine;
-using UnityEditor;
 
-namespace FH.UI.View.Gen.ED
+
+namespace FH.UI.ViewGenerate.Ed
 {
     public class EdUIFieldType : IEquatable<EdUIFieldType>
     {

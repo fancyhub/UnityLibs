@@ -6,16 +6,15 @@
 *************************************************************************************/
 
 using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEditor;
 using UnityEngine;
 
-namespace FH.UI.View.Gen.ED
-{ 
+namespace FH.UI.ViewGenerate.Ed
+{
     /// <summary>
-    /// 数据类，用来处理 prefab_path 和 class的对应关系
+    /// 生成View的上下文
     /// </summary>
-    public class EdUIViewData
+    public sealed class EdUIViewGenContext
     {
         public enum EMode
         {
@@ -23,28 +22,30 @@ namespace FH.UI.View.Gen.ED
             /// 如果该prefab 依赖另外一个子prefab
             /// 如果 子prefab的代码生成过，就不再生成了，即使该子prefab 生成过了，也不在生成
             /// </summary>
-            include_dep_auto,
+            AutoDependency,
 
             /// <summary>
             /// 不管子prefab 是否生成过，都生成
             /// </summary>
-            include_dep_all,
+            AllDependency,
         }
 
-        private EMode _mode;
-        private EdUIViewPathPool _path_pool;
-        private EdUIViewConfDb _conf_db;
-        public UIViewGenConfig Config;
+        private EMode _Mode;
+        public UIViewGeneratorConfig Config;
+        private EdUIViewPathPool _PathPool;
+        private EdUIViewDescDB _DBDesc;
 
-        public EdUIViewData(EdUIViewConfDb conf_db, EMode mode = EMode.include_dep_auto)
+        public List<EdUIView> ViewList;
+
+        public EdUIViewGenContext(EdUIViewDescDB conf_db, EMode mode = EMode.AutoDependency)
         {
             this.Config = conf_db.Config;
-            _mode = mode;
-            _conf_db = conf_db;
-            _path_pool = new EdUIViewPathPool();
+            _Mode = mode;
+            _DBDesc = conf_db;
+            _PathPool = new EdUIViewPathPool();
         }
 
-        public EdUIViewConfDb ConfigDB =>_conf_db;
+        public EdUIViewDescDB DBDesc => _DBDesc;
 
         public void AddInitPaths(IEnumerable<string> prefab_path)
         {
@@ -56,24 +57,24 @@ namespace FH.UI.View.Gen.ED
 
         public void AddInitPath(string prefab_path)
         {
-            EdUIViewConf conf = _conf_db.FindConfWithPrefabPath(prefab_path);
+            EdUIViewDesc conf = _DBDesc.FindDescWithPrefabPath(prefab_path);
             if (null == conf)
             {
-                conf = _CreateConfWithPath(Config,prefab_path);
-                _conf_db.AddConf(conf);
+                conf = _CreateConfWithPath( prefab_path);
+                _DBDesc.AddConf(conf);
             }
 
-            _path_pool.Push(prefab_path);
+            _PathPool.Push(prefab_path);
         }
 
-        public EdUIViewConf AddDependPath(string prefab_path)
+        public EdUIViewDesc AddDependPath(string prefab_path)
         {
-            return _FindOrCreateConf(Config,_conf_db, _path_pool, prefab_path, _mode);
+            return _FindOrCreateDesc(prefab_path, _Mode);
         }
 
-        public EdUIViewConf AddDependPath_Variant(string prefab_path)
+        public EdUIViewDesc AddDependPath_Variant(string prefab_path)
         {
-            return _FindOrCreateConf(Config,_conf_db, _path_pool, prefab_path, EMode.include_dep_all);
+            return _FindOrCreateDesc(prefab_path, EMode.AllDependency);
         }
 
 
@@ -81,29 +82,29 @@ namespace FH.UI.View.Gen.ED
         /// 获取下一个 prefab path，用来生成代码
         /// </summary>
         /// <returns></returns>
-        public EdUIViewConf GetNextPrefabConf()
+        public EdUIViewDesc GetNextPrefabConf()
         {
-            string path = _path_pool.Pop();
+            string path = _PathPool.Pop();
             if (null == path)
                 return null;
 
-            return _conf_db.FindConfWithPrefabPath(path);
+            return _DBDesc.FindDescWithPrefabPath(path);
         }
 
-        private static EdUIViewConf _FindOrCreateConf(UIViewGenConfig config, EdUIViewConfDb db, EdUIViewPathPool pool, string prefab_path, EMode mode)
-        {            
-            EdUIViewConf conf = db.FindConfWithPrefabPath(prefab_path);
+        private EdUIViewDesc _FindOrCreateDesc(string prefab_path, EMode mode)
+        {
+            EdUIViewDesc conf = _DBDesc.FindDescWithPrefabPath(prefab_path);
             switch (mode)
             {
-                case EMode.include_dep_auto:
+                case EMode.AutoDependency:
                     {
                         if (conf == null)
-                            pool.Push(prefab_path);
+                            _PathPool.Push(prefab_path);
                     }
                     break;
 
-                case EMode.include_dep_all:
-                    pool.Push(prefab_path);
+                case EMode.AllDependency:
+                    _PathPool.Push(prefab_path);
                     break;
 
                 default:
@@ -113,17 +114,17 @@ namespace FH.UI.View.Gen.ED
 
             if (null == conf)
             {
-                conf = _CreateConfWithPath(config,prefab_path);
-                db.AddConf(conf);
+                conf = _CreateConfWithPath(prefab_path);
+                _DBDesc.AddConf(conf);
             }
             return conf;
         }
 
 
-        private static EdUIViewConf _CreateConfWithPath(UIViewGenConfig config, string prefab_path)
+        private EdUIViewDesc _CreateConfWithPath(string prefab_path)
         {
-            string class_name = EdUIViewGenPrefabUtil.GenClassNameFromPrefabPath(config,prefab_path);
-            string parent_class_name = config.BaseClassName;
+            string class_name = Config.Csharp.GenClassNameFromPath(prefab_path);
+            string parent_class_name = Config.Csharp.BaseClassName;
 
             {
                 GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefab_path);
@@ -131,11 +132,11 @@ namespace FH.UI.View.Gen.ED
                 if (orig_prefab != null)
                 {
                     string parent_path = AssetDatabase.GetAssetPath(orig_prefab);
-                    parent_class_name = EdUIViewGenPrefabUtil.GenClassNameFromPrefabPath(config,parent_path);
+                    parent_class_name = Config.Csharp.GenClassNameFromPath(parent_path);
                 }
             }
 
-            EdUIViewConf ret = new EdUIViewConf();
+            EdUIViewDesc ret = new EdUIViewDesc();
             ret.ClassName = class_name;
             ret.PrefabPath = prefab_path;
             ret.ParentClassName = parent_class_name;
