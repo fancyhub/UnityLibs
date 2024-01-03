@@ -104,6 +104,8 @@ namespace FH.UI.ViewGenerate.Ed
         {
             EdStrFormatter formater = new EdStrFormatter();
             formater.Add("class_name", _Config.GenClassName(view.Desc.PrefabName));
+            formater.Add("prefab_name", view.Desc.PrefabName);
+            
             if (view.ParentDesc == null)
             {
                 formater.Add("new_flag", "");
@@ -127,7 +129,7 @@ namespace FH.UI.ViewGenerate.Ed
                     formater.Add("path", _GetResourcePath(_Config.ResourcePath, view.Desc.PrefabPath));
                     break;
                 case UIViewGeneratorConfig.EPathMode.PrefabName:
-                    formater.Add("path", Path.GetFileNameWithoutExtension(view.Desc.PrefabPath));
+                    formater.Add("path", view.Desc.PrefabName);
                     break;
             }
             return formater;

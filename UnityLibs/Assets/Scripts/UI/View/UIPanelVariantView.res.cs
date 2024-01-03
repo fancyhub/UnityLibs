@@ -24,7 +24,7 @@ namespace FH.UI
         protected override void _AutoInit()
         {
             base._AutoInit();
-            var refs = _FindViewReference("{prefab_name}");
+            var refs = _FindViewReference("Panel_Variant");
             if (refs == null)
                 return;
 

@@ -22,7 +22,7 @@ namespace FH.UI.Sample
         protected override void _AutoInit()
         {
             base._AutoInit();
-            var refs = _FindViewReference("{prefab_name}");
+            var refs = _FindViewReference("Button2");
             if (refs == null)
                 return;
 
