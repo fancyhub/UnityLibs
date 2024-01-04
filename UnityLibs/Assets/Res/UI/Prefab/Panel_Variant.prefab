@@ -632,6 +632,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 672592192105578749, guid: 71c2f4189ca9f624183f0b9ea1b48b04, type: 3}
+      propertyPath: m_Texture
+      value: 
+      objectReference: {fileID: 2800000, guid: e0fa8ac9a2fee6b44b4f6e0ea4723467, type: 3}
+    - target: {fileID: 672592192105578749, guid: 71c2f4189ca9f624183f0b9ea1b48b04, type: 3}
       propertyPath: m_UVRect.x
       value: 0.19317657
       objectReference: {fileID: 0}
