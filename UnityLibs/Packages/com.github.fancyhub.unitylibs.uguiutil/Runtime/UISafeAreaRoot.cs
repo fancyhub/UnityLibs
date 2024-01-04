@@ -6,58 +6,11 @@
 *************************************************************************************/
 
 using System;
-using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace FH.UI
 {
-    /// <summary>
-    /// 左下为 0,0
-    /// </summary>
-    [Serializable]
-    public struct UISafeAreaOffset
-    {
-        public float Left;
-        public float Right;
-        public float Bottom;
-        public float Top;
-
-        public UISafeAreaOffset(float left, float right, float bottom, float top)
-        {
-            Left = left;
-            Right = right;
-            Bottom = bottom;
-            Top = top;
-        }
-
-        public override string ToString()
-        {
-            return $"Left: {Left}, Right: {Right},Bottom: {Bottom}, Top: {Top}";
-        }
-    }
-
-    [Serializable]
-    public struct UISafeAreaInfo
-    {
-        public Vector2 ScreenSize;
-        public Vector2 UIResolutionSize;
-
-        public Rect ScreenSafeArea;
-        public UISafeAreaOffset UISafeAreaOffset;
-    }
-
-    [Serializable]
-    public class UISafeAreaData
-    {
-        public Vector2 AnchorMin = Vector2.zero;
-        public Vector2 AnchorMax = Vector2.one;
-        public Vector2 Pivot = Vector2.one * 0.5f;
-
-        public Vector2 AnchoredPos = Vector2.zero;
-        public Vector2 SizeDelta = Vector2.zero;
-    }
-
     /// <summary>
     /// 挂在根节点上
     /// </summary>
@@ -65,153 +18,123 @@ namespace FH.UI
     [RequireComponent(typeof(CanvasScaler))]
     public sealed class UISafeAreaRoot : MonoBehaviour
     {
-        public UISafeAreaData _SafeAreaData = new UISafeAreaData();
-        public UISafeAreaInfo _SafeAreaInfo = new UISafeAreaInfo();
+        [Serializable]
+        public struct UISafeAreaRectInfo
+        {
+            public static UISafeAreaRectInfo Default = new UISafeAreaRectInfo()
+            {
+                AnchorMin = Vector2.zero,
+                AnchorMax = Vector2.one,
+                Pivot = Vector2.one * 0.5f,
+                AnchoredPos = Vector2.zero,
+                SizeDelta = Vector2.zero,
+            };
+
+            public Vector2 AnchorMin;
+            public Vector2 AnchorMax;
+            public Vector2 Pivot;
+            public Vector2 AnchoredPos;
+            public Vector2 SizeDelta;
+        }
+        public UISafeAreaRectInfo _SafeAreaRectInfo = UISafeAreaRectInfo.Default;
+
+        [Serializable]
+        public struct UISafeAreaOffset
+        {
+            public float Left;
+            public float Right;
+            public float Top;
+            public float Bottom;
+        }
+
+        public Vector2Int _ScreenSize;
+        public Rect _ScreenSafeArea;
 
         public bool _Manual = false;
-        public UISafeAreaOffset _ManualScreenOffset = new UISafeAreaOffset();
+        public UISafeAreaOffset _ManualOffset;
+        public bool _ShowSafeArea = false;
 
-        public ScreenSafeAreaCalculator _Calculator;
+        public void Awake()
+        {
+            _SafeAreaRectInfo = UISafeAreaRectInfo.Default;
+            _ScreenSize = default;
+            _ScreenSafeArea = default;
+        }
 
         public void Start()
         {
-            _Calculator = new ScreenSafeAreaCalculator(GetComponent<CanvasScaler>());
+            _Update();
         }
 
         public void Update()
         {
-            _Calculator.EdSetManual(_Manual, _ManualScreenOffset);
+            _Update();
+        }
 
-            if (!_Calculator.CalcSafeArea(out _SafeAreaInfo))
+#if UNITY_EDITOR
+        public void OnGUI()
+        {
+            if (!_ShowSafeArea)
                 return;
 
-            var offset = _SafeAreaInfo.UISafeAreaOffset;
+            //GUI 是左上角 为0,0
+            //Screen 是左下角为0,0
+            Rect rect = _ScreenSafeArea;
+            _ScreenSafeArea.y = _ScreenSize.y - rect.yMax;
+            _DrawRect(rect, Color.yellow, 10);
+        }
 
-            _SafeAreaData.AnchoredPos.x = offset.Left * 0.5f - offset.Right * 0.5f;
-            _SafeAreaData.AnchoredPos.y = offset.Bottom * 0.5f - offset.Top * 0.5f;
-            _SafeAreaData.SizeDelta.x = -offset.Left - offset.Right;
-            _SafeAreaData.SizeDelta.y = -offset.Top - offset.Bottom;
+        private static void _DrawRect(Rect rect, Color color, float line_width)
+        {
+            Rect left = new Rect(rect.x - line_width * 0.5f, rect.y, line_width, rect.height);
+            Rect right = new Rect(rect.xMax - line_width * 0.5f, rect.y, line_width, rect.height);
+
+            Rect top = new Rect(rect.x, rect.y - line_width * 0.5f, rect.width, line_width);
+            Rect bottom = new Rect(rect.x, rect.yMax - line_width * 0.5f, rect.width, line_width);
+
+            GUI.DrawTexture(left, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, color, 0, 0);
+            GUI.DrawTexture(right, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, color, 0, 0);
+            GUI.DrawTexture(top, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, color, 0, 0);
+            GUI.DrawTexture(bottom, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, color, 0, 0);
+        }
+#endif
+
+        private void _Update()
+        {
+            Vector2Int screen_size = new Vector2Int(Screen.width, Screen.height);
+            if (screen_size.x == 0 || screen_size.y == 0)
+                return;
+
+            Rect screen_safe_area = Screen.safeArea;
+#if UNITY_EDITOR
+            if (_Manual)
+            {
+                screen_safe_area.xMin = Math.Clamp(_ManualOffset.Left, 0, screen_size.x * 0.5f - 5);
+                screen_safe_area.xMax = Math.Clamp(screen_size.x - _ManualOffset.Right, screen_size.x * 0.5f + 5, screen_size.x);
+
+                screen_safe_area.yMin = Math.Clamp(_ManualOffset.Bottom, 0, screen_size.y * 0.5f - 5);
+                screen_safe_area.yMax = Math.Clamp(screen_size.y - _ManualOffset.Top, screen_size.y * 0.5f + 5, screen_size.y);
+            }
+#endif
+            if (_ScreenSafeArea.Equals(screen_safe_area) && _ScreenSize.Equals(screen_size))
+                return;
+
+            _ScreenSize = screen_size;
+            _ScreenSafeArea = screen_safe_area;
+
+            //Mode: change anchorMin & Max
+            _SafeAreaRectInfo.AnchorMin.x = _ScreenSafeArea.x / _ScreenSize.x;
+            _SafeAreaRectInfo.AnchorMin.y = _ScreenSafeArea.y / _ScreenSize.y;
+
+            _SafeAreaRectInfo.AnchorMax.x = _ScreenSafeArea.xMax / _ScreenSize.x;
+            _SafeAreaRectInfo.AnchorMax.y = _ScreenSafeArea.yMax / _ScreenSize.y;
 
 
             var list = this.ExtGetCompsInChildren<UISafeAreaPanel>(false);
             foreach (var p in list)
             {
-                p.Adjust(_SafeAreaData);
+                p.Adjust(_SafeAreaRectInfo);
             }
-        }
-    }
-
-
-    public struct ScreenSafeAreaCalculator
-    {
-        private const float CFloat2Int = 100;
-
-        private RectTransform _RootRectTransform;
-
-        private Vector2Int _LastUIResolution;
-        private Vector2Int _LastScreenSize;
-        private RectInt _LastScreenSafeArea;
-
-        private UISafeAreaInfo _LastSafeAreaInfo;
-#if UNITY_EDITOR
-        private bool _Manual;
-        private UISafeAreaOffset _ManualScreenOffset;
-#endif
-
-        public ScreenSafeAreaCalculator(CanvasScaler canvas_scaler)
-        {
-            _RootRectTransform = canvas_scaler.GetComponent<RectTransform>();
-            _LastSafeAreaInfo = new UISafeAreaInfo();
-            _LastScreenSize = new Vector2Int();
-            _LastScreenSafeArea = new RectInt();
-            _LastUIResolution = new Vector2Int();
-
-#if UNITY_EDITOR
-            _Manual = false;
-            _ManualScreenOffset = new UISafeAreaOffset();
-#endif
-        }
-
-        [Conditional("UNITY_EDITOR")]
-        public void EdSetManual(bool manual, UISafeAreaOffset screen_safe_are_offset)
-        {
-#if UNITY_EDITOR
-            _Manual = manual;
-            _ManualScreenOffset = screen_safe_are_offset;
-#endif
-        }
-
-        /// <summary>
-        /// 返回是否发生变化, 比如屏幕旋转
-        /// </summary>
-        public bool CalcSafeArea(out UISafeAreaInfo out_safe_area_info)
-        {
-            Vector2 screen_size = new Vector2(Screen.width, Screen.height);
-            Rect screen_safe_area = Screen.safeArea;
-            Vector2 ui_resolution = _RootRectTransform.rect.size;
-
-#if UNITY_EDITOR
-            if (_Manual)
-            {
-                float left = Mathf.Clamp(_ManualScreenOffset.Left, 0, screen_size.x * 0.5f - 5);
-                float right = Mathf.Clamp(_ManualScreenOffset.Right, 0, screen_size.x * 0.5f - 5);
-                float top = Mathf.Clamp(_ManualScreenOffset.Top, 0, screen_size.y * 0.5f - 5);
-                float bottom = Mathf.Clamp(_ManualScreenOffset.Bottom, 0, screen_size.y * 0.5f - 5);
-
-                screen_safe_area = new Rect(left, bottom, screen_size.x - left - right, screen_size.y - top - bottom);
-            }
-#endif
-
-            Vector2Int screen_size_int = new Vector2Int((int)(screen_size.x * CFloat2Int), (int)(screen_size.y * CFloat2Int));
-            RectInt screen_safe_area_int = new RectInt(
-                (int)(screen_safe_area.x * CFloat2Int),
-                (int)(screen_safe_area.y * CFloat2Int),
-                (int)(screen_safe_area.width * CFloat2Int),
-                (int)(screen_safe_area.height * CFloat2Int));
-            Vector2Int ui_resolution_int = new Vector2Int((int)(ui_resolution.x * CFloat2Int), (int)(ui_resolution.y * CFloat2Int));
-
-            if (_LastScreenSafeArea.Equals(screen_safe_area_int)
-                && _LastScreenSize.Equals(screen_size_int)
-                && _LastUIResolution.Equals(ui_resolution_int))
-            {
-                out_safe_area_info = _LastSafeAreaInfo;
-                return false;
-            }
-
-            if(screen_size_int.x == 0 || screen_size_int.y==0||ui_resolution_int.x == 0 || ui_resolution_int.y==0 )
-            {
-                out_safe_area_info = _LastSafeAreaInfo;
-                return false;
-            }
-
-
-            //3. 计算
-            _LastScreenSafeArea = screen_safe_area_int;
-            _LastScreenSize = screen_size_int;
-            _LastUIResolution = ui_resolution_int;
-
-            float width_ratio = ui_resolution.x / screen_size.x;
-            float height_ratio = ui_resolution.y / screen_size.y;
-
-            float x = screen_safe_area.x * width_ratio;
-            float y = screen_safe_area.y * height_ratio;
-            float width = screen_safe_area.width * width_ratio;
-            float height = screen_safe_area.height * height_ratio;
-
-
-            _LastSafeAreaInfo.ScreenSize = screen_size;
-            _LastSafeAreaInfo.UIResolutionSize = ui_resolution;
-            _LastSafeAreaInfo.ScreenSafeArea = screen_safe_area;
-            _LastSafeAreaInfo.UISafeAreaOffset = new UISafeAreaOffset(
-                    x,
-                    ui_resolution.x - x - width,
-                    y,
-                    ui_resolution.y - y - height);
-
-            out_safe_area_info = _LastSafeAreaInfo;
-
-            //Debug.Log($"UIResolution:{_LastUIResolution} \nScreenSize:{new Vector2(Screen.width, Screen.height)}, \nSafeArea:{_LastScreenSafeArea}\n UISafeArea:{_LastUIResolutionSafeArea}");
-            return true;
         }
     }
 }

@@ -10,33 +10,38 @@ using UnityEngine;
 
 namespace FH.UI
 {
-  
-
     /// <summary>
-    /// 不能和 UIBgFullScreen 在一起
+    /// 要和 UISafeAreaRoot 配合使用
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
     public sealed class UISafeAreaPanel : MonoBehaviour
-    {        
+    {
+        private RectTransform _RectTran;
+
+        public void Awake()
+        {
+            _RectTran = GetComponent<RectTransform>();
+        }
         public void OnEnable()
         {
             UISafeAreaRoot root = GetComponentInParent<UISafeAreaRoot>();
             if (root == null)
-                return;
-            Adjust(root._SafeAreaData);
+            {
+                Adjust(UISafeAreaRoot.UISafeAreaRectInfo.Default);
+            }
+            else
+            {
+                Adjust(root._SafeAreaRectInfo);
+            }
         }
 
-        public void Adjust(UISafeAreaData data)
+        public void Adjust(UISafeAreaRoot.UISafeAreaRectInfo data)
         {
-            RectTransform rect = GetComponent<RectTransform>();
-            if (rect == null)
-                return;
-
-            rect.anchorMin = data.AnchorMin;
-            rect.anchorMax = data.AnchorMax;
-            rect.pivot = data.Pivot;
-            rect.anchoredPosition = data.AnchoredPos;
-            rect.sizeDelta = data.SizeDelta;
+            _RectTran.anchorMin = data.AnchorMin;
+            _RectTran.anchorMax = data.AnchorMax;
+            _RectTran.pivot = data.Pivot;
+            _RectTran.anchoredPosition = data.AnchoredPos;
+            _RectTran.sizeDelta = data.SizeDelta;
         }
     }
 }
