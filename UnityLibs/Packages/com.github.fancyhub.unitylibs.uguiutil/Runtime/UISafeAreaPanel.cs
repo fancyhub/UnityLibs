@@ -41,7 +41,7 @@ namespace FH.UI
             _RectTran.anchorMax = data.AnchorMax;
             _RectTran.pivot = data.Pivot;
             _RectTran.anchoredPosition = data.AnchoredPos;
-            _RectTran.sizeDelta = data.SizeDelta;
+            _RectTran.sizeDelta = data.SizeDelta;            
         }
     }
 }

@@ -135,6 +135,8 @@ namespace FH.UI
             {
                 p.Adjust(_SafeAreaRectInfo);
             }
+
+            BroadcastMessage("OnRectTransformDimensionsChange", SendMessageOptions.DontRequireReceiver);
         }
     }
 }
