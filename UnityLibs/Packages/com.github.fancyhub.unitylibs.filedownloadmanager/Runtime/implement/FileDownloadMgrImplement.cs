@@ -1,3 +1,9 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2024/1/11
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
 
 namespace FH.FileDownload
 {
@@ -50,6 +56,7 @@ namespace FH.FileDownload
 
         public void ClearAll()
         {
+            _JobDB.ClearAll();
             foreach (var p in _Workers)
             {
                 p.Cancel();

@@ -1,3 +1,9 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2024/1/11
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
 
 using System;
 using System.Collections.Generic;
@@ -22,6 +28,20 @@ namespace FH.FileDownload
             _Running = new LinkedList<Job>();
             _Succ = new LinkedList<Job>();
             _Fail = new LinkedList<Job>();
+        }
+
+        public void ClearAll()
+        {
+            foreach(var p in _Dict)
+            {
+                p.Value.Value.Destroy();
+            }
+            _Dict.Clear();
+            _Pending.ExtClear();
+            _Paused.ExtClear();
+            _Running.ExtClear();
+            _Succ.ExtClear();
+            _Fail.ExtClear();
         }
 
         public Job AddJob(FileManifest.FileItem file)
@@ -66,12 +86,14 @@ namespace FH.FileDownload
             _Dict.TryGetValue(job.File.FullName, out var job_node);
             if (job_node == null)
             {
+                FileDownloadLog.Assert(false, "内部错误, 代码有问题");
                 //Error
                 return;
             }
 
             if (job_node.Value != job)
             {
+                FileDownloadLog.Assert(false, "内部错误, 代码有问题");
                 //Error
                 return;
             }
@@ -79,7 +101,11 @@ namespace FH.FileDownload
             if (job.Status == status)
                 return;
             //状态检查
-
+            if (!_CanChangeStatus(job.Status, status))
+            {
+                FileDownloadLog.Assert(false, "FileDownloadStatus 不能从 {0} -> {1}", job.Status, status);
+                return;
+            }
             job.Status = status;
 
             switch (job.Status)
@@ -118,6 +144,35 @@ namespace FH.FileDownload
             ret.Status = EFileDownloadStatus.Downloading;
             _Running.AddLast(node);
             return ret;
+        }
+
+        private static bool _CanChangeStatus(EFileDownloadStatus from, EFileDownloadStatus to)
+        {
+            switch (from)
+            {
+                case EFileDownloadStatus.Pending: //等待,排队中
+                    if (to == EFileDownloadStatus.Pause || to == EFileDownloadStatus.Downloading)
+                        return true;
+                    return false;
+
+                case EFileDownloadStatus.Downloading: //正在下载
+                    if (to == EFileDownloadStatus.Pending)
+                        return false;
+                    return true;
+
+                case EFileDownloadStatus.Pause:
+                    if (to == EFileDownloadStatus.Pending)
+                        return true;
+                    return false;
+
+                case EFileDownloadStatus.Failed: //下载失败
+                    if (to == EFileDownloadStatus.Pending)
+                        return true;
+                    return false;
+                case EFileDownloadStatus.Succ: //下载成功
+                    return false;
+                default: return false;
+            }
         }
     }
 }

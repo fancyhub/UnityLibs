@@ -1,3 +1,10 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2024/1/11
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
+
 using System;
 using FH.FileDownload;
 
@@ -46,6 +53,17 @@ namespace FH
 
             var file_download_mgr = new FileDownloadMgrImplement(config);
             _Inst = new CPtr<IFileDownloadMgr>(file_download_mgr);
+        }
+
+        public static void ClearAll()
+        {
+            IFileDownloadMgr mgr = _Inst.Val;
+            if (mgr == null)
+            {
+                FileDownloadLog.E("FileDownloadMgr is Null");
+                return;
+            }
+            mgr.ClearAll();
         }
 
         public static void Download(FileManifest.FileItem file)
