@@ -113,8 +113,15 @@ namespace FH
 
         public static void Update()
         {
-            if (_ManualUpdate)
-                _.Val?.Update();
+            if (_.Val == null)
+            {
+                Log.E("TaskQueue Is Null");
+                return;
+            }
+
+            if (!_ManualUpdate)
+                return;
+            _.Val.Update();
         }
     }
 }

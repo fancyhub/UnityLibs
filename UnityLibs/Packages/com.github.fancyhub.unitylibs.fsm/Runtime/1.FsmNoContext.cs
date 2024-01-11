@@ -32,9 +32,9 @@ namespace FH
     {
         void OnEnter();
         /// <summary>
-        /// 参见 I_FsmStateVT.ProcMsg 的说明<para/>
-        /// 因为 I_FsmStateNode 对于fsm不是必须的,也是不可见的, 但是 I_FsmStateVT 必须要有<para/>
-        /// I_FsmStateVT的一种实现,是用switch来做,不需要I_FsmStateNode<para/>
+        /// 参见 IFsmStateVT.ProcMsg 的说明<para/>
+        /// 因为 IFsmStateNode 对于fsm不是必须的,也是不可见的, 但是 IFsmStateVT 必须要有<para/>
+        /// IFsmStateVT的一种实现,是用switch来做,不需要IFsmStateNode<para/>
         /// </summary>
         EFsmProcResult OnMsg(TMsg msg, out TResult result);
 
@@ -136,7 +136,7 @@ namespace FH
 
             _MsgQueue.ExtAddLast(msg);
 
-            if (_Mode != EFsmMode.async)
+            if (_Mode != EFsmMode.Async)
                 _ProcAllMsgs();
         }
 
@@ -148,7 +148,7 @@ namespace FH
             //强制把 stack的标记位清除
             _InStack = false;
 
-            if (_Mode == EFsmMode.async)
+            if (_Mode == EFsmMode.Async)
                 return _ProcAllMsgs();
             return 0;
         }
@@ -179,7 +179,7 @@ namespace FH
                 //2.2 处理消息, 每个state node 需要返回是否产生Result
                 ret++;
                 EFsmProcResult change_result = _StateVt.OnFsmMsg(_State, msg, out TResult result);
-                if (change_result != EFsmProcResult.channged)
+                if (change_result != EFsmProcResult.Channged)
                     continue;
 
                 //2.3 到状态迁移表里面, 根据 当前状态 + 结果 -> 找到下一个状态
@@ -199,8 +199,8 @@ namespace FH
         }
     }
 
-    //状态的虚表结构的一个简单实现类, 是为了配合 I_FsmStateNode 来实现的
-    // I_FsmStateNode  是传统的节点
+    //状态的虚表结构的一个简单实现类, 是为了配合 IFsmStateNode 来实现的
+    // IFsmStateNode  是传统的节点
     public class FsmStateVT<TState, TMsg, TResult> : IFsmStateVT<TState, TMsg, TResult>
     {
         public int PtrVer { get; private set; }
@@ -238,7 +238,7 @@ namespace FH
             if (node == null)
             {
                 result = default;
-                return EFsmProcResult.none;
+                return EFsmProcResult.None;
             }
 
             return node.OnMsg(msg, out result);

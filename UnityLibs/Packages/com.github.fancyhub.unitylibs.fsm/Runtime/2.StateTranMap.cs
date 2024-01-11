@@ -112,7 +112,7 @@ namespace FH
                 return this;
             }
 
-            public TranAddHelper Next(TState state)
+            public TranAddHelper Begin(TState state)
             {
                 return new TranAddHelper(_Map, state);
             }

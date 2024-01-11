@@ -1,0 +1,22 @@
+{
+    "name": "fancyhub.filedownloadmanager",
+    "rootNamespace": "",
+    "references": [
+        "GUID:fd3e1939cfeaae345a28d38349cb6f69",
+        "GUID:4face68fd9d2caf47807180bedf4b0b5",
+        "GUID:b08426991abe9164baf4dd97564889c1",
+        "GUID:f2386c96f38d87b4bbf51ee817faa8c3",
+        "GUID:2c14b26c127d6b44383c0c52b7020400",
+        "GUID:c03d1c60f3a50904599a3e12265b4070",
+        "GUID:62e9aaeed1d076343aab078ecf98df9c"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -31,6 +31,8 @@ namespace FH
         public string GetFilePath(string name);
         public EFileStatus GetFileStatus(string name);
 
+        public FileManifest GetCurrentManifest();
+
         public ExtractStreamingAssetsOperation GetExtractOperation();
 
         public byte[] ReadAllBytes(string name);
@@ -125,6 +127,17 @@ namespace FH
                 return null;
             }
             return mgr.ReadAllBytes(name);
+        }
+
+        public static FileManifest GetCurrentManifest()
+        {
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                FileLog._.E("FileMgr Is Null");
+                return null;
+            }
+            return mgr.GetCurrentManifest();
         }
 
         public static void Destroy()

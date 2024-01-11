@@ -36,7 +36,7 @@ namespace FH
         public int PtrVer { get; set; }
 
         public FsmNoVT(
-            EFsmMode mode = EFsmMode.sync,
+            EFsmMode mode = EFsmMode.Sync,
             TStateTranMap state_tran_map = default,
             IFsmStateListener<TState, TMsg> listener = default)
         {
@@ -86,7 +86,7 @@ namespace FH
             if (!_Running)
                 return;
             _MsgQueue.ExtAddLast(msg);
-            if (_Mode != EFsmMode.async)
+            if (_Mode != EFsmMode.Async)
                 _ProcMsgs();
         }
 
@@ -115,7 +115,7 @@ namespace FH
             //强制把 stack的标记位清除
             _InStack = false;
 
-            if (_Mode == EFsmMode.async)
+            if (_Mode == EFsmMode.Async)
                 return _ProcMsgs();
             return 0;
         }
@@ -162,7 +162,7 @@ namespace FH
     public class FsmNoVT<TState, TMsg> : FsmNoVT<TState, TMsg, IFsmStateTranMap<TState, TMsg>>
     {
         public FsmNoVT(
-            EFsmMode mode = EFsmMode.sync,
+            EFsmMode mode = EFsmMode.Sync,
             IFsmStateTranMap<TState, TMsg> state_tran_map = default,
             IFsmStateListener<TState, TMsg> listener = default)
             : base(mode, state_tran_map, listener)

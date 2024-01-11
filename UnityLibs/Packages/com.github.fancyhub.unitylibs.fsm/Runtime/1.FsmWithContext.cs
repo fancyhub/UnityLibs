@@ -36,9 +36,12 @@ namespace FH
         //下面都是外部要传入变量, FSM 不负责销毁, 在创建的时候, 可以挂到 PtrList上, 等到Fsm销毁的时候一起销毁
         //如果多份Fsm共用, 就不要销毁了
         private TStateTranMap _StateTranMap;
+
         private IFsmStateVT<TContext, TState, TMsg, TResult> _StateVT;
         private TContext _Context;
         private EFsmMode _Mode;
+        private TagLogger _Logger = TagLogger.Create("Fsm", ELogLvl.Info);
+
 
         //下面是内部的
         private LinkedList<TMsg> _MsgQueue;
@@ -70,6 +73,8 @@ namespace FH
         /// 状态虚表
         /// </summary>
         public IFsmStateVT<TContext, TState, TMsg, TResult> StateVT { get { return _StateVT; } set { _StateVT = value; } }
+
+        public TagLogger Logger { set { _Logger = value; } }
 
         /// <summary>
         /// 上下文
@@ -129,7 +134,7 @@ namespace FH
 
             _MsgQueue.ExtAddLast(msg);
 
-            if (_Mode != EFsmMode.async)
+            if (_Mode != EFsmMode.Async)
                 _ProcMsgs();
         }
 
@@ -141,7 +146,7 @@ namespace FH
             //强制把 stack的标记位清除
             _InStack = false;
 
-            if (_Mode == EFsmMode.async)
+            if (_Mode == EFsmMode.Async)
                 return _ProcMsgs();
             return 0;
         }
@@ -160,7 +165,7 @@ namespace FH
                 if (ret > C_MAX_MSG_PER_FRAME)
                 {
                     _InStack = false;
-                    Log.Assert(false, "FSM 一次处理的消息太多了,超过了 {0}", C_MAX_MSG_PER_FRAME);
+                    _Logger.Assert(false, "FSM 一次处理的消息太多了,超过了 {0}", C_MAX_MSG_PER_FRAME);
                     return ret;
                 }
 
@@ -172,7 +177,7 @@ namespace FH
                 //2.2 处理消息, 每个state node 需要返回是否产生Result
                 ret++;
                 EFsmProcResult has_result = _StateVT.OnFsmMsg(_Context, _State, msg, out TResult result);
-                if (has_result != EFsmProcResult.channged)
+                if (has_result != EFsmProcResult.Channged)
                     continue;
 
                 //2.3 到状态迁移表里面, 根据 当前状态 + 结果 -> 找到下一个状态
@@ -203,8 +208,8 @@ namespace FH
         void OnEnter(TConext context);
 
         /// <summary>        
-        /// 因为 I_FsmStateNode 对于fsm不是必须的,也是不可见的, 但是 I_FsmStateVT 必须要有<para/>
-        /// I_FsmStateVT的一种实现,是用switch来做,不需要I_FsmStateNode<para/>
+        /// 因为 IFsmStateNode 对于fsm不是必须的,也是不可见的, 但是 IFsmStateVT 必须要有<para/>
+        /// IFsmStateVT的一种实现,是用switch来做,不需要IFsmStateNode<para/>
         /// </summary>
         EFsmProcResult OnMsg(TConext context, TMsg msg, out TResult result);
 
@@ -212,7 +217,7 @@ namespace FH
     }
 
     /// <summary>
-    /// 状态的虚表结构的一个简单实现类, 是为了配合 I_FsmStateNode 来实现的 
+    /// 状态的虚表结构的一个简单实现类, 是为了配合 IFsmStateNode 来实现的 
     /// IFsmStateNode  是传统的节点
     /// </summary>
     public class FsmStateVT<TContext, TState, TMsg, TResult> : IFsmStateVT<TContext, TState, TMsg, TResult>
@@ -251,7 +256,7 @@ namespace FH
             if (node == null)
             {
                 result = default;
-                return EFsmProcResult.none;
+                return EFsmProcResult.None;
             }
 
             return node.OnMsg(context, msg, out result);

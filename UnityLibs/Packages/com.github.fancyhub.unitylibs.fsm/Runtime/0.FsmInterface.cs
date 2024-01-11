@@ -12,14 +12,14 @@ namespace FH
 {
     public enum EFsmMode
     {
-        sync,
-        async
+        Sync,
+        Async
     }
 
     public enum EFsmProcResult
     {
-        none,
-        channged,
+        None,
+        Channged,
     }
 
     public interface IFsm<TMsg> : ICPtr

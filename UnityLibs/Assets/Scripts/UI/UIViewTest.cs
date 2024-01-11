@@ -15,14 +15,15 @@ public class UIViewTest : MonoBehaviour
         UIObjFinder.Show();
 
         _btn = FH.UI.UIBaseView.CreateView<FH.UI.UIButtonView>(Canvas.transform);
-        _btn.OnClick = _OnOpenView;
+        _btn.OnClick = _DownloadFile;
 
+        TaskQueue.Init(10);
         UIRedDotMgr.Init();
         UIRedDotMgr.Link("root.test.scene", "vroot.test.scene.vscene");
     }
 
     public void Update()
-    {        
+    {
         UIRedDotMgr.Update();
     }
 
@@ -37,23 +38,13 @@ public class UIViewTest : MonoBehaviour
 
     public void _DownloadFile()
     {
-        TaskQueue.Init(10);
-
-        string url = "http://127.0.0.1:8080/Apps.ppkg";
-        string local_path = "Bundle/Download/Apps.ppkg";
-        HttpDownloaderError error = default;
-        TaskQueue.AddTask(() =>
+        var manifest = FileMgr.GetCurrentManifest();
+        if (manifest == null)
+            return;
+        foreach(var p in manifest.Files)
         {
-            error = HttpDownloader.Download(url, local_path, (current, total) =>
-            {
-                Debug.Log($"Download: {current}/{total} {(float)current / total}");
-            }, 0, System.Threading.CancellationToken.None);
-        },
-        () =>
-        {
-            Debug.Log("Download All: ");
-            error.PrintLog();
-        });
+            FileDownloadMgr.Download(p);
+        }        
     }
 
     public void _OnOpenView()

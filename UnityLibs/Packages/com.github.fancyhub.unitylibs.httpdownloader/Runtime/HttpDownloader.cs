@@ -177,6 +177,8 @@ namespace FH
                     if (crc32 == file_crc32)
                         return error;
 
+                    //删除
+                    File.Delete(local_file_path);
                     error.SetCrcError();
                 }
 

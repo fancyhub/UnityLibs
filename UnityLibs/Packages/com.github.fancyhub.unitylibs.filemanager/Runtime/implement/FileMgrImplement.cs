@@ -75,6 +75,11 @@ namespace FH.FileManagement
             _ExtractOp.StartAsync(_Manifest_Base);
         }
 
+        public FileManifest GetCurrentManifest()
+        {
+            return _Manifest_Current;
+        }
+
         public ExtractStreamingAssetsOperation GetExtractOperation()
         {
             return _ExtractOp;
@@ -159,7 +164,7 @@ namespace FH.FileManagement
         }
 
         public string GetFilePath(string name)
-        {   
+        {
             if (_Manifest_Current == null)
             {
                 FileLog._.D("Current FileManifest Is Null");

@@ -20,6 +20,7 @@ namespace FH
         public FH.ISceneMgr.Config SceneMgrConfig;
         public FH.IVfsMgr.Config VfsMgrConfig;
         public FH.VFSManagement.Builder.BuilderConfig VfsBuilderConfig;
+        public FH.IFileDownloadMgr.Config FileDownloadMgrConfig;
 
         protected virtual void Awake()
         {
@@ -33,6 +34,7 @@ namespace FH
         {
             FH.ResMgr.Update();
             FH.SceneMgr.Update();
+            FileDownloadMgr.Update();   
         }
 
         public void OnDestroy()
@@ -82,6 +84,7 @@ namespace FH
             {
                 //FH.SAFileSystem.EdSetObbPath(@"E:\fancyHub\UnityLibs\UnityLibs\Bundle\Player\Android\split.main.obb");
                 FileMgr.Init(FileMgrConfig);
+                FileDownloadMgr.Init(FileDownloadMgrConfig);
 
                 IBundleMgr.IExternalLoader bundle_loader = new FH.SampleExternalLoader.BundleExternalLoader_FileMgr(FileMgr.Inst, FH.BundleManifest.DefaultFileName);
 
