@@ -13,47 +13,44 @@ namespace FH.FileDownload
     internal sealed class JobDB
     {
         public Dictionary<string, LinkedListNode<Job>> _Dict;
-
-        public LinkedList<Job> _Pending;
-        public LinkedList<Job> _Paused;
-        public LinkedList<Job> _Running;
-        public LinkedList<Job> _Succ;
-        public LinkedList<Job> _Fail;
+        public LinkedList<Job>[] _StatusList;
 
         public JobDB()
         {
             _Dict = new();
-            _Pending = new LinkedList<Job>();
-            _Paused = new LinkedList<Job>();
-            _Running = new LinkedList<Job>();
-            _Succ = new LinkedList<Job>();
-            _Fail = new LinkedList<Job>();
+            _StatusList = new LinkedList<Job>[1 + (int)EFileDownloadStatus.Succ];
+            _StatusList[(int)EFileDownloadStatus.Pending] = new LinkedList<Job>();
+            _StatusList[(int)EFileDownloadStatus.Downloading] = new LinkedList<Job>();
+            _StatusList[(int)EFileDownloadStatus.Pause] = new LinkedList<Job>();
+            _StatusList[(int)EFileDownloadStatus.Failed] = new LinkedList<Job>();
+            _StatusList[(int)EFileDownloadStatus.Succ] = new LinkedList<Job>();
+
         }
 
         public void ClearAll()
         {
-            foreach(var p in _Dict)
+            foreach (var p in _Dict)
             {
                 p.Value.Value.Destroy();
             }
             _Dict.Clear();
-            _Pending.ExtClear();
-            _Paused.ExtClear();
-            _Running.ExtClear();
-            _Succ.ExtClear();
-            _Fail.ExtClear();
+
+            foreach (var p in _StatusList)
+            {
+                p.ExtClear();
+            }
         }
 
         public Job AddJob(FileManifest.FileItem file)
         {
             if (file == null)
             {
-                FileDownloadLog.E("param file is null");
+                FileDownloadLog.Assert(false, "param file is null");
                 return null;
             }
             if (file.FullName == null)
             {
-                FileDownloadLog.E("param file.FullName is null");
+                FileDownloadLog.Assert(false, "param file.FullName is null");
                 return null;
             }
 
@@ -62,117 +59,110 @@ namespace FH.FileDownload
                 return job_node.Value;
 
             Job ret = Job.Create(file);
-            job_node = _Pending.ExtAddLast(ret);
+            job_node = _StatusList[(int)ret.Status].ExtAddLast(ret);
             _Dict.Add(file.FullName, job_node);
             return ret;
         }
 
-        public Job FindJob(FileManifest.FileItem file)
+        public Job FindJob(string file_full_name)
         {
-            if (file == null || file.FullName == null)
+            if (string.IsNullOrEmpty(file_full_name))
+            {
+                FileDownloadLog.Assert(false, "param file_full_name is null");
                 return null;
+            }
 
-            _Dict.TryGetValue(file.FullName, out var job_node);
+            _Dict.TryGetValue(file_full_name, out var job_node);
             if (job_node != null)
+            {
                 return job_node.Value;
+            }
+            FileDownloadLog.Assert(false, "找不到 {0}", file_full_name);
             return null;
         }
 
         public void Change(Job job, EFileDownloadStatus status)
         {
-            if (job == null || job.File == null)
+            if (job == null || job._DwonloadInfo == null)
+            {
+                FileDownloadLog.Assert(false, "param job is null, 代码有问题");
                 return;
+            }
 
-            _Dict.TryGetValue(job.File.FullName, out var job_node);
+            if (string.IsNullOrEmpty(job._JobInfo.FullName))
+            {
+                FileDownloadLog.Assert(false, "param job.JobInfo.FullName is null, 代码有问题");
+                return;
+            }
+
+            _Dict.TryGetValue(job._JobInfo.FullName, out var job_node);
             if (job_node == null)
             {
                 FileDownloadLog.Assert(false, "内部错误, 代码有问题");
-                //Error
                 return;
             }
 
             if (job_node.Value != job)
             {
                 FileDownloadLog.Assert(false, "内部错误, 代码有问题");
-                //Error
                 return;
             }
 
             if (job.Status == status)
                 return;
+
             //状态检查
             if (!_CanChangeStatus(job.Status, status))
             {
-                FileDownloadLog.Assert(false, "FileDownloadStatus 不能从 {0} -> {1}", job.Status, status);
+                FileDownloadLog.Assert(false, "FileDownloadStatus 不能从 {0} -> {1}", job._DwonloadInfo.Status, status);
                 return;
             }
             job.Status = status;
 
-            switch (job.Status)
-            {
-                case EFileDownloadStatus.Pause:
-                    job_node.List.Remove(job_node);
-                    _Paused.AddLast(job_node);
-                    break;
-                case EFileDownloadStatus.Succ:
-                    job_node.List.Remove(job_node);
-                    _Succ.AddLast(job_node);
-                    break;
-                case EFileDownloadStatus.Failed:
-                    job_node.List.Remove(job_node);
-                    _Fail.AddLast(job_node);
-                    break;
-                case EFileDownloadStatus.Pending:
-                    job_node.List.Remove(job_node);
-                    _Pending.AddLast(job_node);
-                    break;
-                case EFileDownloadStatus.Downloading:
-                    job_node.List.Remove(job_node);
-                    _Running.AddLast(job_node);
-                    break;
-            }
+            var new_list = _StatusList[(int)status];
+            job_node.List.Remove(job_node);
+            new_list.AddLast(job_node);
         }
 
         public Job PopPending()
         {
-            if (_Pending.Count == 0)
+            var pending_list = _StatusList[(int)EFileDownloadStatus.Pending];
+
+            if (pending_list.Count == 0)
                 return null;
-            var node = _Pending.First;
+            var node = pending_list.First;
             var ret = node.Value;
-            _Pending.Remove(node);
+            pending_list.Remove(node);
 
             ret.Status = EFileDownloadStatus.Downloading;
-            _Running.AddLast(node);
+            var download_list = _StatusList[(int)EFileDownloadStatus.Downloading];
+            download_list.AddLast(node);
             return ret;
         }
 
+
+        private static StateTranMap<EFileDownloadStatus, EFileDownloadStatus> _JobStatusTranMap;
         private static bool _CanChangeStatus(EFileDownloadStatus from, EFileDownloadStatus to)
         {
-            switch (from)
+            if (_JobStatusTranMap == null)
             {
-                case EFileDownloadStatus.Pending: //等待,排队中
-                    if (to == EFileDownloadStatus.Pause || to == EFileDownloadStatus.Downloading)
-                        return true;
-                    return false;
+                _JobStatusTranMap = new StateTranMap<EFileDownloadStatus, EFileDownloadStatus>(EFileDownloadStatus.Pending);
+                _JobStatusTranMap
+                    .Begin(EFileDownloadStatus.Pending)
+                        .Add(EFileDownloadStatus.Downloading, EFileDownloadStatus.Downloading)
+                        .Add(EFileDownloadStatus.Pause, EFileDownloadStatus.Pause)
+                    .Begin(EFileDownloadStatus.Downloading)
+                        .Add(EFileDownloadStatus.Pause, EFileDownloadStatus.Pause)
+                        .Add(EFileDownloadStatus.Succ, EFileDownloadStatus.Succ)
+                        .Add(EFileDownloadStatus.Failed, EFileDownloadStatus.Failed)
+                    .Begin(EFileDownloadStatus.Pause)
+                        .Add(EFileDownloadStatus.Pending, EFileDownloadStatus.Pending)
+                    .Begin(EFileDownloadStatus.Failed)
+                        .Add(EFileDownloadStatus.Pending, EFileDownloadStatus.Pending)
+                    .Begin(EFileDownloadStatus.Succ);
 
-                case EFileDownloadStatus.Downloading: //正在下载
-                    if (to == EFileDownloadStatus.Pending)
-                        return false;
-                    return true;
-
-                case EFileDownloadStatus.Pause:
-                    if (to == EFileDownloadStatus.Pending)
-                        return true;
-                    return false;
-
-                case EFileDownloadStatus.Failed: //下载失败
-                    if (to == EFileDownloadStatus.Pending)
-                        return true;
-                    return false;
-                case EFileDownloadStatus.Succ: //下载成功
-                    return false;
-                default: return false;
             }
+            return _JobStatusTranMap.Next(from, to, out var _);             
         }
     }
 }

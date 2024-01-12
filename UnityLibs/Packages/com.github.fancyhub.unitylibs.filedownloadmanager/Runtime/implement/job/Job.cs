@@ -9,28 +9,47 @@ using System;
 
 namespace FH.FileDownload
 {
+    public struct JobInfo
+    {
+        public string FullName;
+        public uint Crc32;
+        public bool UseGz;
+    }
+
     internal sealed class Job : CPoolItemBase
     {
-        public EFileDownloadStatus Status = EFileDownloadStatus.Pending;
-        public FileManifest.FileItem File;
-        public int WorkerIndex = -1;
-        public long DownloadedSize;
+        public int _WorkerIndex = -1;
+        public JobInfo _JobInfo;
+        public FileDownloadInfo _DwonloadInfo;
 
         public static Job Create(FileManifest.FileItem file)
         {
             if (file == null)
                 return null;
             var ret = GPool.New<Job>();
-            ret.File = file;
+            ret._JobInfo.FullName = file.FullName;
+            ret._JobInfo.Crc32 = file.Crc32;
+            ret._JobInfo.UseGz = file.UseGz;
+            ret._DwonloadInfo = new FileDownloadInfo(file.Name, file.FullName, file.Size, EFileDownloadStatus.Pending);
             return ret;
+        }
+
+        public EFileDownloadStatus Status
+        {
+            get
+            {
+                return _DwonloadInfo._Status;
+            }
+            set
+            {
+                _DwonloadInfo._Status = value;
+            }
         }
 
         protected override void OnPoolRelease()
         {
-            WorkerIndex = -1;
-            File = null;
-            Status = EFileDownloadStatus.Pending;            
-            DownloadedSize = 0;
+            _WorkerIndex = -1;
+            _DwonloadInfo = null;
         }
     }
 }

@@ -6,7 +6,6 @@
 *************************************************************************************/
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace FH.FileDownload
@@ -28,6 +27,9 @@ namespace FH.FileDownload
 
         public HttpDownloaderError _HttpDownloaderError;
         public CPtr<Job> _CurrentJob;
+
+        public FileDownloadInfo _CurrentFileDownloadInfo;
+        public JobInfo _CurrentJobInfo;
         public CPtr<ITask> _Task;
 
 
@@ -54,12 +56,14 @@ namespace FH.FileDownload
             if (job == null)
                 return false;
             _CurrentJob = job;
+            _CurrentJobInfo = job._JobInfo;
+            _CurrentFileDownloadInfo = job._DwonloadInfo;
 
-            _RemoteFileUri = _Config.ServerUrl + job.File.FullName;
-            _LocalFilePath = FileSetting.LocalDir + job.File.FullName;
-            _DownloadFilePath = FileSetting.DownloadDir + job.File.FullName;
+            _RemoteFileUri = _Config.ServerUrl + _CurrentJobInfo.FullName;
+            _LocalFilePath = FileSetting.LocalDir + _CurrentJobInfo.FullName;
+            _DownloadFilePath = FileSetting.DownloadDir + _CurrentJobInfo.FullName;
             _RetryCount = _Config.RetryCount + 1;
-            job.WorkerIndex = _WorkerIndex;
+            job._WorkerIndex = _WorkerIndex;
             return true;
         }
 
@@ -75,7 +79,7 @@ namespace FH.FileDownload
                 return;
 
             _JobDB.Change(job, status);
-            job.WorkerIndex = -1;
+            job._WorkerIndex = -1;
             _CurrentJob = null;
         }
 
@@ -134,38 +138,35 @@ namespace FH.FileDownload
 
         private void _TaskFileCopy()
         {
+            FileDownloadLog.D("Start Task {0}", _RemoteFileUri);
+            _HttpDownloaderError.Reset();
 
+            try
+            {
+                System.IO.File.Copy(_RemoteFileUri, _LocalFilePath);
+            }
+            catch (IOException e)
+            {
+                _HttpDownloaderError.SetIOException(e);
+            }
         }
 
         private void _OnHttpDownloadFileSizeCB(long download_size, long total_size)
         {
-            //这里会多线程, 不要修改 _CurrentJob
-            CPtr<Job> job_ref = _CurrentJob;
-            Job job = job_ref;
-            if (job == null)
+            if (_CurrentFileDownloadInfo == null)
             {
                 FileDownloadLog.D("Job Is Null,{0}", _RemoteFileUri);
                 return;
             }
-            job.DownloadedSize = download_size;
-
+            _CurrentFileDownloadInfo._DownloadSize = download_size;
         }
+
         private void _TaskHttpDownload()
         {
             FileDownloadLog.D("Start Task {0}", _RemoteFileUri);
 
             //1. 重置错误码
             _HttpDownloaderError.Reset();
-
-            //2. 检查Job是否为空
-            CPtr<Job> job_ref = _CurrentJob;
-            Job job = job_ref;
-            if (job == null)
-            {
-                FileDownloadLog.D("Job Is Null, {0}", _RemoteFileUri);
-                _HttpDownloaderError.SetCanceled();
-                return;
-            }
 
             //3. 检查是否被取消了
             if (_CancellationToken.IsCancellationRequested)
@@ -178,7 +179,7 @@ namespace FH.FileDownload
             //4. 根据GZ 调整路径
             string temp_remote_file_url = _RemoteFileUri;
             string temp_download_file_path = _DownloadFilePath;
-            if (job.File.UseGz)
+            if (_CurrentJobInfo.UseGz)
             {
                 temp_remote_file_url += ".gz";
                 temp_download_file_path += ".gz";
@@ -190,7 +191,7 @@ namespace FH.FileDownload
                temp_remote_file_url,
                temp_download_file_path,
                _OnHttpDownloadFileSizeCB,
-               job.File.Crc32,
+               _CurrentJobInfo.Crc32,
                _CancellationToken);
 
             //6. 检查错误
@@ -202,7 +203,7 @@ namespace FH.FileDownload
 
             //下面的不可取消
             //7. 解压缩
-            if (job.File.UseGz)
+            if (_CurrentJobInfo.UseGz)
             {
                 try
                 {

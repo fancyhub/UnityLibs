@@ -41,10 +41,7 @@ public class UIViewTest : MonoBehaviour
         var manifest = FileMgr.GetCurrentManifest();
         if (manifest == null)
             return;
-        foreach(var p in manifest.Files)
-        {
-            FileDownloadMgr.Download(p);
-        }        
+        FileDownloadMgr.AddTasks(manifest.Files);
     }
 
     public void _OnOpenView()

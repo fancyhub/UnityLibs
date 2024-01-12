@@ -4,6 +4,7 @@
  * Title   : 
  * Desc    : 
 *************************************************************************************/
+using System.Collections.Generic;
 
 namespace FH.FileDownload
 {
@@ -63,40 +64,80 @@ namespace FH.FileDownload
             }
         }
 
-        public void Download(FileManifest.FileItem file)
+        public void GetAllInfo(List<FileDownloadInfo> out_list)
+        {
+            if (out_list == null)
+            {
+                FileDownloadLog.Assert(false, "param out_list is null");
+                return;
+            }
+            out_list.Clear();
+            foreach (var p in _JobDB._Dict)
+            {
+                out_list.Add(p.Value.Value._DwonloadInfo);
+            }
+        }
+
+        public FileDownloadInfo FindInfo(string file_full_name)
+        {
+            var job = _JobDB.FindJob(file_full_name);
+            if (job == null)
+                return null;
+            return job._DwonloadInfo;
+        }
+
+        public FileDownloadInfo AddTask(FileManifest.FileItem file)
         {
             if (file == null)
             {
-                FileDownloadLog.E("param file is null");
-                return;
+                FileDownloadLog.Assert(false, "param file is null");
+                return null;
             }
             if (string.IsNullOrEmpty(file.FullName))
             {
-                FileDownloadLog.E("param file.FullName is null");
-                return;
+                FileDownloadLog.Assert(false, "param file.FullName is null");
+                return null;
             }
 
             string local_path = System.IO.Path.Combine(FileSetting.LocalDir, file.FullName);
             if (System.IO.File.Exists(local_path))
             {
                 FileDownloadLog.D("File {0} has Downloaded", file.FullName);
-                return;
+                return new FileDownloadInfo(file.Name, file.FullName, file.Size, EFileDownloadStatus.Succ);
+
             }
-            _JobDB.AddJob(file);
+            var job = _JobDB.AddJob(file);
+            if (job == null)
+                return null;
+            return job._DwonloadInfo;
         }
 
-        public void Pause(FileManifest.FileItem file)
+        public void Pause(string file_full_name)
         {
-            var job = _JobDB.FindJob(file);
+            var job = _JobDB.FindJob(file_full_name);
             if (job == null)
                 return;
 
-            if (job.WorkerIndex < 0)
+            if (job._WorkerIndex < 0)
             {
                 _JobDB.Change(job, EFileDownloadStatus.Pause);
-                return;
             }
-            _Workers[job.WorkerIndex].Cancel();
+            else
+            {
+                _Workers[job._WorkerIndex].Cancel();
+            }
+        }
+
+        /// <summary>
+        /// Fail -> pending, Pause -> pending
+        /// </summary>
+        public void Start(string file_full_name)
+        {
+            var job = _JobDB.FindJob(file_full_name);
+            if (job == null)
+                return;
+
+            _JobDB.Change(job, EFileDownloadStatus.Pending);
         }
 
         public void Destroy()
