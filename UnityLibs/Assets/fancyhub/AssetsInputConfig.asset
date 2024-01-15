@@ -41,17 +41,17 @@ MonoBehaviour:
       Path: Assets/Res/TestCycle
     SearchPattern: '*.*'
     AddressMode: 0
-    BundleName: ui_prefab
-    Tags: base
+    BundleName: ui_prefab2
+    Tags: ui2
   - Asset:
       Path: Assets/Scenes/a.unity
     SearchPattern: '*.*'
     AddressMode: 0
-    BundleName: scene_b
-    Tags: base
+    BundleName: scene_a
+    Tags: scene_a
   - Asset:
       Path: Assets/Scenes/b.unity
     SearchPattern: '*.*'
     AddressMode: 0
     BundleName: scene_b
-    Tags: base
+    Tags: scene_b

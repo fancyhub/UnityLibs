@@ -25,9 +25,9 @@ namespace FH.SampleExternalLoader
         {
             string path = System.IO.Path.Combine(_Dir, name);
             if (System.IO.File.Exists(path))
-                return IBundleMgr.EBundleFileStatus.Exist;
+                return IBundleMgr.EBundleFileStatus.Ready;
             else
-                return IBundleMgr.EBundleFileStatus.NoExist;
+                return IBundleMgr.EBundleFileStatus.None;
         }
 
         public string GetBundleFilePath(string name)

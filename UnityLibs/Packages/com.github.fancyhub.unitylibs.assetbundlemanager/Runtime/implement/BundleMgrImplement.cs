@@ -52,13 +52,18 @@ namespace FH.ABManagement
             }
         }
 
-        public IBundle GetBundleByAsset(string asset)
+        public IBundleMgr.IExternalLoader ExternalLoader => _ExternalLoader.Val;
+
+        public IBundle FindBundleByAsset(string asset)
         {
             if (string.IsNullOrEmpty(asset))
+            {
+                BundleLog.Assert(false, "param asset is null");
                 return null;
+            }
 
             _AssetDict.TryGetValue(asset, out Bundle b);
-            if(b==null)
+            if (b == null)
             {
                 BundleLog.E("找不到 {0} 对应的bundle", asset);
             }
@@ -84,7 +89,10 @@ namespace FH.ABManagement
             }
 
             if (!b.Load())
+            {
+                BundleLog.E("加载失败 Asset:{0}, 对应的Bundle: {1}", asset, b.Name);
                 return null;
+            }
 
             b.IncRefCount();
             return b;

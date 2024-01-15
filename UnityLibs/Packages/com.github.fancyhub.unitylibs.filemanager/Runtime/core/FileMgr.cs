@@ -18,29 +18,32 @@ namespace FH
 
     public enum EFileStatus
     {
-        NotExist,
-        Exist,
-        NotDownloaded,
+        None, //不存在
+        Ready, //可以直接读取
+        Remote, //在远程, 还没有下载
     }
 
     public partial interface IFileMgr : ICPtr
     {
         public VersionInfo GetVersionInfo();
-        public bool UpgradeManifest();
-
-        public string GetFilePath(string name);
-        public EFileStatus GetFileStatus(string name);
-
         public FileManifest GetCurrentManifest();
+
+        public bool Upgrade(FileManifest new_manifest, List<FileManifest.FileItem> out_need_download_list = null);
+
+        public EFileStatus FindFile(string name, out string full_path);
+
+        public bool IsAllReady(FileManifest manifest, HashSet<string> tags = null, List<FileManifest.FileItem> out_need_download_list = null);
 
         public ExtractStreamingAssetsOperation GetExtractOperation();
 
+        public System.IO.Stream OpenRead(string name);
         public byte[] ReadAllBytes(string name);
     }
 
     public static class FileMgr
     {
         private static CPtr<IFileMgr> _;
+        private static HashSet<string> _S_TempTags = new HashSet<string>();
 
         public static IFileMgr Inst { get { return _.Val; } }
 
@@ -85,7 +88,7 @@ namespace FH
             return mgr.GetVersionInfo();
         }
 
-        public static bool UpgradeManifest()
+        public static bool Upgrade(FileManifest new_manifest, List<FileManifest.FileItem> out_need_download_list = null)
         {
             var mgr = _.Val;
             if (mgr == null)
@@ -93,10 +96,48 @@ namespace FH
                 FileLog._.E("FileMgr Is Null");
                 return false;
             }
-            return mgr.UpgradeManifest();
+            return mgr.Upgrade(new_manifest, out_need_download_list);
         }
 
-        public static string GetFilePath(string name)
+        public static bool IsAllReady(FileManifest manifest, List<string> tags = null, List<FileManifest.FileItem> out_need_download_list = null)
+        {
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                FileLog._.E("FileMgr Is Null");
+                return false;
+            }
+
+            if (tags == null)
+            {
+                return mgr.IsAllReady(manifest, null, out_need_download_list);
+            }
+
+            _S_TempTags.Clear();
+            foreach (var p in tags)
+            {
+                if (string.IsNullOrEmpty(p))
+                    continue;
+                _S_TempTags.Add(p);
+            }
+            return mgr.IsAllReady(manifest, null, out_need_download_list);
+        }
+
+        public static EFileStatus FindFile(string name, out string full_path)
+        {
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                FileLog._.E("FileMgr Is Null");
+                full_path = null;
+                return EFileStatus.None;
+            }
+
+            return mgr.FindFile(name, out full_path);
+        }
+
+
+        public static System.IO.Stream OpenRead(string name)
         {
             var mgr = _.Val;
             if (mgr == null)
@@ -104,18 +145,7 @@ namespace FH
                 FileLog._.E("FileMgr Is Null");
                 return null;
             }
-            return mgr.GetFilePath(name);
-        }
-
-        public static EFileStatus GetFileStatus(string name)
-        {
-            var mgr = _.Val;
-            if (mgr == null)
-            {
-                FileLog._.E("FileMgr Is Null");
-                return EFileStatus.NotExist;
-            }
-            return mgr.GetFileStatus(name);
+            return mgr.OpenRead(name);
         }
 
         public static byte[] ReadAllBytes(string name)

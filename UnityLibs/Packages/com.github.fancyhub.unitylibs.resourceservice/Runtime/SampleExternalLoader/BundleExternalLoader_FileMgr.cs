@@ -26,17 +26,17 @@ namespace FH.SampleExternalLoader
         {
             var mgr = _FileMgr.Val;
             if (mgr == null)
-                return IBundleMgr.EBundleFileStatus.NoExist;
-            switch (mgr.GetFileStatus(name))
+                return IBundleMgr.EBundleFileStatus.None;
+            switch (mgr.FindFile(name, out var _))
             {
-                case EFileStatus.NotExist:
-                    return IBundleMgr.EBundleFileStatus.NoExist;
-                case EFileStatus.Exist:
-                    return IBundleMgr.EBundleFileStatus.Exist;
-                case EFileStatus.NotDownloaded:
-                    return IBundleMgr.EBundleFileStatus.NeedDownload;
+                case EFileStatus.None:
+                    return IBundleMgr.EBundleFileStatus.None;
+                case EFileStatus.Ready:
+                    return IBundleMgr.EBundleFileStatus.Ready;
+                case EFileStatus.Remote:
+                    return IBundleMgr.EBundleFileStatus.Remote;
                 default:
-                    return IBundleMgr.EBundleFileStatus.NoExist;
+                    return IBundleMgr.EBundleFileStatus.None;
             }
         }
 
@@ -45,7 +45,8 @@ namespace FH.SampleExternalLoader
             var mgr = _FileMgr.Val;
             if (mgr == null)
                 return null;
-            return mgr.GetFilePath(name);
+            mgr.FindFile(name, out var ret);
+            return ret;
         }
 
         public Stream LoadBundleFile(string name)
@@ -59,7 +60,7 @@ namespace FH.SampleExternalLoader
             if (mgr == null)
                 return null;
 
-            byte[] bytes=mgr.ReadAllBytes(_BundleManifestName);
+            byte[] bytes = mgr.ReadAllBytes(_BundleManifestName);
             if (bytes == null)
                 return null;
             string content = System.Text.Encoding.UTF8.GetString(bytes);

@@ -12,16 +12,17 @@ namespace FH.FileManagement
     {
         //Key: file_name, Value: full_path
         private Dictionary<string, string> _FilesInStreamingAssets = new();
-        private Dictionary<string, string> _FilesInCache = new();
+        private Dictionary<string, string> _FilesInLocalDir = new();
 
         private readonly string _CacheDir;
 
         public FileCollection()
         {
             _CacheDir = FileSetting.LocalDir;
+            _CollectStreamingAssets();
         }
 
-        public void CollectCacheDir()
+        public void CollectLocalDir()
         {
             Dictionary<string, string> new_Dict = new Dictionary<string, string>();
             string[] files = System.IO.Directory.GetFiles(_CacheDir, "*.*", System.IO.SearchOption.TopDirectoryOnly);
@@ -30,10 +31,22 @@ namespace FH.FileManagement
                 string file_name = System.IO.Path.GetFileName(p);
                 new_Dict[file_name] = p;
             }
-            _FilesInCache = new_Dict;
+            _FilesInLocalDir = new_Dict;
+        }
+       
+        public string GetFullPath(string file_name)
+        {
+            if (string.IsNullOrEmpty(file_name))
+                return null;
+
+            if (_FilesInLocalDir.TryGetValue(file_name, out var path))
+                return path;
+            if (_FilesInStreamingAssets.TryGetValue(file_name, out path))
+                return path;
+            return null;
         }
 
-        public void CollectStreamingAssets()
+        private void _CollectStreamingAssets()
         {
             List<string> files = new List<string>();
             FH.SAFileSystem.GetFileList(FileSetting.StreamingAssetsDir, false, files);
@@ -52,28 +65,5 @@ namespace FH.FileManagement
             }
         }
 
-        public bool IsExist(string file_name)
-        {
-            if (string.IsNullOrEmpty(file_name))
-                return false;
-
-            if (_FilesInCache.ContainsKey(file_name))
-                return true;
-            if (_FilesInStreamingAssets.ContainsKey(file_name))
-                return true;
-            return false;
-        }
-
-        public string GetFullPath(string file_name)
-        {
-            if (string.IsNullOrEmpty(file_name))
-                return null;
-
-            if (_FilesInCache.TryGetValue(file_name, out var path))
-                return path;
-            if (_FilesInStreamingAssets.TryGetValue(file_name, out path))
-                return path;
-            return null;
-        }
     }
 }

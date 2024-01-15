@@ -106,15 +106,15 @@ namespace FH
                 _State = state;
             }
 
-            public TranAddHelper Add(TResult result, TState next)
+            public TranAddHelper To(TResult result, TState dst_status)
             {
-                _Map.AddTran(_State, result, next);
+                _Map.AddTran(_State, result, dst_status);
                 return this;
             }
 
-            public TranAddHelper Begin(TState state)
+            public TranAddHelper From(TState src_status)
             {
-                return new TranAddHelper(_Map, state);
+                return new TranAddHelper(_Map, src_status);
             }
         }
 
@@ -158,9 +158,9 @@ namespace FH
             return _Dict.TryGetValue(key, out next_state);
         }
 
-        public TranAddHelper Begin(TState start_state)
+        public TranAddHelper From(TState src_status)
         {
-            return new TranAddHelper(this, start_state);
+            return new TranAddHelper(this, src_status);
         }
 
         public StateTranMap<TState, TResult> AddTran(TState state, TResult result, TState next_state)

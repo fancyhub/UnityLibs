@@ -148,10 +148,6 @@ namespace FH
                 }
                 return _StreamingAssetsDir;
             }
-        }
-
-
-        
-        public const string ManifestUpgradeName = "file_manifest_upgrade.json";
+        }        
     }
 }

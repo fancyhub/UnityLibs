@@ -61,12 +61,12 @@ namespace FH.FileDownload
 
             _StateTranMap = new StateTranMap<EWorkerState, int>(EWorkerState.Wait);
             _StateTranMap
-                .Begin(EWorkerState.Wait)
-                    .Add(WorkerNodeWait.ResultNext, EWorkerState.Download)
-                .Begin(EWorkerState.Download)
-                    .Add(WorkerNodeDownload.ResultSucc, EWorkerState.Wait)
-                    .Add(WorkerNodeDownload.ResultFail, EWorkerState.Wait)
-                    .Add(WorkerNodeDownload.ResultUserCancel, EWorkerState.Wait);
+                .From(EWorkerState.Wait)
+                    .To(WorkerNodeWait.ResultNext, EWorkerState.Download)
+                .From(EWorkerState.Download)
+                    .To(WorkerNodeDownload.ResultSucc, EWorkerState.Wait)
+                    .To(WorkerNodeDownload.ResultFail, EWorkerState.Wait)
+                    .To(WorkerNodeDownload.ResultUserCancel, EWorkerState.Wait);
 
             return _StateTranMap;
         }

@@ -103,13 +103,19 @@ namespace FH
                 {
                     foreach (var p in VfsBuilderConfig.Items)
                     {
-                        string path = FileMgr.GetFilePath(p.Name);
+                        FileMgr.FindFile(p.Name, out var full_path);
+                        if(full_path==null)
+                        {
+                            Log.E("找不到文件 {0}",p.Name);
+                            continue;
+                        }
+
                         switch (p.Format)
                         {
                             case VFSManagement.Builder.BuilderConfig.EFormat.ZipStore:
                             case VFSManagement.Builder.BuilderConfig.EFormat.ZipCompress:
                                 {
-                                    VirtualFileSystem_Zip fs_zip = VirtualFileSystem_Zip.CreateFromFile(p.Name, path);
+                                    VirtualFileSystem_Zip fs_zip = VirtualFileSystem_Zip.CreateFromFile(p.Name, full_path);
                                     VfsMgr.Mount(fs_zip);
                                 }
                                 break;
@@ -117,7 +123,7 @@ namespace FH
                             case VFSManagement.Builder.BuilderConfig.EFormat.Lz4ZipStore:
                             case VFSManagement.Builder.BuilderConfig.EFormat.Lz4ZipCompress:
                                 {
-                                    VirtualFileSystem_Lz4Zip fs_zip = VirtualFileSystem_Lz4Zip.CreateFromFile(p.Name, path);
+                                    VirtualFileSystem_Lz4Zip fs_zip = VirtualFileSystem_Lz4Zip.CreateFromFile(p.Name, full_path);
                                     VfsMgr.Mount(fs_zip);
                                 }
                                 break;

@@ -47,7 +47,7 @@ namespace FH.ABManagement
             if (loader == null)
                 return false;
 
-            return loader.GetBundleFileStatus(_Config.Name) == IBundleMgr.EBundleFileStatus.Exist;
+            return loader.GetBundleFileStatus(_Config.Name) == IBundleMgr.EBundleFileStatus.Ready;
         }
 
         public int IncRefCount()
@@ -156,9 +156,9 @@ namespace FH.ABManagement
                     }
 
                     IBundleMgr.EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
-                    if (bundleStatus != IBundleMgr.EBundleFileStatus.Exist)
+                    if (bundleStatus != IBundleMgr.EBundleFileStatus.Ready)
                     {
-                        BundleLog.D("Bundle {0} Is {1}", _Config.Name, bundleStatus);
+                        BundleLog.Assert(false,"Bundle {0} Is {1}", _Config.Name, bundleStatus);
                         return false;
                     }
 
@@ -176,7 +176,7 @@ namespace FH.ABManagement
                             case EBundleLoadStatus.None:
                                 if (!p.IsDownloaded())
                                 {
-                                    BundleLog.D("Bundle {0} Dep {1} Is not Downloaded", _Config.Name, p._Config.Name);
+                                    BundleLog.Assert(false,"Bundle {0} Dep {1} Is not Downloaded", _Config.Name, p._Config.Name);
                                     return false;
                                 }
                                 break;
@@ -238,7 +238,7 @@ namespace FH.ABManagement
                     }
 
                     IBundleMgr.EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
-                    if (bundleStatus != IBundleMgr.EBundleFileStatus.Exist)
+                    if (bundleStatus != IBundleMgr.EBundleFileStatus.Ready)
                     {
                         BundleLog.D("Bundle {0} Is {1}", _Config.Name, bundleStatus);
                         return false;

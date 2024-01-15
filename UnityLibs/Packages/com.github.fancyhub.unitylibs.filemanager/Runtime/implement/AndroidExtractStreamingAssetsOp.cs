@@ -103,7 +103,7 @@ namespace FH.FileManagement
             if (System.IO.File.Exists(path))
                 System.IO.File.Delete(path);
             System.IO.File.WriteAllText(path, _Version);
-            _FileCollection.CollectCacheDir();
+            _FileCollection.CollectLocalDir();
         }
     }
 }

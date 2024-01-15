@@ -150,7 +150,7 @@ namespace FH.SampleExternalLoader
             if (bundleMgr == null)
                 return EAssetStatus.NotExist;
 
-            IBundle bundle = bundleMgr.GetBundleByAsset(path);
+            IBundle bundle = bundleMgr.FindBundleByAsset(path);
             if (bundle == null)
                 return EAssetStatus.NotExist;
             if (bundle.IsDownloaded())

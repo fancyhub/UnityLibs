@@ -31,7 +31,7 @@ namespace FH.FileManagement.Ed
                     file_need_copy.Add(manifest.Files[file_index].FullName);
                 }
             }
-            return null;
+            return file_need_copy;
         }
     }
 }

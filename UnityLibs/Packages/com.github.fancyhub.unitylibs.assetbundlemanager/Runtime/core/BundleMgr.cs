@@ -18,10 +18,9 @@ namespace FH
     {
         public enum EBundleFileStatus
         {
-            Exist,
-            NoExist,
-            NeedDownload,
-            Downloading,
+            None, //不存在
+            Ready,
+            Remote,
         }
 
         public interface IExternalLoader : ICPtr
@@ -58,9 +57,11 @@ namespace FH
 
     public partial interface IBundleMgr : ICPtr
     {
+        public IExternalLoader ExternalLoader { get; }
+
         public IBundle LoadBundleByAsset(string asset);
 
-        public IBundle GetBundleByAsset(string asset);
+        public IBundle FindBundleByAsset(string asset);
 
         public void GetAllBundles(List<IBundle> bundles);
     }
@@ -115,7 +116,72 @@ namespace FH
 
         public static IBundle LoadBundleByAsset(string asset)
         {
-            return _.Val.LoadBundleByAsset(asset);
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                BundleLog.E("BundleMgr is null");
+                return null;
+            }
+
+            return mgr.LoadBundleByAsset(asset);
+        }
+
+        private static Dictionary<string, IBundle> _S_TempDict = new Dictionary<string, IBundle>();
+        private static List<IBundle> _S_TempList = new List<IBundle>();
+
+        public static void GetAllNeedDownload(List<string> asset_list, List<IBundle> out_bundle_list)
+        {
+            out_bundle_list.Clear();
+
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                BundleLog.E("BundleMgr is null");
+                return;
+            }
+            var external_loader = mgr.ExternalLoader;
+            if (external_loader == null)
+            {
+                BundleLog.E("BundleMgr.ExternalLoader is null");
+                return;
+            }
+
+            _S_TempDict.Clear();
+            foreach (var p in asset_list)
+            {
+                IBundle bundle = mgr.FindBundleByAsset(p);
+                if (bundle == null)
+                    continue;
+                if (_S_TempDict.ContainsKey(bundle.Name))
+                    continue;
+                _S_TempDict.Add(bundle.Name, bundle);
+
+                _S_TempList.Clear();
+                bundle.GetAllDeps(_S_TempList);
+                foreach (var p2 in _S_TempList)
+                {
+                    _S_TempDict[p2.Name] = bundle;
+                }
+            }
+
+            foreach (var p in _S_TempDict)
+            {
+                var status = external_loader.GetBundleFileStatus(p.Key);
+                switch (status)
+                {
+                    default:
+                    case IBundleMgr.EBundleFileStatus.None:
+                        BundleLog.E("Bundle: {0}, Status: {1}, 有问题", p.Key, status);
+                        break;
+
+                    case IBundleMgr.EBundleFileStatus.Ready:
+                        break;
+
+                    case IBundleMgr.EBundleFileStatus.Remote:
+                        out_bundle_list.Add(p.Value);
+                        break;
+                }
+            }
         }
     }
 }

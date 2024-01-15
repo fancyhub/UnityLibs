@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: BuildCopyStreamingAsset_Tags
   m_EditorClassIdentifier: 
   Name: 
-  Enable: 0
+  Enable: 1
   Tags: base
 --- !u!114 &-2045977716326401409
 MonoBehaviour:
@@ -98,4 +98,4 @@ MonoBehaviour:
   m_Name: BuildCopyStreamingAsset_All
   m_EditorClassIdentifier: 
   Name: 
-  Enable: 1
+  Enable: 0

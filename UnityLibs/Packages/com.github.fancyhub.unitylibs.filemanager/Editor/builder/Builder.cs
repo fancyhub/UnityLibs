@@ -168,7 +168,7 @@ namespace FH.FileManagement.Ed
 
         private static int _GetFileSize(string file_path)
         {
-            System.IO.FileInfo info = new FileInfo(file_path);
+            System.IO.FileInfo info = new System.IO.FileInfo(file_path);
             return (int)info.Length;
         }
 
@@ -200,8 +200,8 @@ namespace FH.FileManagement.Ed
                 else
                 {
                     //可能是在上次的复制过程中，被打断
-                    var file_info_dest = new FileInfo(dest_file);
-                    var file_info_src = new FileInfo(src_file);
+                    var file_info_dest = new System.IO.FileInfo(dest_file);
+                    var file_info_src = new System.IO.FileInfo(src_file);
                     if (file_info_dest.Length != file_info_src.Length)
                         need_copy = true;
                 }

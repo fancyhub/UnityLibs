@@ -148,18 +148,18 @@ namespace FH.FileDownload
             {
                 _JobStatusTranMap = new StateTranMap<EFileDownloadStatus, EFileDownloadStatus>(EFileDownloadStatus.Pending);
                 _JobStatusTranMap
-                    .Begin(EFileDownloadStatus.Pending)
-                        .Add(EFileDownloadStatus.Downloading, EFileDownloadStatus.Downloading)
-                        .Add(EFileDownloadStatus.Pause, EFileDownloadStatus.Pause)
-                    .Begin(EFileDownloadStatus.Downloading)
-                        .Add(EFileDownloadStatus.Pause, EFileDownloadStatus.Pause)
-                        .Add(EFileDownloadStatus.Succ, EFileDownloadStatus.Succ)
-                        .Add(EFileDownloadStatus.Failed, EFileDownloadStatus.Failed)
-                    .Begin(EFileDownloadStatus.Pause)
-                        .Add(EFileDownloadStatus.Pending, EFileDownloadStatus.Pending)
-                    .Begin(EFileDownloadStatus.Failed)
-                        .Add(EFileDownloadStatus.Pending, EFileDownloadStatus.Pending)
-                    .Begin(EFileDownloadStatus.Succ);
+                    .From(EFileDownloadStatus.Pending)
+                        .To(EFileDownloadStatus.Downloading, EFileDownloadStatus.Downloading)
+                        .To(EFileDownloadStatus.Pause, EFileDownloadStatus.Pause)
+                    .From(EFileDownloadStatus.Downloading)
+                        .To(EFileDownloadStatus.Pause, EFileDownloadStatus.Pause)
+                        .To(EFileDownloadStatus.Succ, EFileDownloadStatus.Succ)
+                        .To(EFileDownloadStatus.Failed, EFileDownloadStatus.Failed)
+                    .From(EFileDownloadStatus.Pause)
+                        .To(EFileDownloadStatus.Pending, EFileDownloadStatus.Pending)
+                    .From(EFileDownloadStatus.Failed)
+                        .To(EFileDownloadStatus.Pending, EFileDownloadStatus.Pending)
+                    .From(EFileDownloadStatus.Succ);
 
             }
             return _JobStatusTranMap.Next(from, to, out var _);             
