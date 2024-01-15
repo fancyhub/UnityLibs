@@ -23,7 +23,7 @@ namespace FH
     using UnityEngine;
     using System.Runtime.CompilerServices;
     using ZString = System.String;
-     
+
 
     internal static class LogPrinter
     {
@@ -43,13 +43,9 @@ namespace FH
         };
 
         [HideInCallstack]
-        public static void Print(ELogLvl log_lvl, string tag, ELogMask allow_mask, ELogMask trace_mask, ELogMask unity_mask, UnityEngine.Object context, string format, object[] args)
+        public static void Print(ELogLvl log_lvl, string tag, ELogMask trace_mask, ELogMask unity_mask, UnityEngine.Object context, string format, object[] args)
         {
             ELogMask lvl_mask = _ToMask(log_lvl);
-
-            if ((lvl_mask & allow_mask) == ELogMask.None)
-                return;
-
 
             ValueStringBuilder sb = new ValueStringBuilder(stackalloc char[C_Buffer_Size]);
             _AppendTime(ref sb);
@@ -79,14 +75,12 @@ namespace FH
         }
 
         [HideInCallstack]
-        public static void PrintE(ELogMask enable_mask, ELogMask unity_mask, Exception e)
+        public static void PrintE(ELogMask unity_mask, Exception e)
         {
             ELogLvl log_lvl = ELogLvl.Exception;
             ELogMask lvl_mask = _ToMask(log_lvl);
 
-            if ((lvl_mask & enable_mask) == ELogMask.None)
-                return;
-
+            
             if ((unity_mask & lvl_mask) != ELogMask.None)
                 UnityEngine.Debug.LogException(e);
 
@@ -100,7 +94,7 @@ namespace FH
         }
 
         [HideInCallstack]
-        public static void Print1<T0>(ELogLvl log_lvl, string tag, ELogMask enable_mask, ELogMask trace_mask, ELogMask unity_mask, UnityEngine.Object context, string format, T0 arg0)
+        public static void Print1<T0>(ELogLvl log_lvl, string tag, ELogMask trace_mask, ELogMask unity_mask, UnityEngine.Object context, string format, T0 arg0)
         {
             ELogMask lvl_mask = _ToMask(log_lvl);
 
@@ -136,7 +130,7 @@ namespace FH
         }
 
         [HideInCallstack]
-        public static void Print2<T0, T1>(ELogLvl log_lvl, string tag, ELogMask enable_mask, ELogMask trace_mask, ELogMask unity_mask, UnityEngine.Object context, string format, T0 arg0, T1 arg1)
+        public static void Print2<T0, T1>(ELogLvl log_lvl, string tag, ELogMask trace_mask, ELogMask unity_mask, UnityEngine.Object context, string format, T0 arg0, T1 arg1)
         {
             ELogMask lvl_mask = _ToMask(log_lvl);
 
@@ -172,12 +166,9 @@ namespace FH
         }
 
         [HideInCallstack]
-        public static void Print3<T0, T1, T2>(ELogLvl log_lvl, string tag, ELogMask enable_mask, ELogMask trace_mask, ELogMask unity_mask, UnityEngine.Object context, string format, T0 arg0, T1 arg1, T2 arg2)
+        public static void Print3<T0, T1, T2>(ELogLvl log_lvl, string tag, ELogMask trace_mask, ELogMask unity_mask, UnityEngine.Object context, string format, T0 arg0, T1 arg1, T2 arg2)
         {
-            ELogMask lvl_mask = _ToMask(log_lvl);
 
-            if ((lvl_mask & enable_mask) == ELogMask.None)
-                return;
 
 
             ValueStringBuilder sb = new ValueStringBuilder(stackalloc char[C_Buffer_Size]);

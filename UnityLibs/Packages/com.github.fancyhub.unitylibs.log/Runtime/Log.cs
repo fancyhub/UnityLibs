@@ -115,6 +115,15 @@ namespace FH
             return mask;
         }
 
+        private static bool _IsEnable(ELogLvl lvl)
+        {
+            ELogMask lvl_mask = (ELogMask)(1u << (int)lvl);
+
+            if ((lvl_mask & AllowMask) == ELogMask.None)
+                return false;
+            return true;
+        }
+
         /// <summary>
         /// Debug Info
         /// </summary>
@@ -123,7 +132,10 @@ namespace FH
         public static void D(string format, params object[] args)
         {
 #if ENABLE_LOG_Debug
-            LogPrinter.Print(ELogLvl.Debug, null, AllowMask, TraceMask, UnityMask, null, format, args);
+            if (!_IsEnable(ELogLvl.Debug))
+                return;
+
+            LogPrinter.Print(ELogLvl.Debug, null, TraceMask, UnityMask, null, format, args);
 #endif
         }
 
@@ -135,7 +147,9 @@ namespace FH
         public static void D<T0>(string format, T0 arg0)
         {
 #if ENABLE_LOG_Debug
-            LogPrinter.Print1(ELogLvl.Debug, null, AllowMask, TraceMask, UnityMask, null, format, arg0);
+            if (!_IsEnable(ELogLvl.Debug))
+                return;
+            LogPrinter.Print1(ELogLvl.Debug, null, TraceMask, UnityMask, null, format, arg0);
 #endif
         }
 
@@ -147,7 +161,9 @@ namespace FH
         public static void D<T0, T1>(string format, T0 arg0, T1 arg1)
         {
 #if ENABLE_LOG_Debug
-            LogPrinter.Print2(ELogLvl.Debug, null, AllowMask, TraceMask, UnityMask, null, format, arg0, arg1);
+            if (!_IsEnable(ELogLvl.Debug))
+                return;
+            LogPrinter.Print2(ELogLvl.Debug, null, TraceMask, UnityMask, null, format, arg0, arg1);
 #endif
         }
 
@@ -159,7 +175,9 @@ namespace FH
         public static void D<T0, T1, T2>(string format, T0 arg0, T1 arg1, T2 arg2)
         {
 #if ENABLE_LOG_Debug
-            LogPrinter.Print3(ELogLvl.Debug, null, AllowMask, TraceMask, UnityMask, null, format, arg0, arg1, arg2);
+            if (!_IsEnable(ELogLvl.Debug))
+                return;
+            LogPrinter.Print3(ELogLvl.Debug, null, TraceMask, UnityMask, null, format, arg0, arg1, arg2);
 #endif
         }
 
@@ -171,7 +189,9 @@ namespace FH
         public static void D(UnityEngine.Object content, string format, params object[] args)
         {
 #if ENABLE_LOG_Debug
-            LogPrinter.Print(ELogLvl.Debug, null, AllowMask, TraceMask, UnityMask, content, format, args);
+            if (!_IsEnable(ELogLvl.Debug))
+                return;
+            LogPrinter.Print(ELogLvl.Debug, null, TraceMask, UnityMask, content, format, args);
 #endif
         }
 
@@ -183,7 +203,9 @@ namespace FH
         public static void I(string format, params object[] args)
         {
 #if ENABLE_LOG_Info
-            LogPrinter.Print(ELogLvl.Info, null, AllowMask, TraceMask, UnityMask, null, format, args);
+            if (!_IsEnable(ELogLvl.Info))
+                return;
+            LogPrinter.Print(ELogLvl.Info, null, TraceMask, UnityMask, null, format, args);
 #endif
         }
 
@@ -195,7 +217,9 @@ namespace FH
         public static void I(UnityEngine.Object content, string format, params object[] args)
         {
 #if ENABLE_LOG_Info
-            LogPrinter.Print(ELogLvl.Info, null, AllowMask, TraceMask, UnityMask, content, format, args);
+            if (!_IsEnable(ELogLvl.Info))
+                return;
+            LogPrinter.Print(ELogLvl.Info, null, TraceMask, UnityMask, content, format, args);
 #endif
         }
 
@@ -207,7 +231,9 @@ namespace FH
         public static void W(string format, params object[] args)
         {
 #if ENABLE_LOG_Warning
-            LogPrinter.Print(ELogLvl.Warning, null, AllowMask, TraceMask, UnityMask, null, format, args);
+            if (!_IsEnable(ELogLvl.Warning))
+                return;
+            LogPrinter.Print(ELogLvl.Warning, null, TraceMask, UnityMask, null, format, args);
 #endif
         }
 
@@ -220,7 +246,9 @@ namespace FH
         public static void W(UnityEngine.Object content, string format, params object[] args)
         {
 #if ENABLE_LOG_Warning
-            LogPrinter.Print(ELogLvl.Warning, null, AllowMask, TraceMask, UnityMask, content, format, args);
+            if (!_IsEnable(ELogLvl.Warning))
+                return;
+            LogPrinter.Print(ELogLvl.Warning, null, TraceMask, UnityMask, content, format, args);
 #endif
         }
 
@@ -241,7 +269,10 @@ namespace FH
                 format = "Asset Error";
                 args = null;
             }
-            LogPrinter.Print(ELogLvl.Assert, null, AllowMask, TraceMask, UnityMask, null, format, args);
+            if (!_IsEnable(ELogLvl.Assert))
+                return;
+
+            LogPrinter.Print(ELogLvl.Assert, null, TraceMask, UnityMask, null, format, args);
 
 #endif
         }
@@ -262,7 +293,9 @@ namespace FH
                 format = "Asset Error";
                 args = null;
             }
-            LogPrinter.Print(ELogLvl.Assert, null, AllowMask, TraceMask, UnityMask, content, format, args);
+            if (!_IsEnable(ELogLvl.Assert))
+                return;
+            LogPrinter.Print(ELogLvl.Assert, null, TraceMask, UnityMask, content, format, args);
 #endif
         }
 
@@ -271,7 +304,10 @@ namespace FH
         public static void E(Exception e)
         {
 #if ENABLE_LOG_Exception
-            LogPrinter.PrintE(AllowMask, UnityMask, e);
+            if (!_IsEnable(ELogLvl.Exception))
+                return;
+
+            LogPrinter.PrintE(UnityMask, e);
 #endif
         }
 
@@ -280,7 +316,9 @@ namespace FH
         public static void E(string format, params object[] args)
         {
 #if ENABLE_LOG_Error          
-            LogPrinter.Print(ELogLvl.Error, null, AllowMask, TraceMask, UnityMask, null, format, args);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print(ELogLvl.Error, null, TraceMask, UnityMask, null, format, args);
 #endif
         }
 
@@ -289,7 +327,9 @@ namespace FH
         public static void E(UnityEngine.Object content, string format, params object[] args)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print(ELogLvl.Error, null, AllowMask, TraceMask, UnityMask, content, format, args);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print(ELogLvl.Error, null, TraceMask, UnityMask, content, format, args);
 #endif
         }
 
@@ -298,7 +338,9 @@ namespace FH
         public static void E<T0>(string format, T0 arg0)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print1(ELogLvl.Error, null, AllowMask, TraceMask, UnityMask, null, format, arg0);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print1(ELogLvl.Error, null, TraceMask, UnityMask, null, format, arg0);
 #endif
         }
         [Conditional(LogConditional.COND_ERROR)]
@@ -306,7 +348,9 @@ namespace FH
         public static void E<T0>(UnityEngine.Object content, string format, T0 arg0)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print1(ELogLvl.Error, null, AllowMask, TraceMask, UnityMask, content, format, arg0);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print1(ELogLvl.Error, null, TraceMask, UnityMask, content, format, arg0);
 #endif
         }
         [Conditional(LogConditional.COND_ERROR)]
@@ -314,7 +358,9 @@ namespace FH
         public static void E<T0, T1>(string format, T0 arg0, T1 arg1)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print2(ELogLvl.Error, null, AllowMask, TraceMask, UnityMask, null, format, arg0, arg1);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print2(ELogLvl.Error, null, TraceMask, UnityMask, null, format, arg0, arg1);
 #endif
         }
 
@@ -323,7 +369,9 @@ namespace FH
         public static void E<T0, T1>(UnityEngine.Object content, string format, T0 arg0, T1 arg1)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print2(ELogLvl.Error, null, AllowMask, TraceMask, UnityMask, content, format, arg0, arg1);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print2(ELogLvl.Error, null, TraceMask, UnityMask, content, format, arg0, arg1);
 #endif
         }
 
@@ -332,7 +380,9 @@ namespace FH
         public static void E<T0, T1, T2>(string format, T0 arg0, T1 arg1, T2 arg2)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print3(ELogLvl.Error, null, AllowMask, TraceMask, UnityMask, null, format, arg0, arg1, arg2);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print3(ELogLvl.Error, null, TraceMask, UnityMask, null, format, arg0, arg1, arg2);
 #endif
         }
 
@@ -341,7 +391,9 @@ namespace FH
         public static void E<T0, T1, T2>(UnityEngine.Object content, string format, T0 arg0, T1 arg1, T2 arg2)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print3(ELogLvl.Error, null, AllowMask, TraceMask, UnityMask, content, format, arg0, arg1, arg2);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print3(ELogLvl.Error, null, TraceMask, UnityMask, content, format, arg0, arg1, arg2);
 #endif
         }
 
@@ -350,13 +402,16 @@ namespace FH
         public static void ErrCode<T>(T code, string format = null, params object[] args) where T : Enum
         {
 #if ENABLE_LOG_Error
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+
             if (code.GetHashCode() == 0)
                 return;
 
             if (format == null)
                 format = string.Empty;
 
-            LogPrinter.Print(ELogLvl.Error, null, AllowMask, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), args);
+            LogPrinter.Print(ELogLvl.Error, null, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), args);
 #endif
         }
 
@@ -365,10 +420,12 @@ namespace FH
         public static void ErrCode<T, T0>(T code, string format, T0 arg0) where T : Enum
         {
 #if ENABLE_LOG_Error
+            if (!_IsEnable(ELogLvl.Error))
+                return;
             if (code.GetHashCode() == 0)
                 return;
 
-            LogPrinter.Print1(ELogLvl.Error, null, AllowMask, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0);
+            LogPrinter.Print1(ELogLvl.Error, null, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0);
 #endif
         }
 
@@ -376,10 +433,13 @@ namespace FH
         public static void ErrCode<T, T0, T1>(T code, string format, T0 arg0, T1 arg1) where T : Enum
         {
 #if ENABLE_LOG_Error
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+
             if (code.GetHashCode() == 0)
                 return;
 
-            LogPrinter.Print2(ELogLvl.Error, null, AllowMask, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1);
+            LogPrinter.Print2(ELogLvl.Error, null, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1);
 #endif
         }
 
@@ -388,10 +448,12 @@ namespace FH
         public static void ErrCode<T, T0, T1, T2>(T code, string format, T0 arg0, T1 arg1, T2 arg2) where T : Enum
         {
 #if ENABLE_LOG_Error
+            if (!_IsEnable(ELogLvl.Error))
+                return;
             if (code.GetHashCode() == 0)
                 return;
 
-            LogPrinter.Print3(ELogLvl.Error, null, AllowMask, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1, arg2);
+            LogPrinter.Print3(ELogLvl.Error, null, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1, arg2);
 #endif
         }
 
@@ -425,6 +487,19 @@ namespace FH
             return new TagLogger(tag_name, Log.Lvl2Mask(log_lvl));
         }
 
+        private bool _IsEnable(ELogLvl lvl)
+        {
+            ELogMask lvl_mask = (ELogMask)(1u << (int)lvl);
+
+            if ((lvl_mask & AllowMask) == ELogMask.None)
+                return false;
+
+            if ((lvl_mask & Log.AllowMask) == ELogMask.None)
+                return false;
+
+            return true;
+        }
+
         /// <summary>
         /// Debug Info
         /// </summary>
@@ -433,7 +508,9 @@ namespace FH
         public void D(string format, params object[] args)
         {
 #if ENABLE_LOG_Debug
-            LogPrinter.Print(ELogLvl.Debug, Tag, AllowMask, TraceMask, UnityMask, null, format, args);
+            if (!_IsEnable(ELogLvl.Debug))
+                return;
+            LogPrinter.Print(ELogLvl.Debug, Tag, TraceMask, UnityMask, null, format, args);
 #endif
         }
 
@@ -445,7 +522,9 @@ namespace FH
         public void D<T0>(string format, T0 arg0)
         {
 #if ENABLE_LOG_Debug
-            LogPrinter.Print1(ELogLvl.Debug, Tag, AllowMask, TraceMask, UnityMask, null, format, arg0);
+            if (!_IsEnable(ELogLvl.Debug))
+                return;
+            LogPrinter.Print1(ELogLvl.Debug, Tag, TraceMask, UnityMask, null, format, arg0);
 #endif
         }
 
@@ -457,7 +536,9 @@ namespace FH
         public void D<T0, T1>(string format, T0 arg0, T1 arg1)
         {
 #if ENABLE_LOG_Debug
-            LogPrinter.Print2(ELogLvl.Debug, Tag, AllowMask, TraceMask, UnityMask, null, format, arg0, arg1);
+            if (!_IsEnable(ELogLvl.Debug))
+                return;
+            LogPrinter.Print2(ELogLvl.Debug, Tag, TraceMask, UnityMask, null, format, arg0, arg1);
 
 #endif
         }
@@ -470,7 +551,9 @@ namespace FH
         public void D<T0, T1, T2>(string format, T0 arg0, T1 arg1, T2 arg2)
         {
 #if ENABLE_LOG_Debug
-            LogPrinter.Print3(ELogLvl.Debug, Tag, AllowMask, TraceMask, UnityMask, null, format, arg0, arg1, arg2);
+            if (!_IsEnable(ELogLvl.Debug))
+                return;
+            LogPrinter.Print3(ELogLvl.Debug, Tag, TraceMask, UnityMask, null, format, arg0, arg1, arg2);
 #endif
         }
 
@@ -482,7 +565,9 @@ namespace FH
         public void D(UnityEngine.Object content, string format, params object[] args)
         {
 #if ENABLE_LOG_Debug
-            LogPrinter.Print(ELogLvl.Debug, Tag, AllowMask, TraceMask, UnityMask, content, format, args);
+            if (!_IsEnable(ELogLvl.Debug))
+                return;
+            LogPrinter.Print(ELogLvl.Debug, Tag, TraceMask, UnityMask, content, format, args);
 #endif
         }
 
@@ -494,7 +579,9 @@ namespace FH
         public void I(string format, params object[] args)
         {
 #if ENABLE_LOG_Info
-            LogPrinter.Print(ELogLvl.Info, Tag, AllowMask, TraceMask, UnityMask, null, format, args);
+            if (!_IsEnable(ELogLvl.Info))
+                return;
+            LogPrinter.Print(ELogLvl.Info, Tag, TraceMask, UnityMask, null, format, args);
 #endif
         }
 
@@ -506,7 +593,9 @@ namespace FH
         public void I(UnityEngine.Object content, string format, params object[] args)
         {
 #if ENABLE_LOG_Info
-            LogPrinter.Print(ELogLvl.Info, Tag, AllowMask, TraceMask, UnityMask, content, format, args);
+            if (!_IsEnable(ELogLvl.Info))
+                return;
+            LogPrinter.Print(ELogLvl.Info, Tag, TraceMask, UnityMask, content, format, args);
 #endif
         }
 
@@ -518,7 +607,9 @@ namespace FH
         public void W(string format, params object[] args)
         {
 #if ENABLE_LOG_Warning
-            LogPrinter.Print(ELogLvl.Warning, Tag, AllowMask, TraceMask, UnityMask, null, format, args);
+            if (!_IsEnable(ELogLvl.Warning))
+                return;
+            LogPrinter.Print(ELogLvl.Warning, Tag, TraceMask, UnityMask, null, format, args);
 #endif
         }
 
@@ -531,7 +622,9 @@ namespace FH
         public void W(UnityEngine.Object content, string format, params object[] args)
         {
 #if ENABLE_LOG_Warning
-            LogPrinter.Print(ELogLvl.Warning, Tag, AllowMask, TraceMask, UnityMask, content, format, args);
+            if (!_IsEnable(ELogLvl.Warning))
+                return;
+            LogPrinter.Print(ELogLvl.Warning, Tag, TraceMask, UnityMask, content, format, args);
 #endif
         }
 
@@ -551,7 +644,9 @@ namespace FH
                 args = null;
             }
 
-            LogPrinter.Print(ELogLvl.Assert, Tag, AllowMask, TraceMask, UnityMask, null, format, args);
+            if (!_IsEnable(ELogLvl.Assert))
+                return;
+            LogPrinter.Print(ELogLvl.Assert, Tag, TraceMask, UnityMask, null, format, args);
 #endif
         }
 
@@ -569,7 +664,9 @@ namespace FH
                 format = "Asset Error";
                 args = null;
             }
-            LogPrinter.Print(ELogLvl.Assert, Tag, AllowMask, TraceMask, UnityMask, content, format, args);
+            if (!_IsEnable(ELogLvl.Assert))
+                return;
+            LogPrinter.Print(ELogLvl.Assert, Tag, TraceMask, UnityMask, content, format, args);
 #endif
         }
 
@@ -578,7 +675,9 @@ namespace FH
         public void E(Exception e)
         {
 #if ENABLE_LOG_Exception
-            LogPrinter.PrintE(AllowMask, UnityMask, e);
+            if (!_IsEnable(ELogLvl.Exception))
+                return;
+            LogPrinter.PrintE(UnityMask, e);
 #endif
         }
 
@@ -587,7 +686,9 @@ namespace FH
         public void E(string format, params object[] args)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, format, args);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print(ELogLvl.Error, Tag, TraceMask, UnityMask, null, format, args);
 #endif
         }
 
@@ -596,7 +697,9 @@ namespace FH
         public void E(UnityEngine.Object content, string format, params object[] args)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, content, format, args);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print(ELogLvl.Error, Tag, TraceMask, UnityMask, content, format, args);
 #endif
         }
 
@@ -605,7 +708,9 @@ namespace FH
         public void E<T0>(string format, T0 arg0)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print1(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, format, arg0);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print1(ELogLvl.Error, Tag, TraceMask, UnityMask, null, format, arg0);
 #endif
         }
         [Conditional(LogConditional.COND_ERROR)]
@@ -613,7 +718,9 @@ namespace FH
         public void E<T0>(UnityEngine.Object content, string format, T0 arg0)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print1(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, content, format, arg0);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print1(ELogLvl.Error, Tag, TraceMask, UnityMask, content, format, arg0);
 #endif
         }
         [Conditional(LogConditional.COND_ERROR)]
@@ -621,7 +728,9 @@ namespace FH
         public void E<T0, T1>(string format, T0 arg0, T1 arg1)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print2(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, format, arg0, arg1);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print2(ELogLvl.Error, Tag, TraceMask, UnityMask, null, format, arg0, arg1);
 #endif
         }
 
@@ -630,7 +739,9 @@ namespace FH
         public void E<T0, T1>(UnityEngine.Object content, string format, T0 arg0, T1 arg1)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print2(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, content, format, arg0, arg1);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print2(ELogLvl.Error, Tag, TraceMask, UnityMask, content, format, arg0, arg1);
 #endif
         }
 
@@ -639,7 +750,9 @@ namespace FH
         public void E<T0, T1, T2>(string format, T0 arg0, T1 arg1, T2 arg2)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print3(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, format, arg0, arg1, arg2);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print3(ELogLvl.Error, Tag, TraceMask, UnityMask, null, format, arg0, arg1, arg2);
 #endif
         }
 
@@ -648,7 +761,9 @@ namespace FH
         public void E<T0, T1, T2>(UnityEngine.Object content, string format, T0 arg0, T1 arg1, T2 arg2)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print3(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, content, format, arg0, arg1, arg2);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print3(ELogLvl.Error, Tag, TraceMask, UnityMask, content, format, arg0, arg1, arg2);
 #endif
         }
 
@@ -658,12 +773,15 @@ namespace FH
         public void ErrCode<T>(T code, string format = null, params object[] args) where T : Enum
         {
 #if ENABLE_LOG_Error
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+
             if (code.GetHashCode() == 0)
                 return;
             if (format == null)
                 format = string.Empty;
 
-            LogPrinter.Print(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), args);
+            LogPrinter.Print(ELogLvl.Error, Tag, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), args);
 #endif
         }
 
@@ -672,10 +790,12 @@ namespace FH
         public void ErrCode<T, T0>(T code, string format, T0 arg0) where T : Enum
         {
 #if ENABLE_LOG_Error
+            if (!_IsEnable(ELogLvl.Error))
+                return;
             if (code.GetHashCode() == 0)
                 return;
 
-            LogPrinter.Print1(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0);
+            LogPrinter.Print1(ELogLvl.Error, Tag, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0);
 #endif
         }
 
@@ -683,10 +803,12 @@ namespace FH
         public void ErrCode<T, T0, T1>(T code, string format, T0 arg0, T1 arg1) where T : Enum
         {
 #if ENABLE_LOG_Error
+            if (!_IsEnable(ELogLvl.Error))
+                return;
             if (code.GetHashCode() == 0)
                 return;
 
-            LogPrinter.Print2(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1);
+            LogPrinter.Print2(ELogLvl.Error, Tag, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1);
 #endif
         }
 
@@ -695,10 +817,12 @@ namespace FH
         public void ErrCode<T, T0, T1, T2>(T code, string format, T0 arg0, T1 arg1, T2 arg2) where T : Enum
         {
 #if ENABLE_LOG_Error
+            if (!_IsEnable(ELogLvl.Error))
+                return;
             if (code.GetHashCode() == 0)
                 return;
 
-            LogPrinter.Print3(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1, arg2);
+            LogPrinter.Print3(ELogLvl.Error, Tag, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1, arg2);
 #endif
         }
     }
@@ -719,6 +843,19 @@ namespace FH
         }
 
 
+        private static bool _IsEnable(ELogLvl lvl)
+        {
+            ELogMask lvl_mask = (ELogMask)(1u << (int)lvl);
+
+            if ((lvl_mask & AllowMask) == ELogMask.None)
+                return false;
+
+            if ((lvl_mask & Log.AllowMask) == ELogMask.None)
+                return false;
+
+            return true;
+        }
+
         /// <summary>
         /// Debug Info
         /// </summary>
@@ -727,7 +864,9 @@ namespace FH
         public static void D(string format, params object[] args)
         {
 #if ENABLE_LOG_Debug
-            LogPrinter.Print(ELogLvl.Debug, Tag, AllowMask, TraceMask, UnityMask, null, format, args);
+            if (!_IsEnable(ELogLvl.Debug))
+                return;
+            LogPrinter.Print(ELogLvl.Debug, Tag, TraceMask, UnityMask, null, format, args);
 #endif
         }
 
@@ -739,7 +878,9 @@ namespace FH
         public static void D<T0>(string format, T0 arg0)
         {
 #if ENABLE_LOG_Debug
-            LogPrinter.Print1(ELogLvl.Debug, Tag, AllowMask, TraceMask, UnityMask, null, format, arg0);
+            if (!_IsEnable(ELogLvl.Debug))
+                return;
+            LogPrinter.Print1(ELogLvl.Debug, Tag, TraceMask, UnityMask, null, format, arg0);
 #endif
         }
 
@@ -751,7 +892,9 @@ namespace FH
         public static void D<T0, T1>(string format, T0 arg0, T1 arg1)
         {
 #if ENABLE_LOG_Debug
-            LogPrinter.Print2(ELogLvl.Debug, Tag, AllowMask, TraceMask, UnityMask, null, format, arg0, arg1);
+            if (!_IsEnable(ELogLvl.Debug))
+                return;
+            LogPrinter.Print2(ELogLvl.Debug, Tag, TraceMask, UnityMask, null, format, arg0, arg1);
 
 #endif
         }
@@ -764,7 +907,9 @@ namespace FH
         public static void D<T0, T1, T2>(string format, T0 arg0, T1 arg1, T2 arg2)
         {
 #if ENABLE_LOG_Debug
-            LogPrinter.Print3(ELogLvl.Debug, Tag, AllowMask, TraceMask, UnityMask, null, format, arg0, arg1, arg2);
+            if (!_IsEnable(ELogLvl.Debug))
+                return;
+            LogPrinter.Print3(ELogLvl.Debug, Tag, TraceMask, UnityMask, null, format, arg0, arg1, arg2);
 #endif
         }
 
@@ -776,7 +921,9 @@ namespace FH
         public static void D(UnityEngine.Object content, string format, params object[] args)
         {
 #if ENABLE_LOG_Debug
-            LogPrinter.Print(ELogLvl.Debug, Tag, AllowMask, TraceMask, UnityMask, content, format, args);
+            if (!_IsEnable(ELogLvl.Debug))
+                return;
+            LogPrinter.Print(ELogLvl.Debug, Tag, TraceMask, UnityMask, content, format, args);
 #endif
         }
 
@@ -788,7 +935,9 @@ namespace FH
         public static void I(string format, params object[] args)
         {
 #if ENABLE_LOG_Info
-            LogPrinter.Print(ELogLvl.Info, Tag, AllowMask, TraceMask, UnityMask, null, format, args);
+            if (!_IsEnable(ELogLvl.Info))
+                return;
+            LogPrinter.Print(ELogLvl.Info, Tag, TraceMask, UnityMask, null, format, args);
 #endif
         }
 
@@ -800,7 +949,9 @@ namespace FH
         public static void I(UnityEngine.Object content, string format, params object[] args)
         {
 #if ENABLE_LOG_Info
-            LogPrinter.Print(ELogLvl.Info, Tag, AllowMask, TraceMask, UnityMask, content, format, args);
+            if (!_IsEnable(ELogLvl.Info))
+                return;
+            LogPrinter.Print(ELogLvl.Info, Tag, TraceMask, UnityMask, content, format, args);
 #endif
         }
 
@@ -812,7 +963,9 @@ namespace FH
         public static void W(string format, params object[] args)
         {
 #if ENABLE_LOG_Warning
-            LogPrinter.Print(ELogLvl.Warning, Tag, AllowMask, TraceMask, UnityMask, null, format, args);
+            if (!_IsEnable(ELogLvl.Warning))
+                return;
+            LogPrinter.Print(ELogLvl.Warning, Tag, TraceMask, UnityMask, null, format, args);
 #endif
         }
 
@@ -825,7 +978,9 @@ namespace FH
         public static void W(UnityEngine.Object content, string format, params object[] args)
         {
 #if ENABLE_LOG_Warning
-            LogPrinter.Print(ELogLvl.Warning, Tag, AllowMask, TraceMask, UnityMask, content, format, args);
+            if (!_IsEnable(ELogLvl.Warning))
+                return;
+            LogPrinter.Print(ELogLvl.Warning, Tag, TraceMask, UnityMask, content, format, args);
 #endif
         }
 
@@ -844,8 +999,9 @@ namespace FH
                 format = "Asset Error";
                 args = null;
             }
-
-            LogPrinter.Print(ELogLvl.Assert, Tag, AllowMask, TraceMask, UnityMask, null, format, args);
+            if (!_IsEnable(ELogLvl.Assert))
+                return;
+            LogPrinter.Print(ELogLvl.Assert, Tag, TraceMask, UnityMask, null, format, args);
 #endif
         }
 
@@ -863,7 +1019,9 @@ namespace FH
                 format = "Asset Error";
                 args = null;
             }
-            LogPrinter.Print(ELogLvl.Assert, Tag, AllowMask, TraceMask, UnityMask, content, format, args);
+            if (!_IsEnable(ELogLvl.Assert))
+                return;
+            LogPrinter.Print(ELogLvl.Assert, Tag, TraceMask, UnityMask, content, format, args);
 #endif
         }
 
@@ -872,7 +1030,9 @@ namespace FH
         public static void E(Exception e)
         {
 #if ENABLE_LOG_Exception
-            LogPrinter.PrintE(AllowMask, UnityMask, e);
+            if (!_IsEnable(ELogLvl.Exception))
+                return;
+            LogPrinter.PrintE(UnityMask, e);
 #endif
         }
 
@@ -881,7 +1041,9 @@ namespace FH
         public static void E(string format, params object[] args)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, format, args);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print(ELogLvl.Error, Tag, TraceMask, UnityMask, null, format, args);
 #endif
         }
 
@@ -890,7 +1052,9 @@ namespace FH
         public static void E(UnityEngine.Object content, string format, params object[] args)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, content, format, args);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print(ELogLvl.Error, Tag, TraceMask, UnityMask, content, format, args);
 #endif
         }
 
@@ -899,7 +1063,9 @@ namespace FH
         public static void E<T0>(string format, T0 arg0)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print1(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, format, arg0);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print1(ELogLvl.Error, Tag, TraceMask, UnityMask, null, format, arg0);
 #endif
         }
         [Conditional(LogConditional.COND_ERROR)]
@@ -907,7 +1073,9 @@ namespace FH
         public static void E<T0>(UnityEngine.Object content, string format, T0 arg0)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print1(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, content, format, arg0);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print1(ELogLvl.Error, Tag, TraceMask, UnityMask, content, format, arg0);
 #endif
         }
         [Conditional(LogConditional.COND_ERROR)]
@@ -915,7 +1083,9 @@ namespace FH
         public static void E<T0, T1>(string format, T0 arg0, T1 arg1)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print2(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, format, arg0, arg1);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print2(ELogLvl.Error, Tag, TraceMask, UnityMask, null, format, arg0, arg1);
 #endif
         }
 
@@ -924,7 +1094,9 @@ namespace FH
         public static void E<T0, T1>(UnityEngine.Object content, string format, T0 arg0, T1 arg1)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print2(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, content, format, arg0, arg1);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print2(ELogLvl.Error, Tag, TraceMask, UnityMask, content, format, arg0, arg1);
 #endif
         }
 
@@ -933,7 +1105,9 @@ namespace FH
         public static void E<T0, T1, T2>(string format, T0 arg0, T1 arg1, T2 arg2)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print3(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, format, arg0, arg1, arg2);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print3(ELogLvl.Error, Tag, TraceMask, UnityMask, null, format, arg0, arg1, arg2);
 #endif
         }
 
@@ -942,7 +1116,9 @@ namespace FH
         public static void E<T0, T1, T2>(UnityEngine.Object content, string format, T0 arg0, T1 arg1, T2 arg2)
         {
 #if ENABLE_LOG_Error
-            LogPrinter.Print3(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, content, format, arg0, arg1, arg2);
+            if (!_IsEnable(ELogLvl.Error))
+                return;
+            LogPrinter.Print3(ELogLvl.Error, Tag, TraceMask, UnityMask, content, format, arg0, arg1, arg2);
 #endif
         }
 
@@ -953,12 +1129,14 @@ namespace FH
         public void ErrCode<T>(T code, string format = null, params object[] args) where T : Enum
         {
 #if ENABLE_LOG_Error
+            if (!_IsEnable(ELogLvl.Error))
+                return;
             if (code.GetHashCode() == 0)
                 return;
             if (format == null)
                 format = string.Empty;
 
-            LogPrinter.Print(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), args);
+            LogPrinter.Print(ELogLvl.Error, Tag, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), args);
 #endif
         }
 
@@ -967,10 +1145,12 @@ namespace FH
         public void ErrCode<T, T0>(T code, string format, T0 arg0) where T : Enum
         {
 #if ENABLE_LOG_Error
+            if (!_IsEnable(ELogLvl.Error))
+                return;
             if (code.GetHashCode() == 0)
                 return;
 
-            LogPrinter.Print1(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0);
+            LogPrinter.Print1(ELogLvl.Error, Tag, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0);
 #endif
         }
 
@@ -978,10 +1158,12 @@ namespace FH
         public void ErrCode<T, T0, T1>(T code, string format, T0 arg0, T1 arg1) where T : Enum
         {
 #if ENABLE_LOG_Error
+            if (!_IsEnable(ELogLvl.Error))
+                return;
             if (code.GetHashCode() == 0)
                 return;
 
-            LogPrinter.Print2(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1);
+            LogPrinter.Print2(ELogLvl.Error, Tag, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1);
 #endif
         }
 
@@ -990,10 +1172,12 @@ namespace FH
         public void ErrCode<T, T0, T1, T2>(T code, string format, T0 arg0, T1 arg1, T2 arg2) where T : Enum
         {
 #if ENABLE_LOG_Error
+            if (!_IsEnable(ELogLvl.Error))
+                return;
             if (code.GetHashCode() == 0)
                 return;
 
-            LogPrinter.Print3(ELogLvl.Error, Tag, AllowMask, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1, arg2);
+            LogPrinter.Print3(ELogLvl.Error, Tag, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1, arg2);
 #endif
         }
     }
