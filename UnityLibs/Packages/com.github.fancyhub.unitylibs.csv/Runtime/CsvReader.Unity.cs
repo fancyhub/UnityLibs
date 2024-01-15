@@ -17,10 +17,10 @@ namespace FH
             if (ta == null)
             {
                 byte[] buff = null;
-                Token = new CsvToken(buff);
+                _Tokenizer = new CsvTokenizer(buff);
             }
             else
-                Token = new CsvToken(ta.bytes);
+                _Tokenizer = new CsvTokenizer(ta.bytes);
         }
     }
 }

@@ -12,81 +12,94 @@ using System.IO;
 
 namespace FH
 {
-    public class CsvWriter : IDisposable
+    public sealed class CsvWriter : IDisposable
     {
         private static System.Text.Encoding UtfEncodingWithBom = new System.Text.UTF8Encoding(true);
         private static System.Text.Encoding UtfEncodingNoBom = new System.Text.UTF8Encoding(false);
 
-        public TextWriter _writer;
-        public bool _first = true;
-        public CsvWriter(TextWriter writer)
+        private TextWriter _Writer;
+        private bool _EmptyRow = true;
+        private bool _LeaveOpen = false;
+        public CsvWriter(TextWriter writer, bool leave_open = false)
         {
-            _writer = writer;
+            _Writer = writer;
+            _LeaveOpen = leave_open;
         }
 
         public CsvWriter(string file_path, bool withBom)
         {
             if (withBom)
-                _writer = new StreamWriter(file_path, false, UtfEncodingWithBom);
+                _Writer = new StreamWriter(file_path, false, UtfEncodingWithBom);
             else
-                _writer = new StreamWriter(file_path, false, UtfEncodingNoBom);
+                _Writer = new StreamWriter(file_path, false, UtfEncodingNoBom);
+            _LeaveOpen = false;
         }
 
         public void WriteWord(string word)
         {
-            if (!_first)
-                _writer.Write(',');
-            _writer.Write(FormatCsvStr(word));
-            _first = false;
+            if (!_EmptyRow)
+                _Writer.Write(',');
+            _Writer.Write(FormatCsvStr(word));
+            _EmptyRow = false;
         }
 
-        public void WriteWord(params string[] words)
+        public void WriteWords(params string[] words)
         {
             foreach (var p in words)
                 WriteWord(p);
         }
 
-        public void WriteWord<T>(IList<T> words, bool end_line)
+        public void WriteWords<T>(IList<T> words, bool end_new_row)
         {
             foreach (var p in words)
                 WriteWord(p.ToString());
-            if (end_line)
-                WriteLine();
+            if (end_new_row)
+                NextRow();
         }
 
-        public void WriteWord(IEnumerable e, bool end_line)
+        public void WriteWords(IEnumerable e, bool end_new_row)
         {
             foreach (var p in e)
             {
                 WriteWord(p.ToString());
             }
-            if (end_line)
-                WriteLine();
+            if (end_new_row)
+                NextRow();
         }
 
-        public void WriteWord<T>(IEnumerable<T> e, bool end_line)
+        public void WriteWords<T>(IEnumerable<T> e, bool end_new_row)
         {
             foreach (var p in e)
             {
                 WriteWord(p.ToString());
             }
-            if (end_line)
-                WriteLine();
+            if (end_new_row)
+                NextRow();
         }
 
-        public void WriteLine()
+        public void NextRow()
         {
-            _writer.WriteLine();
-            _first = true;
+            //不能是空行
+            if (_EmptyRow)
+                return;
+            _Writer.WriteLine();
+            _EmptyRow = true;
         }
 
         public void Close()
         {
-            _writer?.Close();
-            _writer = null;
+            if (_LeaveOpen)
+            {
+                _Writer = null;
+                return;
+            }
+
+            var t = _Writer;
+            _Writer = null;
+            t?.Close();
         }
 
-        public string FormatCsvStr(string s)
+        public static string FormatCsvStr(string s)
         {
             if (s == null)
                 return string.Empty;

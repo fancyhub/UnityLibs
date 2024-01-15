@@ -6,27 +6,24 @@
 *************************************************************************************/
 
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace FH
 {
     public partial class CsvReader
     {
-        public CsvToken Token;
+        private CsvTokenizer _Tokenizer;
 
         public CsvReader(byte[] buff)
         {
-            Token = new CsvToken(buff);
+            _Tokenizer = new CsvTokenizer(buff);
         }
-
         
-
         public CsvReader(string buf)
         {
-            Token = new CsvToken(buf);
+            _Tokenizer = new CsvTokenizer(buf);
         }
 
-        public bool IsEnd => Token.IsEnd;
+        public bool IsEnd => _Tokenizer.IsEnd;
 
         public bool ReadRow(List<Str> out_list)
         {
@@ -35,20 +32,20 @@ namespace FH
                 return false;
             for (; ; )
             {
-                var r = Token.Next(out Str word);
+                var r = _Tokenizer.Next(out Str word);
                 switch (r)
                 {
-                    case ECsvToken.Word:
+                    case ECsvTokenizer.Word:
                         out_list.Add(word);
                         break;
 
-                    case ECsvToken.WordWithEnd:
-                    case ECsvToken.WordWithNewLine:
+                    case ECsvTokenizer.WordWithEnd:
+                    case ECsvTokenizer.WordWithNewLine:
                         out_list.Add(word);
                         return true;
-                    case ECsvToken.Error:
+                    case ECsvTokenizer.Error:
                         return false;
-                    case ECsvToken.End:
+                    case ECsvTokenizer.End:
                         return false;
                     default:
                         break;
@@ -63,16 +60,16 @@ namespace FH
                 return false;
             for (; ; )
             {
-                var r = Token.Next(out word);
+                var r = _Tokenizer.Next(out word);
                 switch (r)
                 {
-                    case ECsvToken.Word:
-                    case ECsvToken.WordWithEnd:
-                    case ECsvToken.WordWithNewLine:
+                    case ECsvTokenizer.Word:
+                    case ECsvTokenizer.WordWithEnd:
+                    case ECsvTokenizer.WordWithNewLine:
                         return true;
-                    case ECsvToken.End:
+                    case ECsvTokenizer.End:
                         return false;
-                    case ECsvToken.Error:
+                    case ECsvTokenizer.Error:
                         return false;
                     default:
                         break;
