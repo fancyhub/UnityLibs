@@ -9,5 +9,10 @@
     "name": "fancyhub",
     "email": "fancy113@msn.com",
     "url": "https://github.com/fancyhub/UnityLibs"
+  },
+  "dependencies": {
+    "com.github.fancyhub.unitylibs.log": "1.0.0",
+    "com.github.fancyhub.unitylibs.memorypool": "1.0.0",
+    "com.github.fancyhub.unitylibs.lz4": "1.0.0"
   }
 }

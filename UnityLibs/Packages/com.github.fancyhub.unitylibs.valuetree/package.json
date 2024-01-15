@@ -11,6 +11,9 @@
     "url": "https://github.com/fancyhub/UnityLibs"
   },
   "dependencies": {
-    "com.unity.ugui": "1.0.0"
+    "com.github.fancyhub.unitylibs.log": "1.0.0",
+    "com.github.fancyhub.unitylibs.collection": "1.0.0",
+    "com.github.fancyhub.unitylibs.memorypool": "1.0.0",
+    "com.github.fancyhub.unitylibs.str": "1.0.0"
   }
 }

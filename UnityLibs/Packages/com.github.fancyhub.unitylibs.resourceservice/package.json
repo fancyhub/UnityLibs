@@ -9,5 +9,17 @@
     "name": "fancyhub",
     "email": "fancy113@msn.com",
     "url": "https://github.com/fancyhub/UnityLibs"
+  },
+  "dependencies": {
+    "com.github.fancyhub.unitylibs.log": "1.0.0",
+    "com.github.fancyhub.unitylibs.memorypool": "1.0.0",
+    "com.github.fancyhub.unitylibs.unityutil": "1.0.0",
+    "com.github.fancyhub.unitylibs.filemanager": "1.0.0",
+    "com.github.fancyhub.unitylibs.filedownloadmanager": "1.0.0",
+    "com.github.fancyhub.unitylibs.assetbundlemanager": "1.0.0",
+    "com.github.fancyhub.unitylibs.virtualfilesystemmanager": "1.0.0",
+    "com.github.fancyhub.unitylibs.resourcemanager": "1.0.0",
+    "com.github.fancyhub.unitylibs.scenemanager": "1.0.0",
+    "com.github.fancyhub.unitylibs.assetbundlebuilder": "1.0.0"
   }
 }

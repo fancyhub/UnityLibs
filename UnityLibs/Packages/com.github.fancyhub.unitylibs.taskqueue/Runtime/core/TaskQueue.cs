@@ -63,7 +63,10 @@ namespace FH
         public static void Init(int thread_count, bool manual_update = false)
         {
             if (!_.Null)
+            {
+                Log.E("TaskQueue Can't init twice");
                 return;
+            }
 
             TaskQueueImple task_queue = new TaskQueueImple();
             task_queue.Start(thread_count);
@@ -77,7 +80,10 @@ namespace FH
             get
             {
                 if (_.Null)
+                {
+                    Log.E("TaskQueue Is Null");
                     return ETaskQueueStatus.none;
+                }
                 return _.Val.GetStatus();
             }
         }
@@ -85,7 +91,10 @@ namespace FH
         public static ITask AddTask(Action task, Action main_thread_call_back = null)
         {
             if (_.Null)
+            {
+                Log.E("TaskQueue Is Null");
                 return null;
+            }
             return _.Val.AddTask(task, main_thread_call_back);
         }
 
@@ -95,13 +104,19 @@ namespace FH
             get
             {
                 if (_.Null)
+                {
+                    Log.E("TaskQueue Is Null");
                     return default;
+                }
                 return _.Val.Priority;
             }
             set
             {
                 if (_.Null)
+                {
+                    Log.E("TaskQueue Is Null");
                     return;
+                }
                 _.Val.Priority = value;
             }
         }

@@ -2,10 +2,10 @@
     "name": "fancyhub.valuetree",
     "rootNamespace": "",
     "references": [
-        "GUID:8778f4f6958ad5944bdd30fa384e231e",
         "GUID:fd3e1939cfeaae345a28d38349cb6f69",
         "GUID:b08426991abe9164baf4dd97564889c1",
-        "GUID:4face68fd9d2caf47807180bedf4b0b5"
+        "GUID:4face68fd9d2caf47807180bedf4b0b5",
+        "GUID:8778f4f6958ad5944bdd30fa384e231e"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
