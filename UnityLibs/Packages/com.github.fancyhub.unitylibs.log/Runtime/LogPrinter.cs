@@ -96,10 +96,7 @@ namespace FH
         [HideInCallstack]
         public static void Print1<T0>(ELogLvl log_lvl, string tag, ELogMask trace_mask, ELogMask unity_mask, UnityEngine.Object context, string format, T0 arg0)
         {
-            ELogMask lvl_mask = _ToMask(log_lvl);
-
-            if ((lvl_mask & enable_mask) == ELogMask.None)
-                return;
+            ELogMask lvl_mask = _ToMask(log_lvl);            
 
 
             ValueStringBuilder sb = new ValueStringBuilder(stackalloc char[C_Buffer_Size]);
@@ -134,9 +131,7 @@ namespace FH
         {
             ELogMask lvl_mask = _ToMask(log_lvl);
 
-            if ((lvl_mask & enable_mask) == ELogMask.None)
-                return;
-
+            
 
             ValueStringBuilder sb = new ValueStringBuilder(stackalloc char[C_Buffer_Size]);
             _AppendTime(ref sb);
@@ -168,8 +163,7 @@ namespace FH
         [HideInCallstack]
         public static void Print3<T0, T1, T2>(ELogLvl log_lvl, string tag, ELogMask trace_mask, ELogMask unity_mask, UnityEngine.Object context, string format, T0 arg0, T1 arg1, T2 arg2)
         {
-
-
+            ELogMask lvl_mask = _ToMask(log_lvl);
 
             ValueStringBuilder sb = new ValueStringBuilder(stackalloc char[C_Buffer_Size]);
             _AppendTime(ref sb);
