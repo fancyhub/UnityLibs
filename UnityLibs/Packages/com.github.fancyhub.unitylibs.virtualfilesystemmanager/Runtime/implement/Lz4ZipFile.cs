@@ -76,10 +76,12 @@ namespace FH
 
     public sealed class Lz4ZipFile
     {
-        private const uint C_FILE_SIGN = 0x4C53475A; // 'LSGZ';
-        private const uint C_FILE_VERSION = 0x1;
-        private const uint C_MAX_FILE_COUNT = 10000;
-        private const ushort C_MAX_FILE_NAME_LEN = 256;
+        private const uint CFileSign = 0x4648475A; // 'FHGZ';
+        private const uint CFileVersion = 0x1;
+        private const uint CMaxFileCount = 10000;
+        private const ushort CMaxFileNameLen = 256;
+
+        private const int CMaxStackBuffSize = 4096;
 
         //文件列表
         private Lz4ZipEntryInfo[] _EntryList;
@@ -117,7 +119,7 @@ namespace FH
             if (!stream_in.CanRead) return null;
             System.IO.Stream file_stream = stream_in;
 
-            Span<byte> temp_buff = stackalloc byte[4096];
+            Span<byte> temp_buff = stackalloc byte[CMaxFileNameLen + 128];
 
             //1.读取文件头
             {
@@ -130,14 +132,14 @@ namespace FH
                 }
 
                 uint file_sign = BitConverter.ToUInt32(temp_buff.Slice(0, 4));
-                if (file_sign != C_FILE_SIGN)
+                if (file_sign != CFileSign)
                 {
                     VfsLog._.E("Gzip load failed {0}", 1);
                     file_stream.Close();
                     return null;
                 }
                 uint file_version = BitConverter.ToUInt32(temp_buff.Slice(4, 4));
-                if (file_version != C_FILE_VERSION)
+                if (file_version != CFileVersion)
                 {
                     VfsLog._.E("Gzip load failed {0}", 2);
                     file_stream.Close();
@@ -157,7 +159,7 @@ namespace FH
                 }
 
                 file_count = BitConverter.ToUInt32(temp_buff.Slice(0, 4));
-                if (file_count == 0 || file_count > C_MAX_FILE_COUNT)
+                if (file_count == 0 || file_count > CMaxFileCount)
                 {
                     VfsLog._.E("Lz4Zip load failed {0}", 4);
                     file_stream.Close();
@@ -189,7 +191,7 @@ namespace FH
                             return null;
                         }
                         string_len = BitConverter.ToUInt16(temp_buff.Slice(0, 2));
-                        if (string_len == 0 || string_len > C_MAX_FILE_NAME_LEN)
+                        if (string_len == 0 || string_len > CMaxFileNameLen)
                         {
                             VfsLog._.E("Lz4Zip load failed {0}", 5);
                             file_stream.Close();
@@ -316,12 +318,23 @@ namespace FH
                 return null;
 
             Stream stream_in = _get_inner_stream_reader(file_info);
-            Span<byte> buff = stackalloc byte[(int)file_info.OrigSize];
+            if (file_info.OrigSize > CMaxStackBuffSize)
+            {
+                Span<byte> buff = new byte[(int)file_info.OrigSize];
+                int read_size = stream_in.Read(buff);
+                if (read_size < buff.Length)
+                    return null;
+                return System.Text.Encoding.UTF8.GetString(buff);
+            }
+            else
+            {
+                Span<byte> buff = stackalloc byte[(int)file_info.OrigSize];
 
-            int read_size = stream_in.Read(buff);
-            if (read_size < buff.Length)
-                return null;
-            return System.Text.Encoding.UTF8.GetString(buff);
+                int read_size = stream_in.Read(buff);
+                if (read_size < buff.Length)
+                    return null;
+                return System.Text.Encoding.UTF8.GetString(buff);
+            }
         }
 
         public byte[] ReadFileAllBytes(string path)
@@ -498,7 +511,7 @@ namespace FH
             {
                 DirectoryInfo di = new DirectoryInfo(root_dir);
                 FileInfo[] files = di.GetFiles(searchPattern, SearchOption.AllDirectories);
-                if (files.Length == 0 || files.Length > C_MAX_FILE_COUNT)
+                if (files.Length == 0 || files.Length > CMaxFileCount)
                     return null;
 
                 string full_root_path = di.FullName;
@@ -572,10 +585,10 @@ namespace FH
         */
                 //3. 写入文件头
                 {
-                    byte[] data_bytes = BitConverter.GetBytes(Lz4ZipFile.C_FILE_SIGN);
+                    byte[] data_bytes = BitConverter.GetBytes(Lz4ZipFile.CFileSign);
                     fout.Write(data_bytes, 0, data_bytes.Length);
 
-                    data_bytes = BitConverter.GetBytes(Lz4ZipFile.C_FILE_VERSION);
+                    data_bytes = BitConverter.GetBytes(Lz4ZipFile.CFileVersion);
                     fout.Write(data_bytes, 0, data_bytes.Length);
                 }
 

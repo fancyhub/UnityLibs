@@ -14,6 +14,8 @@ namespace FH
 {
     public class VirtualFileSystem_Zip : IVirtualFileSystem
     {
+        private const int CMaxStackBuffSize = 4096;
+
         public string _Name;
         public ZipArchive _ZipArchive;
         public VirtualFileSystem_Zip(string name, ZipArchive zipArchive)
@@ -90,24 +92,37 @@ namespace FH
                 return null;
             }
 
-            if(entry.Length>1024)
+            if (entry.Length <= CMaxStackBuffSize)
             {
+                Span<byte> buff = stackalloc byte[(int)entry.Length];
 
+                Stream stream = entry.Open();
+                int count = stream.Read(buff);
+                stream.Close();
+
+                if (count != entry.Length)
+                {
+                    VfsLog._.E("{0} 读取文件出错,长度不一致,{1}", _Name, file_path);
+                    return null;
+                }
+
+                return System.Text.Encoding.UTF8.GetString(buff);
             }
-
-            Span<byte> buff = stackalloc byte[(int)entry.Length];
-
-            var stream = entry.Open();
-            int count = stream.Read(buff);
-            stream.Close();
-
-            if (count != entry.Length)
+            else
             {
-                VfsLog._.E("{0} 读取文件出错,长度不一致,{1}", _Name, file_path);
-                return null;
-            }
+                byte[] buff = new byte[entry.Length];
+                Stream stream = entry.Open();
+                int count = stream.Read(buff, 0, buff.Length);
+                stream.Close();
 
-            return System.Text.Encoding.UTF8.GetString(buff);
+
+                if (count != entry.Length)
+                {
+                    VfsLog._.E("{0} 读取文件出错,长度不一致,{1}", _Name, file_path);
+                    return null;
+                }
+                return System.Text.Encoding.UTF8.GetString(buff);
+            }
         }
     }
 }
