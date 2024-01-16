@@ -14,47 +14,34 @@ namespace FH
     /// </summary>
     public sealed class ClockManual : IClock
     {
-        public long Time;
+        private long _Time;
         public ClockManual(long init_time)
         {
-            Time = init_time;
+            _Time = init_time;
         }
 
-        public void SetTime(long time)
+        public uint Scale
         {
-            Time = time;
+            get => IClock.ScaleOne;
+            set { }
         }
 
-        public void Scale(float scale)
+        public float ScaleFloat
         {
+            get => 1.0f;
+            set { }
+        }
+         
+        public bool Pause
+        {
+            get { return false; }
+            set { }
         }
 
-        public uint GetScale()
+        public long Time
         {
-            return IClock.ScaleOne;
-        }
-
-        public void Scale(uint scale)
-        {
-
-        }
-
-        public void Pause()
-        {
-        }
-
-        public bool IsPaused()
-        {
-            return false;
-        }
-
-        public void Resume()
-        {
-        }
-
-        public long GetTime()
-        {
-            return Time;
+            get { return _Time; }
+            set { _Time = value; }
         }
     }
 }

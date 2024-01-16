@@ -41,45 +41,40 @@ namespace FH
             _time = Math.Min(init_time, TimeUtil.UnixMilli);
         }
 
-        public void Scale(float scale)
+        public uint Scale
         {
-            return;
+            get => IClock.ScaleOne;
+            set { }
         }
 
-        public uint GetScale()
+        public float ScaleFloat
         {
-            return IClock.ScaleOne;
+            get => 1.0f;
+            set { }
         }
 
-        public void Scale(uint scale)
+        public bool Pause
         {
+            get { return false; }
+            set { }
         }
+         
 
-        public void Pause()
+        public long Time
         {
-        }
-
-        public bool IsPaused()
-        {
-            return false;
-        }
-
-        public void Resume()
-        {
-        }
-
-        public long GetTime()
-        {
-            if (!_frame_update)
-                return TimeUtil.UnixMilli;
-
-            int frame_count = TimeUtil.FrameCount;
-            if (_frame_count != frame_count)
+            get
             {
-                _time = TimeUtil.UnixMilli;
-                _frame_count = frame_count;
-            }
-            return _time;
+                if (!_frame_update)
+                    return TimeUtil.UnixMilli;
+
+                int frame_count = TimeUtil.FrameCount;
+                if (_frame_count != frame_count)
+                {
+                    _time = TimeUtil.UnixMilli;
+                    _frame_count = frame_count;
+                }
+                return _time;
+            }          
         }
     }
 }

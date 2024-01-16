@@ -48,7 +48,7 @@ namespace FH
             _temp_list = new List<TimerWheelItem>();
             _dict = new Dictionary<TimerId, Action<TimerId>>(TimerId.EqualityComparer);
 
-            _time_wheel = TimerWheelGroup.Create(_clock.GetTime(), min_interval, wheel_counts);
+            _time_wheel = TimerWheelGroup.Create(_clock.Time, min_interval, wheel_counts);
         }
 
         public IClock Clock { get => _clock; }
@@ -58,7 +58,7 @@ namespace FH
             if (delay_ms < 0)
                 return TimerId.InvalidId;
 
-            long time_exipire = _clock.GetTime() + delay_ms;
+            long time_exipire = _clock.Time + delay_ms;
 
             TimerId timer_id = _time_wheel.AddTimer(time_exipire);
 
@@ -87,7 +87,7 @@ namespace FH
 
         public void Update()
         {
-            _time_wheel.Tick(_clock.GetTime(), _temp_list);
+            _time_wheel.Tick(_clock.Time, _temp_list);
             for (int i = 0; i < _temp_list.Count; ++i)
             {
                 TimerId timer_id = _temp_list[i].Id;

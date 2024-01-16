@@ -9,16 +9,18 @@ using System;
 
 namespace FH
 {
-  
+
     /// <summary>
     /// 基于的clock系统 <para/>
-    /// 最终时间 = base_clock.GetTime() * mul_factor / div_factor <para/>
+    /// 最终时间 = base_clock.Time * mul_factor / div_factor <para/>
     /// 可以暂停,可以加速     <para/>
     /// div_factor: 是为了解决 从 毫秒 -> 秒 的转换 <para/>
     /// mul_factor: 是为了解决 从 秒 -> 毫秒 的转换 <para/>
     /// </summary>
     public sealed class ClockDecorator : IClock
     {
+        private const float CScaleInt2Float = 1.0f / IClock.ScaleOne;
+
         public struct ClockData
         {
             //开始记录时间的 时间戳
@@ -87,15 +89,6 @@ namespace FH
                 _pause = false;
             }
 
-            public void Scale(float scale)
-            {
-                float scale_f = IClock.ScaleOne * scale;
-                if (scale_f < 0)
-                    _scale = 0;
-                else
-                    _scale = (uint)(int)scale_f;
-            }
-
             public uint GetFinalScale()
             {
                 if (_pause)
@@ -145,41 +138,63 @@ namespace FH
             return _pause_scale._scale;
         }
 
-        public void Scale(float scale)
+
+        public uint Scale
         {
-            _pause_scale.Scale(scale);
-            _data.SetScale(_pause_scale.GetFinalScale(), _base_clock.GetTime());
+            get => _pause_scale._scale;
+            set
+            {
+                if (_pause_scale._scale == value)
+                    return;
+
+                _pause_scale.Scale(value);
+                _data.SetScale(_pause_scale.GetFinalScale(), _base_clock.Time);
+            }
         }
 
-        public void Scale(uint scale)
+        public float ScaleFloat
         {
-            _pause_scale.Scale(scale);
-            _data.SetScale(_pause_scale.GetFinalScale(), _base_clock.GetTime());
+            get => (float)(_pause_scale._scale * CScaleInt2Float);
+            set
+            {
+                Scale = (uint)(value * IClock.ScaleOne);
+            }
+        }
+         
+
+        public bool Pause
+        {
+            get
+            {
+                return _pause_scale._pause;
+            }
+            set
+            {
+                if (value == _pause_scale._pause)
+                    return;
+
+                if (value)
+                {
+                    _pause_scale.Pause();
+                    _data.SetScale(_pause_scale.GetFinalScale(), _base_clock.Time);
+                }
+                else
+                {
+                    _pause_scale.Resume();
+                    _data.SetScale(_pause_scale.GetFinalScale(), _base_clock.Time);
+                }
+            }
         }
 
-        public void Pause()
+        public long Time
         {
-            _pause_scale.Pause();
-            _data.SetScale(_pause_scale.GetFinalScale(), _base_clock.GetTime());
-        }
-
-        public void Resume()
-        {
-            _pause_scale.Resume();
-            _data.SetScale(_pause_scale.GetFinalScale(), _base_clock.GetTime());
-        }
-
-        public bool IsPaused()
-        {
-            return _pause_scale._pause;
-        }
-
-        public long GetTime()
-        {
-            long src_time = _base_clock.GetTime();
-            long scaled_time = _data.GetTime(src_time);
-            long ret = _transformer.Transform(scaled_time);
-            return ret;
+            get
+            {
+                long src_time = _base_clock.Time;
+                long scaled_time = _data.GetTime(src_time);
+                long ret = _transformer.Transform(scaled_time);
+                return ret;
+            }
         }
     }
 }

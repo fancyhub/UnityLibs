@@ -33,7 +33,7 @@ namespace FH
             _repeat_count = repeat_count;
             _cur_count = 0;
 
-            _start_time = clock.GetTime();
+            _start_time = clock.Time;
             if (duration > 0)
                 _expire_time = _start_time + duration;
             else
@@ -65,7 +65,7 @@ namespace FH
             if (_clock == null)
                 return 0;
 
-            return _clock.GetTime() - _start_time;
+            return _clock.Time - _start_time;
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace FH
                 return false;
 
             //如果总时间到了
-            if (_expire_time > 0 && _expire_time < _clock.GetTime())
+            if (_expire_time > 0 && _expire_time < _clock.Time)
                 return false;
 
             //如果次数和总时间都没结束, 那就是没有结束
@@ -388,7 +388,7 @@ namespace FH
             {
                 if (_timer_driver == null || _timer_driver.Clock == null)
                     return 0;
-                return _timer_driver.Clock.GetTime() - _start_time_ms;
+                return _timer_driver.Clock.Time - _start_time_ms;
             }
         }
 
@@ -400,7 +400,7 @@ namespace FH
             if (_link_list.Count == 0)
                 return;
 
-            _start_time_ms = _timer_driver.Clock.GetTime();
+            _start_time_ms = _timer_driver.Clock.Time;
             _link_list.ExtPopFirst(out var data);
             _cur_call_back = data._call_back;
             _cur_timer = Timer.Create(_OnTimerOut, _timer_driver);

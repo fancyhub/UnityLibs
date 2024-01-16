@@ -40,46 +40,38 @@ namespace FH
             //时间尽量只能往前增长
             _time = Math.Min(init_time, TimeUtil.SvrUnixMilli);
         }
-
-        public void Scale(float scale)
+        public uint Scale
         {
-            return;
+            get => IClock.ScaleOne;
+            set { }
         }
 
-        public uint GetScale()
+        public float ScaleFloat
         {
-            return IClock.ScaleOne;
+            get => 1.0f;
+            set { }
+        }
+        public bool Pause
+        {
+            get { return false; }
+            set { }
         }
 
-        public void Scale(uint scale)
+        public long Time
         {
-        }
-
-        public void Pause()
-        {
-        }
-
-        public bool IsPaused()
-        {
-            return false;
-        }
-
-        public void Resume()
-        {
-        }
-
-        public long GetTime()
-        {
-            if (!_frame_update)
-                return TimeUtil.SvrUnixMilli;
-
-            int frame_count = TimeUtil.FrameCount;
-            if (_frame_count != frame_count)
+            get
             {
-                _time = TimeUtil.SvrUnixMilli;
-                _frame_count = frame_count;
+                if (!_frame_update)
+                    return TimeUtil.SvrUnixMilli;
+
+                int frame_count = TimeUtil.FrameCount;
+                if (_frame_count != frame_count)
+                {
+                    _time = TimeUtil.SvrUnixMilli;
+                    _frame_count = frame_count;
+                }
+                return _time;
             }
-            return _time;
         }
     }
 }

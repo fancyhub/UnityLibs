@@ -55,62 +55,53 @@ namespace FH
             _type = t;
         }
 
-        public uint GetScale()
+        public uint Scale
         {
-            return IClock.ScaleOne;
+            get => IClock.ScaleOne;
+            set { }
         }
 
-        public long GetTime()
+        public float ScaleFloat
         {
-            switch (_type)
+            get => 1.0f;
+            set { }
+        }
+
+        public bool Pause
+        {
+            get { return false; }
+            set { }
+        }
+
+        public long Time
+        {
+            get
             {
-                case EType.FixedTime:
-                    return (long)(Time.fixedTimeAsDouble * C_SEC_2_MS);
+                switch (_type)
+                {
+                    case EType.FixedTime:
+                        return (long)(UnityEngine.Time.fixedTimeAsDouble * C_SEC_2_MS);
 
-                case EType.Time:
-                    return (long)(Time.timeAsDouble * C_SEC_2_MS);
+                    case EType.Time:
+                        return (long)(UnityEngine.Time.timeAsDouble * C_SEC_2_MS);
 
-                case EType.UnscaledFixedTime:
-                    return (long)(Time.fixedUnscaledTimeAsDouble * C_SEC_2_MS);
+                    case EType.UnscaledFixedTime:
+                        return (long)(UnityEngine.Time.fixedUnscaledTimeAsDouble * C_SEC_2_MS);
 
-                case EType.UnscaledTime:
-                    return (long)(Time.unscaledTimeAsDouble * C_SEC_2_MS);
+                    case EType.UnscaledTime:
+                        return (long)(UnityEngine.Time.unscaledTimeAsDouble * C_SEC_2_MS);
 
-                case EType.StartTime:
-                    return (long)(Time.realtimeSinceStartupAsDouble * C_SEC_2_MS);
+                    case EType.StartTime:
+                        return (long)(UnityEngine.Time.realtimeSinceStartupAsDouble * C_SEC_2_MS);
 
-                case EType.FrameCount:
-                    return Time.frameCount;
+                    case EType.FrameCount:
+                        return UnityEngine.Time.frameCount;
                     //return TimeUtil.FrameCount;
 
-                default:
-                    return 0;
+                    default:
+                        return 0;
+                }
             }
-        }
-
-        public bool IsPaused()
-        {
-            return false;
-        }
-
-        public void Pause()
-        {
-
-        }
-
-        public void Resume()
-        {
-
-        }
-
-        public void Scale(float scale)
-        {
-
-        }
-
-        public void Scale(uint scale)
-        {
-
         }
     }
 }
