@@ -17,7 +17,7 @@ MonoBehaviour:
   - ChannelType: 1
     Dummy:
       LayerName: 
-      PosX: 0.5
+      PosX: 0
       PosY: 0.3
     Channel:
       Visible:
@@ -41,8 +41,8 @@ MonoBehaviour:
         HideOutDuration: 0.3
       Effect:
         ShowUp:
-        - EffectType: 1
+        - EffectType: 6
           MoveDistance: 0
         HideOut:
-        - EffectType: 2
+        - EffectType: 7
           MoveDistance: 0

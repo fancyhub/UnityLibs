@@ -233,6 +233,7 @@ namespace FH.ResManagement
                     continue;
                 }
                 pool_val._inst.transform.SetLocalPositionAndRotation(UnityEngine.Vector3.zero, UnityEngine.Quaternion.identity);
+                pool_val._inst.transform.localScale = UnityEngine.Vector3.one;
 
                 pool_val.AddUser(user);
                 int user_count = pool_val.GetUserCount();

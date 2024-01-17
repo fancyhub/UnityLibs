@@ -64,7 +64,7 @@ namespace FH
                     }
                     break;
 
-                case ENoticeEffect.SlideFromRight:
+                case ENoticeEffect.RightSlideIn:
                     {
                         Vector2 size = view.rect.size;
                         float pos_x_show = -size.x * 0.5f;
@@ -75,7 +75,7 @@ namespace FH
                     }
                     break;
 
-                case ENoticeEffect.SlideToRight:
+                case ENoticeEffect.RightSlideOut:
                     {
                         Vector2 size = view.rect.size;
                         float pos_x_show = -size.x * 0.5f;
@@ -83,6 +83,47 @@ namespace FH
                         float pos_x = Mathf.Lerp(pos_x_show, pos_x_hide, time.GetCurPhaseProgress());
                         Vector2 pos = new Vector2(pos_x, 0);
                         view.anchoredPosition = pos;
+                    }
+                    break;
+
+                case ENoticeEffect.LeftSlideIn:
+                    {
+                        Vector2 size = view.rect.size;
+                        float pos_x_show = size.x * 0.5f;
+                        float pos_x_hide = -size.x * 0.5f;
+                        float pos_x = Mathf.Lerp(pos_x_hide, pos_x_show, time.GetCurPhaseProgress());
+                        Vector2 pos = new Vector2(pos_x, 0);
+                        view.anchoredPosition = pos;
+                    }
+                    break;
+
+                case ENoticeEffect.LeftSlideOut:
+                    {
+                        Vector2 size = view.rect.size;
+                        float pos_x_show = size.x * 0.5f;
+                        float pos_x_hide = -size.x * 0.5f;
+                        float pos_x = Mathf.Lerp(pos_x_show, pos_x_hide, time.GetCurPhaseProgress());
+                        Vector2 pos = new Vector2(pos_x, 0);
+                        view.anchoredPosition = pos;
+                    }
+                    break;
+
+                case ENoticeEffect.ScaleIn:
+                    {
+                        Vector3 show = Vector3.one;
+                        Vector3 hide = new Vector3(1, 0, 1);
+                        Vector3 scale = Vector3.Lerp(hide, show, time.GetCurPhaseProgress());
+                        view.localScale = scale;
+                    }
+                    break;
+
+
+                case ENoticeEffect.ScaleOut:
+                    {
+                        Vector3 show = Vector3.one;
+                        Vector3 hide = new Vector3(1, 0, 1);
+                        Vector3 scale = Vector3.Lerp(show, hide, time.GetCurPhaseProgress());
+                        view.localScale = scale;
                     }
                     break;
             }
@@ -95,8 +136,8 @@ namespace FH
             if (view == null)
                 return;
             CanvasGroup group = view.GetComponent<CanvasGroup>();
-            if(group==null)            
-                group=view.gameObject.AddComponent<CanvasGroup>();
+            if (group == null)
+                group = view.gameObject.AddComponent<CanvasGroup>();
             group.alpha = alpha;
         }
 

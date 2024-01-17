@@ -15,12 +15,12 @@ namespace FH
     /// </summary>
     public enum ENoticeChannel
     {
-        None = 0,        
+        None = 0,
         Common,
         Max,
     }
 
-    
+
 
     /// <summary>
     /// 每个频道自己管理自己的可见情况
@@ -76,7 +76,11 @@ namespace FH
         FadeIn,
         FadeOut,
         MoveUp,
-        SlideFromRight,
-        SlideToRight,
+        RightSlideIn,
+        RightSlideOut,
+        LeftSlideIn,
+        LeftSlideOut,
+        ScaleIn,
+        ScaleOut,
     }
 }
