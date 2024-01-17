@@ -21,23 +21,23 @@ namespace FH
     {
         private const float CScaleInt2Float = 1.0f / IClock.ScaleOne;
 
-        public struct ClockData
+        private struct ClockData
         {
+            public static ClockData Default = new ClockData()
+            {
+                _scale = IClock.ScaleOne,
+                _src_ts = 0,
+                _virtual_ts = 0
+            };
+
             //开始记录时间的 时间戳
-            public long _src_ts;
+            private long _src_ts;
 
             //每次状态变化之后，就要改变
-            public long _virtual_ts;
+            private long _virtual_ts;
 
             //缩放值, 千分位
-            public uint _scale;
-
-            public void Init()
-            {
-                _scale = IClock.ScaleOne;
-                _src_ts = 0;
-                _virtual_ts = 0;
-            }
+            private uint _scale;
 
             public void SetScale(uint scale, long now_time)
             {
@@ -63,47 +63,22 @@ namespace FH
             }
         }
 
-        public struct ClockPauseScale
+        private struct ClockPauseScale
         {
-            public uint _scale;
-            public bool _pause;
+            public static ClockPauseScale Default = new ClockPauseScale() { Scale = IClock.ScaleOne, Pause = false, };
 
-            public void Init()
-            {
-                _scale = IClock.ScaleOne;
-                _pause = false;
-            }
+            public uint Scale;
+            public bool Pause;
 
-            public void Scale(uint scale)
-            {
-                _scale = scale;
-            }
-
-            public void Pause()
-            {
-                _pause = true;
-            }
-
-            public void Resume()
-            {
-                _pause = false;
-            }
-
-            public uint GetFinalScale()
-            {
-                if (_pause)
-                    return 0;
-                return _scale;
-            }
+            public uint GetFinalScale() { return Pause ? 0 : Scale; }
         }
 
-        public struct ClockTransformer
+        private struct ClockTransformer
         {
-            public int _mul_factor;
-            public int _div_factor;
+            private uint _mul_factor;
+            private uint _div_factor;
 
-            public ClockTransformer(int mul_factor = 1,
-                        int div_factor = 1)
+            public ClockTransformer(uint mul_factor = 1, uint div_factor = 1)
             {
                 _mul_factor = Math.Max(1, mul_factor);
                 _div_factor = Math.Max(1, div_factor);
@@ -117,70 +92,64 @@ namespace FH
             }
         }
 
+        private IClock _base_clock;
+        private ClockPauseScale _pause_scale;
+        private ClockData _data;
+        private ClockTransformer _transformer;
 
-        public IClock _base_clock;
-        public ClockPauseScale _pause_scale;
-        public ClockData _data;
-        public ClockTransformer _transformer;
-
-        public ClockDecorator(IClock base_clock, int mul_factor = 1, int div_factor = 1)
+        public ClockDecorator(IClock base_clock, uint mul_factor = 1, uint div_factor = 1)
         {
-            _transformer = new ClockTransformer(mul_factor, div_factor);
             _base_clock = base_clock;
-            _data = new ClockData();
-            _pause_scale = new ClockPauseScale();
-            _data.Init();
-            _pause_scale.Init();
+            _data = ClockData.Default;
+            _pause_scale = ClockPauseScale.Default;
+            _transformer = new ClockTransformer(mul_factor, div_factor);
         }
 
         public uint GetScale()
         {
-            return _pause_scale._scale;
+            return _pause_scale.Scale;
         }
-
 
         public uint Scale
         {
-            get => _pause_scale._scale;
+            get => _pause_scale.Scale;
             set
             {
-                if (_pause_scale._scale == value)
+                if (_pause_scale.Scale == value)
                     return;
+                _pause_scale.Scale = value;
 
-                _pause_scale.Scale(value);
                 _data.SetScale(_pause_scale.GetFinalScale(), _base_clock.Time);
             }
         }
 
         public float ScaleFloat
         {
-            get => (float)(_pause_scale._scale * CScaleInt2Float);
+            get => (float)(_pause_scale.Scale * CScaleInt2Float);
             set
             {
                 Scale = (uint)(value * IClock.ScaleOne);
             }
         }
-         
 
         public bool Pause
         {
             get
             {
-                return _pause_scale._pause;
+                return _pause_scale.Pause;
             }
             set
             {
-                if (value == _pause_scale._pause)
+                if (value == _pause_scale.Pause)
                     return;
+                _pause_scale.Pause = value;
 
                 if (value)
                 {
-                    _pause_scale.Pause();
                     _data.SetScale(_pause_scale.GetFinalScale(), _base_clock.Time);
                 }
                 else
                 {
-                    _pause_scale.Resume();
                     _data.SetScale(_pause_scale.GetFinalScale(), _base_clock.Time);
                 }
             }

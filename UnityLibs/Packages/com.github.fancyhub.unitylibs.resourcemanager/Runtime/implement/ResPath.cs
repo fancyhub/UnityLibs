@@ -12,6 +12,8 @@ namespace FH.ResManagement
 {
     internal readonly struct ResPath : IEquatable<ResPath>, IEqualityComparer<ResPath>
     {
+        public static IEqualityComparer<ResPath> EqualityComparer = new ResPath();
+
         public static ResPath Empty = new ResPath(string.Empty, false);
         public readonly string Path;
         public readonly bool Sprite;

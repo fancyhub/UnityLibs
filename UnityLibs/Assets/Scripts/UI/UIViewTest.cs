@@ -1,5 +1,4 @@
 using FH;
-using FH.UI;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,19 +11,21 @@ public class UIViewTest : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        UIObjFinder.Show();
+        FH.UI.UIObjFinder.Show();
 
         _btn = FH.UI.UIBaseView.CreateView<FH.UI.UIButtonView>(Canvas.transform);
         _btn.OnClick = _DownloadFile;
 
+
         TaskQueue.Init(10);
-        UIRedDotMgr.Init();
-        UIRedDotMgr.Link("root.test.scene", "vroot.test.scene.vscene");
+        FH.UI.UIRedDotMgr.Init();
+        FH.UI.UIRedDotMgr.Link("root.test.scene", "vroot.test.scene.vscene");
+        FH.NoticeSample.NoticeApi.Init();
     }
 
     public void Update()
     {
-        UIRedDotMgr.Update();
+        FH.UI.UIRedDotMgr.Update();
     }
 
     public void OnEnable()
@@ -33,7 +34,7 @@ public class UIViewTest : MonoBehaviour
 
     public void OnApplicationQuit()
     {
-        UIRedDotMgr.Clear();
+        FH.UI.UIRedDotMgr.Clear();
     }
 
     public void _DownloadFile()
@@ -123,7 +124,7 @@ public sealed class UIPageScene : CPoolItemBase
             if (scene_a.IsDone)
             {
                 _SceneRefList.Add(scene_a);
-                UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
+                FH.UI.UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
                 break;
             }
             yield return string.Empty;
@@ -134,7 +135,7 @@ public sealed class UIPageScene : CPoolItemBase
             if (scene_b.IsDone)
             {
                 _SceneRefList.Add(scene_b);
-                UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
+                FH.UI.UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
                 break;
             }
             yield return string.Empty;
@@ -144,7 +145,7 @@ public sealed class UIPageScene : CPoolItemBase
     private void _OnCloseClick()
     {
         this.Destroy();
-        UIRedDotMgr.Set("root.test.scene", 0);
+        FH.UI.UIRedDotMgr.Set("root.test.scene", 0);
     }
 
     protected override void OnPoolRelease()
@@ -172,7 +173,7 @@ public sealed class UIPageScene : CPoolItemBase
         _SceneRefList[0].Unload();
         _SceneRefList.RemoveAt(0);
 
-        UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
+        FH.UI.UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
     }
 
 
@@ -182,6 +183,6 @@ public sealed class UIPageScene : CPoolItemBase
             return;
         _SceneRefList[_SceneRefList.Count - 1].Unload();
         _SceneRefList.RemoveAt(_SceneRefList.Count - 1);
-        UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
+        FH.UI.UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
     }
 }

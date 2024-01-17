@@ -134,6 +134,12 @@
         "com.github.fancyhub.unitylibs.collection": "1.0.0"
       }
     },
+    "com.github.fancyhub.unitylibs.notice": {
+      "version": "file:com.github.fancyhub.unitylibs.notice",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.github.fancyhub.unitylibs.objectstream": {
       "version": "file:com.github.fancyhub.unitylibs.objectstream",
       "depth": 0,

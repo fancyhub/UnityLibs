@@ -17,7 +17,7 @@ namespace FH.SceneManagement
 
         static SceneMgrImplement()
         {
-            MyEqualityComparer.Reg(new SceneID());
+            MyEqualityComparer.Reg(SceneID.EqualityComparer);
         }
 
         public SceneMgrImplement(ISceneMgr.IExternalLoader external_loader)

@@ -34,13 +34,13 @@ namespace FH
         public EAssetStatus GetAssetStatus(string path);
 
         #region Res
-        public EResError Load(string path, bool sprite, bool aync_load_enable, out ResRef res_ref);
+        public EResError Load(string path, bool sprite, bool sync_load_enable, out ResRef res_ref);
         public EResError AsyncLoad(string path, bool sprite, int priority, ResEvent cb, out int job_id);
         public void ResSnapshot(ref List<ResSnapShotItem> out_snapshot);
         #endregion
 
         #region GameObject Inst
-        public EResError Create(string path, System.Object user, bool aync_load_enable, out ResRef res_ref);
+        public EResError Create(string path, System.Object user, bool sync_load_enable, out ResRef res_ref);
         public EResError AsyncCreate(string path, int priority, ResEvent cb, out int job_id);
         public EResError TryCreate(string path, System.Object user, out ResRef res_ref);
         #endregion
@@ -132,7 +132,7 @@ namespace FH
 
         #region Res
 
-        public static ResRef LoadSprite(string path, bool aync_load_enable = true)
+        public static ResRef LoadSprite(string path, bool sync_load_enable = true)
         {
             IResMgr inst = _.Val;
             if (inst == null)
@@ -141,12 +141,12 @@ namespace FH
                 return default;
             }
 
-            var err = inst.Load(path, true, aync_load_enable, out var res_ref);
+            var err = inst.Load(path, true, sync_load_enable, out var res_ref);
             ResManagement.ResLog._.ErrCode(err, path);
             return res_ref;
         }
 
-        public static ResRef Load(string path, bool aync_load_enable = true)
+        public static ResRef Load(string path, bool sync_load_enable = true)
         {
             IResMgr inst = _.Val;
             if (inst == null)
@@ -155,7 +155,7 @@ namespace FH
                 return default;
             }
 
-            var err = inst.Load(path, false, aync_load_enable, out var res_ref);
+            var err = inst.Load(path, false, sync_load_enable, out var res_ref);
             ResManagement.ResLog._.ErrCode(err, path);
             return res_ref;
         }
@@ -189,7 +189,7 @@ namespace FH
         #endregion
 
         #region GameObject Inst
-        public static ResRef Create(string path, System.Object user, bool aync_load_enable)
+        public static ResRef Create(string path, System.Object user, bool sync_load_enable)
         {
             IResMgr inst = _.Val;
             if (inst == null)
@@ -197,7 +197,7 @@ namespace FH
                 ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return default;
             }
-            var err = inst.Create(path, user, aync_load_enable, out var res_ref);
+            var err = inst.Create(path, user, sync_load_enable, out var res_ref);
             ResManagement.ResLog._.ErrCode(err, path);
             return res_ref;
         }

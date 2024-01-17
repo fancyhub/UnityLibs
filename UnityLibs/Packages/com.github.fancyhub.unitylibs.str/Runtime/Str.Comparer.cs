@@ -10,8 +10,9 @@ using System.Collections.Generic;
 
 namespace FH
 {
-    public partial struct Str : IEquatable<Str>
+    public partial struct Str : IEquatable<Str>, IEqualityComparer<Str>
     {
+        public static IEqualityComparer<Str> EqualityComparer = new Str();
         public bool Equals(Str other)
         {
             return this == other;
@@ -82,20 +83,14 @@ namespace FH
             }
             return hash1 * 1566083941;
         }
-    }
 
-
-    public class StrEqualityComparer : IEqualityComparer<Str>
-    {
-        public static StrEqualityComparer _ = new StrEqualityComparer();
-
-        public bool Equals(Str x, Str y)
+        bool IEqualityComparer<Str>.Equals(Str x, Str y)
         {
             return x == y;
         }
-        public int GetHashCode(Str obj)
+        int IEqualityComparer<Str>.GetHashCode(Str obj)
         {
             return obj.GetHashCode();
         }
-    }
+    }     
 }

@@ -18,6 +18,8 @@ namespace FH
 
     public struct SceneID : IEquatable<SceneID>, IEqualityComparer<SceneID>
     {
+        public static IEqualityComparer<SceneID> EqualityComparer = new SceneID();
+
         public static readonly SceneID Empty = new SceneID(0);
         private static int _IdGen = 0;
         public readonly int Id;

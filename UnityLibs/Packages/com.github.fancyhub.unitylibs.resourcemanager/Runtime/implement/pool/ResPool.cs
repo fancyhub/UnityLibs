@@ -34,9 +34,9 @@ namespace FH.ResManagement
             ret.Asset = asset_ref.Asset;
 
             if (path.Sprite)
-                ret.ResId = new ResId(asset_ref.Asset.GetInstanceID(), EResType.Sprite);
+                ret.ResId = new ResId(asset_ref.Asset, EResType.Sprite);
             else
-                ret.ResId = new ResId(asset_ref.Asset.GetInstanceID(), EResType.Res);
+                ret.ResId = new ResId(asset_ref.Asset, EResType.Res);
 
             return ret;
         }

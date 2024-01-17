@@ -15,15 +15,15 @@ namespace FH
         public const uint ScaleOne = 1000;
 
         /// <summary>
-        /// 基于千分位, 如果返回1000 ,就是不缩放
-        /// 对应 C_SCALE_ONE
+        /// 基于千分位, 如果返回 1000 ,就是不缩放
+        /// 对应 ScaleOne
         /// </summary>
         public uint Scale { get; set; }
 
         public float ScaleFloat { get; set; }
 
-
         bool Pause { get; set; }
+
         long Time { get; }
     }
 }

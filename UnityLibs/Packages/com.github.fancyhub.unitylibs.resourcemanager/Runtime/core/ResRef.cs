@@ -5,6 +5,10 @@
  * Desc    : 
 *************************************************************************************/
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
 namespace FH
 {
     public interface IResPool : ICPtr
@@ -16,14 +20,16 @@ namespace FH
         T Get<T>(ResId id) where T : UnityEngine.Object;
     }
 
-    public readonly struct ResRef
+    public readonly struct ResRef : IEqualityComparer<ResRef>, IEquatable<ResRef>
     {
+        public static IEqualityComparer<ResRef> EqualityComparer = new ResRef();
+
         public readonly ResId Id;
         public readonly string Path;
         public readonly bool Sprite;
         private readonly CPtr<IResPool> ResPool;
 
-        public ResRef(ResId id, string path, bool sprite, IResPool pool) { this.Id = id; this.Path = path; this.Sprite = sprite; this.ResPool = new CPtr<IResPool>(pool); }
+        internal ResRef(ResId id, string path, bool sprite, IResPool pool) { this.Id = id; this.Path = path; this.Sprite = sprite; this.ResPool = new CPtr<IResPool>(pool); }
 
         public bool IsSelfValid()
         {
@@ -41,5 +47,18 @@ namespace FH
         {
             return $"ResId:({Id.Id},{Id.ResType}) ResPath:({Path},{Sprite})";
         }
+
+        bool IEqualityComparer<ResRef>.Equals(ResRef x, ResRef y)
+        {
+            return x.Id.Equals(y.Id);
+        }
+
+        int IEqualityComparer<ResRef>.GetHashCode(ResRef obj)
+        {
+            return obj.Id.GetHashCode();
+        }
+
+        public bool Equals(ResRef other) { return other.Id.Equals(Id); }
+        public override int GetHashCode() { return Id.GetHashCode(); }
     }
 }

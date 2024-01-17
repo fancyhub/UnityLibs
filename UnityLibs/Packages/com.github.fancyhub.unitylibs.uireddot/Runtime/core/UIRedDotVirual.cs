@@ -18,7 +18,7 @@ namespace FH.UI
     {
         static UIRedDotVirual()
         {
-            MyEqualityComparer.Reg(StrEqualityComparer._);
+            MyEqualityComparer.Reg(Str.EqualityComparer);
         }
 
         public const int C_COUNT_MAX = 100;
@@ -27,7 +27,7 @@ namespace FH.UI
         public UIRedDotVirual(UIRedDotTree tree)
         {
             _Tree = tree;
-            _RealPath2VirtualPathMap = new Dictionary<Str, HashSet<Str>>(StrEqualityComparer._);
+            _RealPath2VirtualPathMap = new Dictionary<Str, HashSet<Str>>(Str.EqualityComparer);
         }
 
         public HashSet<Str> Find(Str real_path)
@@ -44,7 +44,7 @@ namespace FH.UI
             _RealPath2VirtualPathMap.TryGetValue(real_path, out HashSet<Str> list);
             if (list == null)
             {
-                list = new HashSet<Str>(StrEqualityComparer._);
+                list = new HashSet<Str>(Str.EqualityComparer);
                 _RealPath2VirtualPathMap.Add(real_path, list);
             }
             list.Add(virtual_path);

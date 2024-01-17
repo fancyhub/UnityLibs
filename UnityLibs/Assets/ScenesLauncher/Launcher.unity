@@ -455,7 +455,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce6d81fca33831c4f9a035f3176f03a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Mode: 1
+  Mode: 0
   AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
   FileMgrConfig:
     LogLvl: 1
@@ -465,7 +465,7 @@ MonoBehaviour:
   BundleMgrConfig:
     LogLvl: 1
   ResMgrConfig:
-    LogLevel: 0
+    LogLevel: 1
     MaxAsyncResLoaderSlot: 5
     MaxAsyncGameObjectStep: 1
     PreInst:
@@ -497,6 +497,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2098590055}
   - component: {fileID: 2098590054}
+  - component: {fileID: 2098590056}
   m_Layer: 0
   m_Name: TestUI
   m_TagString: Untagged
@@ -532,6 +533,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2098590056
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2098590053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9e2bf2f0fcd279498115319b726f0ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _testData:
+    _channel: 1
+    _view_type: 0
+    _priority: 0
+    _duration: 2
+    _img_name: Props_icon_1
+    _text: Hello World
+    _count: 10
+    _interval: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

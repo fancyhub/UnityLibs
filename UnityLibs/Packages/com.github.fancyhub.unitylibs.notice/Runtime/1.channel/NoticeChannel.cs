@@ -1,0 +1,123 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2021/6/23 10:08:09
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
+
+using System;
+using UnityEngine;
+
+
+namespace FH
+{
+    public interface INoticeChannelRoot
+    {
+        Transform GetChanRoot();
+
+        public GameObject CreateItemDummy();
+        public void ReleaseItemDummy(GameObject obj);
+
+        public GameObject CreateView(string path, Transform parent);
+        public void ReleaseView(GameObject obj);
+
+        void Destroy();
+    }
+
+    public struct NoticeContainerContext
+    {
+        public INoticeChannelRoot _root;
+        public NoticeDataQueue _data_queue;
+        public IClock _clock;
+        public bool _Visible;
+    }
+
+    public interface INoticeContainer
+    {
+        public void OnUpdate(NoticeContainerContext context);
+        public void OnVisibleChange(bool visible);
+        public void OnClear();
+
+        public void OnDestroy();
+    }
+
+    /// <summary>
+    /// 具体的container的基类
+    /// </summary>
+    public sealed class NoticeChannel : INoticeChannel
+    {
+        public NoticeContainerContext _context;
+        public NoticeChannelConfig _Config;
+
+        public INoticeContainer _container;
+        public NoticeVisibleCtrl _VisibleCtrl;
+
+        public NoticeChannel(
+            NoticeChannelConfig config,
+            IClock clock,
+            INoticeChannelRoot root,
+            INoticeContainer container)
+        {
+            _Config = config;
+            _VisibleCtrl = new NoticeVisibleCtrl(config.Visible);
+            _context = new NoticeContainerContext()
+            {
+                _data_queue = new NoticeDataQueue(),
+                _clock = new ClockDecorator(clock),
+                _root = root,
+                _Visible = true,
+            };
+            _container = container;
+        }
+
+        public void Push(NoticeData data)
+        {
+            data._add_time_ms = _context._clock.Time;
+            _context._data_queue.Push(data);
+        }
+
+        public void Update()
+        {
+            _container.OnUpdate(_context);
+
+            _context._clock.ScaleFloat = _Config.TimeScale.CalcScale(_context._data_queue.Count);
+        }
+
+
+        public void Destroy()
+        {
+            _container.OnDestroy();
+            _container = null;
+            _context._root.Destroy();
+            _context._root = null;
+        }
+
+        //当前是否可以显示
+        public bool IsVisible()
+        {
+            return _context._Visible;
+        }
+
+        /// <summary>
+        /// 隐藏所有的数据        
+        /// 清空当前的显示队列，但是不会清空当前的等待队列
+        /// 等待队列更新暂停
+        /// </summary>
+        public void SetVisibleFlag(ENoticeVisibleFlag flag)
+        {
+            bool visible = _VisibleCtrl.IsVisible(flag);
+            if (_context._Visible == visible)
+                return;
+            _context._Visible = visible;
+            _container.OnVisibleChange(visible);
+        }
+
+        /// <summary>
+        /// 清空所有的数据，包括显示数据和等待数据
+        /// </summary>
+        public void Clear()
+        {
+            _container.OnClear();
+        }
+    }
+}

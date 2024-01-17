@@ -74,7 +74,7 @@ namespace FH.ResManagement
                 return false;
             }
 
-            id = new ResId(obj.GetInstanceID(), EResType.Inst);
+            id = new ResId(obj, EResType.Inst);
 
             //3. 创建poolval
 

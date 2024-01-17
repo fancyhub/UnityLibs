@@ -37,8 +37,8 @@ namespace FH.ResManagement
 
         static ResMgrImplement()
         {
-            MyEqualityComparer.Reg(new ResId());
-            MyEqualityComparer.Reg(new ResPath());
+            MyEqualityComparer.Reg(ResId.EqualityComparer);
+            MyEqualityComparer.Reg(ResPath.EqualityComparer);
         }
 
         public ResMgrImplement(IResMgr.IExternalLoader external_loader, IResMgr.Config conf)

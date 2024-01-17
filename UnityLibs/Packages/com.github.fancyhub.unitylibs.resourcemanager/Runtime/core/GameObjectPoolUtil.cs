@@ -117,6 +117,7 @@ namespace FH
 
             //3. 获取组件, 组件disable/enable模式
             obj.transform.SetParent(GetDummyInactive(), false);
+            obj.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
         }
     }
 }

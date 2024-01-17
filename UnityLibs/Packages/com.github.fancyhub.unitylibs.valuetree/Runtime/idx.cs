@@ -16,9 +16,10 @@ namespace FH
     [StructLayout(LayoutKind.Explicit)]
     public struct Idx : IEquatable<Idx>, IEqualityComparer<Idx>
     {
+        public static IEqualityComparer<Idx> EqualityComparer = new Idx();
         static Idx()
         {
-            MyEqualityComparer.Reg(new Idx());
+            MyEqualityComparer.Reg(EqualityComparer);
         }
 
         public enum EType
@@ -222,14 +223,7 @@ namespace FH
         public static implicit operator Idx(string v) { return new Idx(new Str(v)); }
 
 
-        bool IEqualityComparer<Idx>.Equals(Idx x, Idx y)
-        {
-            return x.Equals(y);
-        }
-
-        int IEqualityComparer<Idx>.GetHashCode(Idx key)
-        {
-            return key.GetHashCode();
-        }
+        bool IEqualityComparer<Idx>.Equals(Idx x, Idx y) { return x.Equals(y); }
+        int IEqualityComparer<Idx>.GetHashCode(Idx key) { return key.GetHashCode(); }
     }
 }

@@ -34,7 +34,7 @@ namespace FH
         {
             FH.ResMgr.Update();
             FH.SceneMgr.Update();
-            FileDownloadMgr.Update();   
+            FileDownloadMgr.Update();
         }
 
         public void OnDestroy()
@@ -55,8 +55,9 @@ namespace FH
 #if UNITY_EDITOR
             if (Mode == EMode.AssetDatabase)
             {
-                var bundle_config = FH.AssetBundleBuilder.Ed.AssetBundleBuilderConfig.GetDefault();
-                List<(string path, string address)> asset_list = bundle_config.GetAssetCollector().GetAllAssets();
+                List<(string path, string address)> asset_list = null;
+                //var bundle_config = FH.AssetBundleBuilder.Ed.AssetBundleBuilderConfig.GetDefault();
+                //asset_list = bundle_config.GetAssetCollector().GetAllAssets();
 
                 IResMgr.IExternalLoader res_loader = new FH.SampleExternalLoader.ResExternalLoader_AssetDatabase(asset_list, _AtlasTag2Path);
                 ISceneMgr.IExternalLoader scene_loader = new FH.SampleExternalLoader.SceneExternaLoader_Assetdatabase();
@@ -104,9 +105,9 @@ namespace FH
                     foreach (var p in VfsBuilderConfig.Items)
                     {
                         FileMgr.FindFile(p.Name, out var full_path);
-                        if(full_path==null)
+                        if (full_path == null)
                         {
-                            Log.E("找不到文件 {0}",p.Name);
+                            Log.E("找不到文件 {0}", p.Name);
                             continue;
                         }
 
