@@ -232,6 +232,7 @@ namespace FH.ResManagement
                     ResLog._.Assert(false, "有对象不正常的被销毁了 {0} {1}", id.Id, path);
                     continue;
                 }
+                pool_val._inst.transform.SetLocalPositionAndRotation(UnityEngine.Vector3.zero, UnityEngine.Quaternion.identity);
 
                 pool_val.AddUser(user);
                 int user_count = pool_val.GetUserCount();

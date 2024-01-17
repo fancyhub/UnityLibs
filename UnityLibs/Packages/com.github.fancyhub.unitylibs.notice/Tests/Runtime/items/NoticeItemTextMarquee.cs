@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace FH.NoticeSample
 {
-    public sealed class NoticeItemTextMarquee : INoticeItem
+    public sealed class NoticeItemTextMarquee : CPoolItemBase, INoticeItem
     {
         private const string CPath = "Packages/com.github.fancyhub.unitylibs.notice/Tests/Runtime/Res/UINoticeMarquee.prefab";
 
@@ -22,23 +22,27 @@ namespace FH.NoticeSample
         public RectTransform _view;
         public NoticeItemDummy _dummy;
 
-        public NoticeItemTextMarquee(string txt)
+        public static NoticeItemTextMarquee Create(string text)
         {
-            _Text = txt;
+            NoticeItemTextMarquee ret = GPool.New<NoticeItemTextMarquee>();
+            ret._Text = text;
+            return ret;
         }
 
-        public void Destroy()
+        protected override void OnPoolRelease()
         {
             _dummy.ReleaseView(ref _view);
+            _dummy = default;
+            _TxtComp = null;
         }
 
-        public Vector2 GetSize()
+        public Vector2 GetViewSize()
         {
             return _view.rect.size;
         }
 
-        public bool Merge(INoticeItem other)
-        {            
+        public bool TryMerge(INoticeItem other)
+        {
             return false;
         }
 

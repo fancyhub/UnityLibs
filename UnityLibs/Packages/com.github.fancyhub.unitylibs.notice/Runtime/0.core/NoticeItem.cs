@@ -11,24 +11,36 @@ using UnityEngine;
 
 namespace FH
 {
-    public sealed class NoticeItemDummy
+    public struct NoticeItemDummy
     {
-        public Transform Dummy;
-        public INoticeChannelRoot ChannelRoot;
+        public readonly Transform Dummy;
+        public readonly INoticeChannelRoot ChannelRoot;
+
+        public NoticeItemDummy(Transform dummy, INoticeChannelRoot channel_root)
+        {
+            Dummy = dummy;
+            ChannelRoot = channel_root;
+        }
+
+        public NoticeItemDummy(GameObject dummy, INoticeChannelRoot channel_root)
+        {
+            Dummy = dummy.transform;
+            ChannelRoot = channel_root;
+        }
 
         public GameObject CreateView(string path)
         {
-            return ChannelRoot.CreateView(path, Dummy);
+            return ChannelRoot?.CreateView(path, Dummy);
         }
 
         public void ReleaseView(GameObject view)
         {
-            ChannelRoot.ReleaseView(view);
+            ChannelRoot?.ReleaseView(view);
         }
 
         public void ReleaseView(ref GameObject view)
         {
-            ChannelRoot.ReleaseView(view);
+            ChannelRoot?.ReleaseView(view);
             view = null;
         }
 
@@ -37,7 +49,7 @@ namespace FH
             if (view == null)
                 return;
 
-            ChannelRoot.ReleaseView(view.gameObject);
+            ChannelRoot?.ReleaseView(view.gameObject);
             view = null;
         }
 
@@ -46,7 +58,7 @@ namespace FH
             if (view == null)
                 return;
 
-            ChannelRoot.ReleaseView(view.gameObject);
+            ChannelRoot?.ReleaseView(view.gameObject);
             view = null;
         }
     }
@@ -60,8 +72,8 @@ namespace FH
         void Update(NoticeItemTime time);
         void HideOut(NoticeItemTime time, List<NoticeEffectItemConfig> effect);
 
-        bool Merge(INoticeItem other);
+        bool TryMerge(INoticeItem other);
 
-        Vector2 GetSize();
+        Vector2 GetViewSize();
     }
 }

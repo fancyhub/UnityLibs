@@ -25,7 +25,7 @@ namespace FH
         public IClock _clock;
 
         public NoticeManager(IClock clock)
-        {            
+        {
             _clock = clock;
             _vision_flag = 0;
         }
@@ -54,21 +54,23 @@ namespace FH
         /// <summary>
         /// 显示 notice，数据是外部创建的
         /// </summary>
-        public void ShowNotice(NoticeData data)
+        public void ShowNotice(NoticeData data, INoticeItem item)
         {
-            if (null == data._item)
+            if (null == item)
             {
                 NoticeLog.Assert(false, "data is null");
                 return;
             }
 
-            var container = GetChannel(data._channel);
+            var container = GetChannel(data.Channel);
             if (null == container)
             {
-                NoticeLog.Assert(false, "channel 没有找到 {0}", data._channel);
+                NoticeLog.Assert(false, "channel 没有找到 {0}", data.Channel);
+                item.Destroy();
                 return;
             }
-            container.Push(data);
+
+            container.Push(data, item);
         }
 
         public void AddChannel(ENoticeChannel channel_type, INoticeChannel channel)
@@ -149,7 +151,7 @@ namespace FH
             {
                 _channels[i]?.Destroy();
                 _channels[i] = null;
-            }            
+            }
         }
 
         public void ClearChannel(ENoticeChannel channel)

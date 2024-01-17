@@ -15,13 +15,12 @@ namespace FH
     /// <summary>
     /// Item 的包装类
     /// </summary>
-    public sealed class NoticeItemWrapper
+    public sealed class NoticeItemWrapper : CPoolItemBase, IDestroyable
     {
-        private IClock _clock;
-        private INoticeItem _item;
-        private INoticeChannelRoot _root;
         private NoticeEffectConfig _config;
-        private NoticeItemDummy _ItemDummy = new NoticeItemDummy();
+        private IClock _clock;
+        private INoticeChannelRoot _root;
+        private INoticeItem _item;
         private GameObject _move_obj;
         private NoticeItemTime _time;
         private NoticeItemMove _move;
@@ -34,25 +33,22 @@ namespace FH
             NoticeData data,
             NoticeEffectConfig config)
         {
-            Transform channel_root = root.GetChanRoot();
-            if (channel_root == null)
-                return null;
-
             GameObject self_root = root.CreateItemDummy();
+
+            if (self_root == null)
+                return null;
             //self_root.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
             //self_root.transform.SetParent(channel_root.transform, false);
 
-            NoticeItemWrapper ret = new NoticeItemWrapper();
+            NoticeItemWrapper ret = GPool.New<NoticeItemWrapper>();
             ret._config = config;
-            ret._priority = data._priority;
+            ret._priority = data.Priority;
             ret._clock = clock;
-            ret._item = data._item;
+            ret._item = data.Item;
             ret._root = root;
             ret._size.Clear();
             ret._move_obj = self_root;
-            ret._ItemDummy.Dummy = self_root.transform;
-            ret._ItemDummy.ChannelRoot = root;
-            ret._item.CreateView(ret._ItemDummy);
+            ret._item.CreateView(new NoticeItemDummy(self_root, root));
             return ret;
         }
 
@@ -61,7 +57,7 @@ namespace FH
         public Vector2 GetSize()
         {
             if (!_size.Inited)
-                _size.Value = _item.GetSize();
+                _size.Value = _item.GetViewSize();
             return _size.Value;
         }
 
@@ -79,18 +75,20 @@ namespace FH
             _move = new NoticeItemMove(start_pos, end_pos, time_range);
         }
 
-        public void Destroy()
+        protected override void OnPoolRelease()
         {
-            if (_item == null)
-                return;
-
             _item?.Destroy();
             _item = null;
+
             _root.ReleaseItemDummy(_move_obj);
+            _root = null;
             _move_obj = null;
 
+            _config = null;
+
+            _size.Clear();
+
             _clock = null;
-            _root = null;
         }
 
         public void Show(NoticeItemTime notice_time)

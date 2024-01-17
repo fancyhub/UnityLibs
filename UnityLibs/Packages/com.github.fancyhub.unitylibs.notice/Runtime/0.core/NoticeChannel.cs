@@ -22,6 +22,6 @@ namespace FH
         public void SetVisibleFlag(ENoticeVisibleFlag flag);
         public void Clear();
 
-        public void Push(NoticeData data);
+        public void Push(NoticeData data, INoticeItem item);
     }
 }

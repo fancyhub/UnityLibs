@@ -14,42 +14,62 @@ namespace FH
     /// <summary>
     /// Notice 的数据包括了队列数据和item，item是下层去实现的
     /// </summary>
-    public sealed class NoticeData
+    public struct NoticeData
     {
-        public ENoticeChannel _channel;
+        public readonly ENoticeChannel Channel;
 
         //优先级
-        public int _priority;
+        public readonly int Priority;
 
         /// <summary>
-        /// 显示的时间
+        /// 显示的时间, ms
         /// </summary>
-        public int _duration_show;
+        public readonly int DurationShow;
 
         /// <summary>
         /// 多少毫秒之后,过期, 只在排队过程中有用,一旦进入显示队列, 就不需要了
         /// 如果<=0 说明永远不过期
         /// </summary>
-        public int _duration_expire = 0;
+        public readonly int DurationExpire;
 
         //该item被添加到队列的时间戳, 这个外部不需要修改, push的时候,自动设置的
-        public long _add_time_ms;
+        internal readonly long AddTimeStampMs;
 
-        public long ExpireTime
+        private INoticeItem _item;
+
+        public NoticeData(ENoticeChannel channel, float duration, int priority = 0, int duration_expire = 0)
         {
-            get
-            {
-                if (_duration_expire <= 0)
-                    return long.MaxValue;
-                return _duration_expire + _add_time_ms;
-            }
+            Channel = channel;
+            Priority = priority;
+            DurationExpire = duration_expire;
+            DurationShow = (int)(duration * 1000);
+            AddTimeStampMs = 0;
+            _item = null;
         }
 
-        public INoticeItem _item;
+        internal NoticeData(NoticeData orig, INoticeItem item, long now_time)
+        {
+            Channel = orig.Channel;
+            Priority = orig.Priority;
+            DurationExpire = orig.DurationExpire;
+            DurationShow = orig.DurationShow;
+            AddTimeStampMs = now_time;
+            _item = item;
+        }
+
+        public INoticeItem Item => _item;
+
+        public bool IsExpire(long now_time)
+        {
+            if (DurationExpire <= 0)
+                return false;
+            return (now_time - AddTimeStampMs) > DurationExpire;
+        }
 
         public void Destroy()
         {
             _item?.Destroy();
+            _item = null;
         }
     }
 }

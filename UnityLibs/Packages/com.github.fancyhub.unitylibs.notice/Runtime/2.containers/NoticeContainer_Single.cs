@@ -51,23 +51,21 @@ namespace FH
                     _cur_item = null;
                 }
             }
-            NoticeData next_data = null;
 
-            if (_cur_item == null)
-                next_data = context._data_queue.Pop(context._clock.Time);
-            else
-                next_data = context._data_queue.Pop(context._clock.Time, _cur_item.Priority);
+            int priority = int.MinValue;
+            if (_cur_item != null)
+                priority = _cur_item.Priority;
 
-            if (next_data == null)
+            if (!context.DataQueue.Pop(out NoticeData next_data, context.Clock.Time, priority))
                 return;
 
             _cur_item?.Destroy();
-            _cur_item = NoticeItemWrapper.Create(context._root, context._clock, next_data, _config.Effect);
+            _cur_item = NoticeItemWrapper.Create(context.Root, context.Clock, next_data, _config.Effect);
             if (_cur_item == null)
                 return;
 
             NoticeItemTime notice_time = _config.Time.CreateNoticeItemTime(next_data);
-            notice_time.Delay(context._clock.Time);
+            notice_time.Delay(context.Clock.Time);
             _cur_item.Show(notice_time);
             _cur_item.Update();
         }

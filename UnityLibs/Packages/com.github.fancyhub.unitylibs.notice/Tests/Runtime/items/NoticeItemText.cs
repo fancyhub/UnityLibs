@@ -12,40 +12,36 @@ using UnityEngine.UI;
 
 namespace FH.NoticeSample
 {
-    public class NoticeItemText : INoticeItem
+    public sealed class NoticeItemText : CPoolItemBase, INoticeItem
     {
-        public const float C_FADE_OUT_PERCENT = 0.8f;        
+        public const float C_FADE_OUT_PERCENT = 0.8f;
         private const string CPath = "Packages/com.github.fancyhub.unitylibs.notice/Tests/Runtime/Res/UINoticeText.prefab";
-        
+
         public string _Text;
 
         public Text _TxtComp;
         public RectTransform _view;
         public NoticeItemDummy _dummy;
 
-        public NoticeItemText(string text)
+        public static NoticeItemText Create(string text)
         {
-            _Text = text;
+            NoticeItemText ret = GPool.New<NoticeItemText>();
+            ret._Text = text;
+            return ret;
         }
 
-        public Vector2 GetSize()
+        public Vector2 GetViewSize()
         {
             return _view.rect.size;
         }
 
-        public void Destroy()
+        public bool TryMerge(INoticeItem other)
         {
-            _dummy?.ReleaseView(ref _view);
-            _dummy = null;
-        }
-
-        public bool Merge(INoticeItem other)
-        {
-            NoticeItemText st = other as NoticeItemText;
-            if (st == null)
-                return false;
-            if (st._Text == _Text)
-                return true;
+            //NoticeItemText st = other as NoticeItemText;
+            //if (st == null)
+            //    return false;
+            //if (st._Text == _Text)
+            //    return true;
             return false;
         }
 
@@ -75,6 +71,13 @@ namespace FH.NoticeSample
 
         public void Update(NoticeItemTime time)
         {
+        }
+
+        protected override void OnPoolRelease()
+        {
+            _dummy.ReleaseView(ref _view);
+            _dummy = default;
+            _TxtComp = null;
         }
     }
 }

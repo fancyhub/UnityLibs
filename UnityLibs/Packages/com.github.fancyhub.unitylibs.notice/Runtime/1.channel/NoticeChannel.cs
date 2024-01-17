@@ -26,10 +26,10 @@ namespace FH
 
     public struct NoticeContainerContext
     {
-        public INoticeChannelRoot _root;
-        public NoticeDataQueue _data_queue;
-        public IClock _clock;
-        public bool _Visible;
+        public INoticeChannelRoot Root;
+        public NoticeDataQueue DataQueue;
+        public IClock Clock;
+        public bool Visible;
     }
 
     public interface INoticeContainer
@@ -62,40 +62,37 @@ namespace FH
             _VisibleCtrl = new NoticeVisibleCtrl(config.Visible);
             _context = new NoticeContainerContext()
             {
-                _data_queue = new NoticeDataQueue(),
-                _clock = new ClockDecorator(clock),
-                _root = root,
-                _Visible = true,
+                DataQueue = new NoticeDataQueue(),
+                Clock = new ClockDecorator(clock),
+                Root = root,
+                Visible = true,
             };
             _container = container;
         }
 
-        public void Push(NoticeData data)
+        public void Push(NoticeData data, INoticeItem item)
         {
-            data._add_time_ms = _context._clock.Time;
-            _context._data_queue.Push(data);
+            _context.DataQueue.Push(new NoticeData(data, item, _context.Clock.Time));
         }
 
         public void Update()
         {
             _container.OnUpdate(_context);
-
-            _context._clock.ScaleFloat = _Config.TimeScale.CalcScale(_context._data_queue.Count);
+            _context.Clock.ScaleFloat = _Config.TimeScale.CalcScale(_context.DataQueue.Count);
         }
-
 
         public void Destroy()
         {
             _container.OnDestroy();
             _container = null;
-            _context._root.Destroy();
-            _context._root = null;
+            _context.Root.Destroy();
+            _context.Root = null;
         }
 
         //当前是否可以显示
         public bool IsVisible()
         {
-            return _context._Visible;
+            return _context.Visible;
         }
 
         /// <summary>
@@ -106,9 +103,9 @@ namespace FH
         public void SetVisibleFlag(ENoticeVisibleFlag flag)
         {
             bool visible = _VisibleCtrl.IsVisible(flag);
-            if (_context._Visible == visible)
+            if (_context.Visible == visible)
                 return;
-            _context._Visible = visible;
+            _context.Visible = visible;
             _container.OnVisibleChange(visible);
         }
 

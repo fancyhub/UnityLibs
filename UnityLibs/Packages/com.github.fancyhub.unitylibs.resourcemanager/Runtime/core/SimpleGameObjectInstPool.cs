@@ -40,6 +40,7 @@ namespace FH
                 {
                     item.Using = true;
                     _All[id] = item;
+                    item.Obj.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
                     ResLog._.D("SimpleGameObjectInstPool, PopFree: {0}", id);
                     return item.Obj;
                 }

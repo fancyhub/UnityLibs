@@ -50,40 +50,29 @@ namespace FH.NoticeSample
             MonoUpdater.ActionUpdate = _Mgr.Update;
         }
 
-        public static void ShowNotice(NoticeData data)
+        public static void ShowNotice(NoticeData data, INoticeItem item)
         {
-            _Mgr?.ShowNotice(data);
+            if (item == null)
+                return;
+            if (_Mgr == null)
+            {
+                item.Destroy();
+                return;
+            }
+            _Mgr.ShowNotice(data, item);
         }
 
         //跑马灯
         public static void ShowMarquee(string txt, float duration_sec = 5.0f)
         {
-            if (_Mgr == null)
-                return;
-
-            NoticeData data = new NoticeData()
-            {
-                _channel = ENoticeChannel.Common,
-                _duration_expire = -1,
-                _duration_show = (int)(duration_sec * 1000),
-                _item = new NoticeItemTextMarquee(txt)
-            };
-            _Mgr.ShowNotice(data);
+            NoticeData data = new NoticeData(ENoticeChannel.Common, duration_sec);
+            ShowNotice(data, NoticeItemTextMarquee.Create(txt));
         }
 
         public static void ShowCommon(string txt, float duration_sec = 2.0f)
         {
-            if (_Mgr == null)
-                return;
-
-            NoticeData data = new NoticeData()
-            {
-                _channel = ENoticeChannel.Common,
-                _duration_expire = -1,
-                _duration_show = (int)(duration_sec * 1000),
-                _item = new NoticeItemText(txt)
-            };
-            _Mgr.ShowNotice(data);
+            NoticeData data = new NoticeData(ENoticeChannel.Common, duration_sec);
+            ShowNotice(data, NoticeItemText.Create(txt));             
         }
 
 

@@ -549,7 +549,7 @@ MonoBehaviour:
     _channel: 1
     _view_type: 0
     _priority: 0
-    _duration: 2
+    _duration: 10
     _img_name: Props_icon_1
     _text: Hello World
     _count: 10

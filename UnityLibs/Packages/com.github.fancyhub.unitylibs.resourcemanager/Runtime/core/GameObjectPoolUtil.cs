@@ -37,15 +37,15 @@ namespace FH
         {
             if (null == _dummy_inactive)
             {
-                GameObject obj = new GameObject("new_pool_inactive");
+                GameObject obj = new GameObject("__PoolInactive");
                 GameObject.DontDestroyOnLoad(obj);
                 _dummy_inactive = obj.transform;
 
                 obj.SetActive(false);
 
                 //移远一些
-                float pos = 1000000;
-                _dummy_inactive.transform.localPosition = new Vector3(pos, pos, pos);
+                //float pos = 1000000;
+                //_dummy_inactive.transform.localPosition = new Vector3(pos, pos, pos);
             }
 
             return _dummy_inactive;
@@ -56,10 +56,10 @@ namespace FH
         {
             if (null == _dummy_active)
             {
-                GameObject obj = new GameObject("new_pool_active");
+                GameObject obj = new GameObject("__PoolActive");
                 GameObject.DontDestroyOnLoad(obj);
                 _dummy_active = obj.transform;
-                float pos = 1000000;
+                float pos = 10000;
                 _dummy_active.transform.localPosition = new Vector3(pos, pos, pos);
             }
             return _dummy_active;
@@ -117,7 +117,6 @@ namespace FH
 
             //3. 获取组件, 组件disable/enable模式
             obj.transform.SetParent(GetDummyInactive(), false);
-            obj.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
         }
     }
 }

@@ -5,6 +5,7 @@
  * Desc    : 
 *************************************************************************************/
 
+using System;
 using System.Collections.Generic;
 
 namespace FH
@@ -33,12 +34,54 @@ namespace FH
             _queue.ExtClear();
         }
 
+        public void Strip(int max_count, long now_time)
+        {
+            //1. 先删除过期的
+            {
+                var node = _queue.First;
+                for (; ; )
+                {
+                    if (node == null)
+                        break;
+                    if (node.Value.IsExpire(now_time))
+                    {
+                        node.Value.Destroy();
+                        var t = node.Next;
+                        _queue.ExtRemove(node);
+                        node = t;
+                    }
+                    else
+                    {
+                        node = node.Next;
+                    }
+                }
+            }
+
+            //2. 如果数量够了
+            if (_queue.Count <= max_count || max_count <= 0)
+                return;
+
+            //3. 删除低优先级的            
+            for (; ; )
+            {
+                //找到相同优先级的开始节点
+                var start_node = _FindStartNodeWithSampePriority(_queue.Last);
+                //删除相同优先级的, 从头开始删除, 也就是说, 后加的保留
+                _RemoveNodes(start_node, max_count);
+
+                //够了
+                if (_queue.Count <= max_count)
+                    return;
+            }
+        }
+
         /// <summary>
         /// 向数据队列中插入数据，根据优先级来判定
+        /// 优先级大的在前面, 相同优先级, 后来的在后面
         /// </summary>
         public void Push(NoticeData data)
         {
-            if (null == data)
+            if (null == data.Item)
             {
                 NoticeLog.E("data is null, operation failed, plis check!");
                 return;
@@ -48,13 +91,13 @@ namespace FH
             if (_TryMerge(_queue, data))
                 return;
 
-            int priority = data._priority;
+            int priority = data.Priority;
 
-            //从大大小排序
+            //从大到小排序
             var node = _queue.First;
             for (; node != null; node = node.Next)
             {
-                if (node.Value._priority < priority)
+                if (node.Value.Priority < priority)
                     break;
             }
 
@@ -67,31 +110,40 @@ namespace FH
         /// <summary>
         /// 查看第一个数据
         /// </summary>
-        public NoticeData Peek()
+        public bool Peek(out NoticeData data)
         {
+            data = default;
             if (_queue.Count == 0)
-                return null;
-            return _queue.First.Value;
+                return false;
+            data = _queue.First.Value;
+            return true;
         }
 
         /// <summary>
         /// 弹出一个数据
         /// </summary>
-        public NoticeData Pop(long time_now, int priority = int.MinValue)
+        public bool Pop(out NoticeData data, long time_now, int priority = int.MinValue)
         {
+            data = default;
             for (; ; )
             {
                 LinkedListNode<NoticeData> node = _queue.First;
                 if (node == null)
-                    return null;
+                    return false;
 
                 NoticeData ret = node.Value;
-                if (ret._priority <= priority)
-                    return null;
+                if (ret.Priority <= priority)
+                    return false;
 
-                _queue.ExtRemoveFirst();
-                if (ret.ExpireTime > time_now)
-                    return ret;
+                if (!ret.IsExpire(time_now))
+                {
+                    _queue.ExtRemove(node);
+                    data = ret;
+                    return true;
+                }
+
+                node.Value.Destroy();
+                _queue.ExtRemove(node);
             }
         }
 
@@ -109,14 +161,45 @@ namespace FH
             _queue.ExtClear();
         }
 
-        private bool _TryMerge(LinkedList<NoticeData> data_list, NoticeData new_data)
+        private static bool _TryMerge(LinkedList<NoticeData> data_list, NoticeData new_data)
         {
             foreach (var data in data_list)
             {
-                if (data._item.Merge(new_data._item))
+                if (data.Item.TryMerge(new_data.Item))
                     return true;
             }
             return false;
+        }
+
+        private static void _RemoveNodes(LinkedListNode<NoticeData> node, int remain_max_count)
+        {
+            var list = node.List;
+            for (; ; )
+            {
+                if (node == null || list.Count <= remain_max_count)
+                    return;
+
+                var t = node.Next;
+                node.Value.Destroy();
+                list.ExtRemove(node);
+                node = t;
+            }
+        }
+
+        private static LinkedListNode<NoticeData> _FindStartNodeWithSampePriority(LinkedListNode<NoticeData> end_node)
+        {
+            var start_node = end_node;
+            int priority = end_node.Value.Priority;
+            for (; ; )
+            {
+                var pre_node = start_node.Previous;
+                if (pre_node == null)
+                    break;
+                if (pre_node.Value.Priority != priority)
+                    break;
+                start_node = pre_node;
+            }
+            return start_node;
         }
     }
 }

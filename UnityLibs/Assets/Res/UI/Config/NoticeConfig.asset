@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13d4e3766b8881743b1951dacdcf4607, type: 3}
   m_Name: NoticeConfig
   m_EditorClassIdentifier: 
-  LogLvl: 1
+  LogLvl: 0
   Channels:
   - ChannelType: 1
     Dummy:
@@ -32,10 +32,10 @@ MonoBehaviour:
     Container:
       ContainerType: 2
       Multi:
-        _MaxShowCount: 3
-        _StepMoveDuration: 0.3
-        _DirUp: 1
-        _Immediate: 0
+        MaxShowCount: 3
+        StepMoveDuration: 0.3
+        DirUp: 1
+        Immediate: 0
       Time:
         ShowUpDuration: 0.3
         HideOutDuration: 0.3

@@ -33,7 +33,7 @@ namespace FH
 
         public NoticeItemTime CreateNoticeItemTime(NoticeData data)
         {
-            return new NoticeItemTime(data._duration_show, (int)(ShowUpDuration * 1000), (int)(HideOutDuration * 1000));
+            return new NoticeItemTime(data.DurationShow, (int)(ShowUpDuration * 1000), (int)(HideOutDuration * 1000));
         } 
     }
 

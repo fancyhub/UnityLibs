@@ -39,46 +39,47 @@ namespace FH.NoticeSample
 
         public void Show()
         {
+            if (!Application.isPlaying)
+                return;
+
             StartCoroutine(_ShowNotice());
         }
 
         private IEnumerator _ShowNotice()
         {
-            List<NoticeData> list = new List<NoticeData>(_testData._count);
+            string txt = _testData._text;
+            float time = _testData._interval;
+            int count = _testData._count;
+            var view_type = _testData._view_type;
+            NoticeData data = new NoticeData(_testData._channel, _testData._duration, _testData._priority);
 
-            for (int i = 0; i < _testData._count; i++)
+            if (time <= 0)
             {
-                NoticeData data = new NoticeData()
+                for (int i = 0; i < count; i++)
                 {
-                    _channel = _testData._channel,
-                    _duration_expire = -1,
-                    _duration_show = (int)(_testData._duration * 1000),
-                    _priority = _testData._priority,
-                    _item = _create_item(_testData._text + " " + i.ToString())
-                };
-                list.Add(data);
+                    NoticeApi.ShowNotice(data, _CreateItem(view_type, txt + " " + i.ToString()));
+                }
             }
-
-            float time = Math.Max(1.0f, _testData._interval);
-
-            foreach (var p in list)
+            else
             {
-                NoticeApi.ShowNotice(p);
-
-                yield return new WaitForSeconds(time);
+                for (int i = 0; i < count; i++)
+                {
+                    NoticeApi.ShowNotice(data, _CreateItem(view_type, txt + " " + i.ToString()));
+                    yield return new WaitForSeconds(time);
+                }
             }
         }
 
-        public INoticeItem _create_item(string txt)
+        public static INoticeItem _CreateItem(ENoticeViewType view_type, string txt)
         {
-            switch (_testData._view_type)
+            switch (view_type)
             {
                 case ENoticeViewType.text:
-                    return new NoticeItemText(txt);
+                    return NoticeItemText.Create(txt);
                 case ENoticeViewType.marquee:
-                    return new NoticeItemTextMarquee(txt);
+                    return NoticeItemTextMarquee.Create(txt);
                 default:
-                    Debug.LogErrorFormat("未实现格式 {0}", _testData._view_type);
+                    Debug.LogErrorFormat("未实现格式 {0}", view_type);
                     return null;
             }
         }
