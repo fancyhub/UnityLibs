@@ -103,7 +103,11 @@ namespace FH
 
         public bool IsValid()
         {
-            return _move_obj != null;
+            if (_move_obj == null)
+                return false;
+            if (_item == null)
+                return false;
+            return _item.IsValid();
         }
 
         public void Update()

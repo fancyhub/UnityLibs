@@ -74,6 +74,8 @@ namespace FH
 
         bool TryMerge(INoticeItem other);
 
+        bool IsValid();
+
         Vector2 GetViewSize();
     }
 }

@@ -12,21 +12,26 @@ using UnityEngine.UI;
 
 namespace FH.NoticeSample
 {
-    public sealed class NoticeItemText : CPoolItemBase, INoticeItem
+    public sealed class NoticeItemMessageBox : CPoolItemBase, INoticeItem
     {
         public const float C_FADE_OUT_PERCENT = 0.8f;
-        private const string CPath = "Packages/com.github.fancyhub.unitylibs.notice/Tests/Runtime/Res/UINoticeText.prefab";
+        private const string CPath = "Packages/com.github.fancyhub.unitylibs.notice/Tests/Runtime/Res/UINoticeMessageBox.prefab";
 
         public string _Text;
-        
+        public string _BtnName;
+
         public RectTransform _view;
         public NoticeItemDummy _dummy;
 
-        public static NoticeItemText Create(string text)
+        public static NoticeItemMessageBox Create(string text, string btn_name = null)
         {
-            
-            NoticeItemText ret = GPool.New<NoticeItemText>();
+            NoticeItemMessageBox ret = GPool.New<NoticeItemMessageBox>();
             ret._Text = text;
+            ret._BtnName = btn_name;
+
+            if (string.IsNullOrEmpty(btn_name))
+                ret._BtnName = "OK";
+
             return ret;
         }
 
@@ -56,10 +61,21 @@ namespace FH.NoticeSample
 
             GameObject obj = dummy.CreateView(CPath);
 
-            _view = obj.GetComponent<RectTransform>();            
+            _view = obj.GetComponent<RectTransform>();
+
             _view.Find("_txt").GetComponent<Text>().text = _Text;
-            
+            var btn = _view.Find("_btn").GetComponent<Button>();
+            btn.onClick.RemoveAllListeners();
+            btn.onClick.AddListener(_OnBtnClick);
+            btn.transform.Find("_txt_btn").GetComponent<Text>().text = _BtnName;
+
             UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(_view);
+        }
+
+        private void _OnBtnClick()
+        {
+            _dummy.ReleaseView(ref _view);
+            _dummy = default;
         }
 
         public void HideOut(NoticeItemTime time, List<NoticeEffectItemConfig> effect)

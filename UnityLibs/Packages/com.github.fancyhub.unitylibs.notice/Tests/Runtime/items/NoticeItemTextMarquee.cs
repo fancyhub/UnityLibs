@@ -35,6 +35,10 @@ namespace FH.NoticeSample
             _dummy = default;
             _TxtComp = null;
         }
+        public bool IsValid()
+        {
+            return _view != null;
+        }
 
         public Vector2 GetViewSize()
         {

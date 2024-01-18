@@ -17,7 +17,7 @@ MonoBehaviour:
   - ChannelType: 1
     Dummy:
       LayerName: 
-      PosX: 0
+      PosX: 0.5
       PosY: 0.3
     Channel:
       Visible:
@@ -30,7 +30,7 @@ MonoBehaviour:
         PendingCount: 10
         TimeScale: 2
     Container:
-      ContainerType: 2
+      ContainerType: 1
       Multi:
         MaxShowCount: 3
         StepMoveDuration: 0.3
@@ -41,8 +41,8 @@ MonoBehaviour:
         HideOutDuration: 0.3
       Effect:
         ShowUp:
-        - EffectType: 6
+        - EffectType: 1
           MoveDistance: 0
         HideOut:
-        - EffectType: 7
+        - EffectType: 2
           MoveDistance: 0

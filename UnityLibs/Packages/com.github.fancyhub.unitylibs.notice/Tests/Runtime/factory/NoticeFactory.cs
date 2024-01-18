@@ -13,7 +13,7 @@ namespace FH.NoticeSample
     /// <summary>
     /// container的工厂, 自己实现
     /// </summary>
-    public static class NoticeFactory
+    internal static class NoticeFactory
     {
         public static INoticeChannel CreateChannel(NoticeConfig config, IClock clock, IResInstHolder holder)
         {

@@ -19,6 +19,7 @@ namespace FH.NoticeSample
         {
             text,
             marquee, //走马灯
+            message_box,
         }
 
 
@@ -78,6 +79,9 @@ namespace FH.NoticeSample
                     return NoticeItemText.Create(txt);
                 case ENoticeViewType.marquee:
                     return NoticeItemTextMarquee.Create(txt);
+                case ENoticeViewType.message_box:
+                    return NoticeItemMessageBox.Create(txt);
+
                 default:
                     Debug.LogErrorFormat("未实现格式 {0}", view_type);
                     return null;
