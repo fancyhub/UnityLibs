@@ -26,8 +26,7 @@ namespace FH
         public bool IsEnd => _Tokenizer.IsEnd;
 
         public bool ReadRow(List<Str> out_list)
-        {
-            out_list.Clear();
+        {            
             if (IsEnd)
                 return false;
             for (; ; )

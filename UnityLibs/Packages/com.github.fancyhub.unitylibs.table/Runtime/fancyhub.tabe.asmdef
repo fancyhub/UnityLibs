@@ -1,0 +1,19 @@
+{
+    "name": "fancyhub.table",
+    "rootNamespace": "",
+    "references": [
+        "GUID:fd3e1939cfeaae345a28d38349cb6f69",
+        "GUID:ec61da970fbb79e4db6487b308d23cda",
+        "GUID:8778f4f6958ad5944bdd30fa384e231e",
+        "GUID:6a744d089d0bea940a735cbd7b544cf5"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

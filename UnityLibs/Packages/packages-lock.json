@@ -103,6 +103,12 @@
         "com.github.fancyhub.unitylibs.unityutil": "1.0.0"
       }
     },
+    "com.github.fancyhub.unitylibs.localization": {
+      "version": "file:com.github.fancyhub.unitylibs.localization",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.github.fancyhub.unitylibs.log": {
       "version": "file:com.github.fancyhub.unitylibs.log",
       "depth": 0,
@@ -199,6 +205,12 @@
     },
     "com.github.fancyhub.unitylibs.streamingassetsfilesystem": {
       "version": "file:com.github.fancyhub.unitylibs.streamingassetsfilesystem",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.github.fancyhub.unitylibs.table": {
+      "version": "file:com.github.fancyhub.unitylibs.table",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}

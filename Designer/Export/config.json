@@ -1,0 +1,59 @@
+{
+    "excelPaths": [
+        "../Excel",
+    ],
+    "validation": {
+        "searchFileRoot": "../../Client/Resources",
+        "sheetNameReg": "^[A-Z][a-zA-Z0-9]*$",
+        "colNameReg": "^[A-Z][a-zA-Z0-9_]*$",
+        "enumNameReg": "^E[A-Z][A-Za-z0-9_]*$",
+        "enumFieldNameReg": "[A-Z][a-zA-Z0-9_]*$"
+    },
+    "localization": {
+        "enable": true,
+        "sheetName": "Loc",
+        "defaultLang": "zh-Hans",
+        "useHashId": true,
+        "autoGenKey": true
+    },
+    "exportCommon": {
+        "localizationTranslate": {
+            "enable": false,
+            "dir": "Output"
+        }
+    },
+    "exportClient": {
+        "csv": {
+            "enable": true,
+            "utf8bom": true,
+            "dir": "../../ClientData/Table"
+        },
+        "bin": {
+            "enable": true,
+            "dir": "../../ClientData/Table"
+        },		 
+        "csharp": {
+            "enable": true,
+            "namespaceName": "FH",
+            "parentClass": "",
+            "classPrefix": "T",
+            "classSuffix": "",
+            "dir": "Output/Client/CS",
+            "header": "using System;\nusing System.Collections;\nusing System.Collections.Generic;\nusing LocStr = FH.LocKey;\n",
+            "loader": {
+                "enable": true
+            },
+            "getter": {
+                "enable": true,
+                "className": "TableMgr",
+                "useStatic": true,
+            },
+            "locId": {
+                "enable": true,
+                "locIdStartWith": ""
+            }
+        }         
+    },
+    "exportServer": {       
+    }
+}

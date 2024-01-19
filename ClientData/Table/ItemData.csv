@@ -1,0 +1,6 @@
+﻿Id,Name,Type,SubType,Quality,PairField,PairField2,PairField3,PairFieldList,PairFieldList2,ListField
+int32,locid,int32,int32,int32,int32_bool,int32_bool,int32_int32,list_int32_int64,list_int32_int64,list_int32
+1,2060870989,1,1,4,1|1,1|1,1|3,3|4;5|6;10|12,3|4;5|6;10|12,4;0;6
+2,1652419321,1,2,3,,,,,,
+4,-1110617033,0,1,2,,,,,,
+6,-1524591491,0,2,3,,,,,,
