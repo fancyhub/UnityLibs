@@ -4,30 +4,38 @@
  * Title   : 
  * Desc    : 
 *************************************************************************************/
-
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using ZString = System.String;
 
 namespace FH
 {
+    /// <summary>
+    /// 不支持 阿拉伯 语言
+    /// </summary>
     [RequireComponent(typeof(Text))]
     public sealed class LocTextComp : LocComp
     {
-        public LocTextStyleAsset Style;
+        [SerializeField] private List<string> _Arguments;
+        [SerializeField] private LocTextStyleAsset _Style;
 
         private Text _Text;
-        private Text _GetText()
+        public Text Text
         {
-            if (_Text == null)
-                _Text = GetComponent<Text>();
-            return _Text;
+            get
+            {
+                if (_Text == null)
+                    _Text = GetComponent<Text>();
+                return _Text;
+            }
         }
 
         public override void OnLocalize(string lang)
         {
-            if (!LocMgr.TryGet(this._LocKey, out var tran))
+            if (!TryGetTran(out var tran))
                 return;
-            Text text = _GetText();
+            Text text = Text;
             if (text.text != tran)
                 text.text = tran;
 
@@ -37,14 +45,15 @@ namespace FH
 #if UNITY_EDITOR
         public override void EdDoLocalize(string lang)
         {
-            if (!LocMgr.EdTryGet(this._LocKey, lang, out var tran))
+            if (!EdTryGetTran(lang, out var tran))
                 return;
+            string content = _Format(tran, _Arguments);
 
-            Text text = _GetText();
+            Text text_comp = Text;
             bool changed = false;
-            if (text.text != tran)
+            if (text_comp.text != content)
             {
-                text.text = tran;
+                text_comp.text = content;
                 changed = true;
             }
 
@@ -53,7 +62,7 @@ namespace FH
 
             if (changed)
             {
-                UnityEditor.EditorUtility.SetDirty(text);
+                UnityEditor.EditorUtility.SetDirty(text_comp);
             }
         }
 #endif
@@ -64,13 +73,40 @@ namespace FH
             _FontResRef = default;
         }
 
+        private static string _Format(string translation, List<string> args)
+        {
+            if (args == null || args.Count == 0)
+                return translation;
+
+            switch (args.Count)
+            {
+                case 1:
+                    return ZString.Format(translation, args[0]);
+                case 2:
+                    return ZString.Format(translation, args[0], args[1]);
+                case 3:
+                    return ZString.Format(translation, args[0], args[1], args[2]);
+                case 4:
+                    return ZString.Format(translation, args[0], args[1], args[2], args[3]);
+                case 5:
+                    return ZString.Format(translation, args[0], args[1], args[2], args[3], args[4]);
+                case 6:
+                    return ZString.Format(translation, args[0], args[1], args[2], args[3], args[4], args[5]);
+                case 7:
+                    return ZString.Format(translation, args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+                default:
+                    LocLog._.E("LocTextComp Format Args's num out of TypeParamMax");
+                    return translation;
+            }
+        }
+
 
         private bool _ApplyStyle(string lang)
         {
-            if (Style == null)
+            if (_Style == null)
                 return false;
 
-            LocTextStyleAsset.TextStyle text_style = Style.Find(lang);
+            LocTextStyleAsset.TextStyle text_style = _Style.Find(lang);
             if (text_style == null)
             {
                 LocLog._.Assert(this, false, "找不到Style: {0}", lang);
@@ -79,7 +115,7 @@ namespace FH
 
             bool changed = false;
             Font font = _LoadFont(text_style);
-            Text text = _GetText();
+            Text text = Text;
             if (text.font != font)
             {
                 text.font = font;

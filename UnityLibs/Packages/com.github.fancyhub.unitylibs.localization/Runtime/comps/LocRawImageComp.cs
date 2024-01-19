@@ -23,7 +23,7 @@ namespace FH
 
         public override void OnLocalize(string lang)
         {
-            if (!LocMgr.TryGet(this._LocKey, out var tran))
+            if (!TryGetTran(out var tran))
                 return;
             RawImage image = _GetImage();
             image.ExtSetTexture(tran);
@@ -32,13 +32,13 @@ namespace FH
 #if UNITY_EDITOR
         public override void EdDoLocalize(string lang)
         {
-            if (!LocMgr.EdTryGet(this._LocKey, lang, out var tran))
+            if (!EdTryGetTran(lang, out var tran))
                 return;
 
             Texture texture = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture>(tran);
             if (texture == null)
             {
-                LocLog._.E("加载Texture失败 {0}:{1}", this._LocKey.Key, tran);
+                LocLog._.E(this, "加载Texture失败 {0}", tran);
                 return;
             }
 

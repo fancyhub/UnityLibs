@@ -24,7 +24,7 @@ namespace FH{
 		/// </summary>
 		LOCIMAGE_VAL_IMAGEA = 2124284896,
 		/// <summary>
-		/// 测试
+		/// 测试 {0} {1}
 		/// </summary>
 		TC_VAL_TC_A = -545902083,
 		/// <summary>

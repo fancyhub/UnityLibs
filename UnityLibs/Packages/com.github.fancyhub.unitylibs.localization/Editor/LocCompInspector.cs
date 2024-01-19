@@ -1,4 +1,9 @@
-using JetBrains.Annotations;
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2024/1/18
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
 using System;
 using System.Collections.Generic;
 using UnityEditor;
@@ -9,9 +14,11 @@ namespace FH
     [CustomEditor(typeof(LocComp), true)]
     public class LocCompInspector : Editor
     {
+        private SerializedProperty _KeyProperty;
         private int _LangIndex;
-        public void OnEnable()
+        public virtual void OnEnable()
         {
+            _KeyProperty = serializedObject.FindProperty("_LocKey");
             if (LocMgr.FuncLoader == null)
             {
                 ITableReaderCreator table_reader_creator = new TableReaderCsvCreator(TableMgr.CDataDir);
@@ -45,7 +52,6 @@ namespace FH
 
         public override void OnInspectorGUI()
         {
-
             GUILayout.BeginHorizontal();
 
             int index = EditorGUILayout.Popup("Lang", _LangIndex, LocLang.LangList);
@@ -63,7 +69,7 @@ namespace FH
             GUILayout.EndHorizontal();
 
 
-            base.OnInspectorGUI();
+            EditorGUILayout.PropertyField(_KeyProperty);
         }
     }
 }
