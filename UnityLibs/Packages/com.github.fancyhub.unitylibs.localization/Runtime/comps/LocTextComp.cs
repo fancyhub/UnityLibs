@@ -35,9 +35,12 @@ namespace FH
         {
             if (!TryGetTran(out var tran))
                 return;
-            Text text = Text;
-            if (text.text != tran)
-                text.text = tran;
+
+            string content = _Format(tran, _Arguments);
+
+            Text text_comp = Text;
+            if (text_comp.text != content)
+                text_comp.text = content;
 
             _ApplyStyle(lang);
         }
