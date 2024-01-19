@@ -137,30 +137,4 @@ namespace FH{
 		public string Val;
 
     }
-
-    public sealed partial class TTestComposeKey 
-    {
-		/// <summary>
-		/// PK[Level]
-		/// 角色Id
-		/// </summary>
-		public uint Id;
-		/// <summary>
-		/// 等级
-		/// </summary>
-		public int Level;
-		/// <summary>
-		/// 名字
-		/// </summary>
-		public LocId Name;
-		/// <summary>
-		/// 位置
-		/// </summary>
-		public UnityEngine.Vector3 Pos;
-		/// <summary>
-		/// 标记位
-		/// </summary>
-		public EItemFlag Flags;
-
-    }
 }
