@@ -40,8 +40,8 @@ namespace FH
 
         public UnityEngine.Object Get() { return ResPool.Val?.Get(Id); }
         public T Get<T>() where T : UnityEngine.Object { return ResPool.Val?.Get<T>(Id); }
-        public void AddUser(System.Object user) { ResPool.Val?.AddUser(Id, user); }
-        public void RemoveUser(System.Object user) { ResPool.Val?.RemoveUser(Id, user); }
+        public void AddUser(System.Object user) { if (Id.IsValid()) ResPool.Val?.AddUser(Id, user); }
+        public void RemoveUser(System.Object user) { if (Id.IsValid()) ResPool.Val?.RemoveUser(Id, user); }
 
         public override string ToString()
         {

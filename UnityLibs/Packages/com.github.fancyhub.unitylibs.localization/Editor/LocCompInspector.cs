@@ -7,7 +7,7 @@ using UnityEngine;
 namespace FH
 {
     [CustomEditor(typeof(LocComp), true)]
-    public class LocCompInsectpor : Editor
+    public class LocCompInspector : Editor
     {
         private int _LangIndex;
         public void OnEnable()

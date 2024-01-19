@@ -15,9 +15,9 @@ namespace FH
     {
         private static Dictionary<string, string[]> _EdAllData = new()
         {
-            { "Hello", new string[]{ "你好",""} },
-            { "Hello1", new string[]{ "你好1",""} },
-            { "Hello2", new string[]{ "你好2",""} },
+            //{ "Hello", new string[]{ "你好",""} },
+            //{ "Hello1", new string[]{ "你好1",""} },
+            //{ "Hello2", new string[]{ "你好2",""} },
         };
 
         public static bool EdContainsKey(string key)
@@ -40,9 +40,12 @@ namespace FH
 
         public static bool EdTryGet(LocKey key, string lang, out string trans)
         {
+            if (_EdAllData.Count == 0 && _._FuncLoader != null)            
+                EdReloadAll();
+            
             trans = null;
-            if (string.IsNullOrEmpty(key.Key))            
-                return false;            
+            if (string.IsNullOrEmpty(key.Key))
+                return false;
 
             if (!EdTryGetTrans(key.Key, out var all_trans))
             {
