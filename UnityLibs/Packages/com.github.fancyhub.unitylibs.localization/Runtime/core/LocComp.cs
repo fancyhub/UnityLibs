@@ -52,9 +52,9 @@ namespace FH
         protected bool TryGetTran(out string tran)
         {
             if (_Mode == EMode.Key)
-                return LocMgr.TryGet(this._LocKey, out tran);
+                return LocMgr.TryGet(this._LocKey, out tran, this);
             else
-                return LocMgr.TryGet(this._LocId, out tran);
+                return LocMgr.TryGet(this._LocId, out tran, this);
         }
 
 #if UNITY_EDITOR

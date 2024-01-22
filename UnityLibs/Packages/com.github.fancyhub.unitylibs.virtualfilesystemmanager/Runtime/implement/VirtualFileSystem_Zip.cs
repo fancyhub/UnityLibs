@@ -7,6 +7,7 @@
 using FH.VFSManagement;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.IO;
 using System.IO.Compression;
 
@@ -26,14 +27,28 @@ namespace FH
 
         public static VirtualFileSystem_Zip CreateFromFile(string name, string file_path)
         {
-            ZipArchive zipArchive = ZipFile.OpenRead(file_path);
-            if (zipArchive == null)
+            if (!System.IO.File.Exists(file_path))
             {
-                VfsLog._.E("加载失败 {0}:{1}", name, file_path);
+                VfsLog._.E("File Not Exist {0}:{1}", name, file_path);
                 return null;
             }
 
-            return new VirtualFileSystem_Zip(name, zipArchive);
+            try
+            {
+                ZipArchive zipArchive = ZipFile.OpenRead(file_path);
+                if (zipArchive == null)
+                {
+                    VfsLog._.E("加载失败 {0}:{1}", name, file_path);
+                    return null;
+                }
+
+                return new VirtualFileSystem_Zip(name, zipArchive);
+            }
+            catch (Exception e)
+            {
+                VfsLog._.E(e);
+                return null;
+            }
         }
 
         public string Name => _Name;

@@ -19,7 +19,7 @@ namespace FH
 
         public byte[] ReadAllBytes(string file_path);
         public string ReadAllText(string file_path);
-        
+
         public Stream OpenRead(string file_path);
 
         public bool Exist(string file_path);
@@ -140,9 +140,15 @@ namespace FH
                 return null;
             }
 
-            return mgr.ReadAllText(file_path);            
+            return mgr.ReadAllText(file_path);
         }
 
+        public static void Destroy()
+        {
+            IVfsMgr mgr = _.Val;
+            _ = default;
+            mgr?.Destroy();
+        }
 
         /// <summary>
         /// 这个比较特殊，用的时候，一定要读取完之后，直接关闭

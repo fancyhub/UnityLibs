@@ -20,24 +20,20 @@ namespace FH{
 		/// </summary>
 		ITEMDATA_NAME_6 = -1524591491,
 		/// <summary>
-		/// 测试
+		/// Assets/Res/UI/Sprite/s1.png
+		/// </summary>
+		LOCIMAGE_VAL_IMAGEA = 2124284896,
+		/// <summary>
+		/// Assets/Res/UI/Texture/t1.png
+		/// </summary>
+		LOCIMAGE_VAL_TEXTUREA = -1780307845,
+		/// <summary>
+		/// 测试 {0} {1}
 		/// </summary>
 		TC_VAL_TC_A = -545902083,
 		/// <summary>
 		/// 你好
 		/// </summary>
 		TC_VAL_TC_B = -1193183382,
-		/// <summary>
-		/// 测试
-		/// </summary>
-		TESTCOMPOSEKEY_NAME_1_1 = -311812298,
-		/// <summary>
-		/// 你好
-		/// </summary>
-		TESTCOMPOSEKEY_NAME_1_2 = -1414240540,
-		/// <summary>
-		/// 我好
-		/// </summary>
-		TESTCOMPOSEKEY_NAME_2_1 = -1867547319,
 	}
 }

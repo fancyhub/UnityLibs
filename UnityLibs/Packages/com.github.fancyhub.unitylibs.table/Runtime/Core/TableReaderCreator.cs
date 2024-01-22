@@ -46,7 +46,7 @@ namespace FH
 
             if (!System.IO.File.Exists(full_path))
             {
-                Log.E("找不到文件 {0}", full_path);
+                TableLog.E("找不到文件 {0}", full_path);
                 return null;
             }
 
@@ -59,8 +59,6 @@ namespace FH
                 return ret;
             }
         }
-
-
     }
 
     public class TableReaderBinCreator : ITableReaderCreator
@@ -118,7 +116,7 @@ namespace FH
 
             if (!System.IO.File.Exists(full_path))
             {
-                Log.E("找不到文件 {0}", full_path);
+                TableLog.E("找不到文件 {0}", full_path);
                 return null;
             }
             return System.IO.File.ReadAllBytes(full_path);

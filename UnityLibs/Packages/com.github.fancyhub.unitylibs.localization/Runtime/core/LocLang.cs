@@ -11,7 +11,7 @@ namespace FH
 {
     public sealed class LocLang
     {
-        public const string LangKey = "Key";
+        public const string LangKey = "KEY";
 
         public const string FallBack = "zh-Hans";
 
@@ -148,17 +148,28 @@ namespace FH
         private bool _SetLang(string lang_code)
         {
             if (string.IsNullOrEmpty(lang_code))
+            {
+                LocLog._.E("LangCode Is Null");
                 return false;
+            }
 
             if (_Lang == lang_code)
+            {
+                LocLog._.D("LangCode Is Same");
                 return true;
+            }
 
             if (!IsValid(lang_code))
+            {
+                LocLog._.E("LangCode Is Not Valid: {0}", lang_code);
                 return false;
+            }
 
             _Lang = lang_code;
             _SavedLang = _Lang;
             PlayerPrefs.SetString(CSavedKey, _SavedLang);
+
+            LocLog._.D("Set Current Lang: {0}", lang_code);
             return true;
         }
 

@@ -1,0 +1,169 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2024/1/19
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
+
+using System;
+using UnityEngine;
+using UnityEngine.UI;
+namespace FH
+{
+    public static class UIImageSetterExt
+    {
+        public static void ExtSyncSetSprite(this Image img, string path)
+        {
+            ExtSetSprite(img, path, true);
+        }
+
+        public static void ExtAsyncSetSprite(this Image img, string path)
+        {
+            ExtSetSprite(img, path, false);
+        }
+
+        public static void ExtSetSprite(this Image img, string path, bool sync)
+        {
+            if (img == null)
+                return;
+
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                var sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                if (sprite == null)
+                    return;
+                img.sprite = sprite;
+                return;
+            }
+#endif
+
+            UIImageSetter img_loader = img.GetComponent<UIImageSetter>();
+            if (img_loader == null)
+                img_loader = img.gameObject.AddComponent<UIImageSetter>();
+            img_loader.SetSprite(path, sync);
+        }
+
+        [RequireComponent(typeof(Image))]
+        internal sealed class UIImageSetter : MonoBehaviour
+        {
+            private const int CPriority = 0;
+
+            private Image _Image;
+            private ResRef _ResRef;
+            private int _JobId;
+            private string _Path;
+
+            public void Awake()
+            {
+                _Image = GetComponent<Image>();
+            }
+
+            public void OnDestroy()
+            {
+                _ResRef.RemoveUser(this);
+                _ResRef = default;
+                _Path = null;
+
+                _CancelJob();
+            }
+
+
+            public void SetSprite(string path, bool sync)
+            {
+                //1. 判断是否相同
+                //这里不会因为 sync: true or false 发生变化
+                if (_Path == path)
+                    return;
+
+                //2.只是清除
+                if (string.IsNullOrEmpty(path))
+                {
+                    _Path = null;
+                    _CancelJob();
+
+                    _ResRef.RemoveUser(this);
+                    _Image.overrideSprite = null;
+                    return;
+                }
+
+                //3.Revert
+                _CancelJob();
+                _Path = path;
+
+                //4. 同步加载
+                if (sync)
+                {
+                    _ResRef.RemoveUser(this);
+                    _ResRef = default;
+                    _Image.overrideSprite = null;
+
+                    _ResRef = ResMgr.LoadSprite(path, true);
+                    _Image.overrideSprite = _ResRef.Get<Sprite>();
+                    if (_Image.overrideSprite != null)
+                        _ResRef.AddUser(this);
+                    else
+                        _ResRef = default;
+                }
+                else //异步加载
+                {
+                    //先同步加载
+                    ResRef new_res_ref = ResMgr.TryLoadExistSprite(path);
+                    Sprite new_sprite = new_res_ref.Get<Sprite>();
+                    if (new_sprite != null)
+                    {
+                        _ResRef.RemoveUser(this);
+                        _ResRef = default;
+
+                        _Image.overrideSprite = new_sprite;
+                        _ResRef = new_res_ref;
+                        _ResRef.AddUser(this);
+                    }
+                    else
+                    {
+                        EResError error = ResMgr.AsyncLoad(_Path, true, CPriority, _OnAsyncLoaded, out _JobId);
+                        if (error != EResError.OK)
+                        {
+                            _ResRef.RemoveUser(this);
+                            _ResRef = default;
+                            _Image.overrideSprite = null;
+                            _JobId = 0;
+                        }
+                    }
+                }
+            }
+
+            private void _CancelJob()
+            {
+                if (_JobId == 0)
+                    return;
+                ResMgr.CancelJob(_JobId);
+                _JobId = 0;
+            }
+
+            private void _OnAsyncLoaded(EResError code, string path, EResType resType, int job_id)
+            {
+                if (job_id != _JobId)
+                    return;
+                _JobId = 0;
+
+                if (code != EResError.OK)
+                {
+                    _ResRef.RemoveUser(this);
+                    _ResRef = default;
+                    _Image.overrideSprite = null;
+                    return;
+                }
+
+                ResRef new_res_ref = ResMgr.LoadSprite(path, false);
+                Sprite new_sprite = new_res_ref.Get<Sprite>();
+                _Image.overrideSprite = new_sprite;
+
+                _ResRef.RemoveUser(this);
+                _ResRef = default;
+                _ResRef = new_res_ref;
+                _ResRef.AddUser(this);
+            }
+        }
+    }
+}

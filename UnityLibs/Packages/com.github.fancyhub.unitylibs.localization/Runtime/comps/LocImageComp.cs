@@ -26,7 +26,9 @@ namespace FH
             if (!TryGetTran(out var tran))
                 return;
             Image image = _GetImage();
-            image.ExtSetSprite(tran);
+
+            LocLog._.D(this, "设置Sprite:{0}", tran);
+            image.ExtSetSprite(tran, false);
         }
 
 #if UNITY_EDITOR

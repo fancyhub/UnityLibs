@@ -28,7 +28,96 @@ namespace FH
 
 
         #region  Lang & Load 
-        public static void Change(string lang, List<(LocId key, string tran)> all)
+
+
+        public static void ChangeLang(string lang)
+        {
+            if (!LocLang.IsValid(lang))
+            {
+                LocLog._.E("Lang Is Not Valid {0}", lang);
+                return;
+            }
+
+            if (LocLang.Lang == lang)
+                return;
+
+            //加载器还没有好, 等待Loader好了
+            if (_._FuncLoader == null)
+            {
+                LocLang.SetLang(lang);
+                return;
+            }
+
+            LocLog._.D("加载多语言表: {0}", lang);
+            var trans = _._FuncLoader(lang);
+            if (trans == null)
+            {
+                LocLog._.E("Lang {0}, Load Trans failed", lang);
+                return;
+            }
+
+            _Change(lang, trans);
+        }
+
+        public static string Lang
+        {
+            get { return LocLang.Lang; }
+        }
+
+        public static TranslationLoader FuncLoader
+        {
+            get { return _._FuncLoader; }
+
+            set
+            {
+                if (value == null)
+                    return;
+                if (_._FuncLoader != null)
+                {
+                    LocLog._.E("不能设置多次");
+                    //不能两次
+                    return;
+                }
+                _._FuncLoader = value;
+                string lang = LocLang.Lang;
+                if (string.IsNullOrEmpty(lang))
+                {
+                    LocLog._.D("当前语言为null", lang);
+                    return;
+                }
+
+                LocLog._.D("加载多语言表: {0}", lang);
+                var trans = _._FuncLoader(lang);
+                if (trans == null)
+                {
+                    LocLog._.E("加载多语言表失败: {0}", lang);
+                    return;
+                }
+
+                _Change(lang, trans);
+            }
+        }
+
+        public static void Reload()
+        {
+            if (_._FuncLoader == null)
+                return;
+
+            string lang = LocLang.Lang;
+            if (string.IsNullOrEmpty(lang))
+                return;
+
+            LocLog._.D("加载多语言表: {0}", lang);
+            var trans = _._FuncLoader(lang);
+            if (trans == null)
+            {
+                LocLog._.E("加载多语言表失败: {0}", lang);
+                return;
+            }
+            _Change(lang, trans);
+        }
+
+        private static void _Change(string lang, List<(LocId key, string tran)> all)
         {
             if (!LocLang.IsValid(lang))
             {
@@ -72,112 +161,39 @@ namespace FH
                 }
             }
         }
-
-        public static string Lang
-        {
-            get { return LocLang.Lang; }
-            set
-            {
-                if (!LocLang.IsValid(value))
-                {
-                    LocLog._.E("Lang Is Not Valid {0}", value);
-                    return;
-                }
-
-                if (LocLang.Lang == value)
-                    return;
-
-                //加载器还没有好, 等待Loader好了
-                if (_._FuncLoader == null)
-                {
-                    LocLang.SetLang(value);
-                    return;
-                }
-
-                var trans = _._FuncLoader(value);
-                if (trans == null)
-                {
-                    LocLog._.E("Lang {0}, Load Trans failed", value);
-                    return;
-                }
-
-                Change(value, trans);
-            }
-        }
-
-        public static TranslationLoader FuncLoader
-        {
-            get { return _._FuncLoader; }
-
-            set
-            {
-                if (value == null)
-                    return;
-                if (_._FuncLoader != null)
-                {
-                    //不能两次
-                    return;
-                }
-                _._FuncLoader = value;
-                string lang = LocLang.Lang;
-                if (string.IsNullOrEmpty(lang))
-                    return;
-                var trans = _._FuncLoader(lang);
-                if (trans == null)
-                    return;
-
-                Change(lang, trans);
-            }
-
-        }
-
-        public static void Reload()
-        {
-            if (_._FuncLoader == null)
-                return;
-
-            string lang = LocLang.Lang;
-            if (string.IsNullOrEmpty(lang))
-                return;
-
-            var trans = _._FuncLoader(lang);
-            if (trans == null)
-                return;
-            Change(lang, trans);
-        }
         #endregion
 
         #region Get
-        public static bool TryGet(LocId key, out string tran)
+        public static bool TryGet(LocId key, out string tran, UnityEngine.Object obj = null)
         {
             if (_._Translation.TryGetValue(key, out tran))
                 return true;
 
-            LocLog._.E("Can't find {0}", key.Key);
+            LocLog._.E(obj, "Can't find \"{0}\"", key.Key);
             return false;
         }
 
-        public static bool TryGet(LocKey key, out string tran)
+        public static bool TryGet(LocKey key, out string tran, UnityEngine.Object obj = null)
         {
             var int_key = key.ToLocId();
             if (_._Translation.TryGetValue(int_key, out tran))
                 return true;
 
-            LocLog._.E("Can't find {0}", key.Key);
+            LocLog._.E(obj, "Can't find \"{0}\"", key.Key);
             return false;
         }
 
 
-        public static string Get(LocId key)
+        public static string Get(LocId key, UnityEngine.Object obj = null)
         {
-            if (TryGet(key, out var ret))
+            if (TryGet(key, out var ret, obj))
                 return ret;
             return null;
         }
 
-        public static string Get(LocKey key)
+        public static string Get(LocKey key, UnityEngine.Object obj = null)
         {
-            if (TryGet(key, out var ret))
+            if (TryGet(key, out var ret, obj))
                 return ret;
             return null;
         }

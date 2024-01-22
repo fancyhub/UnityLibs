@@ -43,5 +43,22 @@ namespace FH{
             return FindTable<TLoc>()?.GetDict<int, TLoc>();
         }
         
+      
+        public static List<TTestComposeKey> GetTTestComposeKeyList()
+        {
+            return FindTable<TTestComposeKey>()?.GetList<TTestComposeKey>();
+        }
+        
+
+        public static TTestComposeKey GetTTestComposeKey(uint Id,int Level)
+        {        
+            return FindTable<TTestComposeKey>()?.Get<(uint,int), TTestComposeKey>((Id,Level));
+        }
+
+        public static Dictionary<(uint,int), TTestComposeKey> GetTTestComposeKeyDict()
+        {
+            return FindTable<TTestComposeKey>()?.GetDict<(uint,int), TTestComposeKey>();            
+        }
+        
 }
 }

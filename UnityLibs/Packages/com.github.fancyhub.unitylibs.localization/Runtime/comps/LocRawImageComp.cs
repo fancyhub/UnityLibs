@@ -26,7 +26,8 @@ namespace FH
             if (!TryGetTran(out var tran))
                 return;
             RawImage image = _GetImage();
-            image.ExtSetTexture(tran);
+            LocLog._.D(this, "设置Texture:{0}", tran);
+            image.ExtSetTexture(tran, false);
         }
 
 #if UNITY_EDITOR

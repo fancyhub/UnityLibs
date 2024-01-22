@@ -27,7 +27,7 @@ namespace FH
         NotDownloaded,
     }
 
-    public  partial interface IResMgr : ICPtr
+    public partial interface IResMgr : ICPtr
     {
         public void Update();
 
@@ -131,6 +131,18 @@ namespace FH
         }
 
         #region Res
+        public static ResRef TryLoadExistSprite(string path)
+        {
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return default;
+            }
+
+            var err = inst.Load(path, true, false, out var res_ref);
+            return res_ref;
+        }
 
         public static ResRef LoadSprite(string path, bool sync_load_enable = true)
         {
@@ -143,6 +155,19 @@ namespace FH
 
             var err = inst.Load(path, true, sync_load_enable, out var res_ref);
             ResManagement.ResLog._.ErrCode(err, path);
+            return res_ref;
+        }
+
+        public static ResRef TryLoadExist(string path)
+        {
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return default;
+            }
+
+            var err = inst.Load(path, true, false, out var res_ref);
             return res_ref;
         }
 

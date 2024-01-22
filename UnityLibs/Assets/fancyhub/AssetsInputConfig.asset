@@ -14,6 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Items:
   - Asset:
+      Path: Assets/Res/UI/Config
+    SearchPattern: '*.*'
+    AddressMode: 0
+    BundleName: config
+    Tags: base
+  - Asset:
+      Path: Assets/Res/UI/Font
+    SearchPattern: '*.*'
+    AddressMode: 0
+    BundleName: font
+    Tags: base
+  - Asset:
       Path: Assets/Res/UI/Atlas
     SearchPattern: '*.*'
     AddressMode: 0

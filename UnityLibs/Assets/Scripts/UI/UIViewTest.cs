@@ -14,42 +14,16 @@ public class UIViewTest : MonoBehaviour
         FH.UI.UIObjFinder.Show();
 
         _btn = FH.UI.UIBaseView.CreateView<FH.UI.UIButtonView>(Canvas.transform);
-        _btn.OnClick = _OnOpenView;
+        _btn.OnClick = () => UIPageTestLocalization.Create(Canvas.transform);
+
 
 
         TaskQueue.Init(10);
         FH.UI.UIRedDotMgr.Init();
         FH.UI.UIRedDotMgr.Link("root.test.scene", "vroot.test.scene.vscene");
         FH.NoticeSample.NoticeApi.Init();
-
-        _InitLocMgr();
     }
-
-    private void _InitLocMgr()
-    {
-        if (LocMgr.FuncLoader != null)
-            return;
-
-        var loader = TableMgr.Inst.GetTableLoader<TLoc>();
-        if (loader != null)
-        {
-            LocMgr.FuncLoader = (lang) =>
-            {
-                var table = loader(lang);
-                if (table == null)
-                    return null;
-
-                var list = table.GetList<TLoc>();
-                List<(LocId, string)> ret = new List<(LocId, string)>(list.Count);
-
-                foreach (var p in list)
-                {
-                    ret.Add((new LocId(p.Id), p.Val));
-                }
-                return ret;
-            };
-        }
-    }
+     
 
     public void Update()
     {

@@ -9,20 +9,29 @@ namespace FH
     public partial class TableMgr
     {
         public const string CDataDir = "../ClientData/Table/";
-        private static TableMgr _;       
+        private static TableMgr _;
 
         private TableLoaderMgr _LoaderMgr;
         private Dictionary<Type, Table> _all = new Dictionary<Type, Table>();
         private Dictionary<Type, List<EventTableLoaded>> _post_processer = new Dictionary<Type, List<EventTableLoaded>>();
         public ITableReaderCreator TableReaderCreator;
 
-        public TableMgr(ITableReaderCreator creator)
+        private TableMgr(ITableReaderCreator creator)
         {
             TableReaderCreator = creator;
             _LoaderMgr = new TableLoaderMgr(creator.CreateTableReader);
             _all = new Dictionary<Type, Table>(_LoaderMgr.LoaderDict.Count);
 
             OnInstCreate();
+        }
+
+        public static void Destroy()
+        {
+            if (_ == null)
+                return;
+            var t = _;
+            _ = null;
+            t.TableReaderCreator?.CloseReader();
         }
 
         #region  Table 相关
@@ -57,12 +66,15 @@ namespace FH
 
         public static Table FindTable<T>() where T : class
         {
-            if (Inst == null)
+            if (_ == null)
+            {
+                TableLog.E("TableMgr Is Not Inited");
                 return null;
-            Inst._all.TryGetValue(typeof(T), out Table ret);
+            }
+            _._all.TryGetValue(typeof(T), out Table ret);
             if (ret == null)
             {
-                Log.E("Table {0} 不存在", typeof(T));
+                TableLog.E("Table {0} 不存在", typeof(T));
             }
             return ret;
         }
@@ -114,15 +126,18 @@ namespace FH
                 return;
 
             //3. 加载
+            TableLog.D("Load table : {0}", t);
             ret = info.Loader(null);
             if (ret == null || ret.List == null)
             {
                 //虽然加载失败了,但是为了防止二次加载,先把空的添加进去
                 _all.Add(t, ret);
+                TableLog.D("Load table Failed : {0}", t);
                 return;
             }
 
             //4. 添加
+            TableLog.D("Load table Suc : {0}", t);
             _all.Add(t, ret);
 
             //5. 后处理
@@ -161,23 +176,5 @@ namespace FH
             return v != null;
         }
         #endregion
-
-
-        public TableLoader GetTableLoader<T>()
-        {
-            _LoaderMgr.LoaderDict.TryGetValue(typeof(T), out var info);
-            return info.Loader;
-        }
-
-        public static TableMgr Inst
-        {
-            get
-            {
-                if(_ ==null)
-                    _ = new TableMgr(new TableReaderCsvCreator(CDataDir));
-
-                return _;                
-            }
-        }
     }
 }

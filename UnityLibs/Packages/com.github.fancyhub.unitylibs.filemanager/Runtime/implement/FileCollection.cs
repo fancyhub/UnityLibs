@@ -20,6 +20,7 @@ namespace FH.FileManagement
         {
             _CacheDir = FileSetting.LocalDir;
             _CollectStreamingAssets();
+            CollectLocalDir();
         }
 
         public void CollectLocalDir()
@@ -33,7 +34,7 @@ namespace FH.FileManagement
             }
             _FilesInLocalDir = new_Dict;
         }
-       
+
         public string GetFullPath(string file_name)
         {
             if (string.IsNullOrEmpty(file_name))

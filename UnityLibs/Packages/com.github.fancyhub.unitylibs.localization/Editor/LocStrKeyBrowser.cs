@@ -136,7 +136,10 @@ namespace FH.LocStrKeyBrowser
 
                 if (_keyProperty.serializedObject.targetObject is LocComp loc_comp)
                 {
-                    loc_comp.DoLocalize();
+                    if (Application.isPlaying)
+                    {
+                        loc_comp.DoLocalize();
+                    }
                 }
             }
             Close();

@@ -31,3 +31,12 @@ MonoBehaviour:
       SpecSubDir: LuaProj
       IncludeSub: 1
       SearchPatterns: '*.lua'
+  - Name: table
+    Format: 0
+    Tags: base;android
+    Dirs:
+    - Name: table
+      RootDir: ../ClientData
+      SpecSubDir: Table
+      IncludeSub: 1
+      SearchPatterns: '*.csv'

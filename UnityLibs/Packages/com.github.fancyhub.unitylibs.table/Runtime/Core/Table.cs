@@ -46,14 +46,14 @@ namespace FH
         {            
             if (Dict == null)
             {
-                Log.E("Table {0} 不存在 Dict<{1},{0}>", typeof(TItem), typeof(TKey));
+                TableLog.E("Table {0} 不存在 Dict<{1},{0}>", typeof(TItem), typeof(TKey));
                 return null;
             }
 
             Dictionary<TKey, TItem> dict_t = Dict as Dictionary<TKey, TItem>;
             if (dict_t == null)
             {
-                Log.E("Table {1} 转换失败, Dict<{2},{3}> -> Dict<{0},{1}>", typeof(TKey), typeof(TItem), KeyType, DataType);
+                TableLog.E("Table {1} 转换失败, Dict<{2},{3}> -> Dict<{0},{1}>", typeof(TKey), typeof(TItem), KeyType, DataType);
                 return null;
             }
             return dict_t;
@@ -63,13 +63,13 @@ namespace FH
         {            
             if (List == null)
             {
-                Log.E("Table {0} 不存在", typeof(TItem));
+                TableLog.E("Table {0} 不存在", typeof(TItem));
                 return null;
             }
             List<TItem> list_t = List as List<TItem>;
             if (list_t == null)
             {
-                Log.E("Table {0} 不存在2", typeof(TItem));
+                TableLog.E("Table {0} 不存在2", typeof(TItem));
                 return null;
             }
             return list_t;
@@ -81,7 +81,7 @@ namespace FH
             if (dict == null)
                 return null;
             bool succ = dict.TryGetValue(id, out TItem ret);
-            Log.Assert(succ, "Table {0}, 不存在Key {1}", typeof(TItem), id);
+            TableLog.Assert(succ, "Table {0}, 不存在Key {1}", typeof(TItem), id);
             return ret;
         }
 

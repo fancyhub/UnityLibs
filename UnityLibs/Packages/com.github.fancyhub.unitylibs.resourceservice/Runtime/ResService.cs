@@ -21,6 +21,7 @@ namespace FH
         public FH.IVfsMgr.Config VfsMgrConfig;
         public FH.VFSManagement.Builder.BuilderConfig VfsBuilderConfig;
         public FH.IFileDownloadMgr.Config FileDownloadMgrConfig;
+        public ELogLvl TableLogLvl = ELogLvl.Info;
 
         protected virtual void Awake()
         {
@@ -39,7 +40,9 @@ namespace FH
 
         public void OnDestroy()
         {
+            FH.TableMgr.Destroy();
             FH.ResMgr.Destroy();
+            FH.VfsMgr.Destroy();
         }
 
         private string _AtlasTag2Path(string tag)
@@ -65,6 +68,7 @@ namespace FH
                 FH.ResMgr.InitMgr(ResMgrConfig, res_loader);
                 FH.SceneMgr.InitMgr(SceneMgrConfig, scene_loader);
                 VfsMgr.InitMgr(VfsMgrConfig);
+                TableMgr.Init(TableLogLvl, new VfsTableReaderCsvCreator("Table/"));
 
                 if (VfsBuilderConfig != null)
                 {
@@ -78,6 +82,9 @@ namespace FH
                         VfsMgr.Mount(fs);
                     }
                 }
+
+                LocMgr.FuncLoader = TableMgr.LoadTranslation;
+
                 yield break;
             }
 #endif
@@ -98,7 +105,10 @@ namespace FH
                 FH.SceneMgr.InitMgr(SceneMgrConfig, scene_loader);
 
                 VfsMgr.InitMgr(VfsMgrConfig);
+
+                Log.D("Wait Extra Android Operation");
                 yield return FileMgr.GetExtractOperation();
+                Log.D("Extra Android Operation Done");
 
                 if (VfsBuilderConfig != null)
                 {
@@ -131,6 +141,9 @@ namespace FH
                         }
                     }
                 }
+
+                TableMgr.Init(TableLogLvl, new VfsTableReaderCsvCreator("Table/"));
+                LocMgr.FuncLoader = TableMgr.LoadTranslation;
             }
         }
     }

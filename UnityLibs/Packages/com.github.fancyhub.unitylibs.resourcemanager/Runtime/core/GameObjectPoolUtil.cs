@@ -86,7 +86,7 @@ namespace FH
         }
 
         internal static void InstActive(GameObject obj)
-        {
+        {            
             if (obj == null)
                 return;
 
@@ -95,7 +95,7 @@ namespace FH
 
             Transform inactive_dummy = GetDummyInactive();
             obj.transform.SetParent(inactive_dummy, false);
-            //Do nothing
+            
         }
 
         internal static void Push2Pool(GameObject obj)

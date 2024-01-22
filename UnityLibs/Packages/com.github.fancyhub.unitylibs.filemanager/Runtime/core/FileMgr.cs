@@ -36,6 +36,8 @@ namespace FH
 
         public ExtractStreamingAssetsOperation GetExtractOperation();
 
+        public void RefreshFileList();
+
         public System.IO.Stream OpenRead(string name);
         public byte[] ReadAllBytes(string name);
     }
@@ -75,6 +77,17 @@ namespace FH
                 return default;
             }
             return mgr.GetExtractOperation();
+        }
+
+        public static void RefreshFileList()
+        {
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                FileLog._.E("FileMgr Is Null");
+                return;
+            }
+            mgr.RefreshFileList();
         }
 
         public static VersionInfo GetVersionInfo()

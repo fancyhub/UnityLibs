@@ -114,6 +114,11 @@ namespace FH.FileManagement
             return new VersionInfo(_Manifest_Current.Version);
         }
 
+        public void RefreshFileList()
+        {
+            _FileCollection.CollectLocalDir();
+        }
+
         /// <summary>
         /// 更新Manifest, true:更新成功, false:更新失败
         /// </summary>

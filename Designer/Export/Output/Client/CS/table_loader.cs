@@ -40,11 +40,12 @@ namespace FH{
         public TableLoaderMgr(CreateTableReader createTableReader)
         {
             CreateTableReader = createTableReader;            
-            LoaderDict = new Dictionary<Type, TableInfo>(20+2);
+            LoaderDict = new Dictionary<Type, TableInfo>(20+3);
             
 
 			LoaderDict.Add(typeof(TItemData),new TableInfo(_LoadItemData,false));
 			LoaderDict.Add(typeof(TLoc),new TableInfo(_LoadLoc,true));
+			LoaderDict.Add(typeof(TTestComposeKey),new TableInfo(_LoadTestComposeKey,false));
 		}
 
         private Table _LoadItemData(string lang)
@@ -189,6 +190,75 @@ namespace FH{
                 
 		}
 
+        private Table _LoadTestComposeKey(string lang)
+        {
+            string sheet_name = "TestComposeKey";
+            lang = null;
+            int col_count = 5;
+
+            if(!CreateTableReader(sheet_name,lang,out var reader))
+                return null;
+
+            //Check Header
+            var header = reader.ReadHeader();
+            if (header==null || header.Count != (col_count*2))
+            {
+                Log.E("加载错误 {0},表头数量不对", sheet_name);
+                return null;
+            }
+            bool head_rst = true;
+            
+			head_rst &= ((header[0] == "Id") && (header[0+5] == "uint32"));
+			head_rst &= ((header[1] == "Level") && (header[1+5] == "int32"));
+			head_rst &= ((header[2] == "Name") && (header[2+5] == "locid"));
+			head_rst &= ((header[3] == "Pos") && (header[3+5] == "float32_float32_float32"));
+			head_rst &= ((header[4] == "Flags") && (header[4+5] == "int32"));
+
+            if (!head_rst)
+            {
+                Log.E("加载错误 {0}, 表头不匹配", sheet_name);
+                return null;
+            }
+
+            //加载数据
+            _temp.Clear();
+            for (; ; )
+            {
+                if (!reader.NextRow(out var rowReader))
+                    break;                
+                var row = new TTestComposeKey();
+				_Read(rowReader, ref row.Id);
+				_Read(rowReader, ref row.Level);
+				_Read(rowReader, ref row.Name);
+				_ReadTuple(rowReader.BeginTuple(), ref row.Pos, out (float,float,float) __Pos);
+				_Read(rowReader, ref row.Flags);
+
+                _temp.Add(row);
+            }
+
+            //转换数据
+            List<TTestComposeKey> list = new List<TTestComposeKey>(_temp.Count);
+            foreach (var p in _temp)
+            {
+                list.Add(p as TTestComposeKey);
+            }            
+            
+
+            var dict = new Dictionary<(uint,int), TTestComposeKey>(list.Count);
+            foreach (var p in list)
+            {
+                (uint,int) key = (p.Id, p.Level);
+                if (dict.ContainsKey(key))
+                {
+                    Log.E("{0} Contain Multi Id: {1},{2}, 如果允许ID重复, 修改表格", typeof(TTestComposeKey), p.Id,p.Level);
+                    continue;
+                }
+                dict.Add(key, p);
+            }
+            return Table.Create(list,dict);
+                
+		}
+
         #region Base Reader
         private static void _Read(ITableDataReader reader, ref bool v)
         {
@@ -296,6 +366,21 @@ namespace FH{
             }
 			_Read(tupleReader,ref v2.Item1);
 			_Read(tupleReader,ref v2.Item2);
+
+             TableAlias.Create(ref v,false,v2);
+        }
+
+        private static void _ReadTuple(ITableTupleReader tupleReader, ref UnityEngine.Vector3 v, out (float,float,float) v2)
+        {
+            v2=default;
+            if(tupleReader==null)
+            {
+                TableAlias.Create(ref v, false,v2);                
+                return;
+            }
+			_Read(tupleReader,ref v2.Item1);
+			_Read(tupleReader,ref v2.Item2);
+			_Read(tupleReader,ref v2.Item3);
 
              TableAlias.Create(ref v,false,v2);
         }
