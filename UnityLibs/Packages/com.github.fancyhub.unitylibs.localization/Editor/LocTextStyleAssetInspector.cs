@@ -13,7 +13,7 @@ using UnityEditorInternal;
 
 namespace FH
 {
-    [CustomEditor(typeof(LocTextStyleAsset))]
+    [CustomEditor(typeof(FH.UI.LocTextStyleAsset))]
     public class LocTextStyleAssetInspector : Editor
     {
         private static string[] _HeaderList = new string[] { "Lang", "Font", "FontStyle", "FontSize", "LineSpace" };
@@ -36,7 +36,7 @@ namespace FH
 
             if (GUILayout.Button("Add All"))
             {
-                ((LocTextStyleAsset)target).EdCreateAll();
+                ((FH.UI.LocTextStyleAsset)target).EdCreateAll();
             }
         }
 

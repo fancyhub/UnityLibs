@@ -22,6 +22,8 @@ namespace FH
         public FH.VFSManagement.Builder.BuilderConfig VfsBuilderConfig;
         public FH.IFileDownloadMgr.Config FileDownloadMgrConfig;
         public ELogLvl TableLogLvl = ELogLvl.Info;
+        public ELogLvl LocLogLvl = ELogLvl.Info;
+
 
         protected virtual void Awake()
         {
@@ -53,8 +55,7 @@ namespace FH
         private System.Collections.IEnumerator _Init()
         {
             Log.AutoInit();
-
-
+            
 #if UNITY_EDITOR
             if (Mode == EMode.AssetDatabase)
             {
@@ -67,7 +68,7 @@ namespace FH
 
                 FH.ResMgr.InitMgr(ResMgrConfig, res_loader);
                 FH.SceneMgr.InitMgr(SceneMgrConfig, scene_loader);
-                VfsMgr.InitMgr(VfsMgrConfig);                
+                VfsMgr.InitMgr(VfsMgrConfig);
 
                 if (VfsBuilderConfig != null)
                 {
@@ -83,6 +84,7 @@ namespace FH
                 }
 
                 TableMgr.Init(TableLogLvl, new VfsTableReaderCsvCreator("Table/"));
+                LocMgr.InitLog(LocLogLvl);
                 LocMgr.FuncLoader = TableMgr.LoadTranslation;
 
                 yield break;
@@ -143,6 +145,7 @@ namespace FH
                 }
 
                 TableMgr.Init(TableLogLvl, new VfsTableReaderBinCreator("Table/"));
+                LocMgr.InitLog(LocLogLvl);
                 LocMgr.FuncLoader = TableMgr.LoadTranslation;
             }
         }

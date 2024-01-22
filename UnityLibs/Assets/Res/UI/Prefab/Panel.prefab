@@ -183,10 +183,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 5702376861892734220}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 20.200012, y: 3}
-  m_SizeDelta: {x: 686, y: 543}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2734632998962856
 CanvasRenderer:
@@ -216,7 +216,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: d84c32f65d82c004a930b6efcb664b9d, type: 3}
+  m_Texture: {fileID: 2800000, guid: e0fa8ac9a2fee6b44b4f6e0ea4723467, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0.18416205

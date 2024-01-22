@@ -488,6 +488,7 @@ MonoBehaviour:
     ServerUrl: http://127.0.0.1:8080/
     MaxRetryCount: 3
   TableLogLvl: 1
+  LocLogLvl: 0
 --- !u!1 &2094690783
 GameObject:
   m_ObjectHideFlags: 0

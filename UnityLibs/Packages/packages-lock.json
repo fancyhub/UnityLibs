@@ -249,6 +249,12 @@
         "com.github.fancyhub.unitylibs.memorypool": "1.0.0"
       }
     },
+    "com.github.fancyhub.unitylibs.uguiresutil": {
+      "version": "file:com.github.fancyhub.unitylibs.uguiresutil",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.github.fancyhub.unitylibs.uguiutil": {
       "version": "file:com.github.fancyhub.unitylibs.uguiutil",
       "depth": 0,

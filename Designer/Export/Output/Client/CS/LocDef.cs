@@ -20,11 +20,11 @@ namespace FH{
 		/// </summary>
 		ITEMDATA_NAME_6 = -1524591491,
 		/// <summary>
-		/// Assets/Res/UI/Sprite/s1.png
+		/// s1
 		/// </summary>
 		LOCIMAGE_VAL_IMAGEA = 2124284896,
 		/// <summary>
-		/// Assets/Res/UI/Texture/t1.png
+		/// t1
 		/// </summary>
 		LOCIMAGE_VAL_TEXTUREA = -1780307845,
 		/// <summary>

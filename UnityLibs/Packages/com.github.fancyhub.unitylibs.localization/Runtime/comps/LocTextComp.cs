@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using ZString = System.String;
 
-namespace FH
+namespace FH.UI
 {
     /// <summary>
     /// 不支持 阿拉伯 语言
@@ -50,7 +50,8 @@ namespace FH
         {
             if (!EdTryGetTran(lang, out var tran))
                 return;
-            string content = _Format(tran, _Arguments);
+            //string content = _Format(tran, _Arguments);
+            string content = tran;
 
             Text text_comp = Text;
             bool changed = false;
@@ -81,25 +82,33 @@ namespace FH
             if (args == null || args.Count == 0)
                 return translation;
 
-            switch (args.Count)
+            try
             {
-                case 1:
-                    return ZString.Format(translation, args[0]);
-                case 2:
-                    return ZString.Format(translation, args[0], args[1]);
-                case 3:
-                    return ZString.Format(translation, args[0], args[1], args[2]);
-                case 4:
-                    return ZString.Format(translation, args[0], args[1], args[2], args[3]);
-                case 5:
-                    return ZString.Format(translation, args[0], args[1], args[2], args[3], args[4]);
-                case 6:
-                    return ZString.Format(translation, args[0], args[1], args[2], args[3], args[4], args[5]);
-                case 7:
-                    return ZString.Format(translation, args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
-                default:
-                    LocLog._.E("LocTextComp Format Args's num out of TypeParamMax");
-                    return translation;
+                switch (args.Count)
+                {
+                    case 1:
+                        return ZString.Format(translation, args[0]);
+                    case 2:
+                        return ZString.Format(translation, args[0], args[1]);
+                    case 3:
+                        return ZString.Format(translation, args[0], args[1], args[2]);
+                    case 4:
+                        return ZString.Format(translation, args[0], args[1], args[2], args[3]);
+                    case 5:
+                        return ZString.Format(translation, args[0], args[1], args[2], args[3], args[4]);
+                    case 6:
+                        return ZString.Format(translation, args[0], args[1], args[2], args[3], args[4], args[5]);
+                    case 7:
+                        return ZString.Format(translation, args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+                    default:
+                        LocLog._.E("LocTextComp Format Args's num out of TypeParamMax");
+                        return translation;
+                }
+            }
+            catch (System.Exception e)
+            {
+                LocLog._.E(e);
+                return translation;
             }
         }
 

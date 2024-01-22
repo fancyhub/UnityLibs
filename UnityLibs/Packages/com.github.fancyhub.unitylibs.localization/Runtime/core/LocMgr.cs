@@ -26,10 +26,13 @@ namespace FH
             _Translation = new Dictionary<LocId, string>(LocId.EqualityComparer);
         }
 
+        public static void InitLog(ELogLvl log_lvl)
+        {
+            LocLog._.SetMasks(log_lvl);
+        }
+
 
         #region  Lang & Load 
-
-
         public static void ChangeLang(string lang)
         {
             if (!LocLang.IsValid(lang))
@@ -72,12 +75,7 @@ namespace FH
             {
                 if (value == null)
                     return;
-                if (_._FuncLoader != null)
-                {
-                    LocLog._.E("不能设置多次");
-                    //不能两次
-                    return;
-                }
+
                 _._FuncLoader = value;
                 string lang = LocLang.Lang;
                 if (string.IsNullOrEmpty(lang))

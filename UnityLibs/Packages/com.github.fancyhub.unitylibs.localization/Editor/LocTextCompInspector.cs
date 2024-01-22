@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace FH
 {
-    [CustomEditor(typeof(LocTextComp), true)]
+    [CustomEditor(typeof(FH.UI.LocTextComp), true)]
     public class LocTextCompInspector : LocCompInspector
     {
         private SerializedProperty _StyleProperty;
@@ -29,7 +29,9 @@ namespace FH
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
+            serializedObject.Update();
             EditorGUILayout.PropertyField(_StyleProperty);
+            serializedObject.ApplyModifiedProperties();
             _DrawArgs();
         }
 

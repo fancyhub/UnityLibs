@@ -17,7 +17,7 @@ MonoBehaviour:
     Font:
       Path: Assets/Res/UI/Font/CalibriBlod.ttf
     FontStyle: 0
-    FontSize: 20
+    FontSize: 30
     LineSpace: 1
   - Lang: en
     Font:

@@ -8,24 +8,33 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-namespace FH
+namespace FH.UI
 {
     public static class UIImageSetterExt
     {
-        public static void ExtSyncSetSprite(this Image img, string path)
+        public static void ExtSyncSetSprite(this Image img, string name)
         {
-            ExtSetSprite(img, path, true);
+            ExtSetSprite(img, name, true);
         }
 
-        public static void ExtAsyncSetSprite(this Image img, string path)
+        public static void ExtAsyncSetSprite(this Image img, string name)
         {
-            ExtSetSprite(img, path, false);
+            ExtSetSprite(img, name, false);
         }
 
-        public static void ExtSetSprite(this Image img, string path, bool sync)
+        public static void ExtSetSprite(this Image img, string name, bool sync)
         {
             if (img == null)
                 return;
+            string path = null;
+            if (!string.IsNullOrEmpty(name))
+            {
+                path = UIResMapConfig.FindSprite(name);
+                if (string.IsNullOrEmpty(path))
+                {
+                    Log.E("UIResMapConfig 找不到 Sprite: {0}", name);
+                }
+            }
 
 #if UNITY_EDITOR
             if (!Application.isPlaying)
@@ -41,6 +50,8 @@ namespace FH
             UIImageSetter img_loader = img.GetComponent<UIImageSetter>();
             if (img_loader == null)
                 img_loader = img.gameObject.AddComponent<UIImageSetter>();
+
+
             img_loader.SetSprite(path, sync);
         }
 
@@ -67,7 +78,6 @@ namespace FH
 
                 _CancelJob();
             }
-
 
             public void SetSprite(string path, bool sync)
             {

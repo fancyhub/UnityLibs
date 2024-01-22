@@ -8,24 +8,36 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-namespace FH
+
+namespace FH.UI
 {
     public static class UIRawImageSetterExt
     {
-        public static void ExtSyncSetTexture(this RawImage img, string path)
+        public static void ExtSyncSetTexture(this RawImage img, string name)
         {
-            ExtSetTexture(img, path, true);
+            ExtSetTexture(img, name, true);
         }
 
-        public static void ExtAsyncSetTexture(this RawImage img, string path)
+        public static void ExtAsyncSetTexture(this RawImage img, string name)
         {
-            ExtSetTexture(img, path, false);
+            ExtSetTexture(img, name, false);
         }
 
-        public static void ExtSetTexture(this RawImage img, string path, bool sync)
+        public static void ExtSetTexture(this RawImage img, string name, bool sync)
         {
             if (img == null)
                 return;
+
+            string path = null;
+            if (!string.IsNullOrEmpty(name))
+            {
+                path = UIResMapConfig.FindTexture(name);
+                if (string.IsNullOrEmpty(path))
+                {
+                    Log.E("UIResMapConfig 找不到 Texture: {0}", name);
+                }
+            }
+
 #if UNITY_EDITOR
             if (!Application.isPlaying)
             {

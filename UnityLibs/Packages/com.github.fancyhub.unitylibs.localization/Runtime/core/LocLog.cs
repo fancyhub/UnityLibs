@@ -11,6 +11,6 @@ namespace FH
 {
     internal static class LocLog
     {
-        public static TagLogger _ = TagLogger.Create("Loc", ELogLvl.Debug);
+        public static TagLogger _ = TagLogger.Create("Loc", ELogLvl.Info);
     }
 }

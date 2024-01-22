@@ -8,7 +8,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace FH
+namespace FH.UI
 {
     [RequireComponent(typeof(Image))]
     public sealed class LocImageComp : LocComp

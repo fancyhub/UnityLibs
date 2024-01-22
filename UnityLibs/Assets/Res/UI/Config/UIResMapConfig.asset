@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44d917bfcaf0edc4ca055a07482731da, type: 3}
+  m_Name: UIResMapConfig
+  m_EditorClassIdentifier: 
+  Config:
+    LogLvl: 1
+    sprite:
+    - name: btn_disable
+      dir: 
+      ext: .png
+    - name: btn_normal
+      dir: 
+      ext: .png
+    - name: btn_press
+      dir: 
+      ext: .png
+    - name: icon
+      dir: 
+      ext: .png
+    - name: s0
+      dir: 
+      ext: .png
+    - name: s1
+      dir: 
+      ext: .png
+    - name: s2
+      dir: 
+      ext: .png
+    texture:
+    - name: bg
+      dir: 
+      ext: .jpg
+    - name: t0
+      dir: 
+      ext: .png
+    - name: t1
+      dir: 
+      ext: .png
+    - name: t2
+      dir: 
+      ext: .png
+    prefab:
+    - name: Button
+      dir: 
+      ext: .prefab
+    - name: Button2
+      dir: 
+      ext: .prefab
+    - name: Button_Variant
+      dir: 
+      ext: .prefab
+    - name: Panel
+      dir: 
+      ext: .prefab
+    - name: Panel_Variant
+      dir: 
+      ext: .prefab
+    - name: RedDotCommon
+      dir: 
+      ext: .prefab
+    - name: TestLocalization
+      dir: 
+      ext: .prefab
