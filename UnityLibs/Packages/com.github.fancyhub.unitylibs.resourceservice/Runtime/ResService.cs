@@ -67,8 +67,7 @@ namespace FH
 
                 FH.ResMgr.InitMgr(ResMgrConfig, res_loader);
                 FH.SceneMgr.InitMgr(SceneMgrConfig, scene_loader);
-                VfsMgr.InitMgr(VfsMgrConfig);
-                TableMgr.Init(TableLogLvl, new VfsTableReaderCsvCreator("Table/"));
+                VfsMgr.InitMgr(VfsMgrConfig);                
 
                 if (VfsBuilderConfig != null)
                 {
@@ -83,6 +82,7 @@ namespace FH
                     }
                 }
 
+                TableMgr.Init(TableLogLvl, new VfsTableReaderCsvCreator("Table/"));
                 LocMgr.FuncLoader = TableMgr.LoadTranslation;
 
                 yield break;
@@ -142,7 +142,7 @@ namespace FH
                     }
                 }
 
-                TableMgr.Init(TableLogLvl, new VfsTableReaderCsvCreator("Table/"));
+                TableMgr.Init(TableLogLvl, new VfsTableReaderBinCreator("Table/"));
                 LocMgr.FuncLoader = TableMgr.LoadTranslation;
             }
         }

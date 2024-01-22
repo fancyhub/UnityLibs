@@ -39,4 +39,4 @@ MonoBehaviour:
       RootDir: ../ClientData
       SpecSubDir: Table
       IncludeSub: 1
-      SearchPatterns: '*.csv'
+      SearchPatterns: '*.bin'
