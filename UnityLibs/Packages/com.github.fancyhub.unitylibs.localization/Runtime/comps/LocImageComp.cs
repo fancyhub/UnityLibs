@@ -37,10 +37,11 @@ namespace FH.UI
             if (!EdTryGetTran(lang, out var tran))
                 return;
 
-            Sprite sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tran);
+            string path = UIResMapConfig.FindSprite(tran);
+            Sprite sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
             if (sprite == null)
             {
-                LocLog._.E(this, "加载Sprite失败 {0}", tran);
+                LocLog._.E(this, "加载Sprite失败 {0}", path);
                 return;
             }
 

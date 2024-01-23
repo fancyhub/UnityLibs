@@ -197,7 +197,7 @@ namespace FH.ResManagement
                 case EResType.Sprite:
                     {
                         EResError err2 = _res_pool.RemoveUser(res_id.Id, user);
-                        ResLog._.ErrCode(err2, "remove user ，{0} 类型的资源", res_id.ResType);
+                        ResLog._.ErrCode(err2, "remove user ，{0} 类型的资源, {1}", res_id.ResType, res_id.Id);
                         return err2;
                     }
 

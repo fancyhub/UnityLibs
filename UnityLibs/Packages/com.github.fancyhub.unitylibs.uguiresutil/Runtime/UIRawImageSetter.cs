@@ -109,6 +109,8 @@ namespace FH.UI
                     _CancelJob();
 
                     _ResRef.RemoveUser(this);
+                    _ResRef = default;
+
                     OverrideTexture = null;
                     return;
                 }

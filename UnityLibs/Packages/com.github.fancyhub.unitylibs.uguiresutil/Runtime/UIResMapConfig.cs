@@ -68,7 +68,8 @@ namespace FH.UI
                 return _GlobalResMap;
 
 #if UNITY_EDITOR
-            if (!Application.isPlaying)
+            bool use_editor = true;
+            if (use_editor)
             {
                 _GlobalResMap = new UIResMap();
                 _GlobalResMap.EdCollectAll();

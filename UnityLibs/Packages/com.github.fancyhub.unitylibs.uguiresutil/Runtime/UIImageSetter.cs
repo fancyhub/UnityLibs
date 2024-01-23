@@ -93,6 +93,8 @@ namespace FH.UI
                     _CancelJob();
 
                     _ResRef.RemoveUser(this);
+                    _ResRef = default;
+
                     _Image.overrideSprite = null;
                     return;
                 }
@@ -171,6 +173,7 @@ namespace FH.UI
 
                 _ResRef.RemoveUser(this);
                 _ResRef = default;
+
                 _ResRef = new_res_ref;
                 _ResRef.AddUser(this);
             }

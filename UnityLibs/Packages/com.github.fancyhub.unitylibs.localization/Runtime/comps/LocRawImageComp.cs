@@ -36,10 +36,11 @@ namespace FH.UI
             if (!EdTryGetTran(lang, out var tran))
                 return;
 
-            Texture texture = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture>(tran);
+            string path = UIResMapConfig.FindTexture(tran);
+            Texture texture = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture>(path);
             if (texture == null)
             {
-                LocLog._.E(this, "加载Texture失败 {0}", tran);
+                LocLog._.E(this, "加载Texture失败 {0}", path);
                 return;
             }
 

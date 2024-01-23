@@ -455,7 +455,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce6d81fca33831c4f9a035f3176f03a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Mode: 1
+  Mode: 0
   AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
   FileMgrConfig:
     LogLvl: 1
@@ -488,7 +488,7 @@ MonoBehaviour:
     ServerUrl: http://127.0.0.1:8080/
     MaxRetryCount: 3
   TableLogLvl: 1
-  LocLogLvl: 0
+  LocLogLvl: 1
 --- !u!1 &2094690783
 GameObject:
   m_ObjectHideFlags: 0
