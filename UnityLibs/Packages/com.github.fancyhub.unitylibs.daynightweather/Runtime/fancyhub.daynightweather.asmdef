@@ -1,0 +1,21 @@
+{
+    "name": "fancyhub.daynightweather",
+    "rootNamespace": "",
+    "references": [
+        "GUID:fd3e1939cfeaae345a28d38349cb6f69",
+        "GUID:b08426991abe9164baf4dd97564889c1",
+        "GUID:23a7b8cd60360ba45afc962f6d673a03",
+        "GUID:9c6d13452ceab084f8fcce2a0885059c",
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:15fc0a57446b3144c949da3e2b9737a9"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

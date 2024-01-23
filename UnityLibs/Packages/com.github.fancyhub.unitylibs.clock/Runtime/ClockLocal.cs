@@ -15,7 +15,7 @@ namespace FH
     /// 毫秒
     /// 支持在子线程里面运行, 没有用到Unity的代码
     /// </summary>
-    public sealed class ClockLocal : IClock
+    public struct ClockLocal : IClock
     {
         public int _frame_count;
         public bool _frame_update;
@@ -58,7 +58,7 @@ namespace FH
             get { return false; }
             set { }
         }
-         
+
 
         public long Time
         {
@@ -74,7 +74,7 @@ namespace FH
                     _frame_count = frame_count;
                 }
                 return _time;
-            }          
+            }
         }
     }
 }

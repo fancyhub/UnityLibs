@@ -17,11 +17,11 @@ namespace FH
     /// div_factor: 是为了解决 从 毫秒 -> 秒 的转换 <para/>
     /// mul_factor: 是为了解决 从 秒 -> 毫秒 的转换 <para/>
     /// </summary>
-    public sealed class ClockDecorator : IClock
+    public struct ClockDecorator : IClock
     {
-        private const float CScaleInt2Float = 1.0f / IClock.ScaleOne;
+        internal const float CScaleInt2Float = 1.0f / IClock.ScaleOne;
 
-        private struct ClockData
+        internal struct ClockData
         {
             public static ClockData Default = new ClockData()
             {
@@ -63,7 +63,7 @@ namespace FH
             }
         }
 
-        private struct ClockPauseScale
+        internal struct ClockPauseScale
         {
             public static ClockPauseScale Default = new ClockPauseScale() { Scale = IClock.ScaleOne, Pause = false, };
 
@@ -73,7 +73,7 @@ namespace FH
             public uint GetFinalScale() { return Pause ? 0 : Scale; }
         }
 
-        private struct ClockTransformer
+        internal struct ClockTransformer
         {
             private uint _mul_factor;
             private uint _div_factor;
@@ -105,20 +105,15 @@ namespace FH
             _transformer = new ClockTransformer(mul_factor, div_factor);
         }
 
-        public uint GetScale()
-        {
-            return _pause_scale.Scale;
-        }
-
         public uint Scale
         {
             get => _pause_scale.Scale;
             set
             {
-                if (_pause_scale.Scale == value)
+                uint v = System.Math.Max(value, 0);
+                if (_pause_scale.Scale == v)
                     return;
-                _pause_scale.Scale = value;
-
+                _pause_scale.Scale = v;
                 _data.SetScale(_pause_scale.GetFinalScale(), _base_clock.Time);
             }
         }

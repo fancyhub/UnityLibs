@@ -2,6 +2,7 @@ using FH;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 public class UIViewTest : MonoBehaviour
@@ -10,7 +11,7 @@ public class UIViewTest : MonoBehaviour
     private FH.UI.UIButtonView _btn;
     // Start is called before the first frame update
     void Start()
-    {
+    {        
         FH.UI.UIObjFinder.Show();
 
         _btn = FH.UI.UIBaseView.CreateView<FH.UI.UIButtonView>(Canvas.transform);
