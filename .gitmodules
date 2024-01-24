@@ -1,0 +1,3 @@
+[submodule "UnityLibs/Packages/com.github.fancyhub.omi"]
+	path = UnityLibs/Packages/com.github.fancyhub.omi
+	url = git@github.com:fancyhub/omi.git
