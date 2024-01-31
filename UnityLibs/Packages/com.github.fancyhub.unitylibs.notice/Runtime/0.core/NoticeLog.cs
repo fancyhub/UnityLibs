@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace FH
 {
-    public sealed class NoticeLog : TagLoggerT<NoticeLog>
+    public sealed class NoticeLog : TagLogT<NoticeLog>
     {        
     }
 }

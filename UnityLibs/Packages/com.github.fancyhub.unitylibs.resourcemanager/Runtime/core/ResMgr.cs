@@ -81,7 +81,7 @@ namespace FH
                 return false;
             }
 
-            ResLog._ = TagLogger.Create(ResLog._.Tag, config.LogLevel);
+            ResLog._ = TagLog.Create(ResLog._.Tag, config.LogLevel);
             ResManagement.ResMgrImplement mgr = new ResManagement.ResMgrImplement(external_loader, config);
             _ = mgr;
             return true;

@@ -118,7 +118,7 @@ namespace FH.UI
 
         private const bool CIncludeExt = true;
 
-        private TagLogger Logger => TagLogger.Create("UIResMap", LogLvl);
+        private TagLog Logger => TagLog.Create("UIResMap", LogLvl);
 
         [Serializable]
         public class UIResItem

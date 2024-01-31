@@ -66,7 +66,7 @@ namespace FH
                 return;
             }
 
-            VfsLog._ = TagLogger.Create(VfsLog._.Tag, config.LogLvl);
+            VfsLog._ = TagLog.Create(VfsLog._.Tag, config.LogLvl);
 
             VfsMgrImplement mgr_imp = new VfsMgrImplement();
             _ = new CPtr<IVfsMgr>(mgr_imp);

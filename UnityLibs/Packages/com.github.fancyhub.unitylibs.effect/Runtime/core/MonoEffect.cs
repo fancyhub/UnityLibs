@@ -19,14 +19,21 @@ namespace FH
         public Transform GetDummy();
     }
 
+    public enum EEffectDummy
+    {
+        Local,
+        World,
+    }
+
     public struct MonoEffectInitParam
     {
         public IEffectHost Host;
 
+        public EEffectDummy DummyType;
+        public Transform LocalDummy;
         public Vector3 Offset;
         public Quaternion Rot;
 
-        public bool IsWorld;
 
         public float TimeElapsed;
 
@@ -42,7 +49,7 @@ namespace FH
     {
         private static GameObject _WorldDummy;
         protected CPtr<IEffectHost> _Host;
-        protected bool _IsWorld;
+        protected EEffectDummy _DummyType;
         protected EState _State = EState.None;
         protected ClockUnityTimeScaleable _Clock;
         protected long _TimeLength; //MS
@@ -80,8 +87,8 @@ namespace FH
             _Clock = new ClockUnityTimeScaleable(ClockUnityTime.EType.Time, true);
 
             _Host = new CPtr<IEffectHost>(init_param.Host);
-            _IsWorld = init_param.IsWorld;
-            if (_IsWorld)
+            _DummyType = init_param.DummyType;
+            if (_DummyType == EEffectDummy.World)
             {
                 transform.SetParent(WorldDummy, false);
                 transform.SetLocalPositionAndRotation(init_param.Offset, init_param.Rot);
@@ -99,11 +106,11 @@ namespace FH
 
         public virtual void ChangeToWorld()
         {
-            if (_IsWorld)
+            if (_DummyType == EEffectDummy.World)
                 return;
             if (this == null)
                 return;
-            _IsWorld = true;
+            _DummyType = EEffectDummy.World;
             transform.SetParent(WorldDummy, true);
         }
 
@@ -136,6 +143,7 @@ namespace FH
         /// <summary>
         /// 编辑的时候, 收集组件用的
         /// </summary>
+        [FH.Omi.Button]
         public abstract void EdCollect();
 #endif
 
@@ -148,23 +156,4 @@ namespace FH
             _State = EState.None;
         }
     }
-
-
-#if UNITY_EDITOR
-    [UnityEditor.CanEditMultipleObjects, CustomEditor(typeof(MonoEffect), true)]
-    public class MonoEffectInspector : Editor
-    {
-        public override void OnInspectorGUI()
-        {
-            base.OnInspectorGUI();
-            if (GUILayout.Button("Ed Collect"))
-            {
-                foreach (var p in targets)
-                {
-                    ((MonoEffect)p).EdCollect();
-                }
-            }
-        }
-    }
-#endif
 }

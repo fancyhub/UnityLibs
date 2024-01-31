@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace FH
 {
-    internal sealed class TableLog : TagLoggerT<TableLog>
+    internal sealed class TableLog : TagLogT<TableLog>
     {
     }
 }

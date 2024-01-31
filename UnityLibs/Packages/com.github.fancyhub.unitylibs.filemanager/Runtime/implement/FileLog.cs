@@ -12,6 +12,6 @@ namespace FH.FileManagement
 {
     internal static class FileLog
     {
-        internal static TagLogger _ = TagLogger.Create("File", ELogLvl.Info);
+        internal static TagLog _ = TagLog.Create("File", ELogLvl.Info);
     }
 }

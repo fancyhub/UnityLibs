@@ -459,7 +459,7 @@ namespace FH
 
     }
 
-    public struct TagLogger
+    public struct TagLog
     {
         public readonly string Tag;
         // allow mask, 对应的位,如果是true,就可以显示
@@ -467,7 +467,7 @@ namespace FH
         public ELogMask UnityMask;
         public ELogMask TraceMask;
 
-        public TagLogger(string tag, ELogMask allow_mask)
+        public TagLog(string tag, ELogMask allow_mask)
         {
             Tag = tag;
             AllowMask = allow_mask;
@@ -482,9 +482,9 @@ namespace FH
             TraceMask = AllowMask;
         }
 
-        public static TagLogger Create(string tag_name, ELogLvl log_lvl = ELogLvl.Info)
+        public static TagLog Create(string tag_name, ELogLvl log_lvl = ELogLvl.Info)
         {
-            return new TagLogger(tag_name, Log.Lvl2Mask(log_lvl));
+            return new TagLog(tag_name, Log.Lvl2Mask(log_lvl));
         }
 
         private bool _IsEnable(ELogLvl lvl)
@@ -827,7 +827,7 @@ namespace FH
         }
     }
 
-    public abstract class TagLoggerT<TSub> where TSub : new()
+    public abstract class TagLogT<TSub> where TSub : new()
     {
         public static string Tag = typeof(TSub).Name;
         public static ELogMask AllowMask = ELogMask.Info | ELogMask.Warning | ELogMask.Assert | ELogMask.Error | ELogMask.Exception;

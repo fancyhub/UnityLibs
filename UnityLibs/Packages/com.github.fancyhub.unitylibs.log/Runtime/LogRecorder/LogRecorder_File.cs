@@ -14,8 +14,11 @@ namespace FH
 {
     public class LogRecorder_File : ILogRecorder
     {
-        public const string C_FILE_NAME = "applog.txt";
-        public const string C_OLD_FILE_NAME = "applog_{0:yyyy_MM_dd_HH_mm_ss_fff}.txt";
+        private const string C_FILE_NAME = "applog.txt";
+        private const string C_OLD_FILE_NAME = "applog_{0:yyyy_MM_dd_HH_mm_ss_fff}.txt";
+        private const string C_FILE_PATTERN = "applog_*.txt";
+        private const int C_OLD_FILE_MAX_COUNT = 20;
+
         private string _file_path;
         private string _dir_path;
         private StreamWriter _stream_writer;
@@ -30,8 +33,10 @@ namespace FH
 
         public void Start()
         {
+            //1.
             _file_path = System.IO.Path.Combine(_dir_path, C_FILE_NAME);
 
+            //2. 移动旧的Log文件
             if (System.IO.File.Exists(_file_path))
             {
                 DateTime modify_time = System.IO.File.GetLastWriteTime(_file_path);
@@ -45,6 +50,25 @@ namespace FH
                 Directory.CreateDirectory(_dir_path);
                 //UnityEngine.Debug.LogError("Log Dir not exist " + System.IO.Path.GetFullPath(dir));
                 //return;
+            }
+
+            //4. 删除旧的Log文件,控制总数量
+            if (C_OLD_FILE_MAX_COUNT > 0)
+            {
+                try
+                {
+                    string[] files = System.IO.Directory.GetFiles(_dir_path, C_FILE_PATTERN, SearchOption.TopDirectoryOnly);
+                    if (files.Length > C_OLD_FILE_MAX_COUNT)
+                    {
+                        System.Array.Sort(files);
+                        int count_to_del = files.Length - C_OLD_FILE_MAX_COUNT;
+                        for (int i = 0; i < count_to_del; i++)
+                        {
+                            System.IO.File.Delete(files[i]);
+                        }
+                    }
+                }
+                catch { }
             }
 
             var fileStream = new FileStream(_file_path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);

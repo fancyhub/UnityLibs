@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.github.fancyhub.omi": {
+      "version": "file:com.github.fancyhub.omi",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.github.fancyhub.unitylibs.assetbundlebuilder": {
       "version": "file:com.github.fancyhub.unitylibs.assetbundlebuilder",
       "depth": 0,

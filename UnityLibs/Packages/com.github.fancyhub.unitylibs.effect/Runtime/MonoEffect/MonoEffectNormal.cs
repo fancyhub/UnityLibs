@@ -25,15 +25,6 @@ namespace FH
             _Particle.Start(init_param.TimeElapsed);
             _Animation.Start(init_param.TimeElapsed);
         }
-       
-
-#if UNITY_EDITOR
-        public override void EdCollect()
-        {
-            _Animator.EdCollect(transform);
-            _Particle.EdCollect(transform);
-            _Animation.EdCollect(transform);
-        }
 
         public override void LinkTo(Transform tar)
         {
@@ -54,6 +45,15 @@ namespace FH
         {
             throw new NotImplementedException();
         }
+#if UNITY_EDITOR
+        public override void EdCollect()
+        {
+            _Animator.EdCollect(transform);
+            _Particle.EdCollect(transform);
+            _Animation.EdCollect(transform);
+        }
+
+      
 #endif
     }
 

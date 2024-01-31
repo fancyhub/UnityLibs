@@ -38,7 +38,7 @@ namespace FH
                 return;
             }
 
-            SceneLog._ = TagLogger.Create(SceneLog._.Tag, config.LogLvl);
+            SceneLog._ = TagLog.Create(SceneLog._.Tag, config.LogLvl);
             SceneMgrImplement mgr = new SceneMgrImplement(external_loader);
             _Inst = new CPtr<ISceneMgr>(mgr);
         }

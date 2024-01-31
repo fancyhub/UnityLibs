@@ -61,7 +61,7 @@ namespace FH
                 FileLog._.E("FileMgr 已经创建了");
                 return;
             }
-            FileLog._ = TagLogger.Create(FileLog._.Tag, config.LogLvl);
+            FileLog._ = TagLog.Create(FileLog._.Tag, config.LogLvl);
 
             FileMgrImplement file_mgr = new FileMgrImplement(config);
             file_mgr.Init();

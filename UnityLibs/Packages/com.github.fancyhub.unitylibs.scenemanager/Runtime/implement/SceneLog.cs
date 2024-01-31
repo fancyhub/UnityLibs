@@ -12,6 +12,6 @@ namespace FH.SceneManagement
 {
     internal static class SceneLog
     {
-        internal static TagLogger _ = TagLogger.Create("Scene", ELogLvl.Info);
+        internal static TagLog _ = TagLog.Create("Scene", ELogLvl.Info);
     }
 }

@@ -40,7 +40,7 @@ namespace FH
         private IFsmStateVT<TContext, TState, TMsg, TResult> _StateVT;
         private TContext _Context;
         private EFsmMode _Mode;
-        private TagLogger _Logger = TagLogger.Create("Fsm", ELogLvl.Info);
+        private TagLog _Logger = TagLog.Create("Fsm", ELogLvl.Info);
 
 
         //下面是内部的
@@ -74,7 +74,7 @@ namespace FH
         /// </summary>
         public IFsmStateVT<TContext, TState, TMsg, TResult> StateVT { get { return _StateVT; } set { _StateVT = value; } }
 
-        public TagLogger Logger { set { _Logger = value; } }
+        public TagLog Logger { set { _Logger = value; } }
 
         /// <summary>
         /// 上下文

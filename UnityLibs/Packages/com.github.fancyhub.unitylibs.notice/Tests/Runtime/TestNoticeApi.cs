@@ -38,6 +38,7 @@ namespace FH.NoticeSample
 
         [SerializeField] public TestConfig _testData = new TestConfig();
 
+        [FH.Omi.Button]
         public void Show()
         {
             if (!Application.isPlaying)
@@ -85,20 +86,6 @@ namespace FH.NoticeSample
                 default:
                     Debug.LogErrorFormat("未实现格式 {0}", view_type);
                     return null;
-            }
-        }
-    }
-
-    [CustomEditor(typeof(TestNoticeApi))]
-    public class NoticeApiTestEditor : Editor
-    {
-        public override void OnInspectorGUI()
-        {
-            base.OnInspectorGUI();
-
-            if (GUILayout.Button("Show"))
-            {
-                ((TestNoticeApi)target).Show();
             }
         }
     }

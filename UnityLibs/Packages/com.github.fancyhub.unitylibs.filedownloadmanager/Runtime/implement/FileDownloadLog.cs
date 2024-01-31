@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace FH.FileDownload
 {
-    internal sealed class FileDownloadLog : TagLoggerT<FileDownloadLog>
+    internal sealed class FileDownloadLog : TagLogT<FileDownloadLog>
     {
     }
 }

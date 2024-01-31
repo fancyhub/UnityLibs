@@ -12,6 +12,6 @@ namespace FH
 {
     public static class HttpDownloaderLog
     {
-        public static TagLogger _ = TagLogger.Create("Http");
+        public static TagLog _ = TagLog.Create("Http");
     }
 }

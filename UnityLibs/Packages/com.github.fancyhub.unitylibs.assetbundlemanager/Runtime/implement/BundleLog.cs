@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace FH.ABManagement
 {
-    internal sealed class BundleLog : TagLoggerT<BundleLog>
+    internal sealed class BundleLog : TagLogT<BundleLog>
     {        
     }
 }
