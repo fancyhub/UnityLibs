@@ -60,10 +60,10 @@ namespace FH.UI
         public Action EventDestroy;
 
         private IResInstHolder _res_holder;
-        private GameObject _self_root;
+        protected GameObject _self_root;
         private UICanvasOrder _canvas_order;
-        private EUIBaseViewCreateMode _view_create_mode;
-        private EUIBaseViewLifeState _view_life_state;
+        protected EUIBaseViewCreateMode _view_create_mode;
+        protected EUIBaseViewLifeState _view_life_state;
 
         public IResInstHolder ResHolder => _res_holder;
         public GameObject SelfRoot => _self_root;

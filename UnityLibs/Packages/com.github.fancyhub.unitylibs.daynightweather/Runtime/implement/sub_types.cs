@@ -135,7 +135,7 @@ namespace FH.DayNightWeather
         public bool highQualityFiltering;
 
         [Range(0, 16)]
-        public int skipIterations;
+        public int maxIterations;
 
         public Texture dirtTexture;
 
@@ -151,7 +151,7 @@ namespace FH.DayNightWeather
             if (!RDSUtil.IsEuqal(clamp, other.clamp)) return false;
             if (!RDSUtil.IsEuqal(tint, other.tint)) return false;
             if (!RDSUtil.IsEuqal(highQualityFiltering, other.highQualityFiltering)) return false;
-            if (!RDSUtil.IsEuqal(skipIterations, other.skipIterations)) return false;
+            if (!RDSUtil.IsEuqal(maxIterations, other.maxIterations)) return false;
             if (!RDSUtil.IsEuqal(dirtTexture, other.dirtTexture)) return false;
             if (!RDSUtil.IsEuqal(dirtIntensity, other.dirtIntensity)) return false;
             return true;
@@ -166,7 +166,7 @@ namespace FH.DayNightWeather
             clamp = RDSUtil.Lerp(from.clamp, to.clamp, t);
             tint = RDSUtil.Lerp(from.tint, to.tint, t);
             highQualityFiltering = RDSUtil.Lerp(from.highQualityFiltering, to.highQualityFiltering, t);
-            skipIterations = RDSUtil.Lerp(from.skipIterations, to.skipIterations, t);
+            maxIterations = RDSUtil.Lerp(from.maxIterations, to.maxIterations, t);
             dirtTexture = RDSUtil.LerpHalf(from.dirtTexture, to.dirtTexture, t);
             dirtIntensity = RDSUtil.Lerp(from.dirtIntensity, to.dirtIntensity, t);
         }
@@ -182,7 +182,7 @@ namespace FH.DayNightWeather
                 clamp = 65472f,
                 tint = Color.white,
                 highQualityFiltering = false,
-                skipIterations = 1,
+                maxIterations = 1,
                 dirtIntensity = 0,
             };
         }
@@ -197,7 +197,7 @@ namespace FH.DayNightWeather
             inst.clamp.Override(clamp);
             inst.tint.Override(tint);
             inst.highQualityFiltering.Override(highQualityFiltering);
-            inst.skipIterations.Override(skipIterations);
+            inst.maxIterations.Override(maxIterations);
             inst.dirtTexture.Override(dirtTexture);
             inst.dirtIntensity.Override(dirtIntensity);
         }
@@ -228,7 +228,7 @@ namespace FH.DayNightWeather
                 clamp = shared_p.clamp.value;
                 tint = shared_p.tint.value;
                 highQualityFiltering = shared_p.highQualityFiltering.value;
-                skipIterations = shared_p.skipIterations.value;
+                maxIterations = shared_p.maxIterations.value;
                 dirtTexture = shared_p.dirtTexture.value;
                 dirtIntensity = shared_p.dirtIntensity.value;
             }
@@ -241,7 +241,7 @@ namespace FH.DayNightWeather
                 clamp = inst_p.clamp.overrideState ? inst_p.clamp.value : shared_p.clamp.value;
                 tint = inst_p.tint.overrideState ? inst_p.tint.value : shared_p.tint.value;
                 highQualityFiltering = inst_p.highQualityFiltering.overrideState ? inst_p.highQualityFiltering.value : shared_p.highQualityFiltering.value;
-                skipIterations = inst_p.skipIterations.overrideState ? inst_p.skipIterations.value : shared_p.skipIterations.value;
+                maxIterations = inst_p.maxIterations.overrideState ? inst_p.maxIterations.value : shared_p.maxIterations.value;
                 dirtTexture = inst_p.dirtTexture.overrideState ? inst_p.dirtTexture.value : shared_p.dirtTexture.value;
                 dirtIntensity = inst_p.dirtIntensity.overrideState ? inst_p.dirtIntensity.value : shared_p.dirtIntensity.value;
             }
@@ -294,7 +294,7 @@ namespace FH.DayNightWeather
         public Color ambientGroundColor;
 
         public DefaultReflectionMode defaultReflectionMode;
-        public Cubemap customReflection;
+        public Texture customReflectionTexture;
         public float reflectionIntensity;
         public int reflectionBounces;
         public int defaultReflectionResolution;
@@ -309,7 +309,7 @@ namespace FH.DayNightWeather
             if (!RDSUtil.IsEuqal(ambientGroundColor, other.ambientGroundColor)) return false;
 
             if (defaultReflectionMode != other.defaultReflectionMode) return false;
-            if (!RDSUtil.IsEuqal(customReflection, other.customReflection)) return false;
+            if (!RDSUtil.IsEuqal(customReflectionTexture, other.customReflectionTexture)) return false;
             if (!RDSUtil.IsEuqal(reflectionIntensity, other.reflectionIntensity)) return false;
             if (!RDSUtil.IsEuqal(reflectionBounces, other.reflectionBounces)) return false;
             if (!RDSUtil.IsEuqal(defaultReflectionResolution, other.defaultReflectionResolution)) return false;
@@ -326,7 +326,7 @@ namespace FH.DayNightWeather
             ambientGroundColor = RDSUtil.Lerp(from.ambientGroundColor, to.ambientGroundColor, t);
 
             defaultReflectionMode = RDSUtil.LerpHalf(from.defaultReflectionMode, to.defaultReflectionMode, t);
-            customReflection = RDSUtil.LerpHalf(from.customReflection, to.customReflection, t);
+            customReflectionTexture = RDSUtil.LerpHalf(from.customReflectionTexture, to.customReflectionTexture, t);
             reflectionIntensity = RDSUtil.Lerp(from.reflectionIntensity, to.reflectionIntensity, t);
             reflectionBounces = RDSUtil.Lerp(from.reflectionBounces, to.reflectionBounces, t);
             defaultReflectionResolution = RDSUtil.LerpHalf(from.defaultReflectionResolution, to.defaultReflectionResolution, t);
@@ -346,7 +346,7 @@ namespace FH.DayNightWeather
             ambientGroundColor = RenderSettings.ambientGroundColor;
 
             defaultReflectionMode = RenderSettings.defaultReflectionMode;
-            customReflection = RenderSettings.customReflection;
+            customReflectionTexture = RenderSettings.customReflectionTexture;
             reflectionIntensity = RenderSettings.reflectionIntensity;
             reflectionBounces = RenderSettings.reflectionBounces;
             defaultReflectionResolution = RenderSettings.defaultReflectionResolution;
@@ -363,7 +363,7 @@ namespace FH.DayNightWeather
             RenderSettings.ambientGroundColor = ambientGroundColor;
 
             RenderSettings.defaultReflectionMode = defaultReflectionMode;
-            RenderSettings.customReflection = customReflection;
+            RenderSettings.customReflectionTexture = customReflectionTexture;
             RenderSettings.reflectionIntensity = reflectionIntensity;
             RenderSettings.reflectionBounces = reflectionBounces;
             RenderSettings.defaultReflectionResolution = defaultReflectionResolution;

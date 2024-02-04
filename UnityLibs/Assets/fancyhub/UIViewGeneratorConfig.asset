@@ -23,6 +23,7 @@ MonoBehaviour:
   ResourcesFolderList:
   - Assets/Res/UI/Prefab
   PriorityCompTypeList:
+  - UnityEngine.UI.ToggleGroup
   - UnityEngine.UI.Button
   - UnityEngine.UI.Toggle
   - UnityEngine.UI.Slider
