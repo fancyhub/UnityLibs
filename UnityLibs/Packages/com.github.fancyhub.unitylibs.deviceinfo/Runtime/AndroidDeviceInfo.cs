@@ -109,21 +109,24 @@ namespace FH
 
 
         //https://developer.android.google.cn/reference/android/os/StatFs
+        //https://developer.android.google.cn/reference/android/os/Environment
         #region Storage StateFS
-        private static AndroidJavaObject _StatFS;
-        private static AndroidJavaObject _GetStateFS()
+        private static AndroidJavaObject _DataStorage;
+        private static AndroidJavaObject _ExternalStorage;
+        private static bool _ExternalStorageInited = false;
+        private static AndroidJavaObject _GetDataStorage()
         {
             try
             {
-                if (_StatFS == null)
+                if (_DataStorage == null)
                 {
                     var env_class = new AndroidJavaClass("android.os.Environment");
                     var data_dir = env_class.CallStatic<AndroidJavaObject>("getDataDirectory");
                     string path = data_dir.Call<string>("getPath");
 
-                    _StatFS = new AndroidJavaObject("android.os.StatFs", path);
+                    _DataStorage = new AndroidJavaObject("android.os.StatFs", path);
                 }
-                return _StatFS;
+                return _DataStorage;
             }
             catch (System.Exception ex)
             {
@@ -132,8 +135,36 @@ namespace FH
                 return default;
             }
         }
-        public static long Storage_AvailableBytes => _GetStateFS()._ExtCall<long>("getAvailableBytes");
-        public static long Storage_TotalBytes => _GetStateFS()._ExtCall<long>("getTotalBytes");
+
+        private static AndroidJavaObject _GetExternalStorage()
+        {
+            if (_ExternalStorageInited)
+                return null;
+            _ExternalStorageInited = true;
+            try
+            {
+                if (_ExternalStorage == null)
+                {
+                    var env_class = new AndroidJavaClass("android.os.Environment");
+                    var data_dir = env_class.CallStatic<AndroidJavaObject>("getExternalStorageDirectory");                    
+                    string path = data_dir.Call<string>("getPath");
+                    _ExternalStorage = new AndroidJavaObject("android.os.StatFs", path);
+                }
+                return _ExternalStorage;
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                return default;
+            }
+        }
+
+        public static long Storage_AvailableBytes => _GetDataStorage()._ExtCall<long>("getAvailableBytes");
+        public static long Storage_TotalBytes => _GetDataStorage()._ExtCall<long>("getTotalBytes");
+        public static bool ExternalStorage_Exist => _GetExternalStorage() != null;
+        public static long ExternalStorage_AvailableBytes => _GetExternalStorage()._ExtCall<long>("getAvailableBytes");
+        public static long ExternalStorage_TotalBytes => _GetExternalStorage()._ExtCall<long>("getTotalBytes");
         #endregion
 
         //https://developer.android.google.cn/reference/android/os/Build

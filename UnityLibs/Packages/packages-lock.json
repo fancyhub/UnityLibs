@@ -339,6 +339,12 @@
         "com.github.fancyhub.unitylibs.lz4": "1.0.0"
       }
     },
+    "com.github.fancyhub.unitylibs.webview": {
+      "version": "file:com.github.fancyhub.unitylibs.webview",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,
