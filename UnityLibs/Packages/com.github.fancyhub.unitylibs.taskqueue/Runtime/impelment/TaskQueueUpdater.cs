@@ -6,6 +6,7 @@
 *************************************************************************************/
 
 using System;
+using System.Xml.Schema;
 using UnityEngine;
 
 namespace FH
@@ -16,7 +17,7 @@ namespace FH
         internal static bool _ManualUpdate;
         internal static CPtr<ITaskQueue> _TaskQueue;
 
-        public static void CreateInst(ITaskQueue task_queue, bool manual_update)
+        public static TaskQueueUpdater CreateInst()
         {
             if (_Inst == null)
             {
@@ -25,11 +26,16 @@ namespace FH
                 GameObject.DontDestroyOnLoad(obj);
                 obj.hideFlags = HideFlags.HideAndDontSave;
             }
+            return _Inst;
+        }
 
+        public static void CreateInst(ITaskQueue task_queue, bool manual_update)
+        {
+            CreateInst();
             _ManualUpdate = manual_update;
             _TaskQueue = new CPtr<ITaskQueue>(task_queue);
+        }     
 
-        }
         public void Awake()
         {
             _Inst = this;

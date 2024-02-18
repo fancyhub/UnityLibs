@@ -75,6 +75,22 @@ namespace FH
             TaskQueueUpdater.CreateInst(task_queue, manual_update);
         }
 
+        /// <summary>
+        /// 只能在主线程调用
+        /// </summary>
+        public static UnityEngine.Coroutine StartCoroutine(System.Collections.IEnumerator routine)
+        {
+            return TaskQueueUpdater.CreateInst().StartCoroutine(routine);
+        }
+
+        /// <summary>
+        /// 只能在主线程调用
+        /// </summary>
+        public static void StopCoroutine(UnityEngine.Coroutine routine)
+        {
+            TaskQueueUpdater.CreateInst().StopCoroutine(routine);
+        }
+
         public static ETaskQueueStatus Status
         {
             get

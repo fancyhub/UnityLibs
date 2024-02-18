@@ -181,6 +181,12 @@
         "com.github.fancyhub.unitylibs.taskqueue": "1.0.0"
       }
     },
+    "com.github.fancyhub.unitylibs.platform": {
+      "version": "file:com.github.fancyhub.unitylibs.platform",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.github.fancyhub.unitylibs.resourcemanager": {
       "version": "file:com.github.fancyhub.unitylibs.resourcemanager",
       "depth": 0,
