@@ -52,8 +52,8 @@ namespace FH.UI
             float tar_width = right_top.x - left_bottom.x;
             float tar_height = right_top.y - left_bottom.y;
 
-            float x = root_left_bottom.x - left_bottom.x;
-            float y = root_left_bottom.y - left_bottom.y;
+            float x = left_bottom.x-root_left_bottom.x;
+            float y = left_bottom.y-root_left_bottom.y;
             float width = tar_width / root_width;
             float height = tar_height / root_height;
             x = x / root_width;

@@ -307,9 +307,19 @@ namespace FH.UI
             }
 
             //4. 隐藏多余的
-            for (int i = _InfoList.Count; i < _ImageList.Count; i++)
+            for (int i = _ImageList.Count - 1; i >= _InfoList.Count; i--)
             {
-                _ImageList[i].gameObject.SetActive(false);
+				#if UNITY_EDITOR
+                if (Application.isPlaying)
+                    _ImageList[i].gameObject.SetActive(false);
+                else
+                {
+                    GameObject.DestroyImmediate(_ImageList[i].gameObject);
+                    _ImageList.RemoveAt(i);
+                }
+				#else 
+					_ImageList[i].gameObject.SetActive(false);
+				#endif
             }
 
             //5. 加载
