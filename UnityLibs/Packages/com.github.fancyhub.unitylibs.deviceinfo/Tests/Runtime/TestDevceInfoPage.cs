@@ -118,16 +118,23 @@ namespace FH
             {
                 Debug.Log(p.Name);
 
-                var value = p.GetValue(null, null);
-                if (value != null)
+                try
                 {
-                    sb.Append(p.Name + ": " + value.ToString());
+                    var value = p.GetValue(null, null);
+                    if (value != null)
+                    {
+                        sb.Append(p.Name + ": " + value.ToString());
+                    }
+                    else
+                    {
+                        sb.Append(p.Name + ": Null");
+                    }
+                    sb.Append("\n");
                 }
-                else
+                catch(Exception e)
                 {
-                    sb.Append(p.Name + ": Null");
+                    Debug.LogException(e);
                 }
-                sb.Append("\n");
             }
 
             _SetContent(sb.ToString());

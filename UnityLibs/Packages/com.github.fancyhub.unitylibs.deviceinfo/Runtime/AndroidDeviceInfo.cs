@@ -11,7 +11,7 @@ namespace FH
 {
     public static class AndroidDeviceInfo
     {
-        private const bool ReturnExcpetion = false;
+        private const bool ReturnExcpetion = true;
 
         private static T _ExtCall<T>(this AndroidJavaObject self, string name)
         {
@@ -32,6 +32,20 @@ namespace FH
             try
             {
                 return self.Get<T>(name);
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                return default(T);
+            }
+        }
+
+         private static T _ExtCallStatic<T>(this AndroidJavaClass self, string name)
+        {
+            try
+            {
+                return self.CallStatic<T>(name);
             }
             catch (System.Exception ex)
             {
@@ -146,7 +160,7 @@ namespace FH
                 if (_ExternalStorage == null)
                 {
                     var env_class = new AndroidJavaClass("android.os.Environment");
-                    var data_dir = env_class.CallStatic<AndroidJavaObject>("getExternalStorageDirectory");                    
+                    var data_dir = env_class.CallStatic<AndroidJavaObject>("getExternalStorageDirectory");
                     string path = data_dir.Call<string>("getPath");
                     _ExternalStorage = new AndroidJavaObject("android.os.StatFs", path);
                 }
@@ -237,6 +251,48 @@ namespace FH
         public static int Screen_DensityDpi => _GetDefaultRealMetrics()._ExtGet<int>("densityDpi");
         public static int Screen_WidthPixels => _GetDefaultRealMetrics()._ExtGet<int>("widthPixels");
         public static int Screen_HeightPixels => _GetDefaultRealMetrics()._ExtGet<int>("heightPixels");
+        #endregion
+
+
+        #region AndroidDeviceInfo
+        private static AndroidJavaClass _AndroidDeviceInfo;
+        private static bool _AndroidDeviceInfoInited = false;
+        private static AndroidJavaClass _GetAndroidDeviceInfo()
+        {
+            if (_AndroidDeviceInfoInited)
+                return _AndroidDeviceInfo;
+
+            _AndroidDeviceInfoInited = true;
+            try
+            {
+                _AndroidDeviceInfo = new AndroidJavaClass("com.fancyhub.DeviceInfo");
+                return _AndroidDeviceInfo;
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                return default;
+            }
+        }
+
+        public static bool AdvertisingIdReady
+        {
+            get
+            {
+                var info = _GetAndroidDeviceInfo();
+                return info._ExtCallStatic<bool>("IsAdvertisingIdReady");
+            }
+        }
+
+        public static string AdvertisingId
+        {
+            get
+            {
+                var info = _GetAndroidDeviceInfo();
+                return info._ExtCallStatic<string>("GetAdvertisingId");
+            }
+        }
         #endregion
     }
 }
