@@ -11,7 +11,11 @@ namespace FH
 {
     public static class AndroidDeviceInfo
     {
-        private const bool ReturnExcpetion = true;
+        private const bool ReturnExcpetion = false;
+        private static void _PrintException(System.Exception e)
+        {
+            UnityEngine.Debug.LogException(e);
+        }
 
         private static T _ExtCall<T>(this AndroidJavaObject self, string name)
         {
@@ -23,6 +27,7 @@ namespace FH
             {
                 if (ReturnExcpetion)
                     throw ex;
+                _PrintException(ex);
                 return default(T);
             }
         }
@@ -37,11 +42,12 @@ namespace FH
             {
                 if (ReturnExcpetion)
                     throw ex;
+                _PrintException(ex);
                 return default(T);
             }
         }
 
-         private static T _ExtCallStatic<T>(this AndroidJavaClass self, string name)
+        private static T _ExtCallStatic<T>(this AndroidJavaClass self, string name)
         {
             try
             {
@@ -51,6 +57,7 @@ namespace FH
             {
                 if (ReturnExcpetion)
                     throw ex;
+                _PrintException(ex);
                 return default(T);
             }
         }
@@ -65,6 +72,7 @@ namespace FH
             {
                 if (ReturnExcpetion)
                     throw ex;
+                _PrintException(ex);
                 return default(T);
             }
         }
@@ -97,6 +105,7 @@ namespace FH
             {
                 if (ReturnExcpetion)
                     throw ex;
+                _PrintException(ex);
                 return default;
             }
         }
@@ -119,6 +128,59 @@ namespace FH
         //android.Manifest.permission.READ_PRIVILEGED_PHONE_STATE
         public static int TelephonyManager_NetworkType => _GetTelephonyManager()._ExtCall<int>("getNetworkType");
 
+        #endregion
+
+
+        #region ActivityManager
+        private static AndroidJavaObject _ActivityManager;
+        private const string ACTIVITY_SERVICE = "activity"; //android.content.Context.ACTIVITY_SERVICE
+        private static AndroidJavaObject _GetActivityManager()
+        {
+            try
+            {
+                if (_ActivityManager == null)
+                {
+                    AndroidJavaObject currentActivity = _GetCurrentActivity();
+                    _ActivityManager = currentActivity.Call<AndroidJavaObject>("getSystemService", ACTIVITY_SERVICE);
+                }
+                return _ActivityManager;
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+                return default;
+            }
+        }
+        #endregion
+
+
+        #region  MemoryInfo
+        private static AndroidJavaObject _MemoryInfo;
+        private static AndroidJavaObject _GetMemoryInfo()
+        {
+            try
+            {
+                if (_MemoryInfo == null)
+                {
+                    _MemoryInfo = new AndroidJavaObject("android.app.ActivityManager$MemoryInfo");
+                    var activeMgr = _GetActivityManager();
+                    activeMgr.Call("getMemoryInfo", _MemoryInfo);
+                }
+                return _MemoryInfo;
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+                return default;
+            }
+        }
+
+        public static long MemoryInfo_TotalMem => _GetMemoryInfo()._ExtGet<long>("totalMem");
+        public static long MemoryInfo_AvailMem => _GetMemoryInfo()._ExtGet<long>("availMem");
         #endregion
 
 
@@ -146,6 +208,7 @@ namespace FH
             {
                 if (ReturnExcpetion)
                     throw ex;
+                _PrintException(ex);
                 return default;
             }
         }
@@ -170,6 +233,7 @@ namespace FH
             {
                 if (ReturnExcpetion)
                     throw ex;
+                _PrintException(ex);
                 return default;
             }
         }
@@ -198,9 +262,13 @@ namespace FH
             {
                 if (ReturnExcpetion)
                     throw ex;
+                _PrintException(ex);
                 return default;
             }
         }
+
+        public static string Build_BOARD => _GetBuild()._ExtGetStatic<string>("BOARD");
+        public static string Build_BOOTLOADER => _GetBuild()._ExtGetStatic<string>("BOOTLOADER");
         public static string Build_BRAND => _GetBuild()._ExtGetStatic<string>("BRAND");
         public static string Build_CPU_ABI => _GetBuild()._ExtGetStatic<string>("CPU_ABI");
         public static string Build_CPU_ABI2 => _GetBuild()._ExtGetStatic<string>("CPU_ABI2");
@@ -208,12 +276,19 @@ namespace FH
         public static string Build_DISPLAY => _GetBuild()._ExtGetStatic<string>("DISPLAY");
         public static string Build_FINGERPRINT => _GetBuild()._ExtGetStatic<string>("FINGERPRINT");
         public static string Build_HARDWARE => _GetBuild()._ExtGetStatic<string>("HARDWARE");
+        public static string Build_HOST => _GetBuild()._ExtGetStatic<string>("HOST");
         public static string Build_ID => _GetBuild()._ExtGetStatic<string>("ID");
+        public static string Build_MANUFACTURER => _GetBuild()._ExtGetStatic<string>("MANUFACTURER");
         public static string Build_MODEL => _GetBuild()._ExtGetStatic<string>("MODEL");
         public static string Build_ODM_SKU => _GetBuild()._ExtGetStatic<string>("ODM_SKU");
         public static string Build_PRODUCT => _GetBuild()._ExtGetStatic<string>("PRODUCT");
         public static string Build_SKU => _GetBuild()._ExtGetStatic<string>("SKU");
+        public static string Build_SOC_MANUFACTURER => _GetBuild()._ExtGetStatic<string>("SOC_MANUFACTURER");
         public static string Build_SOC_MODEL => _GetBuild()._ExtGetStatic<string>("SOC_MODEL");
+        public static string[] Build_SUPPORTED_ABIS => _GetBuild()._ExtGetStatic<string[]>("SUPPORTED_ABIS");
+        public static string Build_TAGS => _GetBuild()._ExtGetStatic<string>("TAGS");
+        public static long Build_TIME => _GetBuild()._ExtGetStatic<long>("TIME");
+        public static string Build_TYPE => _GetBuild()._ExtGetStatic<string>("TYPE");
 
         #endregion
 
@@ -243,6 +318,7 @@ namespace FH
             {
                 if (ReturnExcpetion)
                     throw ex;
+                _PrintException(ex);
                 return default;
             }
         }
@@ -252,6 +328,8 @@ namespace FH
         public static int Screen_WidthPixels => _GetDefaultRealMetrics()._ExtGet<int>("widthPixels");
         public static int Screen_HeightPixels => _GetDefaultRealMetrics()._ExtGet<int>("heightPixels");
         #endregion
+
+
 
 
         #region AndroidDeviceInfo
@@ -272,6 +350,7 @@ namespace FH
             {
                 if (ReturnExcpetion)
                     throw ex;
+                _PrintException(ex);
                 return default;
             }
         }
@@ -293,6 +372,134 @@ namespace FH
                 return info._ExtCallStatic<string>("GetAdvertisingId");
             }
         }
+        #endregion
+
+
+
+        //adb shell getprop
+        #region  SystemProperties
+        private static AndroidJavaClass _SystemProperties;
+        private static AndroidJavaClass _GetSystemProperties()
+        {
+            try
+            {
+                if (_SystemProperties == null)
+                {
+                    _SystemProperties = new AndroidJavaClass("android.os.SystemProperties");
+                }
+                return _SystemProperties;
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+                return default;
+            }
+        }
+
+        public static string SystemProperties_GetString(string key)
+        {
+            try
+            {
+                var obj = _GetSystemProperties();
+                return obj.CallStatic<string>("get", key);
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+                return default;
+            }
+        }
+
+        public static string SystemProperties_GetString(string key, string def)
+        {
+            try
+            {
+                var obj = _GetSystemProperties();
+                return obj.CallStatic<string>("get", key, def);
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+                return default;
+            }
+        }
+
+        public static int SystemProperties_GetInt(string key, int def = 0)
+        {
+            try
+            {
+                var obj = _GetSystemProperties();
+                return obj.CallStatic<int>("getInt", key, def);
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+                return default;
+            }
+        }
+
+        public static long SystemProperties_GetLong(string key, long def = 0)
+        {
+            try
+            {
+                var obj = _GetSystemProperties();
+                return obj.CallStatic<long>("getLong", key, def);
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+                return default;
+            }
+        }
+
+        public static bool SystemProperties_GetBool(string key, bool def = false)
+        {
+            try
+            {
+                var obj = _GetSystemProperties();
+                return obj.CallStatic<bool>("getBoolean", key, def);
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+                return default;
+            }
+        }
+
+        public static string GetAllSystemProperties()
+        {
+
+            try
+            {
+                return _GetAndroidDeviceInfo().CallStatic<string>("ExeCmd", "/system/bin/getprop");
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+                return default;
+            }
+
+        }
+
+        // public static string SystemProperties_TesT1 => SystemProperties_GetString("ro.vendor.build.version.sdk");
+        // public static string SystemProperties_TesT2 => SystemProperties_GetString("ro.vendor.build.version.sdk", "test");
+        // public static int SystemProperties_TesT3 => SystemProperties_GetInt("ro.vendor.build.version.sdk", 0);
+        // public static long SystemProperties_TesT4 => SystemProperties_GetLong("ro.vendor.build.version.sdk", 0);
+        // public static bool SystemProperties_TesT5 => SystemProperties_GetBool("ro.vendor.build.version.sdk", false);
         #endregion
     }
 }

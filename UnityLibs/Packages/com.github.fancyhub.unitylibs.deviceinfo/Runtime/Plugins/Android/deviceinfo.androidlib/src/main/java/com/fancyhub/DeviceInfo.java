@@ -17,6 +17,33 @@ public class DeviceInfo {
 
     private final static String TAG = "AndroidDeviceInfo";
 
+
+    public static String ExeCmd(String cmd)
+    {
+        Process process = null;
+        try {
+            process = new ProcessBuilder().command(cmd).redirectErrorStream(true).start();
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+
+        java.io.InputStream in = process.getInputStream();
+        java.io.BufferedReader bufferedReader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()));
+        StringBuilder log = new StringBuilder();
+        String line;
+        try {
+            while ((line = bufferedReader.readLine()) != null) {
+                log.append(line);
+                log.append('\n');
+            }
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+        process.destroy();
+        
+        return log.toString();
+    }
+
     public static String GetAdvertisingId() {
         _ReqAdvertisingId();
         if (_AdvertisingIdResult == null)

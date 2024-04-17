@@ -5,6 +5,7 @@ dependencies {
     implementation 'com.google.guava:guava:28.0-android'
     implementation "com.google.android.gms:play-services-ads-identifier:18.0.1"
 	implementation fileTree(dir: '../libs', includes: ['unity-classes.jar'])
+    //compileOnly fileTree(dir: '../libs', include: ['*.jar', '*.aar'])
 }
 
 

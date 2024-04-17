@@ -61,8 +61,11 @@ namespace FH
                 case 1:
                     _ShowCpuInfo();
                     break;
-
                 case 2:
+                    _ShowWindowsDeviceInfo();
+                    break;
+
+                case 3:
                     _ShowAndroidDeviceInfo();
                     break;
             }
@@ -110,6 +113,36 @@ namespace FH
             }
         }
 
+        private void _ShowWindowsDeviceInfo()
+        {
+            StringBuilder sb = new StringBuilder();
+            var all_props = typeof(WindowsDeviceInfo).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            foreach (var p in all_props)
+            {
+                Debug.Log(p.Name);
+
+                try
+                {
+                    var value = p.GetValue(null, null);
+                    if (value != null)
+                    {
+                        sb.Append(p.Name + ": " + value.ToString());
+                    }
+                    else
+                    {
+                        sb.Append(p.Name + ": Null");
+                    }
+                    sb.Append("\n");
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            }
+
+            _SetContent(sb.ToString());
+        }
+
         private void _ShowAndroidDeviceInfo()
         {
             StringBuilder sb = new StringBuilder();
@@ -131,13 +164,20 @@ namespace FH
                     }
                     sb.Append("\n");
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Debug.LogException(e);
                 }
             }
 
             _SetContent(sb.ToString());
+
+
+            string v = AndroidDeviceInfo.GetAllSystemProperties();
+            foreach (var p in v.Split('\n'))
+            {
+                Debug.Log(p);
+            }
         }
     }
 }
