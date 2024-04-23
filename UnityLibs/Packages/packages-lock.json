@@ -60,8 +60,8 @@
       "source": "embedded",
       "dependencies": {}
     },
-    "com.github.fancyhub.unitylibs.deviceinfo": {
-      "version": "file:com.github.fancyhub.unitylibs.deviceinfo",
+    "com.github.fancyhub.unitylibs.device": {
+      "version": "file:com.github.fancyhub.unitylibs.device",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}

@@ -1,0 +1,16 @@
+{
+    "name": "fancyhub.device.test",
+    "rootNamespace": "",
+    "references": [
+        "GUID:eb7a0f590f93b73468a5e0eff51d086b"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
