@@ -293,6 +293,12 @@
         "com.unity.ugui": ""
       }
     },
+    "com.github.fancyhub.unitylibs.uimvp": {
+      "version": "file:com.github.fancyhub.unitylibs.uimvp",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.github.fancyhub.unitylibs.uireddot": {
       "version": "file:com.github.fancyhub.unitylibs.uireddot",
       "depth": 0,

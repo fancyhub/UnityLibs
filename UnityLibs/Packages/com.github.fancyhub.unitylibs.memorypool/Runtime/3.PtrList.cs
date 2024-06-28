@@ -95,7 +95,7 @@ namespace FH
 
         public int CountThreshold { get => _count_threshold; set => _count_threshold = value; }
 
-        public void Clear()
+        public void DestroyAll()
         {
             //从后向前销毁
             for (var node = _list.Last; node != null; node = node.Previous)
@@ -108,7 +108,106 @@ namespace FH
 
         protected override void OnPoolRelease()
         {
-            Clear();
+            DestroyAll();
+            _count_threshold = C_COUNT_THRESHOLD;
+        }
+    }
+
+
+    public sealed class PtrList<T> : CPoolItemBase where T : class, ICPtr
+    {
+        private const int C_COUNT_THRESHOLD = 10; //每添加多少个之后,检查一下是否有invalid,并删除        
+
+        private int _count_threshold = C_COUNT_THRESHOLD;
+        private LinkedList<CPtr<T>> _list = new LinkedList<CPtr<T>>();
+        private int _last_count = 0;
+
+        public static PtrList<T> operator +(PtrList<T> ptr_list, T ptr)
+        {
+            //1. 检查是否为空
+            if (ptr == null)
+                return ptr_list;
+
+            //2. 如果ptr list 为空,创建一个
+            if (ptr_list == null)
+                ptr_list = GPool.New<PtrList<T>>();
+
+            //4.  把Ptr 添加到 List里面
+            ptr_list._list.ExtAddLast(new CPtr<T>(ptr));
+
+            //5. 检查是否触发了删除非法的ptr
+            if (ptr_list._list.Count >= (ptr_list._last_count + ptr_list._count_threshold))
+                ptr_list.RemoveInvalid();
+
+            return ptr_list;
+        }
+
+        /// <summary>
+        /// 不会调用ptr的destroy
+        /// </summary>        
+        public static PtrList<T> operator -(PtrList<T> ptr_list, T ptr)
+        {
+            //1. 检查是否为空
+            if (ptr == null)
+                return ptr_list;
+
+            if (ptr_list == null)
+                return ptr_list;
+
+            var node = ptr_list._list.First;
+            LinkedListNode<CPtr<T>> next = null;
+            for (; node != null; node = next)
+            {
+                next = node.Next;
+
+                T item = node.Value.Val;
+
+                if (item == null)
+                {
+                    node.ExtRemoveFromList();
+                }
+                else if (item == ptr)
+                {
+                    node.ExtRemoveFromList();
+                }
+            }
+            return ptr_list;
+        }
+
+
+        public int RemoveInvalid()
+        {
+            for (var node = _list.First; node != null;)
+            {
+                var t = node;
+                node = node.Next;
+                if (t.Value.Null)
+                {
+                    _list.ExtRemove(t);
+                }
+            }
+            _last_count = _list.Count;
+            return _list.Count;
+        }
+
+        public int Count { get { return _list.Count; } }
+
+        public int CountThreshold { get => _count_threshold; set => _count_threshold = value; }
+
+        public void DestroyAll()
+        {
+            //从后向前销毁
+            for (var node = _list.Last; node != null; node = node.Previous)
+            {
+                node.Value.Destroy();
+            }
+            _list.ExtClear();
+            _last_count = 0;
+        }
+
+        protected override void OnPoolRelease()
+        {
+            DestroyAll();
             _count_threshold = C_COUNT_THRESHOLD;
         }
     }

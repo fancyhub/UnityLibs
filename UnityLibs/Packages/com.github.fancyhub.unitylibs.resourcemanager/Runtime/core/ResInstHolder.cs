@@ -35,12 +35,23 @@ namespace FH
         }
     }
 
-    public interface IResHolder : ICPtr
+    public interface IHolderCallBack
+    {
+        void OnHolderCallBack();
+    }
+
+    public interface IHolderObserver
+    {
+        public void SetCallBack(IHolderCallBack callback);
+    }
+
+    public interface IResHolder : ICPtr, IHolderObserver
     {
         public UnityEngine.Object Load(string path, bool sprite);
         public void PreLoad(string path, bool sprite, int priority = 0);
         public void GetAllRes(List<ResRef> out_list);
         public HolderStat GetResStat();
+
     }
 
     public interface IPreInstHolder : ICPtr
@@ -49,7 +60,7 @@ namespace FH
         public void ClearPreInst();
     }
 
-    public interface IInstHolder : ICPtr
+    public interface IInstHolder : ICPtr, IHolderObserver
     {
         public GameObject CreateEmpty();
         public GameObject Create(string path);
@@ -64,7 +75,7 @@ namespace FH
     }
 
     //聚合类
-    public interface IResInstHolder : IResHolder, IInstHolder, IPreInstHolder
+    public interface IResInstHolder : IResHolder, IInstHolder, IPreInstHolder, IHolderObserver
     {
         public void GetAll(List<ResRef> out_list);
         public HolderStat GetStat();

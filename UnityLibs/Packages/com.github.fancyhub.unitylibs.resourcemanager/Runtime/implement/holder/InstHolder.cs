@@ -20,6 +20,7 @@ namespace FH.ResManagement
         private MyDict<int, ResRef> _FreeDict = new MyDict<int, ResRef>();
         private MyDict<int, int> _PreCreateDict = new MyDict<int, int>();
         private HolderStat _Stat = new HolderStat();
+        private IHolderCallBack _HolderCb;
 
         /// <summary>
         /// Share 描述的是, 实例对象被还回来之后, 是否放回到大池子里面, 还是留在 Holder里面, 也就是多个InstHolder在存续期间, 实例对象是否共享
@@ -146,6 +147,7 @@ namespace FH.ResManagement
             if (code != EResError.OK)
             {
                 _Stat.Fail++;
+                _HolderCb?.OnHolderCallBack();
                 return;
             }
 
@@ -153,6 +155,7 @@ namespace FH.ResManagement
             if (res_mgr == null)
             {
                 _Stat.Fail++;
+                _HolderCb?.OnHolderCallBack();
                 return;
             }
 
@@ -161,20 +164,20 @@ namespace FH.ResManagement
             {
                 _Stat.Succ++;
                 _FreeDict.Add(res_ref.Id.Id, res_ref);
+                _HolderCb?.OnHolderCallBack();
+                return;
             }
-            else
+
+            err = res_mgr.AsyncCreate(path, priority, _OnInstCB, out job_id);
+            ResLog._.ErrCode(err);
+            if (err == EResError.OK)
             {
-                err = res_mgr.AsyncCreate(path, priority, _OnInstCB, out job_id);
-                ResLog._.ErrCode(err);
-                if (err == EResError.OK)
-                {
-                    _PreCreateDict.Add(job_id, priority);
-                }
-                else
-                {
-                    _Stat.Fail++;
-                }
+                _PreCreateDict.Add(job_id, priority);
+                return;
             }
+
+            _Stat.Fail++;
+            _HolderCb?.OnHolderCallBack();
         }
 
         /// <summary>
@@ -246,6 +249,11 @@ namespace FH.ResManagement
         public HolderStat GetInstStat()
         {
             return _Stat;
+        }
+
+        public void SetCallBack(IHolderCallBack callback)
+        {
+            _HolderCb = callback;
         }
     }
 }

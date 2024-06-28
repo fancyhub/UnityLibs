@@ -99,7 +99,7 @@ namespace FH
 
             //把节点移到前面去
             node.Value = new KeyValuePair<TKey, TVal>(node.Value.Key, value);
-            _list.ExtMoveFirst(node);
+            _list.ExtMove2First(node);
         }
 
         public bool Remove(TKey key, out TVal v)

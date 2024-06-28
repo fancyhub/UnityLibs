@@ -282,6 +282,54 @@ namespace FH
         /// </summary>
         [Conditional(LogConditional.COND_ASSERT)]
         [HideInCallstack]
+        public static void Assert<T0>(bool cond, string format, T0 arg0)
+        {
+#if ENABLE_LOG_Assert            
+            if (cond)
+                return;
+
+            if (format == null)
+            {
+                format = "Asset Error";                                
+            }
+
+            if (!_IsEnable(ELogLvl.Assert))
+                return;
+
+            LogPrinter.Print1(ELogLvl.Assert, null, TraceMask, UnityMask, null, format, arg0);
+
+#endif
+        }
+
+        /// <summary>
+        /// assert
+        /// </summary>
+        [Conditional(LogConditional.COND_ASSERT)]
+        [HideInCallstack]
+        public static void Assert<T0,T1>(bool cond, string format, T0 arg0, T1 arg1)
+        {
+#if ENABLE_LOG_Assert            
+            if (cond)
+                return;
+
+            if (format == null)
+            {
+                format = "Asset Error";
+            }
+
+            if (!_IsEnable(ELogLvl.Assert))
+                return;
+
+            LogPrinter.Print2(ELogLvl.Assert, null, TraceMask, UnityMask, null, format, arg0,arg1);
+
+#endif
+        }
+
+        /// <summary>
+        /// assert
+        /// </summary>
+        [Conditional(LogConditional.COND_ASSERT)]
+        [HideInCallstack]
         public static void Assert(UnityEngine.Object content, bool cond, string format = null, params object[] args)
         {
 #if ENABLE_LOG_Assert

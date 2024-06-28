@@ -85,7 +85,7 @@ namespace FH
             return new_node;
         }
 
-        public static bool ExtMoveFirst<T>(this LinkedList<T> list, LinkedListNode<T> node)
+        public static bool ExtMove2First<T>(this LinkedList<T> list, LinkedListNode<T> node)
         {
             if (null == node)
                 return false;
@@ -97,7 +97,20 @@ namespace FH
             return true;
         }
 
-        public static bool ExtMoveLast<T>(this LinkedList<T> list, LinkedListNode<T> node)
+        public static bool ExtMove2First<T>(this LinkedListNode<T> node)
+        {
+            if (node == null) return false;
+            if (node.List == null) return false;
+
+            var list = node.List;
+            if (node == list.First) return true;
+
+            list.Remove(node);
+            list.AddFirst(node);
+            return true;
+        }
+
+        public static bool ExtMove2Last<T>(this LinkedList<T> list, LinkedListNode<T> node)
         {
             if (null == node)
                 return false;
@@ -105,7 +118,20 @@ namespace FH
                 return false;
             if (node == list.Last) return true;
             list.Remove(node);
-            list.AddFirst(node);
+            list.AddLast(node);
+            return true;
+        }
+
+        public static bool ExtMove2Last<T>(this LinkedListNode<T> node)
+        {
+            if (node == null) return false;
+            if (node.List == null) return false;
+
+            var list = node.List;
+            if (node == list.First) return true;
+
+            list.Remove(node);
+            list.AddLast(node);
             return true;
         }
 
@@ -139,6 +165,17 @@ namespace FH
 
             list.Remove(node);
             node.Value = default;
+            LinkedListCache<T>._cache.AddLast(node);
+            return true;
+        }
+
+        public static bool ExtRemoveFromList<T>(this LinkedListNode<T> node)
+        {
+            if (node == null) return false;
+            if (node.List == null) return false;
+
+            node.Value = default(T);
+            node.List.Remove(node);
             LinkedListCache<T>._cache.AddLast(node);
             return true;
         }
@@ -209,7 +246,7 @@ namespace FH
         {
             if (list == null)
             {
-                node =null;
+                node = null;
                 return false;
             }
 

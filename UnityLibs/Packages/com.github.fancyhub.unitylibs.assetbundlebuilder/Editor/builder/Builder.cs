@@ -30,7 +30,7 @@ namespace FH.AssetBundleBuilder.Ed
             BuilderTimer.Intend = 0;
             using var _ = new BuilderTimer("Build Bundles");
             int cur_step = 1;
-            int total_steps = 8;
+            int total_steps = 9;
 
             //1. 预处理
             using (new BuilderTimer($"{cur_step++}/{total_steps}. Pre Build"))
@@ -61,7 +61,7 @@ namespace FH.AssetBundleBuilder.Ed
                     assetMap.AddObject(file.path, file.address);
                 }
             }
-            //assetmap.CheckCycleDep();
+            //assetMap.CheckCycleDep();
 
             //4. 分组
             BundleNodeMap bundleMap = new BundleNodeMap();

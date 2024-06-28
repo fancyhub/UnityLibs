@@ -92,7 +92,11 @@ namespace FH.ResManagement
 
         #endregion
 
-
+        public void SetCallBack(IHolderCallBack callback)
+        {
+            _res_holder?.SetCallBack(callback);
+            _inst_holder?.SetCallBack(callback);
+        }
         public HolderStat GetStat()
         {
             HolderStat ret = new HolderStat();

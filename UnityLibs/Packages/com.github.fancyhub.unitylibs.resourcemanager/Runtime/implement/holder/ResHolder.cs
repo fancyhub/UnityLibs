@@ -23,6 +23,7 @@ namespace FH.ResManagement
         private MyDict<int, ResPath> _PreLoadDict = new MyDict<int, ResPath>();
         public HolderStat _Stat = new HolderStat();
         public bool _SyncLoadEnable;
+        private IHolderCallBack _HolderCb;
         public CPtr<IResMgr> _ResMgr;
 
         public ResHolder()
@@ -119,6 +120,7 @@ namespace FH.ResManagement
                 ResLog._.ErrCode(err, path);
                 if (!_All.ContainsKey(res_path))
                     _All[res_path] = default;
+                _HolderCb?.OnHolderCallBack();
                 return;
             }
 
@@ -126,6 +128,7 @@ namespace FH.ResManagement
             if (res_mgr == null)
             {
                 _Stat.Fail++;
+                _HolderCb?.OnHolderCallBack();
                 return;
             }
 
@@ -136,12 +139,14 @@ namespace FH.ResManagement
             {
                 _Stat.Fail++;
                 _All[res_path] = default;
+                _HolderCb?.OnHolderCallBack();
                 return;
             }
 
             res_ref.AddUser(this);
             _All[res_path] = res_ref;
             _Stat.Succ++;
+            _HolderCb?.OnHolderCallBack();
         }
 
         protected override void OnPoolRelease()
@@ -178,6 +183,11 @@ namespace FH.ResManagement
         public HolderStat GetResStat()
         {
             return _Stat;
+        }
+
+        public void SetCallBack(IHolderCallBack callback)
+        {
+            _HolderCb = callback;
         }
     }
 }

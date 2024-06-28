@@ -37,7 +37,7 @@ namespace FH
     /// 最好配合 PoolItem 来使用<br/>
     /// CPtr&lt;T&gt; 不要出现在函数参数, 只能出现在成员变量里面<br/>
     /// </summary>
-    public struct CPtr<T> : IDisposable where T : ICPtr
+    public struct CPtr<T> : IDisposable where T : class, ICPtr
     {
         //接口类型的T,不能隐式转换
         public static implicit operator T(CPtr<T> ptr) { return ptr.Val; }
@@ -58,10 +58,12 @@ namespace FH
         {
             get
             {
-                if (_target != null && _target.PtrVer == _ver)
+                if (_target == null)
+                    return null;
+                if (_target.PtrVer == _ver)
                     return _target;
-                _target = default;
-                return _target;
+                _target = null;
+                return null;
             }
         }
 
@@ -86,7 +88,7 @@ namespace FH
     /// SharedPtr 指针, 需要有引用计数 <br/>
     /// SPtr&lt;T&gt; 不要出现在函数参数, 只能出现在成员变量里面<br/>
     /// </summary>
-    public struct SPtr<T> where T : ISPtr
+    public struct SPtr<T> where T : class, ISPtr
     {
         //接口类型的T,不能隐式转换
         public static implicit operator T(SPtr<T> ptr) { return ptr.Val; }
@@ -125,10 +127,12 @@ namespace FH
         {
             get
             {
-                if (_target != null && _target.PtrVer == _ver)
+                if (_target == null)
+                    return null;
+                if (_target.PtrVer == _ver)
                     return _target;
-                _target = default;
-                return _target;
+                _target = null;
+                return null;
             }
         }
     }
@@ -138,12 +142,12 @@ namespace FH
     //就不用new 了,因为有些类的名字比较长
     public static class PtrExt
     {
-        public static CPtr<T> CPtr<T>(this T self) where T : ICPtr
+        public static CPtr<T> CPtr<T>(this T self) where T : class, ICPtr
         {
             return new CPtr<T>(self);
         }
 
-        public static SPtr<T> SPtr<T>(this T self) where T : ISPtr
+        public static SPtr<T> SPtr<T>(this T self) where T : class, ISPtr
         {
             return new SPtr<T>(self);
         }
