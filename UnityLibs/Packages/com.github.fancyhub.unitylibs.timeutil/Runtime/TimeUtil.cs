@@ -10,6 +10,48 @@ using System.Runtime.CompilerServices;
 
 namespace FH
 {
+    public static class SystemStartTimer
+    {
+        private static long _round = 0;
+        private static long _last_time = (uint)Environment.TickCount;
+        private static int _locker = 0;
+
+        /// <summary>
+        /// 获取系统开启到现在的时间，毫秒,用户不可修改, 线程安全的
+        /// 时间可能少一个 49.8天的倍数
+        /// </summary>
+        public static long Now
+        {
+            get
+            {
+                //因为是int, 对应的毫秒, 最大支持49.8 天
+                // https://docs.microsoft.com/en-us/dotnet/api/system.environment.tickcount?view=net-6.0                
+                long now = (uint)Environment.TickCount;
+
+                //SpinLock
+                int spinCount = 0;
+                while (System.Threading.Interlocked.CompareExchange(ref _locker, 1, 0) != 0)
+                    _SpinWait(spinCount++);
+
+                if (now < _last_time)
+                    _round++;
+                _last_time = now;
+
+                //unlock
+                _locker = 0;
+
+                return now + _round * uint.MaxValue;
+            }
+        }
+
+        private static void _SpinWait(int spinCount)
+        {
+            if (spinCount < 10) System.Threading.Thread.SpinWait(20 * (spinCount + 1));
+            else if (spinCount < 15) System.Threading.Thread.Sleep(0); // or use Thread.Yield() in .NET 4
+            else System.Threading.Thread.Sleep(1);
+        }
+    }
+
     public static class TimeUtil
     {
         //tick的差距，从0001年到1970年
@@ -27,9 +69,7 @@ namespace FH
         private const long C_MICRO_SEC_TICKS = 10L; //1微秒 对应的Ticks
         private const long C_MILLI_SEC_TICKS = C_MICRO_SEC_TICKS * 1000L; //1毫秒 对应的ticks
         private const long C_SEC_TICKS = C_MILLI_SEC_TICKS * 1000L; //1 秒对应的 ticks
-        private const long C_SEC_2_MILLI = 1000L;//1秒对应的 毫秒
-        private static long _system_time = 0;
-        private static long _last_system_time = (uint)Environment.TickCount;
+        private const long C_SEC_2_MILLI = 1000L;//1秒对应的 毫秒        
 
         private static long _svr_dt = 0;
         private static int _frame_count = 0;
@@ -42,22 +82,12 @@ namespace FH
             _frame_count = frameCount;
         }
 
+
         /// <summary>
-        /// 获取系统开启到现在的时间，毫秒,用户不可修改, 非多线程安全的
+        /// 获取系统开启到现在的时间，毫秒,用户不可修改, 线程安全的
         /// </summary>
-        public static long SystemTime
-        {
-            get
-            {
-                //因为是int, 对应的毫秒, 最大支持49.8 天
-                // https://docs.microsoft.com/en-us/dotnet/api/system.environment.tickcount?view=net-6.0                
-                long now = (uint)Environment.TickCount;
-                if (now < _last_system_time)
-                    _system_time += uint.MaxValue;
-                _last_system_time = now;
-                return now + _system_time;
-            }
-        }
+        public static long SystemStartTime => SystemStartTimer.Now;
+
 
         /// <summary>
         /// 本地时间戳,秒

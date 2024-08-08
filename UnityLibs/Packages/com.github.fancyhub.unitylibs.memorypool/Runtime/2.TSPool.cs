@@ -11,6 +11,7 @@ using System.Threading;
 
 namespace FH
 {
+    //http://adammil.net/blog/v111_Creating_High-Performance_Locks_and_Lock-free_Code_for_NET_.html
     public sealed class CasCriticalSection
     {
         private long _Value = 0;
@@ -19,12 +20,13 @@ namespace FH
         {
             if (locker_id == 0)
                 return false;
+            int spinCount = 0;
 
-            for (; ; )
+            while (Interlocked.CompareExchange(ref _Value, locker_id, 0) != 0)
             {
-                if (Interlocked.CompareExchange(ref _Value, locker_id, 0) == 0)
-                    return true;
+                _SpinWait(spinCount++);
             }
+            return true;
         }
 
         public bool Exit(long locker_id)
@@ -32,7 +34,17 @@ namespace FH
             if (locker_id == 0)
                 return false;
             return Interlocked.CompareExchange(ref _Value, 0L, locker_id) == locker_id;
-        }      
+        }
+
+        private static void _SpinWait(int spinCount)
+        {
+            if (spinCount < 10)
+                Thread.SpinWait(20 * (spinCount + 1));
+            else if (spinCount < 15)
+                Thread.Sleep(0); // or use Thread.Yield() in .NET 4
+            else
+                Thread.Sleep(1);
+        }
     }
 
     public static class CasCriticalSectionExt

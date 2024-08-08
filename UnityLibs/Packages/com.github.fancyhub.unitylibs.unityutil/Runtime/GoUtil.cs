@@ -22,6 +22,23 @@ namespace FH
         private static StringBuilder _string_builder = new StringBuilder();
         private static Queue<Transform> _temp_tran_queue = new Queue<Transform>(100);
 
+        public static void ExtSetGameObjectActive(this GameObject obj, bool active)
+        {
+            if (obj == null)
+                return;
+            if (obj.activeSelf != active)
+                obj.SetActive(active);
+        }
+
+        public static void ExtSetGameObjectActive(this Component comp, bool active)
+        {
+            if (comp == null)
+                return;
+            var obj = comp.gameObject;
+            if (obj.activeSelf != active)
+                obj.SetActive(active);
+        }
+
         public static GameObject ExtResetTran(this GameObject obj)
         {
             if (obj == null)
@@ -125,7 +142,7 @@ namespace FH
             self.GetComponentsInChildren<T>(includeInactive, list);
             return list;
         }
-       
+
         /// <summary>
         /// 注意 返回的list, 是共享的,不要持有,用完最好做一次 list的clear,防止GC删除不掉
         /// </summary>        
