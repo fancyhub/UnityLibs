@@ -12,13 +12,14 @@ namespace FH
 {
     public static class SystemStartTimer
     {
-        private static long _round = 0;
-        private static long _last_time = (uint)Environment.TickCount;
-        private static int _locker = 0;
+        private const int CThresholdMS = 1000 * 60 * 60 * 24 * 2;//小于2天
 
+        private static long _time_round_delta = 0;
+        private static long _last_time = (uint)Environment.TickCount;
+        private static object _locker = new object();
         /// <summary>
         /// 获取系统开启到现在的时间，毫秒,用户不可修改, 线程安全的
-        /// 时间可能少一个 49.8天的倍数
+        /// 时间可能少 49.8天的倍数
         /// </summary>
         public static long Now
         {
@@ -28,27 +29,22 @@ namespace FH
                 // https://docs.microsoft.com/en-us/dotnet/api/system.environment.tickcount?view=net-6.0                
                 long now = (uint)Environment.TickCount;
 
-                //SpinLock
-                int spinCount = 0;
-                while (System.Threading.Interlocked.CompareExchange(ref _locker, 1, 0) != 0)
-                    _SpinWait(spinCount++);
+                //1. 先简单判断, 如果小于规定时间 ,就用旧值来计算时间
+                long dt = now - _last_time;
+                if (0 <= dt && dt <= CThresholdMS)
+                    return now + _time_round_delta;
 
-                if (now < _last_time)
-                    _round++;
-                _last_time = now;
+                //2.需要记录一下当前时间,以及判断是否超过了uint的最大值
+                lock (_locker)
+                {
+                    if (now < _last_time) //出现了溢出, 记录一下
+                        _time_round_delta += uint.MaxValue;
+                    _last_time = now;
+                }
 
-                //unlock
-                _locker = 0;
-
-                return now + _round * uint.MaxValue;
+                //3. 返回
+                return now + _time_round_delta;
             }
-        }
-
-        private static void _SpinWait(int spinCount)
-        {
-            if (spinCount < 10) System.Threading.Thread.SpinWait(20 * (spinCount + 1));
-            else if (spinCount < 15) System.Threading.Thread.Sleep(0); // or use Thread.Yield() in .NET 4
-            else System.Threading.Thread.Sleep(1);
         }
     }
 
@@ -71,6 +67,8 @@ namespace FH
         private const long C_SEC_TICKS = C_MILLI_SEC_TICKS * 1000L; //1 秒对应的 ticks
         private const long C_SEC_2_MILLI = 1000L;//1秒对应的 毫秒        
 
+        private static long _local_dt = (DateTime.UtcNow.Ticks - C_TICK_DT_1970_0001) / C_MILLI_SEC_TICKS - SystemStartTimer.Now;
+
         private static long _svr_dt = 0;
         private static int _frame_count = 0;
 
@@ -82,22 +80,23 @@ namespace FH
             _frame_count = frameCount;
         }
 
-
         /// <summary>
         /// 获取系统开启到现在的时间，毫秒,用户不可修改, 线程安全的
         /// </summary>
         public static long SystemStartTime => SystemStartTimer.Now;
 
+        /// <summary>
+        /// 本地时间戳,毫秒
+        /// </summary>
+        //public static long UnixMilli { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return (DateTime.UtcNow.Ticks - C_TICK_DT_1970_0001) / C_MILLI_SEC_TICKS; } }
+        public static long UnixMilli { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return _local_dt + SystemStartTimer.Now; } }
+
 
         /// <summary>
         /// 本地时间戳,秒
         /// </summary>
-        public static int Unix { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return (int)((DateTime.UtcNow.Ticks - C_TICK_DT_1970_0001) / C_SEC_TICKS); } }
+        public static int Unix { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return (int)(UnixMilli / 1000L); } }
 
-        /// <summary>
-        /// 本地时间戳,毫秒
-        /// </summary>
-        public static long UnixMilli { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return (DateTime.UtcNow.Ticks - C_TICK_DT_1970_0001) / C_MILLI_SEC_TICKS; } }
 
         /// <summary>
         /// 服务器时间戳,秒
