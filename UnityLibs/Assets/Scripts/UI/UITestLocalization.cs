@@ -5,22 +5,20 @@ using UnityEngine;
 using UnityEngine.UI;
 using FH.UI;
 
-public sealed class UIPageTestLocalization : CPoolItemBase
+public sealed class UIPageTestLocalization : UIPage
 {
-    private Transform _UIRoot;
     private UITestLocalizationView _view;
 
-    public static UIPageTestLocalization Create(Transform root)
+    public static UIPageTestLocalization Create()
     {
-        var ret = GPool.New<UIPageTestLocalization>();
-        ret._UIRoot = root;
-        ret._Open();
+        UIPageTestLocalization ret = new UIPageTestLocalization();
+        ret.UIOpen();
         return ret;
     }
 
-    private void _Open()
+    protected override void OnUIInit()
     {
-        _view = FH.UI.UIBaseView.CreateView<UITestLocalizationView>(_UIRoot);
+        _view = CreateView<UITestLocalizationView>();
         _view._btn_0.OnClick = () =>
         {
             LocMgr.ChangeLang("en");
@@ -30,11 +28,23 @@ public sealed class UIPageTestLocalization : CPoolItemBase
             LocMgr.ChangeLang("zh-Hans");
         };
     }
-
-    protected override void OnPoolRelease()
+    protected override void OnUIPrepareRes(IResInstHolder holder)
     {
-        _view?.Destroy();
-        _view = null;
+        holder.PreCreate(UITestLocalizationView.CPath);
+    }
+    protected override void OnUIShow()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    protected override void OnUIHide()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    protected override void OnUIClose()
+    {
+        throw new System.NotImplementedException();
     }
 }
 

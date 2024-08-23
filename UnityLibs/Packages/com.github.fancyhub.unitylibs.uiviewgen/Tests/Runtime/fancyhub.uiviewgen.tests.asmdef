@@ -1,5 +1,5 @@
 {
-    "name": "fancyhub.uiview.generator.tests",
+    "name": "fancyhub.uiviewgen.tests",
     "rootNamespace": "",
     "references": [
         "GUID:fd3e1939cfeaae345a28d38349cb6f69",

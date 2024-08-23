@@ -69,6 +69,7 @@ namespace FH
                 }
             }
         }
+
         /// <summary>
         /// 获取系统开启到现在的时间，毫秒,用户不可修改, 线程安全的
         /// </summary>
@@ -115,6 +116,7 @@ namespace FH
             set { _svr_dt = value - UnixMilli; }
         }
         #endregion
+        
 
         #region Local & Server Time Converter
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -136,7 +138,7 @@ namespace FH
         {
             return (int)(Loc2SvrMilli(local_time * C_SEC_2_MILLI) / C_SEC_2_MILLI);
         }
-      
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Svr2Loc(int svr_time)
         {

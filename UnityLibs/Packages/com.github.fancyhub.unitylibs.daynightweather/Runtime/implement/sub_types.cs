@@ -88,18 +88,15 @@ namespace FH.DayNightWeather
 
         public static Light GetMainLight()
         {
-            for (int i = 0; i < 32; i++)
-            {
-                Light[] lights = Light.GetLights(LightType.Directional, i);
-                if (lights == null || lights.Length == 0)
-                    continue;
+            var lights = Light.FindObjectsByType<Light>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            if (lights == null || lights.Length == 0)
+                return null;
 
-                for (int j = 0; j < lights.Length; j++)
+            for (int j = 0; j < lights.Length; j++)
+            {
+                if ((lights[j].cullingMask & 1) != 0)
                 {
-                    if ((lights[j].cullingMask & 1) != 0)
-                    {
-                        return lights[j];
-                    }
+                    return lights[j];
                 }
             }
             return null;

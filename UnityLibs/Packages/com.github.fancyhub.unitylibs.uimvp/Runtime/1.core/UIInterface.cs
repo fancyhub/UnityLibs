@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FH
+namespace FH.UI
 {
     public static class UIElementID
     {
@@ -28,8 +28,8 @@ namespace FH
     /// </summary>
     public interface IUIPage : IUIElement
     {
-        public void OpenPage();
-        public void ClosePage();
+        public void UIOpen();
+        public void UIClose();
     }
 
     /// <summary>
@@ -37,6 +37,6 @@ namespace FH
     /// </summary>
     public interface IUIView : IUIElement
     {
-        void SetOrder(int order);
+        void SetOrder(int order, bool relative = false);
     }
 }

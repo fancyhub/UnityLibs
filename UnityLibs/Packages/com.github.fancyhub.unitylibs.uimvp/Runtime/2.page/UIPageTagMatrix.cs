@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace FH
+namespace FH.UI
 {
     public interface IUIPageTag : IUIPage
     {

@@ -60,7 +60,7 @@ namespace FH.UI
             if (string.IsNullOrEmpty(path))
                 return null;
             if (parent == null)
-                throw new Exception("");
+                parent = UIRoot.Root2D;
 
             EUIBaseViewCreateMode create_mode = EUIBaseViewCreateMode.RootWithoutHolder;
             if (res_holder == null)
@@ -77,16 +77,16 @@ namespace FH.UI
             }
 
             obj.transform.SetParent(parent, false);
-            T temp = UIViewCache.Get<T>(obj);
-            if (temp != null)
-                ret = temp;
+            // T temp = UIViewCache.Get<T>(obj);
+            // if (temp != null)
+            //     ret = temp;
 
             obj.transform.SetParent(parent, false);
             if (!ret._Init(obj, res_holder, create_mode))
                 return null;
 
-            if (temp == null)
-                UIViewCache.Add(obj, ret);
+            // if (temp == null)
+            //     UIViewCache.Add(obj, ret);
 
             return ret;
         }

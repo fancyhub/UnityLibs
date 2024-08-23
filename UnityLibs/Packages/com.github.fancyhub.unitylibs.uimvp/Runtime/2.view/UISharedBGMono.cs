@@ -8,13 +8,15 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace FH.UI
 {
-    public static class UIBGEvent
+    public sealed class UISharedBGMono : MonoBehaviour
     {
-        public static Action GlobalBGClick;
-        public static Action<GameObject> GlobalEventClick;
-        public static Action<GameObject> GlobalEventDown;
+        public Canvas Mask;
+        public Canvas Click;
+        public EventTrigger ClickTrigger;
     }
 }

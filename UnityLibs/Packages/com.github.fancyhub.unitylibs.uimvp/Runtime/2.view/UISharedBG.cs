@@ -12,33 +12,35 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 
-namespace FH
+namespace FH.UI
 {
-    public sealed class UIBG
-    { 
-        public const string C_RES_PATH = "ui_bg";
-        public static UIBG _inst;
+    public sealed class UISharedBG : IUISharedBG
+    {
+        private const string CResPath = "UISharedBG";
 
-        public Action EvntBgClick;
+        private static UISharedBG _;
         private GameObject _root;
         private Canvas _mask;
         private Canvas _click;
 
-        public static UIBG GetInst()
+        public static UISharedBG Inst
         {
-            if (_inst == null)
+            get
             {
-                _inst = new UIBG();
-                _inst._init();
+                if (_ == null)
+                {
+                    _ = new UISharedBG();
+                    _._init();
+                }
+                return _;
             }
-            return _inst;
         }
 
         public void DisableMask()
         {
             //1. check
             if (_mask != null)
-                _mask.gameObject.SetActive(false);           
+                _mask.gameObject.SetActive(false);
         }
 
         public void EnableMask(int order)
@@ -71,41 +73,43 @@ namespace FH
             _click.gameObject.SetActive(false);
         }
 
-        public int GetOrder()
+        public int GetClickOrder()
         {
+            if (_click == null)
+                return int.MinValue;
             return _click.sortingOrder;
         }
 
-        public bool IsEnable()
+        public bool IsClickEnable()
         {
+            if (_click == null)
+                return false;
             return _click.gameObject.activeSelf;
-        }       
+        }
 
         private void _init()
         {
             if (_root != null)
                 return;
 
-            GameObject prefab = Resources.Load<GameObject>(C_RES_PATH);
+            GameObject prefab = Resources.Load<GameObject>(CResPath);
             _root = GameObject.Instantiate<GameObject>(prefab, UIRoot.Root2D);
-            _root.name = "ui_bg";
+            _root.name = "UISharedBG";
 
-            Transform t = _root.transform.Find("_mask");
-            _mask = t.GetComponent<Canvas>();
+            UISharedBGMono mono = _root.GetComponent<UISharedBGMono>();
+            _mask = mono.Mask;
 
-            t = _root.transform.Find("_click");
-            _click = t.GetComponent<Canvas>();
-            EventTrigger trigger = _click.GetComponent<EventTrigger>();
-            UnityEngine.Events.UnityAction<BaseEventData> click = new UnityEngine.Events.UnityAction<BaseEventData>(_on_click);
+            _click = mono.Click;
+            
             EventTrigger.Entry myclick = new EventTrigger.Entry();
             myclick.eventID = EventTriggerType.PointerClick;
-            myclick.callback.AddListener(click);
-            trigger.triggers.Add(myclick);
+            myclick.callback.AddListener(new UnityEngine.Events.UnityAction<BaseEventData>(_on_click));
+            mono.ClickTrigger.triggers.Add(myclick);
         }
 
         private void _on_click(BaseEventData data)
         {
-            EvntBgClick?.Invoke();
+            UIBGEvent.GlobalBGClick?.Invoke();
         }
     }
 }

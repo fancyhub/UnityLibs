@@ -31,11 +31,8 @@ namespace FH.UI
     //*/
 
     ///*
-    public abstract partial class UIBaseView : ICPtr
+    public abstract partial class UIBaseView : UIElement, IUIView, IUILayerView
     {
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
-
         public interface IUIResHolder
         {
             public GameObject Create(string res_path, Transform parent);
@@ -69,6 +66,26 @@ namespace FH.UI
         public GameObject SelfRoot => _self_root;
         public UICanvasOrder CanvasOrder => _canvas_order;
 
+
+        public GameObject GetRoot()
+        {
+            return _self_root;
+        }
+
+        public void SetOrder(int order)
+        {
+            if (_canvas_order == null)
+                return;
+            _canvas_order.SetOrder(order, false);
+        }
+
+        public void SetOrder(int order, bool relative)
+        {
+            if (_canvas_order == null)
+                return;
+            _canvas_order.SetOrder(order, relative);
+        }
+
         #region Don't Need Impeplemnt
         public virtual string GetPath() { return null; }
         public virtual string GetDebugName() { return this.GetType().Name; }
@@ -87,12 +104,13 @@ namespace FH.UI
             if (obj_self == null)
                 return null;
 
-            T ret = UIViewCache.Get<T>(obj_self);
-            if (ret == null)
-            {
-                ret = new T();
-                UIViewCache.Add(obj_self, ret);
-            }
+            // T ret = UIViewCache.Get<T>(obj_self);
+            // if (ret == null)
+            // {
+            //     ret = new T();
+            //     UIViewCache.Add(obj_self, ret);
+            // }
+            T ret = new T();
             if (ret._Init(obj_self, _res_holder, EUIBaseViewCreateMode.Sub))
                 return ret;
             return null;
@@ -135,9 +153,9 @@ namespace FH.UI
         }
 
 
-        public void Destroy()
+        public override void Destroy()
         {
-            ___ptr_ver++;
+            base.Destroy();
 
             if (_view_life_state == EUIBaseViewLifeState.Destroyed)
             {

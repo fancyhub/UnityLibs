@@ -52,6 +52,7 @@ namespace FH
             return ToLocId(self.Key);
         }
 
+        /// <remarks>Based on <a href="http://www.azillionmonkeys.com/qed/hash.html">SuperFastHash</a>.</remarks>
         public static LocId ToLocId(this string value)
         {
             unchecked

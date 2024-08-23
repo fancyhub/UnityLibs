@@ -16,7 +16,7 @@ namespace FH
         /// 检查 数组的长度和 offset ,count是否一致
         /// </summary>        
         public static bool ExtCheckOffsetCount(this Array self, int offset, int count)
-        {
+        {   
             if (self == null)
                 return false;
             if (offset < 0)

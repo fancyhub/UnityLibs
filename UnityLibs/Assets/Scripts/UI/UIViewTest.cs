@@ -1,4 +1,5 @@
 using FH;
+using FH.UI;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,16 +8,18 @@ using UnityEngine.UI;
 
 public class UIViewTest : MonoBehaviour
 {
-    public Canvas Canvas;
     private FH.UI.UIButtonView _btn;
+
+    private UIViewLayerMgr _LayerMgr;
     // Start is called before the first frame update
     void Start()
-    {        
+    {
         FH.UI.UIObjFinder.Show();
 
-        _btn = FH.UI.UIBaseView.CreateView<FH.UI.UIButtonView>(Canvas.transform);
-        _btn.OnClick = () => UIPageTestLocalization.Create(Canvas.transform);
+        _LayerMgr = new UIViewLayerMgr(UISharedBG.Inst);
 
+        _btn = FH.UI.UIBaseView.CreateView<FH.UI.UIButtonView>(UIRoot.Root2D);
+        _btn.OnClick = () => UIPageScene2.Create(this, _LayerMgr);
 
 
         TaskQueue.Init(10);
@@ -24,7 +27,7 @@ public class UIViewTest : MonoBehaviour
         FH.UI.UIRedDotMgr.Link("root.test.scene", "vroot.test.scene.vscene");
         FH.NoticeSample.NoticeApi.Init();
     }
-     
+
 
     public void Update()
     {
@@ -55,59 +58,70 @@ public class UIViewTest : MonoBehaviour
 
         content = VfsMgr.ReadAllText("LuaProj/main.lua");
         Debug.Log($"LuaProj/main.lua {content}");
-        UIPageScene.Create(Canvas.transform, this);
+        UIPageScene2.Create(this, _LayerMgr);
     }
 }
 
-public sealed class UIPageScene : CPoolItemBase
+public class UIPageScene2 : UIPage
 {
-    private Transform _UIRoot;
     private FH.UI.UIPanelVariantView _view;
-    private IResInstHolder _Holder;
-    public PtrList _PtrList;
+    private UIViewLayerMgr _LayerMgr;
+
     public MonoBehaviour _Behaviour;
     public List<Coroutine> _Routinues = new List<Coroutine>();
     public List<SceneRef> _SceneRefList = new List<SceneRef>();
 
-    public static UIPageScene Create(Transform root, MonoBehaviour behaviour)
+    public static UIPageScene2 Create(MonoBehaviour behaviour, UIViewLayerMgr layerMgr)
     {
-        var ret = GPool.New<UIPageScene>();
-        ret._UIRoot = root;
+        UIPageScene2 ret = new UIPageScene2();
         ret._Behaviour = behaviour;
-        ret._Open();
+        ret._LayerMgr = layerMgr;
+        ret.UIOpen();
         return ret;
     }
 
-    private void _Open()
+    protected override void OnUIPrepareRes(IResInstHolder holder)
     {
-        _Holder = ResMgr.CreateHolder(false, false);
-        _Holder.PreCreate(FH.UI.UIPanelVariantView.CPath);
-        _PtrList += _Holder;
-
-        _Routinues.Add(_Behaviour.StartCoroutine(_OpenView()));
+        //base.OnUIPrepareRes(holder);
+        holder.PreCreate(FH.UI.UIPanelVariantView.CPath);
     }
 
-    private IEnumerator _OpenView()
+    protected override void OnUIClose()
     {
-        for (; ; )
+        foreach (var p in _Routinues)
         {
-            var stat = _Holder.GetStat();
-            Log.D(stat.ToString());
-            if (stat.IsAllDone)
-                break;
-            else
-                yield return string.Empty;
+            _Behaviour.StopCoroutine(p);
         }
+        _Routinues.Clear();
 
-        _view = FH.UI.UIBaseView.CreateView<FH.UI.UIPanelVariantView>(_UIRoot, _Holder);
+        foreach (var p in _SceneRefList)
+        {
+            p.Unload();
+        }
+        _SceneRefList.Clear();
+    }
+
+    protected override void OnUIHide()
+    {
+        Log.D("OnUIHide");
+    }
+
+    protected override void OnUIInit()
+    {
+        Log.D("OnUIInit");
+        _view = CreateView<FH.UI.UIPanelVariantView>();
         _view._btn_0.OnClick = _OnCloseClick;
         _view._btn_1.OnClick = _OnTestSceneClick;
         _view._btn_2.OnClick = _OnCloseFirstSceneClick;
         _view._btn_4.OnClick = _OnCloseLastSceneClick;
 
-        _PtrList += _view;
+        _LayerMgr.AddView(_view, 0, this, EUIBgClickMode.Common);
     }
 
+    protected override void OnUIShow()
+    {
+        Log.D("OnUIShow");
+    }
 
     private void _OnTestSceneClick()
     {
@@ -120,7 +134,6 @@ public sealed class UIPageScene : CPoolItemBase
 
         var scene_a = SceneMgr.LoadScene("Assets/Scenes/a.unity", true);
         var scene_b = SceneMgr.LoadScene("Assets/Scenes/a.unity", true);
-
 
         for (; ; )
         {
@@ -149,24 +162,6 @@ public sealed class UIPageScene : CPoolItemBase
     {
         this.Destroy();
         FH.UI.UIRedDotMgr.Set("root.test.scene", 0);
-    }
-
-    protected override void OnPoolRelease()
-    {
-        foreach (var p in _Routinues)
-        {
-            _Behaviour.StopCoroutine(p);
-        }
-        _Routinues.Clear();
-
-        foreach (var p in _SceneRefList)
-        {
-            p.Unload();
-        }
-        _SceneRefList.Clear();
-
-        _PtrList?.Destroy();
-        _PtrList = null;
     }
 
     private void _OnCloseFirstSceneClick()

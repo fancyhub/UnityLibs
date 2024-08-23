@@ -10,7 +10,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.EventSystems;
 
-namespace FH
+namespace FH.UI
 {    
 
     [AddComponentMenu("Event/FH Standalone Input Module")]
