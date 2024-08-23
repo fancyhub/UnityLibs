@@ -10,9 +10,11 @@ using System.Text.RegularExpressions;
 
 using UnityEngine;
 using UnityEngine.UI;
+
 #if UNITY_EDITOR
 using UnityEditor;
-
+using UnityEditor.SceneManagement;
+using UnityEditor.UI;
 #endif
 
 
@@ -21,32 +23,35 @@ namespace FH.UI
     /// <summary>
     /// Ref: https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/StyledText.html
     /// 
-    /// Example: 
+    /// Example:
+    /// <quad img=sprite_name/> sprite_name can't contain ",space,'
+    /// <quad img=sprite_name size=40/>
     /// <quad img=sprite_name size=40 width=2.0 height=1.0/>
     /// <quad img=sprite_name size=40 width=2.0/>
-    /// <quad img=sprite_name size=40/>
+    /// <quad img=sprite_name width=2.0 height=1.0/>
     /// 
     /// width: default 1
     /// height: default 1
-    /// Sprite Size: (size*width/height) X (size)
+    /// size: default font size
+    /// Sprite Size = (size*width/height) X (size)
     /// </summary>
+    [AddComponentMenu("UI/RichText")]
     public class UIRichText : UnityEngine.UI.Text
     {
-        private UIRichTextHelper _Helper = new UIRichTextHelper();
-        public override string text
-        {
-            set
-            {
-                base.text = value;
-                _Helper.ParseText(text);
-                _Helper.SyncImagesCount(transform);
-            }
-        }
+        private UIRichTextHelper _Helper = new UIRichTextHelper();   
 
         protected override void Start()
         {
             base.Start();
-            _Helper.ParseText(text);
+            _Helper.ParseText(text, this.fontSize);
+            _Helper.SyncImagesCount(transform);
+        }
+
+        public override void SetVerticesDirty()
+        {
+            base.SetVerticesDirty();
+
+            _Helper.ParseText(text, this.fontSize);
             _Helper.SyncImagesCount(transform);
         }
 
@@ -63,7 +68,7 @@ namespace FH.UI
 #if UNITY_EDITOR
         public void EdDirty()
         {
-            _Helper.ParseText(text);
+            _Helper.ParseText(text, this.fontSize);
             _Helper.SyncImagesCount(transform);
         }
 #endif
@@ -87,6 +92,7 @@ namespace FH.UI
         private static readonly UIVertex[] S_TempVert = new UIVertex[CVertCountPerChar];
 
         private string _Text;
+        private int _FontSize = 0;
 
         private struct ImageInfo
         {
@@ -122,12 +128,13 @@ namespace FH.UI
         private List<ImageInfo> _InfoList = new List<ImageInfo>();
         private List<Image> _ImageList;
 
-        public void ParseText(string text)
+        public void ParseText(string text, float fontSize)
         {
             //1. 检查是否发生了变化
-            if (_Text == text)
+            if (_Text == text && _FontSize==(int)fontSize)
                 return;
             _Text = text;
+            _FontSize = (int)fontSize;
 
             _InfoList.Clear();
 
@@ -183,6 +190,7 @@ namespace FH.UI
                     }
 
                     //attr:  size=xxx
+                    info.Size = _FontSize;
                     attr_start_index = content.IndexOf(CAttrSize);
                     if (attr_start_index >= 0)
                     {
@@ -193,7 +201,8 @@ namespace FH.UI
                             attr_size = attr_size.Slice(0, attr_end_index);
                         }
                         //Debug.Log($"{content.ToString()}, AttrSize: \"{attr_size.ToString()}\"");
-                        int.TryParse(attr_size, out info.Size);
+                        if (!int.TryParse(attr_size, out info.Size))
+                            info.Size = _FontSize;
                     }
 
                     //attr:  width=xxx
@@ -236,7 +245,7 @@ namespace FH.UI
         }
 
         public void CalcImageQuadRect(VertexHelper toFill)
-        {
+        {            
             int total_count = toFill.currentVertCount;
             for (var i = 0; i < _InfoList.Count; i++)
             {
@@ -309,7 +318,7 @@ namespace FH.UI
             //4. 隐藏多余的
             for (int i = _ImageList.Count - 1; i >= _InfoList.Count; i--)
             {
-				#if UNITY_EDITOR
+#if UNITY_EDITOR
                 if (Application.isPlaying)
                     _ImageList[i].gameObject.SetActive(false);
                 else
@@ -317,9 +326,9 @@ namespace FH.UI
                     GameObject.DestroyImmediate(_ImageList[i].gameObject);
                     _ImageList.RemoveAt(i);
                 }
-				#else 
+#else
 					_ImageList[i].gameObject.SetActive(false);
-				#endif
+#endif
             }
 
             //5. 加载
@@ -367,13 +376,16 @@ namespace FH.UI
             }
         }
 
-
+        /// <summary>
+        /// abc<quad xxxxx/>defg     =>  abc&&&&defg
+        /// </summary>
         private static string _Convert2VertexData(string text)
         {
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
 
             string temp = S_TagQuadReg.Replace(text, CQuadPlaceHolder);
+            //Log.E($"{text} -> {temp}");
             temp = S_TagReg.Replace(temp, "");
             temp = temp.Replace("\n", "");
             temp = temp.Replace(" ", "");
@@ -434,6 +446,231 @@ namespace FH.UI
                     ((UIRichText)p).EdDirty();
                 }
             }
+        }
+    }
+
+    public static class EditorUIRichTextCreator
+    {
+        //UnityEditor.UI.MenuOptions.MenuOptionsPriorityOrder.Text
+        [MenuItem("GameObject/UI/RichText", false, 2080)]
+        static public void AddRichText(MenuCommand menuCommand)
+        {
+            GameObject go;
+            //using (new FactorySwapToEditor())
+            go = DefaultControls_CreateRichText();
+            MenuOptions_PlaceUIElementRoot(go, menuCommand);
+        }
+
+        //ref UnityEditor.UI.MenuOptions.PlaceUIElementRoot
+        private static void MenuOptions_PlaceUIElementRoot(GameObject element, MenuCommand menuCommand)
+        {
+            GameObject gameObject = menuCommand.context as GameObject;
+            bool flag = true;
+            if (gameObject == null)
+            {
+                gameObject = MenuOptions_GetOrCreateCanvasGameObject();
+                flag = false;
+                PrefabStage currentPrefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+                if (currentPrefabStage != null && !currentPrefabStage.IsPartOfPrefabContents(gameObject))
+                {
+                    gameObject = currentPrefabStage.prefabContentsRoot;
+                }
+            }
+
+            if (gameObject.GetComponentsInParent<Canvas>(includeInactive: true).Length == 0)
+            {
+                GameObject gameObject2 = MenuOptions_CreateNewUI();
+                Undo.SetTransformParent(gameObject2.transform, gameObject.transform, "");
+                gameObject = gameObject2;
+            }
+
+            GameObjectUtility.EnsureUniqueNameForSibling(element);
+            MenuOptions_SetParentAndAlign(element, gameObject);
+            if (!flag)
+            {
+                MenuOptions_SetPositionVisibleinSceneView(gameObject.GetComponent<RectTransform>(), element.GetComponent<RectTransform>());
+            }
+
+            Undo.RegisterFullObjectHierarchyUndo((gameObject == null) ? element : gameObject, "");
+            Undo.SetCurrentGroupName("Create " + element.name);
+            Selection.activeGameObject = element;
+        }
+
+        //ref UnityEditor.UI.MenuOptions.GetOrCreateCanvasGameObject
+        private static GameObject MenuOptions_GetOrCreateCanvasGameObject()
+        {
+            GameObject activeGameObject = Selection.activeGameObject;
+            Canvas canvas = ((activeGameObject != null) ? activeGameObject.GetComponentInParent<Canvas>() : null);
+            if (MenuOptions_IsValidCanvas(canvas))
+            {
+                return canvas.gameObject;
+            }
+
+            Canvas[] array = StageUtility.GetCurrentStageHandle().FindComponentsOfType<Canvas>();
+            for (int i = 0; i < array.Length; i++)
+            {
+                if (MenuOptions_IsValidCanvas(array[i]))
+                {
+                    return array[i].gameObject;
+                }
+            }
+
+            return MenuOptions_CreateNewUI();
+        }
+
+        //ref UnityEditor.UI.MenuOptions.CreateNewUI
+        private static GameObject MenuOptions_CreateNewUI()
+        {
+            GameObject gameObject = ObjectFactory.CreateGameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            gameObject.layer = LayerMask.NameToLayer("UI");
+            Canvas component = gameObject.GetComponent<Canvas>();
+            component.renderMode = RenderMode.ScreenSpaceOverlay;
+            StageUtility.PlaceGameObjectInCurrentStage(gameObject);
+            bool flag = false;
+            PrefabStage currentPrefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (currentPrefabStage != null)
+            {
+                Undo.SetTransformParent(gameObject.transform, currentPrefabStage.prefabContentsRoot.transform, "");
+                flag = true;
+            }
+
+            Undo.SetCurrentGroupName("Create " + gameObject.name);
+            if (!flag)
+            {
+                MenuOptions_CreateEventSystem(false, null);
+            }
+
+            return gameObject;
+        }
+
+        //ref UnityEditor.UI.MenuOptions.CreateEventSystem
+        private static void MenuOptions_CreateEventSystem(bool select, GameObject parent)
+        {
+            UnityEngine.EventSystems.EventSystem eventSystem = ((parent == null) ? StageUtility.GetCurrentStageHandle() : StageUtility.GetStageHandle(parent)).FindComponentOfType<UnityEngine.EventSystems.EventSystem>();
+            if (eventSystem == null)
+            {
+                GameObject gameObject = ObjectFactory.CreateGameObject("EventSystem");
+                if (parent == null)
+                {
+                    StageUtility.PlaceGameObjectInCurrentStage(gameObject);
+                }
+                else
+                {
+                    MenuOptions_SetParentAndAlign(gameObject, parent);
+                }
+
+                eventSystem = ObjectFactory.AddComponent<UnityEngine.EventSystems.EventSystem>(gameObject);
+                ObjectFactory.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>(gameObject);
+                Undo.RegisterCreatedObjectUndo(gameObject, "Create " + gameObject.name);
+            }
+
+            if (select && eventSystem != null)
+            {
+                Selection.activeGameObject = eventSystem.gameObject;
+            }
+        }
+
+        //ref UnityEditor.UI.MenuOptions.SetParentAndAlign
+        private static void MenuOptions_SetParentAndAlign(GameObject child, GameObject parent)
+        {
+            if (!(parent == null))
+            {
+                Undo.SetTransformParent(child.transform, parent.transform, "");
+                RectTransform rectTransform = child.transform as RectTransform;
+                if ((bool)rectTransform)
+                {
+                    rectTransform.anchoredPosition = Vector2.zero;
+                    Vector3 localPosition = rectTransform.localPosition;
+                    localPosition.z = 0f;
+                    rectTransform.localPosition = localPosition;
+                }
+                else
+                {
+                    child.transform.localPosition = Vector3.zero;
+                }
+
+                child.transform.localRotation = Quaternion.identity;
+                child.transform.localScale = Vector3.one;
+                MenuOptions_SetLayerRecursively(child, parent.layer);
+            }
+        }
+
+        //ref UnityEditor.UI.MenuOptions.SetLayerRecursively
+        private static void MenuOptions_SetLayerRecursively(GameObject go, int layer)
+        {
+            go.layer = layer;
+            Transform transform = go.transform;
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                MenuOptions_SetLayerRecursively(transform.GetChild(i).gameObject, layer);
+            }
+        }
+
+        //ref UnityEditor.UI.MenuOptions.SetLayerRecursively
+        private static bool MenuOptions_IsValidCanvas(Canvas canvas)
+        {
+            if (canvas == null || !canvas.gameObject.activeInHierarchy)
+            {
+                return false;
+            }
+
+            if (EditorUtility.IsPersistent(canvas) || (canvas.hideFlags & HideFlags.HideInHierarchy) != 0)
+            {
+                return false;
+            }
+
+            return StageUtility.GetStageHandle(canvas.gameObject) == StageUtility.GetCurrentStageHandle();
+        }
+
+        //ref UnityEditor.UI.MenuOptions.SetLayerRecursively
+        private static void MenuOptions_SetPositionVisibleinSceneView(RectTransform canvasRTransform, RectTransform itemTransform)
+        {
+            SceneView lastActiveSceneView = SceneView.lastActiveSceneView;
+            if (!(lastActiveSceneView == null) && !(lastActiveSceneView.camera == null))
+            {
+                Camera camera = lastActiveSceneView.camera;
+                Vector3 zero = Vector3.zero;
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRTransform, new Vector2(camera.pixelWidth / 2, camera.pixelHeight / 2), camera, out var localPoint))
+                {
+                    localPoint.x += canvasRTransform.sizeDelta.x * canvasRTransform.pivot.x;
+                    localPoint.y += canvasRTransform.sizeDelta.y * canvasRTransform.pivot.y;
+                    localPoint.x = Mathf.Clamp(localPoint.x, 0f, canvasRTransform.sizeDelta.x);
+                    localPoint.y = Mathf.Clamp(localPoint.y, 0f, canvasRTransform.sizeDelta.y);
+                    zero.x = localPoint.x - canvasRTransform.sizeDelta.x * itemTransform.anchorMin.x;
+                    zero.y = localPoint.y - canvasRTransform.sizeDelta.y * itemTransform.anchorMin.y;
+                    Vector3 vector = default(Vector3);
+                    vector.x = canvasRTransform.sizeDelta.x * (0f - canvasRTransform.pivot.x) + itemTransform.sizeDelta.x * itemTransform.pivot.x;
+                    vector.y = canvasRTransform.sizeDelta.y * (0f - canvasRTransform.pivot.y) + itemTransform.sizeDelta.y * itemTransform.pivot.y;
+                    Vector3 vector2 = default(Vector3);
+                    vector2.x = canvasRTransform.sizeDelta.x * (1f - canvasRTransform.pivot.x) - itemTransform.sizeDelta.x * itemTransform.pivot.x;
+                    vector2.y = canvasRTransform.sizeDelta.y * (1f - canvasRTransform.pivot.y) - itemTransform.sizeDelta.y * itemTransform.pivot.y;
+                    zero.x = Mathf.Clamp(zero.x, vector.x, vector2.x);
+                    zero.y = Mathf.Clamp(zero.y, vector.y, vector2.y);
+                }
+
+                itemTransform.anchoredPosition = zero;
+                itemTransform.localRotation = Quaternion.identity;
+                itemTransform.localScale = Vector3.one;
+            }
+        }
+
+        //ref UnityEngine.UI.DefaultControls.CreateText
+        private static GameObject DefaultControls_CreateRichText()
+        {
+            GameObject gameObject = DefaultControls_CreateUIElementRoot("RichText", new Vector2(160f, 30f), typeof(UIRichText));
+            Text component = gameObject.GetComponent<Text>();
+            component.text = "New Text";
+            //SetDefaultTextValues(component);
+            return gameObject;
+        }
+
+        //ref UnityEngine.UI.DefaultControls.CreateUIElementRoot
+        private static GameObject DefaultControls_CreateUIElementRoot(string name, Vector2 size, params Type[] components)
+        {
+            GameObject gameObject = DefaultControls.factory.CreateGameObject(name, components);
+            RectTransform component = gameObject.GetComponent<RectTransform>();
+            component.sizeDelta = size;
+            return gameObject;
         }
     }
 #endif
