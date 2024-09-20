@@ -20,14 +20,14 @@ namespace FH
 
     public struct NoticeItemTime
     {
-        public long _start_time; // 开始的时间戳
-        public long _show_time;  // 完全显示的时间戳  start 到 show 为 fade_in
-        public long _hide_time;  // 开始隐藏的时间戳,  show 到 hide 为 普通显示状态 
-        public long _end_time;   // 结束的时间戳, hide 到 end 为 fade_out
+        private long _start_time; // 开始的时间戳
+        private long _show_time;  // 完全显示的时间戳  start 到 show 为 fade_in
+        private long _hide_time;  // 开始隐藏的时间戳,  show 到 hide 为 普通显示状态 
+        private long _end_time;   // 结束的时间戳, hide 到 end 为 fade_out
 
-        public ENoticeItemPhase _phase;
-        public long _phase_elapsed;//毫秒
-        public long _phase_total; //毫秒
+        private ENoticeItemPhase _phase;
+        private long _phase_elapsed;//毫秒
+        private long _phase_total; //毫秒
 
         public NoticeItemTime(long show_duration_ms, int show_up_duration_ms, int hide_out_duration_ms)
         {

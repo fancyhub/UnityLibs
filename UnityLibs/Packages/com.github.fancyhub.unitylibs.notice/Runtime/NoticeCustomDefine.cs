@@ -28,13 +28,11 @@ namespace FH
     /// 
     /// 只有三个状态：场景中，loading，过场动画
     /// </summary>
-    [Flags]
-    public enum ENoticeVisibleFlag
+    public enum ENoticeVisible
     {
         None = 0,
-        Loading = 1 << 0,
-        Cutscene = 1 << 1,
-        All = -1
+        Loading,
+        Cutscene,
     }
 
     /// <summary>
@@ -45,42 +43,19 @@ namespace FH
     {
         None = 0,
 
-        WhiteList = 1 << 0,
-        BlackList = 1 << 1,
+        WhiteList , 
+        BlackList ,
 
         All = -1,
     }
 
     /// <summary>
-    /// 清除信号量
+    /// 清除信号量        
     /// 
-    /// 一共有三个信号量
-    /// 
-    /// 是否手动退出游戏
-    /// 是否切换了场景
-    /// 过场动画是否播放结束
-    /// 
-    /// </summary>
-    [Flags]
+    /// </summary>    
     public enum ENoticeClearSignal
     {
-        None = 0,
-        BackToLogin = 1 << 0,
-        ChangeScene = 1 << 2,
-        All = -1,
-    }
-
-    public enum ENoticeEffect
-    {
-        None,
-        FadeIn,
-        FadeOut,
-        MoveUp,
-        RightSlideIn,
-        RightSlideOut,
-        LeftSlideIn,
-        LeftSlideOut,
-        ScaleIn,
-        ScaleOut,
+        BackToLogin,
+        ChangeScene,
     }
 }

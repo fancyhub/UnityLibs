@@ -55,5 +55,37 @@ namespace FH.NoticeSample
                     return null;
             }
         }
+
+        public static RectTransform CreateView(CPtr<IResInstHolder> resHolder, string path, Transform parent)
+        {
+            var holder = resHolder.Val;
+            if (holder == null)
+                return null;
+
+            GameObject obj = holder.Create(path);
+            if (obj == null)
+                return null;
+            obj.transform.SetParent(parent, false);
+            return obj.GetComponent<RectTransform>();
+        }
+
+        public static void ReleaseView(CPtr<IResInstHolder> resHolder, ref RectTransform view)
+        {
+            if (view == null)
+                return;
+
+            var temp = view.gameObject;
+            view = null;
+
+            var holder = resHolder.Val;
+            if (holder == null)
+            {
+                GameObject.Destroy(temp);
+            }
+            else
+            {
+                holder.Release(temp);
+            }
+        }
     }
 }

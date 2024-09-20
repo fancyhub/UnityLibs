@@ -77,11 +77,11 @@ namespace FH.NoticeSample
             switch (view_type)
             {
                 case ENoticeViewType.text:
-                    return NoticeItemText.Create(txt);
+                    return NoticeItemText.Create(NoticeApi.ResInstHolder, txt);
                 case ENoticeViewType.marquee:
-                    return NoticeItemTextMarquee.Create(txt);
+                    return NoticeItemTextMarquee.Create(NoticeApi.ResInstHolder, txt);
                 case ENoticeViewType.message_box:
-                    return NoticeItemMessageBox.Create(txt);
+                    return NoticeItemMessageBox.Create(NoticeApi.ResInstHolder, txt);
 
                 default:
                     Debug.LogErrorFormat("未实现格式 {0}", view_type);

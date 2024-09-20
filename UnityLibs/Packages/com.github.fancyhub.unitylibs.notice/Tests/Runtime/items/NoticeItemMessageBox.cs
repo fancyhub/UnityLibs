@@ -22,12 +22,14 @@ namespace FH.NoticeSample
 
         public RectTransform _view;
         public NoticeItemDummy _dummy;
+        public CPtr<IResInstHolder> _ResHolder;
 
-        public static NoticeItemMessageBox Create(string text, string btn_name = null)
+        public static NoticeItemMessageBox Create(IResInstHolder resHolder, string text, string btn_name = null)
         {
             NoticeItemMessageBox ret = GPool.New<NoticeItemMessageBox>();
             ret._Text = text;
             ret._BtnName = btn_name;
+            ret._ResHolder = new CPtr<IResInstHolder>(resHolder);
 
             if (string.IsNullOrEmpty(btn_name))
                 ret._BtnName = "OK";
@@ -55,13 +57,13 @@ namespace FH.NoticeSample
             return false;
         }
 
-        public void CreateView(NoticeItemDummy dummy)
+        public void Show(NoticeItemDummy dummy)
         {
             _dummy = dummy;
 
-            GameObject obj = dummy.CreateView(CPath);
-
-            _view = obj.GetComponent<RectTransform>();
+            _view = NoticeFactory.CreateView(_ResHolder, CPath, dummy.Dummy);
+            if (_view == null)
+                return;
 
             _view.Find("_txt").GetComponent<Text>().text = _Text;
             var btn = _view.Find("_btn").GetComponent<Button>();
@@ -74,19 +76,19 @@ namespace FH.NoticeSample
 
         private void _OnBtnClick()
         {
-            _dummy.ReleaseView(ref _view);
+            NoticeFactory.ReleaseView(_ResHolder, ref _view);
             _dummy = default;
         }
 
-        public void HideOut(NoticeItemTime time, List<NoticeEffectItemConfig> effect)
+        public void FadeOut(NoticeItemTime time, NoticeEffectConfig effect)
         {
-            NoticeEffectPlayer.Play(_view, time, effect);
+            NoticeEffectPlayer.Play(_view, time, effect.HideOut);
         }
 
 
-        public void ShowUp(NoticeItemTime time, List<NoticeEffectItemConfig> effect)
+        public void FadeIn(NoticeItemTime time, NoticeEffectConfig effect)
         {
-            NoticeEffectPlayer.Play(_view, time, effect);
+            NoticeEffectPlayer.Play(_view, time, effect.ShowUp);
         }
 
         public void Update(NoticeItemTime time)
@@ -95,7 +97,7 @@ namespace FH.NoticeSample
 
         protected override void OnPoolRelease()
         {
-            _dummy.ReleaseView(ref _view);
+            NoticeFactory.ReleaseView(_ResHolder, ref _view);
             _dummy = default;
         }
     }

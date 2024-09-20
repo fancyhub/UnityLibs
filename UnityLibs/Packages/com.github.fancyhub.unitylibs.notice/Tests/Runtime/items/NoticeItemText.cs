@@ -18,15 +18,16 @@ namespace FH.NoticeSample
         private const string CPath = "Packages/com.github.fancyhub.unitylibs.notice/Tests/Runtime/Res/UINoticeText.prefab";
 
         public string _Text;
-        
+
         public RectTransform _view;
         public NoticeItemDummy _dummy;
+        public CPtr<IResInstHolder> _ResHolder;
 
-        public static NoticeItemText Create(string text)
+        public static NoticeItemText Create(IResInstHolder resHolder, string text)
         {
-            
             NoticeItemText ret = GPool.New<NoticeItemText>();
             ret._Text = text;
+            ret._ResHolder = new CPtr<IResInstHolder>(resHolder);
             return ret;
         }
 
@@ -50,28 +51,28 @@ namespace FH.NoticeSample
             return false;
         }
 
-        public void CreateView(NoticeItemDummy dummy)
+        public void Show(NoticeItemDummy dummy)
         {
             _dummy = dummy;
 
-            GameObject obj = dummy.CreateView(CPath);
-
-            _view = obj.GetComponent<RectTransform>();            
+            _view = NoticeFactory.CreateView(_ResHolder, CPath, dummy.Dummy);
+            if (_view == null)
+                return;
             _view.Find("_txt").GetComponent<Text>().text = _Text;
-            
+
             UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(_view);
         }
 
-        public void HideOut(NoticeItemTime time, List<NoticeEffectItemConfig> effect)
+        public void FadeIn(NoticeItemTime time, NoticeEffectConfig effect)
         {
-            NoticeEffectPlayer.Play(_view, time, effect);
+            NoticeEffectPlayer.Play(_view, time, effect.ShowUp);
         }
 
-
-        public void ShowUp(NoticeItemTime time, List<NoticeEffectItemConfig> effect)
+        public void FadeOut(NoticeItemTime time, NoticeEffectConfig effect)
         {
-            NoticeEffectPlayer.Play(_view, time, effect);
+            NoticeEffectPlayer.Play(_view, time, effect.HideOut);
         }
+
 
         public void Update(NoticeItemTime time)
         {
@@ -79,7 +80,7 @@ namespace FH.NoticeSample
 
         protected override void OnPoolRelease()
         {
-            _dummy.ReleaseView(ref _view);
+            NoticeFactory.ReleaseView(_ResHolder, ref _view);
             _dummy = default;
         }
     }

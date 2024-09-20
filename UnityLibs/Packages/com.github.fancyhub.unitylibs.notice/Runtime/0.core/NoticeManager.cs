@@ -20,7 +20,7 @@ namespace FH
     /// </summary>
     public class NoticeManager
     {
-        public ENoticeVisibleFlag _vision_flag;
+        public ENoticeVisible _vision_flag;
         public INoticeChannel[] _channels = new INoticeChannel[(int)ENoticeChannel.Max];
         public IClock _clock;
 
@@ -101,7 +101,7 @@ namespace FH
         /// </summary>
         public void InitVisionFlag()
         {
-            _vision_flag = ENoticeVisibleFlag.None;
+            _vision_flag = ENoticeVisible.None;
             foreach (var p in _channels)
             {
                 p?.SetVisibleFlag(_vision_flag);
@@ -111,9 +111,9 @@ namespace FH
         /// <summary>
         /// 设置可见
         /// </summary>        
-        public void SetVisibleFlag(ENoticeVisibleFlag flag, bool v)
+        public void SetVisibleFlag(ENoticeVisible flag, bool v)
         {
-            ENoticeVisibleFlag new_flag = _vision_flag;
+            ENoticeVisible new_flag = _vision_flag;
 
             if (v) new_flag |= flag;
             else new_flag &= ~flag;
@@ -134,14 +134,7 @@ namespace FH
         {
             for (int i = 0; i < (int)ENoticeChannel.Max; ++i)
             {
-                //var visible_ctrl = _visible_ctrls[i];
-                //if (null == visible_ctrl) continue;
-
-                //if (!visible_ctrl.NeedClear(signal))
-                //    continue;
-
-                //_data_queues[i].Clear();
-                //_channels[i].Clear();
+                _channels[i]?.RaiseClearSignal(signal);                 
             }
         }
 

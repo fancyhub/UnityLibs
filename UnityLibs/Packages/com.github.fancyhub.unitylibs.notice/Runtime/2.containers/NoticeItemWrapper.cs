@@ -17,7 +17,7 @@ namespace FH
     /// </summary>
     public sealed class NoticeItemWrapper : CPoolItemBase, IDestroyable
     {
-        private NoticeEffectConfig _config;
+        private NoticeEffectConfig _effectConfig;
         private IClock _clock;
         private INoticeChannelRoot _root;
         private INoticeItem _item;
@@ -41,14 +41,14 @@ namespace FH
             //self_root.transform.SetParent(channel_root.transform, false);
 
             NoticeItemWrapper ret = GPool.New<NoticeItemWrapper>();
-            ret._config = config;
+            ret._effectConfig = config;
             ret._priority = data.Priority;
             ret._clock = clock;
             ret._item = data.Item;
             ret._root = root;
             ret._size.Clear();
             ret._move_obj = self_root;
-            ret._item.CreateView(new NoticeItemDummy(self_root, root));
+            ret._item.Show(new NoticeItemDummy(self_root, root));
             return ret;
         }
 
@@ -56,7 +56,7 @@ namespace FH
 
         public Vector2 GetSize()
         {
-            if (!_size.Inited)
+            if (!_size.Inited && _item.IsValid())
                 _size.Value = _item.GetViewSize();
             return _size.Value;
         }
@@ -84,7 +84,7 @@ namespace FH
             _root = null;
             _move_obj = null;
 
-            _config = null;
+            _effectConfig = null;
 
             _size.Clear();
 
@@ -132,12 +132,12 @@ namespace FH
 
                 case ENoticeItemPhase.ShowIn:
                     _move_obj.SetActive(true);
-                    _item.ShowUp(_time, _config.ShowUp);
+                    _item.FadeIn(_time, _effectConfig);
                     break;
 
                 case ENoticeItemPhase.HideOut:
                     _move_obj.SetActive(true);
-                    _item.HideOut(_time, _config.HideOut);
+                    _item.FadeOut(_time, _effectConfig);
                     break;
 
                 case ENoticeItemPhase.Showing:

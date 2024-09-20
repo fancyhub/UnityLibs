@@ -42,7 +42,7 @@ namespace FH.NoticeSample
                 obj = new GameObject("NoticeItemDummy");
             }
 
-            var root = GetChanRoot();
+            var root = _GetOrCreateChanRoot();
             obj.transform.SetParent(root, false);
             return obj;
         }
@@ -58,7 +58,7 @@ namespace FH.NoticeSample
         }
 
 
-        public Transform GetChanRoot()
+        private Transform _GetOrCreateChanRoot()
         {
             if (_ChannelRoot == null)
             {
@@ -113,20 +113,6 @@ namespace FH.NoticeSample
 
             UnityEngine.Debug.LogError("找不到 Layer " + _Config.LayerName);
             return null;
-        }
-
-        public GameObject CreateView(string path, Transform parent)
-        {
-            GameObject obj = _ResHolder.Create(path);
-            if (obj == null)
-                return null;
-            obj.transform.SetParent(parent, false);
-            return obj;
-        }
-
-        public void ReleaseView(GameObject obj)
-        {
-            _ResHolder.Release(obj);
-        }
+        }   
     }
 }

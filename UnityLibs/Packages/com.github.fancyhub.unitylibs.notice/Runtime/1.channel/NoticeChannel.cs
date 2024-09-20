@@ -13,13 +13,8 @@ namespace FH
 {
     public interface INoticeChannelRoot
     {
-        Transform GetChanRoot();
-
         public GameObject CreateItemDummy();
         public void ReleaseItemDummy(GameObject obj);
-
-        public GameObject CreateView(string path, Transform parent);
-        public void ReleaseView(GameObject obj);
 
         void Destroy();
     }
@@ -100,7 +95,7 @@ namespace FH
         /// 清空当前的显示队列，但是不会清空当前的等待队列
         /// 等待队列更新暂停
         /// </summary>
-        public void SetVisibleFlag(ENoticeVisibleFlag flag)
+        public void SetVisibleFlag(ENoticeVisible flag)
         {
             bool visible = _VisibleCtrl.IsVisible(flag);
             if (_context.Visible == visible)
@@ -109,11 +104,20 @@ namespace FH
             _container.OnVisibleChange(visible);
         }
 
+        public void RaiseClearSignal(ENoticeClearSignal signal)
+        {
+            if (!_VisibleCtrl.NeedClear(signal))
+                return;
+
+            Clear();
+        }
+
         /// <summary>
         /// 清空所有的数据，包括显示数据和等待数据
         /// </summary>
         public void Clear()
         {
+            _context.DataQueue.Clear();
             _container.OnClear();
         }
     }

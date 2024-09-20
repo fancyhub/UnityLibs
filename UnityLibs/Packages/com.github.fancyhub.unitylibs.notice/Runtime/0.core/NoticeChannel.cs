@@ -19,7 +19,8 @@ namespace FH
         public void Update();
         public void Destroy();
 
-        public void SetVisibleFlag(ENoticeVisibleFlag flag);
+        public void SetVisibleFlag(ENoticeVisible flag);
+        public void RaiseClearSignal(ENoticeClearSignal signal);
         public void Clear();
 
         public void Push(NoticeData data, INoticeItem item);

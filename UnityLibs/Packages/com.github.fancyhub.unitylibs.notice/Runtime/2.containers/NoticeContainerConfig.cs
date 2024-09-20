@@ -11,6 +11,20 @@ using UnityEngine;
 
 namespace FH
 {
+    public enum ENoticeEffect
+    {
+        None,
+        FadeIn,
+        FadeOut,
+        MoveUp,
+        RightSlideIn,
+        RightSlideOut,
+        LeftSlideIn,
+        LeftSlideOut,
+        ScaleIn,
+        ScaleOut,
+    }
+
     /// <summary>
     /// 不同的容器类型
     /// </summary>

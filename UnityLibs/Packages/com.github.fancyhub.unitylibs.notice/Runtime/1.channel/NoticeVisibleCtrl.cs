@@ -22,52 +22,14 @@ namespace FH
             _config = config;
         }
 
-        public bool IsVisible(ENoticeVisibleFlag flag)
+        public bool IsVisible(ENoticeVisible flag)
         {
-            //白名单
-            bool visible = _is_white_list_visible(flag);
-            if (!visible)
-                return false;
-
-            //黑名单
-            visible = _is_black_list_visible(flag);
-            if (!visible)
-                return false;
-
-            return true;
+            return _config.IsVisible(flag);
         }
 
         public bool NeedClear(ENoticeClearSignal signal)
         {
-            bool clear = (signal & _config.ClearSignal) != ENoticeClearSignal.None;
-            return clear;
-        }
-
-        public ENoticeClearSignal GetClearSignal()
-        {
-            return _config.ClearSignal;
-        }
-
-        public bool _is_white_list_visible(ENoticeVisibleFlag tar_flag)
-        {
-            ENoticeVisiblePatternFlag conf_pattern = _config.VisiblePattern;
-            bool pattern_exist = (conf_pattern & ENoticeVisiblePatternFlag.WhiteList) != ENoticeVisiblePatternFlag.None;
-            if (!pattern_exist)
-                return true;
-
-            bool visible = (_config.VisibleFlag & tar_flag) != ENoticeVisibleFlag.None;
-            return visible;
-        }
-
-        public bool _is_black_list_visible(ENoticeVisibleFlag tar_flag)
-        {
-            ENoticeVisiblePatternFlag conf_pattern = _config.VisiblePattern;
-            bool pattern_exist = (conf_pattern & ENoticeVisiblePatternFlag.BlackList) != ENoticeVisiblePatternFlag.None;
-            if (!pattern_exist)
-                return true;
-
-            bool visible = (_config.VisibleFlag & tar_flag) == ENoticeVisibleFlag.None;
-            return visible;
+            return _config.ClearSignal[signal];
         }
     }
 }

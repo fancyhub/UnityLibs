@@ -27,55 +27,19 @@ namespace FH
             Dummy = dummy.transform;
             ChannelRoot = channel_root;
         }
-
-        public GameObject CreateView(string path)
-        {
-            return ChannelRoot?.CreateView(path, Dummy);
-        }
-
-        public void ReleaseView(GameObject view)
-        {
-            ChannelRoot?.ReleaseView(view);
-        }
-
-        public void ReleaseView(ref GameObject view)
-        {
-            ChannelRoot?.ReleaseView(view);
-            view = null;
-        }
-
-        public void ReleaseView(ref Transform view)
-        {
-            if (view == null)
-                return;
-
-            ChannelRoot?.ReleaseView(view.gameObject);
-            view = null;
-        }
-
-        public void ReleaseView(ref RectTransform view)
-        {
-            if (view == null)
-                return;
-
-            ChannelRoot?.ReleaseView(view.gameObject);
-            view = null;
-        }
     }
 
 
     public interface INoticeItem : IDestroyable
     {
-        void CreateView(NoticeItemDummy dummy);
-
-        void ShowUp(NoticeItemTime time, List<NoticeEffectItemConfig> effect);
-        void Update(NoticeItemTime time);
-        void HideOut(NoticeItemTime time, List<NoticeEffectItemConfig> effect);
-
+        void Show(NoticeItemDummy dummy);
+        void FadeIn(NoticeItemTime time, NoticeEffectConfig effect);
+        void FadeOut(NoticeItemTime time, NoticeEffectConfig effect);
+        
         bool TryMerge(INoticeItem other);
-
         bool IsValid();
-
         Vector2 GetViewSize();
+
+        void Update(NoticeItemTime time);
     }
 }

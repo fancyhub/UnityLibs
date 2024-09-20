@@ -21,17 +21,19 @@ namespace FH.NoticeSample
         public Text _TxtComp;
         public RectTransform _view;
         public NoticeItemDummy _dummy;
+        public CPtr<IResInstHolder> _ResHolder;
 
-        public static NoticeItemTextMarquee Create(string text)
+        public static NoticeItemTextMarquee Create(IResInstHolder resholder, string text)
         {
             NoticeItemTextMarquee ret = GPool.New<NoticeItemTextMarquee>();
             ret._Text = text;
+            ret._ResHolder = new CPtr<IResInstHolder>(resholder);
             return ret;
         }
 
         protected override void OnPoolRelease()
         {
-            _dummy.ReleaseView(ref _view);
+            NoticeFactory.ReleaseView(_ResHolder, ref _view);
             _dummy = default;
             _TxtComp = null;
         }
@@ -50,13 +52,13 @@ namespace FH.NoticeSample
             return false;
         }
 
-        public void CreateView(NoticeItemDummy dummy)
+        public void Show(NoticeItemDummy dummy)
         {
             _dummy = dummy;
 
-            GameObject obj = dummy.CreateView(CPath);
-
-            _view = obj.GetComponent<RectTransform>();
+            _view = NoticeFactory.CreateView(_ResHolder, CPath, _dummy.Dummy);
+            if (_view == null)
+                return;
             var child = _view.Find("_txt");
             _TxtComp = child.GetComponent<Text>();
             _TxtComp.text = _Text;
@@ -68,22 +70,26 @@ namespace FH.NoticeSample
 
         public void Update(NoticeItemTime time)
         {
+            if (_TxtComp == null)
+                return;
             _SetProgress(time.GetCurPhaseProgress());
         }
 
-        public void HideOut(NoticeItemTime time, List<NoticeEffectItemConfig> effect)
+        public void FadeOut(NoticeItemTime time, NoticeEffectConfig effect)
         {
-            NoticeEffectPlayer.Play(_view, time, effect);
+            NoticeEffectPlayer.Play(_view, time, effect.HideOut);
         }
 
-
-        public void ShowUp(NoticeItemTime time, List<NoticeEffectItemConfig> effect)
+        public void FadeIn(NoticeItemTime time, NoticeEffectConfig effect)
         {
-            NoticeEffectPlayer.Play(_view, time, effect);
+            NoticeEffectPlayer.Play(_view, time, effect.ShowUp);
         }
 
         private void _SetProgress(float progoress)
         {
+            if (_TxtComp == null)
+                return;
+
             RectTransform txt_tran = _TxtComp.rectTransform;
             RectTransform view_tran = _view;
             float txt_width = txt_tran.rect.width;

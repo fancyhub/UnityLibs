@@ -17,6 +17,7 @@ namespace FH.NoticeSample
         private static IResInstHolder _ResInstHolder;
         private static IClock _Clock;
 
+
         public static void Init()
         {
             if (_Mgr != null)
@@ -50,6 +51,8 @@ namespace FH.NoticeSample
             MonoUpdater.ActionUpdate = _Mgr.Update;
         }
 
+        public static IResInstHolder ResInstHolder => _ResInstHolder;
+
         public static void ShowNotice(NoticeData data, INoticeItem item)
         {
             if (item == null)
@@ -66,13 +69,13 @@ namespace FH.NoticeSample
         public static void ShowMarquee(string txt, float duration_sec = 5.0f)
         {
             NoticeData data = new NoticeData(ENoticeChannel.Common, duration_sec);
-            ShowNotice(data, NoticeItemTextMarquee.Create(txt));
+            ShowNotice(data, NoticeItemTextMarquee.Create(_ResInstHolder, txt));
         }
 
         public static void ShowCommon(string txt, float duration_sec = 2.0f)
         {
             NoticeData data = new NoticeData(ENoticeChannel.Common, duration_sec);
-            ShowNotice(data, NoticeItemText.Create(txt));             
+            ShowNotice(data, NoticeItemText.Create(_ResInstHolder, txt));
         }
 
 

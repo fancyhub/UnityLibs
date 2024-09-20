@@ -20,13 +20,50 @@ namespace FH
         public ENoticeVisiblePatternFlag VisiblePattern;
 
         // 获得显隐条件的配置
-        public ENoticeVisibleFlag VisibleFlag;
+        public BitEnum32<ENoticeVisible> WhiteList;
 
         // 获取不可见的标记
-        public ENoticeVisibleFlag InvisibleFlag;
+        public BitEnum32<ENoticeVisible> BlackList;
 
         // 获取清除的标记
-        public ENoticeClearSignal ClearSignal;
+        public BitEnum32<ENoticeClearSignal> ClearSignal;
+
+
+        public bool IsVisible(ENoticeVisible flag)
+        {
+            //白名单
+            bool visible = _is_white_list_visible(flag);
+            if (!visible)
+                return false;
+
+            //黑名单
+            visible = _is_black_list_visible(flag);
+            if (!visible)
+                return false;
+
+            return true;
+        }
+
+        private bool _is_white_list_visible(ENoticeVisible flag)
+        {
+            ENoticeVisiblePatternFlag conf_pattern = VisiblePattern;
+            bool pattern_exist = (conf_pattern & ENoticeVisiblePatternFlag.WhiteList) != ENoticeVisiblePatternFlag.None;
+            if (!pattern_exist)
+                return true;
+
+            return WhiteList[flag];
+
+        }
+
+        private bool _is_black_list_visible(ENoticeVisible flag)
+        {
+            ENoticeVisiblePatternFlag conf_pattern = VisiblePattern;
+            bool pattern_exist = (conf_pattern & ENoticeVisiblePatternFlag.BlackList) != ENoticeVisiblePatternFlag.None;
+            if (!pattern_exist)
+                return true;
+
+            return !BlackList[flag];
+        }
     }
 
     [Serializable]
