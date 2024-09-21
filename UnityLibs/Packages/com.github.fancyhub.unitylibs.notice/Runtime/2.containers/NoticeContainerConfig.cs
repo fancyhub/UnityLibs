@@ -62,8 +62,9 @@ namespace FH
     public sealed class NoticeContainerConfig
     {
         public ENoticeContainer ContainerType;
+        [Tooltip("single Mode: 同等或者高优先级会把当前的顶掉,低优先级等待\n multi Mode: 忽略当前显示的优先级, 从队列里面直接获取最高优先级的数量")]
+        public bool Immediate = false;
         public NoticeContainerMultiConfig Multi= new NoticeContainerMultiConfig();
-
         public NoticeTimeConfig Time = new NoticeTimeConfig();
         public NoticeEffectConfig Effect= new NoticeEffectConfig();
     }

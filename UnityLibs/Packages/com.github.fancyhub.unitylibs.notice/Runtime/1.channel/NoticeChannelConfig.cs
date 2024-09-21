@@ -69,22 +69,25 @@ namespace FH
     [Serializable]
     public class NoticeTimeScaleConfig
     {
-        [Header("堆叠的数量小于改值的时候,时间缩放=1")]
-        public int PendingCountMin = 5;
+        public const string ToolTipMessage = "finalScale = currentCount <= PendingCountMin? 1 : Lerp(1,TimeScaleMax, GetProgress(PendingCountMin, PendingCountMax , currentCount))";
 
-        public int PendingCount = 10;
-        public float TimeScale = 2;
+        [Tooltip(NoticeTimeScaleConfig.ToolTipMessage)]
+        public int PendingCountMin = 5;
+        [Tooltip(NoticeTimeScaleConfig.ToolTipMessage)]
+        public int PendingCountMax = 10;
+        [Tooltip(NoticeTimeScaleConfig.ToolTipMessage)]
+        public float TimeScaleMax = 2;
 
         public float CalcScale(int count)
         {
             if (PendingCountMin <= 0 || count <= PendingCountMin)
                 return 1;
 
-            if (PendingCount <= PendingCountMin)
+            if (PendingCountMax <= PendingCountMin)
                 return 1;
 
-            float p = Mathf.InverseLerp(PendingCountMin, PendingCount, count);
-            return Mathf.Lerp(1, TimeScale, p);
+            float p = Mathf.InverseLerp(PendingCountMin, PendingCountMax, count);
+            return Mathf.Lerp(1, TimeScaleMax, p);
         }
     }
 
@@ -92,6 +95,7 @@ namespace FH
     public sealed class NoticeChannelConfig
     {
         public NoticeVisibleCtrlConfig Visible;
+        [Tooltip(NoticeTimeScaleConfig.ToolTipMessage)]
         public NoticeTimeScaleConfig TimeScale;
     }
 }

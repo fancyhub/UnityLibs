@@ -34,7 +34,7 @@ namespace FH
             _queue.ExtClear();
         }
 
-        public void Strip(int max_count, long now_time)
+        public void StripForMultiImmediate(int max_count, long now_time)
         {
             //1. 先删除过期的
             {
@@ -117,6 +117,27 @@ namespace FH
                 return false;
             data = _queue.First.Value;
             return true;
+        }
+
+        // <summary>
+        /// single立即模式下, 弹出一个数据
+        /// </summary>        
+        public bool PopSingleImmediate(out NoticeData out_data, long time_now, int priority)
+        {
+            out_data = default;
+            bool ret = false;
+            for (; ; )
+            {
+                if (!Peek(out var temp_peek_data))
+                    break;
+                if (temp_peek_data.Priority < priority)
+                    break;
+
+                Pop(out out_data, time_now, int.MinValue);
+                priority = out_data.Priority;
+                ret = true;
+            }
+            return ret;
         }
 
         /// <summary>

@@ -46,9 +46,7 @@ namespace FH
     {
         public ENoticeChannel ChannelType;
         public NoticeDummyConfig Dummy = new NoticeDummyConfig();
-
-        public NoticeChannelConfig Channel= new NoticeChannelConfig();
-
         public NoticeContainerConfig Container= new NoticeContainerConfig();
+        public NoticeChannelConfig Channel= new NoticeChannelConfig();
     }
 }

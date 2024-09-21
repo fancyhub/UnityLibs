@@ -56,8 +56,18 @@ namespace FH
             if (_cur_item != null)
                 priority = _cur_item.Priority;
 
-            if (!context.DataQueue.Pop(out NoticeData next_data, context.Clock.Time, priority))
-                return;
+            NoticeData next_data = default;
+
+            if (_config.Immediate) //立即模式
+            {
+                if (!context.DataQueue.PopSingleImmediate(out next_data, context.Clock.Time, priority))
+                    return;
+            }
+            else
+            {
+                if (!context.DataQueue.Pop(out next_data, context.Clock.Time, priority))
+                    return;
+            } 
 
             _cur_item?.Destroy();
             _cur_item = NoticeItemWrapper.Create(context.Root, context.Clock, next_data, _config.Effect);

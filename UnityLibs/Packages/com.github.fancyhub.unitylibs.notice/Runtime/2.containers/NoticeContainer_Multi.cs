@@ -24,10 +24,7 @@ namespace FH
         [Header("移动的时间")]
         public float StepMoveDuration = 0.3f;
 
-        public bool DirUp = true;
-
-        [Header("true, 会忽略优先级, 立刻把当前显示的删除掉")]
-        public bool Immediate = false;
+        public bool DirUp = true;        
     }
 
     public class NoticeContainer_Multi : INoticeContainer
@@ -70,9 +67,9 @@ namespace FH
                 return;
 
             //立即模式
-            if (_Config.Multi.Immediate)
+            if (_Config.Immediate)
             {
-                context.DataQueue.Strip(_Config.Multi.MaxShowCount, context.Clock.Time);
+                context.DataQueue.StripForMultiImmediate(_Config.Multi.MaxShowCount, context.Clock.Time);
                 _show_queue.EnsureEmptySlots(context.DataQueue.Count);
 
                 for (; ; )
