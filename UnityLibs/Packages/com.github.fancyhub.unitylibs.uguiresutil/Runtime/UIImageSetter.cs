@@ -83,7 +83,7 @@ namespace FH.UI
             {
                 //1. 判断是否相同
                 //这里不会因为 sync: true or false 发生变化
-                if (_Path == path)
+                if (_Image==null || _Path == path)
                     return;
 
                 //2.只是清除

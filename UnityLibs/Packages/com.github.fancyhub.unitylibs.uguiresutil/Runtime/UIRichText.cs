@@ -38,8 +38,23 @@ namespace FH.UI
     [AddComponentMenu("UI/RichText")]
     public class UIRichText : UnityEngine.UI.Text
     {
-        private UIRichTextHelper _Helper = new UIRichTextHelper();   
+        private UIRichTextHelper _Helper = new UIRichTextHelper();
 
+        [SerializeField]
+        [Range(0f, 1f)]
+        private float m_TypeWriterProgress = 1;
+        public float TypeWriterProgress
+        {
+            get { return m_TypeWriterProgress; }
+            set
+            {
+                if (Math.Abs(m_TypeWriterProgress - value) < float.Epsilon)
+                    return;
+
+                m_TypeWriterProgress = value;
+                base.SetVerticesDirty();
+            }
+        }
         protected override void Start()
         {
             base.Start();
@@ -60,8 +75,8 @@ namespace FH.UI
             m_DisableFontTextureRebuiltCallback = true;
             base.OnPopulateMesh(toFill);
             m_DisableFontTextureRebuiltCallback = false;
-
             _Helper.CalcImageQuadRect(toFill);
+            _Helper.ProcessTypeWriter(toFill, m_TypeWriterProgress);
             _Helper.SyncImagePos();
         }
 
@@ -70,6 +85,7 @@ namespace FH.UI
         {
             _Helper.ParseText(text, this.fontSize);
             _Helper.SyncImagesCount(transform);
+            _Helper.EditorDestroyUnusedImages();
         }
 #endif
     }
@@ -103,6 +119,7 @@ namespace FH.UI
             public int Size;
             public float Width;
             public float Height;
+            public bool TypeWriterShow;
 
             public ImageInfo(int char_index)
             {
@@ -112,6 +129,7 @@ namespace FH.UI
                 this.Size = 0;
                 this.Width = 1;
                 this.Height = 1;
+                this.TypeWriterShow = true;
             }
 
             public Vector2 CalcSize()
@@ -131,7 +149,7 @@ namespace FH.UI
         public void ParseText(string text, float fontSize)
         {
             //1. 检查是否发生了变化
-            if (_Text == text && _FontSize==(int)fontSize)
+            if (_Text == text && _FontSize == (int)fontSize)
                 return;
             _Text = text;
             _FontSize = (int)fontSize;
@@ -245,7 +263,7 @@ namespace FH.UI
         }
 
         public void CalcImageQuadRect(VertexHelper toFill)
-        {            
+        {
             int total_count = toFill.currentVertCount;
             for (var i = 0; i < _InfoList.Count; i++)
             {
@@ -281,6 +299,30 @@ namespace FH.UI
                 _InfoList[i] = imgInfo;
             }
         }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        public void EditorDestroyUnusedImages()
+        {
+            if (_ImageList == null)
+                return;
+#if UNITY_EDITOR
+            for (int i = _ImageList.Count - 1; i >= _InfoList.Count; i--)
+            {
+
+                if (Application.isPlaying)
+                    _ImageList[i].gameObject.SetActive(false);
+                else
+                {
+                    GameObject.DestroyImmediate(_ImageList[i].gameObject);
+                    if (_ImageList[i] == null)
+                        _ImageList.RemoveAt(i);
+                    else
+                        _ImageList[i].gameObject.SetActive(false);
+                } 
+            }
+#endif
+        }
+        
 
         public void SyncImagesCount(Transform tran)
         {
@@ -318,17 +360,7 @@ namespace FH.UI
             //4. 隐藏多余的
             for (int i = _ImageList.Count - 1; i >= _InfoList.Count; i--)
             {
-#if UNITY_EDITOR
-                if (Application.isPlaying)
-                    _ImageList[i].gameObject.SetActive(false);
-                else
-                {
-                    GameObject.DestroyImmediate(_ImageList[i].gameObject);
-                    _ImageList.RemoveAt(i);
-                }
-#else
-					_ImageList[i].gameObject.SetActive(false);
-#endif
+                _ImageList[i].gameObject.SetActive(false); 
             }
 
             //5. 加载
@@ -345,6 +377,7 @@ namespace FH.UI
                 image.gameObject.SetActive(true);
                 image.rectTransform.sizeDelta = info.CalcSize();
                 image.ExtAsyncSetSprite(info.ImageName);
+                image.enabled = info.TypeWriterShow;
             }
         }
 
@@ -373,6 +406,38 @@ namespace FH.UI
 
                 //不能在这边调用
                 //image.rectTransform.sizeDelta = info.QuadRect.size;
+            }
+        }
+
+        public void ProcessTypeWriter(VertexHelper toFill, float progress)
+        {
+            if (progress >= 1.0f)
+                return;
+
+
+            int count = toFill.currentVertCount / CVertCountPerChar;
+            int showCount = (int)(count * progress);
+            if (showCount >= count)
+                return;
+
+            int showIndexCount = showCount * CVertCountPerChar;
+            int totalIndexCount = count * CVertCountPerChar;
+
+            UIVertex tempVertex = default;
+            for (int i = showIndexCount; i < totalIndexCount; i++)
+            {
+                toFill.PopulateUIVertex(ref tempVertex, i);
+                var color = tempVertex.color;
+                color.a = 0;
+                tempVertex.color = color;
+                toFill.SetUIVertex(tempVertex, i);
+            }
+
+            for (int i = 0; i < _InfoList.Count; i++)
+            {
+                var info = _InfoList[i];
+                info.TypeWriterShow = info.CharIndex <= showCount;
+                _InfoList[i] = info;
             }
         }
 
@@ -421,12 +486,14 @@ namespace FH.UI
     {
         SerializedProperty m_Text;
         SerializedProperty m_FontData;
+        SerializedProperty m_TypeWriterProgress;
 
         protected override void OnEnable()
         {
             base.OnEnable();
             m_Text = serializedObject.FindProperty("m_Text");
             m_FontData = serializedObject.FindProperty("m_FontData");
+            m_TypeWriterProgress = serializedObject.FindProperty("m_TypeWriterProgress");
         }
 
         public override void OnInspectorGUI()
@@ -435,6 +502,7 @@ namespace FH.UI
 
             EditorGUILayout.PropertyField(m_Text);
             EditorGUILayout.PropertyField(m_FontData);
+            EditorGUILayout.PropertyField(m_TypeWriterProgress);
 
             AppearanceControlsGUI();
             RaycastControlsGUI();
