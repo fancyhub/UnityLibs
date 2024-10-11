@@ -12,6 +12,7 @@ using System.Collections.Generic;
 namespace FH
 {
 
+
     /// <summary>
     /// Support <br/>
     /// 1. Delay Msg  <br/>
@@ -19,15 +20,89 @@ namespace FH
     /// </summary>
     public class EventSet2<TKey, TValue> : ICPtr
     {
+        internal struct EventSet2EventNode
+        {
+            public readonly IHandler Handler;
+            public readonly Delegate Delegate;
+            public readonly int Id;
+            public static int _id_gen = 0;
+
+            public EventSet2EventNode(IHandler handler)
+            {
+                this.Handler = handler;
+                this.Delegate = null;
+                _id_gen++;
+                this.Id = _id_gen;
+            }
+
+            public EventSet2EventNode(Delegate action)
+            {
+                this.Handler = null;
+                this.Delegate = action;
+                _id_gen++;
+                this.Id = _id_gen;
+            }
+        }
+
+        public struct EventHandler
+        {
+            internal readonly CPtr<EventSet2<TKey, TValue>> Set;
+            internal readonly int Id;
+            internal EventHandler(EventSet2<TKey, TValue> set, int id)
+            {
+                this.Set = new CPtr<EventSet2<TKey, TValue>>(set);
+                this.Id = id;
+            }
+
+            public bool Valid => !Set.Null && Id != 0;
+
+            public void Destroy()
+            {
+                var set = Set.Val;
+                if (set == null)
+                    return;
+
+                if (!set._id_map.TryGetValue(this.Id, out var node))
+                    return;
+
+                set._id_map.Remove(this.Id);
+                node.ExtRemoveFromList();
+            }
+        }
+
+        public sealed class EventHandlerList : CPoolItemBase
+        {
+            private LinkedList<EventHandler> _list = new LinkedList<EventHandler>();
+            protected override void OnPoolRelease()
+            {
+                foreach (var p in _list)
+                    p.Destroy();
+                _list.ExtClear();
+            }
+
+            public static EventHandlerList operator +(EventHandlerList list, EventHandler handler)
+            {
+                if (!handler.Valid)
+                    return list;
+
+                if (list == null)
+                    list = GPool.New<EventHandlerList>();
+                list._list.ExtAddLast(handler);
+                return list;
+            }
+        }
+
         public interface IHandler
         {
             void HandleEvent(TKey key, TValue value);
         }
 
+
         private sealed class ActionList : CPoolItemBase
         {
             private TKey _key;
-            private LinkedList<object> _list = new LinkedList<object>();
+            private LinkedList<EventSet2EventNode> _list = new LinkedList<EventSet2EventNode>();
+            private int _stack_count = 0;
 
             internal static ActionList Create(TKey key)
             {
@@ -38,6 +113,15 @@ namespace FH
 
             public bool Fire(ref TValue v)
             {
+                if (_stack_count > 3)
+                {
+                    Log.Assert(false, "action in stack more than {0} times", _stack_count + 1);
+                    return false;
+                }
+
+                _stack_count++;
+                bool retval = true;
+
                 try
                 {
                     var node = _list.First;
@@ -50,46 +134,89 @@ namespace FH
 
                         var cur = node.Value;
                         node = node.Next;
-                        if (cur == null)
-                            continue;
-                        if (cur is IHandler handler)
-                            handler.HandleEvent(_key, v);
-                        else if (cur is Action a)
-                            a();
-                        else if (cur is Action<TValue> a_value)
-                            a_value(v);
-                        else if (cur is Action<TKey, TValue> a_pair)
-                            a_pair(_key, v);
+                        if (cur.Handler != null)                        
+                            cur.Handler.HandleEvent(_key, v);                                                
+                        else if (cur.Delegate is Action action)
+                            action();
+                        else if (cur.Delegate is Action<TValue> action_value)
+                            action_value(v);
+                        else if (cur.Delegate is Action<TKey, TValue> action_pair)
+                            action_pair(_key, v);
                     }
                 }
                 catch (System.Exception e)
                 {
                     Log.E(e);
-                    return false;
+                    retval = false;
                 }
-                return true;
+
+                _stack_count--;
+                return retval;
             }
 
-            public bool Add(object action)
+            public LinkedListNode<EventSet2EventNode> AddHandler(IHandler action)
             {
                 if (action == null)
                 {
                     Log.Assert(false, "Can't reg null action");
-                    return false;
+                    return null;
                 }
 
                 // Cant Add Twice
-                if (_list.Find(action) != null)
+                if (_FindHandler(action) != null)
                 {
-                    Log.Assert(false, "Can't reg twice {0} {1}", _key, action);
-                    return false;
+                    Log.Assert(false, "Can't reg twice key:{0} action:{1}", _key, action);
+                    return null;
                 }
 
-                _list.ExtAddLast(action);
-                return true;
+                return _list.ExtAddLast(new EventSet2EventNode(action));
             }
 
-            public bool Remove(object action) { return _list.ExtRemove(action); }
+            public LinkedListNode<EventSet2EventNode> AddDelegate(Delegate action)
+            {
+                if (action == null)
+                {
+                    Log.Assert(false, "Can't reg null action");
+                    return null;
+                }
+
+                // Cant Add Twice
+                if (_FindDelegate(action) != null)
+                {
+                    Log.Assert(false, "Can't reg twice key:{0} action:{1}", _key, action);
+                    return null;
+                }
+
+                return _list.ExtAddLast(new EventSet2EventNode(action));
+            }
+
+            private LinkedListNode<EventSet2EventNode> _FindDelegate(Delegate action)
+            {
+                var node = _list.First;
+                for (; ; )
+                {
+                    if (node == null)
+                        return null;
+                    if (node.Value.Delegate == action)
+                        return node;
+
+                    node = node.Next;
+                }
+            }
+
+            private LinkedListNode<EventSet2EventNode> _FindHandler(IHandler action)
+            {
+                var node = _list.First;
+                for (; ; )
+                {
+                    if (node == null)
+                        return null;
+                    if (node.Value.Handler == action)
+                        return node;
+
+                    node = node.Next;
+                }
+            }
 
             public bool IsEmpty() { return _list.Count == 0; }
 
@@ -99,7 +226,8 @@ namespace FH
             }
         }
 
-        private Dictionary<TKey, ActionList> _dict;
+        private Dictionary<int, LinkedListNode<EventSet2EventNode>> _id_map;
+        private Dictionary<TKey, ActionList> _key_map;
         private Queue<(TKey key, TValue value)> _event_queue;
 
         private int __ptr_ver = 0;
@@ -109,72 +237,49 @@ namespace FH
         {
             if (equality_comparer == null)
                 equality_comparer = MyEqualityComparer<TKey>.Default;
-            _dict = new Dictionary<TKey, ActionList>(equality_comparer);
+            _key_map = new Dictionary<TKey, ActionList>(equality_comparer);
+            _id_map = new Dictionary<int, LinkedListNode<EventSet2EventNode>>();
         }
 
         public EventSet2(int cap, IEqualityComparer<TKey> equality_comparer = null)
         {
             if (equality_comparer == null)
                 equality_comparer = MyEqualityComparer<TKey>.Default;
-            _dict = new Dictionary<TKey, ActionList>(cap, equality_comparer);
+            _key_map = new Dictionary<TKey, ActionList>(cap, equality_comparer);
+            _id_map = new Dictionary<int, LinkedListNode<EventSet2EventNode>>(cap);
         }
 
-        public bool Reg(TKey key, Action action) { return _RegDelegate(key, action); }
+        public EventHandler Reg(TKey key, Action action) { return _RegDelegate(key, action); }
 
-        // In Case TKey == TValue
-        //public bool Reg(TKey key, Action<TKey> action) { return RegDelegate(key, action); }
+        public EventHandler Reg(TKey key, Action<TValue> action) { return _RegDelegate(key, action); }
 
-        public bool Reg(TKey key, Action<TValue> action) { return _RegDelegate(key, action); }
+        public EventHandler Reg(TKey key, Action<TKey, TValue> action) { return _RegDelegate(key, action); }
 
-        public bool Reg(TKey key, Action<TKey, TValue> action) { return _RegDelegate(key, action); }
-
-        public bool Reg(TKey key, IHandler handler)
+        public EventHandler Reg(TKey key, IHandler handler)
         {
             if (handler == null)
             {
                 Log.Assert(false, "Can't reg null action {0}", key);
-                return false;
+                return default;
             }
 
-            if (!_dict.TryGetValue(key, out var action_list))
+            if (!_key_map.TryGetValue(key, out var action_list))
             {
                 action_list = ActionList.Create(key);
-                _dict.Add(key, action_list);
+                _key_map.Add(key, action_list);
             }
-            return action_list.Add(handler);
-        }
+            var node = action_list.AddHandler(handler);
+            if (node == null)
+                return default;
 
-        public bool Unreg(TKey key, Action action) { return UnregCallBack(key, action); }
-
-        public bool Unreg(TKey key, Action<TValue> action) { return UnregCallBack(key, action); }
-
-        public bool Unreg(TKey key, Action<TKey, TValue> action) { return UnregCallBack(key, action); }
-
-        public bool Unreg(TKey key, IHandler handler) { return UnregCallBack(key, handler); }
-
-        public bool UnregCallBack(TKey key, object call_back)
-        {
-            if (call_back == null)
-                return false;
-
-            if (!_dict.TryGetValue(key, out var action_list))
-                return false;
-
-            if (!action_list.Remove(call_back))
-                return false;
-
-            if (action_list.IsEmpty())
-            {
-                action_list.Destroy();
-                _dict.Remove(key);
-            }
-            return true;
+            _id_map[node.Value.Id] = node;
+            return new EventHandler(this, node.Value.Id);
         }
 
         //立即发消息
         public bool Fire(TKey key, TValue val)
         {
-            if (!_dict.TryGetValue(key, out var action_list))
+            if (!_key_map.TryGetValue(key, out var action_list))
                 return false;
             return action_list.Fire(ref val);
         }
@@ -235,7 +340,7 @@ namespace FH
 
         public void Clear()
         {
-            _dict.Clear();
+            _key_map.Clear();
             _event_queue?.Clear();
         }
 
@@ -245,27 +350,33 @@ namespace FH
             __ptr_ver++;
         }
 
-        private bool _RegDelegate(TKey key, Delegate action)
+
+        private EventHandler _RegDelegate(TKey key, Delegate action)
         {
             if (action == null)
             {
                 Log.Assert(false, "Can't reg null action {0}", key);
-                return false;
+                return default;
             }
 
-            if (!_dict.TryGetValue(key, out var action_list))
+            if (!_key_map.TryGetValue(key, out var action_list))
             {
                 action_list = ActionList.Create(key);
-                _dict.Add(key, action_list);
+                _key_map.Add(key, action_list);
             }
-            return action_list.Add(action);
+            var node = action_list.AddDelegate(action);
+            if (node == null)
+                return default;
+
+            _id_map[node.Value.Id] = node;
+            return new EventHandler(this, node.Value.Id);
         }
     }
 
     public sealed class EventSet2Auto<TKey, TValue> : CPoolItemBase
     {
         private CPtr<EventSet2<TKey, TValue>> _set;
-        private LinkedList<(TKey key, object callback)> _list = new();
+        private EventSet2<TKey, TValue>.EventHandlerList _list;
 
         public static EventSet2Auto<TKey, TValue> Create(EventSet2<TKey, TValue> set)
         {
@@ -280,46 +391,44 @@ namespace FH
         public EventSet2Auto<TKey, TValue> Reg(TKey key, Action action)
         {
             EventSet2<TKey, TValue> set = _set;
-            if (set != null && set.Reg(key, action))
-                _list.ExtAddLast((key, action));
+            if (set == null)
+                return this;
+            _list += set.Reg(key, action);
             return this;
         }
 
         public EventSet2Auto<TKey, TValue> Reg(TKey key, Action<TValue> action)
         {
             EventSet2<TKey, TValue> set = _set;
-            if (set != null && set.Reg(key, action))
-                _list.ExtAddLast((key, action));
+            if (set == null)
+                return this;
+            _list += set.Reg(key, action);
             return this;
         }
 
         public EventSet2Auto<TKey, TValue> Reg(TKey key, Action<TKey, TValue> action)
         {
             EventSet2<TKey, TValue> set = _set;
-            if (set != null && set.Reg(key, action))
-                _list.ExtAddLast((key, action));
+            if (set == null)
+                return this;
+            _list += set.Reg(key, action);
             return this;
         }
 
         public EventSet2Auto<TKey, TValue> Reg(TKey key, EventSet2<TKey, TValue>.IHandler handler)
         {
             EventSet2<TKey, TValue> set = _set;
-            if (set != null && set.Reg(key, handler))
-                _list.ExtAddLast((key, handler));
+            if (set == null)
+                return this;
+            _list += set.Reg(key, handler);
             return this;
         }
 
         protected override void OnPoolRelease()
         {
-            EventSet2<TKey, TValue> set = _set;
-            if (set != null)
-            {
-                foreach (var p in _list)
-                    set.UnregCallBack(p.key, p.callback);
-            }
-            _list.ExtClear();
             _set = null;
+            _list?.Destroy();
+            _list = null;
         }
     }
-
 }

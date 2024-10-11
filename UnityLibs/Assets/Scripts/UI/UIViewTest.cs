@@ -60,6 +60,12 @@ public class UIViewTest : MonoBehaviour
         Debug.Log($"LuaProj/main.lua {content}");
         UIPageScene2.Create(this, _LayerMgr);
     }
+
+    [FH.Omi.Button]
+    public void Testevent()
+    {
+        FH.EventSet2Sample.TestEventSet.Test();
+    }
 }
 
 public class UIPageScene2 : UIPage

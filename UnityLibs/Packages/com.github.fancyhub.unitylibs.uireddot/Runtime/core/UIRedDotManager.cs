@@ -94,41 +94,27 @@ namespace FH.UI
         }
 
 
-        public static bool Reg(string path, EventSet2<Str, int>.IHandler call_back)
+        public static EventSet2<Str, int>.EventHandler Reg(string path, EventSet2<Str, int>.IHandler call_back)
         {
             if (string.IsNullOrEmpty(path))
             {
                 UIRedDotLog.Assert(false, "路径不能为空");
-                return false;
+                return default;
             }
             if (call_back == null)
             {
                 UIRedDotLog.Assert(false, "回调不能为空");
-                return false;
+                return default;
             }
 
             var inst = Inst;
             if (inst == null)
             {
                 UIRedDotLog.Assert(false, "UIRedDotMgr 实例还没有创建");
-                return false;
+                return default;
             }
 
-            bool ret = inst._EventSet.Reg(path, call_back);
-            if (!ret)
-                return false;
-            return true;
-        }
-
-        public static void UnReg(string path, EventSet2<Str, int>.IHandler call_back)
-        {
-            if (string.IsNullOrEmpty(path))
-                return;
-
-            var inst = Inst;
-            if (inst == null)
-                return;
-            inst._EventSet.Unreg(path, call_back);
+            return inst._EventSet.Reg(path, call_back);            
         }
 
         public static int Get(string path)

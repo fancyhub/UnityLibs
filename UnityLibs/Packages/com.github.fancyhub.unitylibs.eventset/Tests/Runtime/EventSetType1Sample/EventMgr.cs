@@ -4,13 +4,13 @@ using System.Collections.Generic;
 
 namespace FH.EventSetType1Sample
 {
-    public class EventMgr : EventSetType1<EventKey>
+    public class EventMgr : EventSet1<EventKey>
     {
         public static EventMgr Inst = new EventMgr();
 
-        public static EventSetType1Auto<EventKey> AutoReg()
+        public static EventSet1Auto<EventKey> AutoReg()
         {
-            return EventSetType1Auto<EventKey>.Create(Inst);
+            return EventSet1Auto<EventKey>.Create(Inst);
         }
     }
 

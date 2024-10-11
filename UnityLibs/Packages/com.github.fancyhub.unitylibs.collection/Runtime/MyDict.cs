@@ -22,7 +22,7 @@ namespace FH
             {
 #if UNITY_EDITOR
                 Type t = typeof(T);
-                if (_Default == null && !(t.IsEnum || t.IsPrimitive || t == typeof(string)))
+                if (_Default == null && !(t.IsEnum || t.IsPrimitive || t == typeof(string) || t == typeof(Type)))
                 {
                     Debug.LogError($"{t} 没有 EqualityComparer, 需要注册 MyEqualityComparer.Reg");
                 }

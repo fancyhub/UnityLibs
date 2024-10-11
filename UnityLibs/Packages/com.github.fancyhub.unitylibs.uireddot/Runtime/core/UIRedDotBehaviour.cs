@@ -17,8 +17,8 @@ namespace FH.UI
         public string _Path = "";
         public bool _AutoBind = false;
 
-        [NonSerialized] protected bool _HasReg = false;
         [NonSerialized] protected string _BindPath;
+        [NonSerialized] protected EventSet2<Str, int>.EventHandler _EventHandler;
 
         public void Awake()
         {
@@ -31,9 +31,9 @@ namespace FH.UI
                 return;
 
             UnBind();
-            if (UIRedDotMgr.Reg(_BindPath, this))
+            _EventHandler = UIRedDotMgr.Reg(_BindPath, this);
+            if (_EventHandler.Valid)
             {
-                _HasReg = true;
                 OnEvent(_BindPath, UIRedDotMgr.Get(_BindPath));
             }
             else
@@ -84,29 +84,26 @@ namespace FH.UI
         public void Bind()
         {
             UnBind();
-            if (UIRedDotMgr.Reg(_BindPath, this))
-                _HasReg = true;
-            else
+            _EventHandler = UIRedDotMgr.Reg(_BindPath, this);
+            if (_EventHandler.Valid)                
                 OnEvent(_BindPath, 0);
             _AutoBind = false;
         }
 
         public void UnBind()
         {
-            if (!_HasReg)
+            if (!_EventHandler.Valid)
                 return;
-            UIRedDotMgr.UnReg(_BindPath, this);
-            _HasReg = false;
+            _EventHandler.Destroy();
+            _EventHandler = default;
 
             OnEvent(_BindPath, 0);
         }
 
         public void OnDestroy()
         {
-            if (!_HasReg)
-                return;
-            UIRedDotMgr.UnReg(_BindPath, this);
-            _HasReg = false;
+            _EventHandler.Destroy();
+            _EventHandler = default;            
         }
 
         void EventSet2<Str, int>.IHandler.HandleEvent(Str key, int val)
