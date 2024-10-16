@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace FH.UI
 {
-    [CreateAssetMenu(fileName = "LocTextStyle", menuName = "fanchhub/LocTextStyle")]
+    [CreateAssetMenu(fileName = "LocTextStyle", menuName = "fancyhub/LocTextStyle")]
     public class LocTextStyleAsset : ScriptableObject
     {
         [Serializable]

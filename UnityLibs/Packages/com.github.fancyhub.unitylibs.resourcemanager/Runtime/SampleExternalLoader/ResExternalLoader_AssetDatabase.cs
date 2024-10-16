@@ -16,7 +16,7 @@ using FH.ResManagement;
 
 namespace FH.SampleExternalLoader
 {
-    public class ResExternalLoader_AssetDatabase : CPtrBase, IResMgr.IExternalLoader
+    public sealed class ResExternalLoader_AssetDatabase : CPtrBase, IResMgr.IExternalLoader
     {
         private Dictionary<string, string> _AssetDict;
         private Func<string, string> _FuncAtlasTag2Path;

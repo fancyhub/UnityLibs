@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace FH.SampleExternalLoader
 {
-    public class ResExternalLoader_Resource : CPtrBase, IResMgr.IExternalLoader
+    public sealed class ResExternalLoader_Resource : CPtrBase, IResMgr.IExternalLoader
     {
         private sealed class ResRefDB
         {

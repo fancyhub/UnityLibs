@@ -13,7 +13,7 @@ using UnityEditor;
 
 namespace FH.FileManagement.Ed
 {
-    [CreateAssetMenu(fileName = "FileBuilderConfig", menuName = "fanchhub/FileBuilderConfig")]
+    [CreateAssetMenu(fileName = "FileBuilderConfig", menuName = "fancyhub/FileBuilderConfig")]
     public class FileBuilderConfig : ScriptableObject
     {
         private static FileBuilderConfig _Default;

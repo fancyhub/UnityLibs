@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace FH.AssetBundleBuilder.Ed
 {
-    [CreateAssetMenu(fileName = "AssetsInputConfig", menuName = "fanchhub/AssetsInputConfig")]
+    [CreateAssetMenu(fileName = "AssetsInputConfig", menuName = "fancyhub/AssetsInputConfig")]
     [Serializable]
     public sealed class AssetsInputConfig : ScriptableObject, ISerializationCallbackReceiver
     {

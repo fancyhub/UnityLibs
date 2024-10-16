@@ -63,7 +63,7 @@ namespace FH
                 //var bundle_config = FH.AssetBundleBuilder.Ed.AssetBundleBuilderConfig.GetDefault();
                 //asset_list = bundle_config.GetAssetCollector().GetAllAssets();
 
-                IResMgr.IExternalLoader res_loader = new FH.SampleExternalLoader.ResExternalLoader_AssetDatabase(asset_list, _AtlasTag2Path);
+                IResMgr.IExternalLoader res_loader = new FH.SampleExternalLoader.ResExternalLoader_Composite(new FH.SampleExternalLoader.ResExternalLoader_AssetDatabase(asset_list, _AtlasTag2Path));
                 ISceneMgr.IExternalLoader scene_loader = new FH.SampleExternalLoader.SceneExternaLoader_Assetdatabase();
 
                 FH.ResMgr.InitMgr(ResMgrConfig, res_loader);
@@ -100,7 +100,7 @@ namespace FH
 
                 BundleMgr.InitMgr(BundleMgrConfig, bundle_loader);
 
-                IResMgr.IExternalLoader res_loader = new FH.SampleExternalLoader.ResExternalLoader_Bundle(BundleMgr.Inst, _AtlasTag2Path);
+                IResMgr.IExternalLoader res_loader = new FH.SampleExternalLoader.ResExternalLoader_Composite(new FH.SampleExternalLoader.ResExternalLoader_Bundle(BundleMgr.Inst, _AtlasTag2Path));
                 ISceneMgr.IExternalLoader scene_loader = new FH.SampleExternalLoader.SceneExternalLoader_Bundle(BundleMgr.Inst);
 
                 FH.ResMgr.InitMgr(ResMgrConfig, res_loader);

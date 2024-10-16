@@ -17,7 +17,7 @@ namespace FH
         public static readonly IEqualityComparer<LocId> EqualityComparer = new LocId();
 
         public readonly int Key;
-        public LocId(int id) { this.Key = id; }
+        public LocId(int int_key) { this.Key = int_key; }
 
         public bool IsValid() { return Key != 0; }
         public bool Equals(LocId other) { return this.Key == other.Key; }
@@ -33,8 +33,8 @@ namespace FH
     {
         public static readonly IEqualityComparer<LocKey> EqualityComparer = new LocKey();
 
-        public string Key;
-        public LocKey(string id) { this.Key = id; }
+        public readonly string Key;
+        public LocKey(string str_key) { this.Key = str_key; }
 
         public bool IsValid() { return !string.IsNullOrEmpty(this.Key); }
 

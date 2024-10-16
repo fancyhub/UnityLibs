@@ -5,7 +5,7 @@ using UnityEngine;
 namespace FH.UI
 {
     [Serializable]
-    [CreateAssetMenu(fileName = "UIResMapConfig", menuName = "fanchhub/UI Res Map Config")]
+    [CreateAssetMenu(fileName = "UIResMapConfig", menuName = "fancyhub/UI Res Map Config")]
     public class UIResMapConfig : ScriptableObject, ISerializationCallbackReceiver
     {
         public const string CPath = "Assets/Res/UI/Config/UIResMapConfig.asset";

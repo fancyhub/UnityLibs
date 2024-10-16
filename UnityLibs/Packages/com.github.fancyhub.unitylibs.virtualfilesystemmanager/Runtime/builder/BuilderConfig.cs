@@ -14,7 +14,7 @@ using System.IO.Compression;
 
 namespace FH.VFSManagement.Builder
 {
-    [CreateAssetMenu(fileName = "VfsBuilderConfig", menuName = "fanchhub/VfsBuilderConfig")]
+    [CreateAssetMenu(fileName = "VfsBuilderConfig", menuName = "fancyhub/VfsBuilderConfig")]
     [Serializable]
     public sealed class BuilderConfig : ScriptableObject
     {

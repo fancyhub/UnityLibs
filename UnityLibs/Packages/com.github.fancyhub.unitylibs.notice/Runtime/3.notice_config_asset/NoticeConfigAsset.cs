@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace FH
 {
-    [CreateAssetMenu(fileName = "NoticeConfig", menuName = "fanchhub/NoticeConfig")]
+    [CreateAssetMenu(fileName = "NoticeConfig", menuName = "fancyhub/NoticeConfig")]
     [Serializable]
     public class NoticeConfigAsset : ScriptableObject
     {

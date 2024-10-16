@@ -13,7 +13,7 @@ using FH.Ed;
 
 namespace FH.AssetBundleBuilder.Ed
 {
-    [CreateAssetMenu(fileName = "AssetBundleBuilderConfig", menuName = "fanchhub/AssetBundleBuilderConfig")]
+    [CreateAssetMenu(fileName = "AssetBundleBuilderConfig", menuName = "fancyhub/AssetBundleBuilderConfig")]
     public class AssetBundleBuilderConfig : ScriptableObject
     {
         private static AssetBundleBuilderConfig _Default;
