@@ -62,6 +62,7 @@ namespace FH.UI.ViewGenerate.Ed
             {
                 //1. 生成 xxx.res.cs
                 string file_path = _Config.GenFilePath_Res(view.Desc.PrefabPath);
+                VersionControlUtil.Checkout(file_path);
                 using StreamWriter sw = new StreamWriter(file_path);
                 using var file_scope = CSFileScope.Create(sw, _Config);
 
@@ -105,7 +106,7 @@ namespace FH.UI.ViewGenerate.Ed
             EdStrFormatter formater = new EdStrFormatter();
             formater.Add("class_name", _Config.GenClassName(view.Desc.PrefabName));
             formater.Add("prefab_name", view.Desc.PrefabName);
-            
+
             if (view.ParentDesc == null)
             {
                 formater.Add("new_flag", "");
@@ -142,7 +143,7 @@ namespace FH.UI.ViewGenerate.Ed
             {
                 UnityEngine.Debug.LogError($"Path: {asset_path} Doesn't Contain \"{resource_folder_name}\"");
                 return "";
-            }                
+            }
 
             start_pos += resource_folder_name.Length;
             int end_pos = asset_path.Length - ".prefab".Length;

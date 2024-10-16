@@ -70,8 +70,10 @@ namespace " + config.NameSpace + "\n{";
                 string file_path = _Config.GenFilePath_Ext(view.Desc.PrefabName);
                 if (File.Exists(file_path))
                     return;
-                using StreamWriter sw = new StreamWriter(file_path);
 
+                VersionControlUtil.Checkout(file_path);
+
+                using StreamWriter sw = new StreamWriter(file_path);
                 using var file_scope = CSFileScope.Create(sw, _Config);
 
                 //生成默认的 ext.cs 代码

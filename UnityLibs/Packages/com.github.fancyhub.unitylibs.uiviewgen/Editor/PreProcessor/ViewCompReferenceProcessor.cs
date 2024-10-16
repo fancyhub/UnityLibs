@@ -28,6 +28,7 @@ namespace FH.UI.ViewGenerate.Ed
             foreach (var view in context.ViewList)
             {
                 GameObject asset_prefab = view.Prefab;
+                VersionControlUtil.Checkout(view.Desc.PrefabPath);
                 var view_ref = _GetOrCreateViewRef(asset_prefab, view.Desc.PrefabPath);
 
                 //如果脚本没有变化，那么就不需要更新，主要是考虑到效率问题
