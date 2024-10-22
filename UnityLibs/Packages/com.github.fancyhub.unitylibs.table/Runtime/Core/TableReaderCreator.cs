@@ -10,11 +10,11 @@ namespace FH
         public void CloseReader();
     }
 
-    public class TableReaderCsvCreator : ITableReaderCreator
+    public class TableReaderCsvTextCreator : ITableReaderCreator
     {
         private static TableReaderCsv _csv_reader;
         public string _base_dir;
-        public TableReaderCsvCreator(string base_dir)
+        public TableReaderCsvTextCreator(string base_dir)
         {
             _base_dir = base_dir;
         }
@@ -61,11 +61,11 @@ namespace FH
         }
     }
 
-    public class TableReaderBinCreator : ITableReaderCreator
+    public class TableReaderCsvBinCreator : ITableReaderCreator
     {
         private TableReaderBin _bin_reader;
         public string _base_dir;
-        public TableReaderBinCreator(string base_dir)
+        public TableReaderCsvBinCreator(string base_dir)
         {
             _base_dir = base_dir;
         }

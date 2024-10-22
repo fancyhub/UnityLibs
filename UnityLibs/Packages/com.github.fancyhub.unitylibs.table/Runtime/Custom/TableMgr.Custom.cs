@@ -32,23 +32,10 @@ namespace FH
                 return null;
             }
 
-            _._LoaderMgr.LoaderDict.TryGetValue(typeof(TLoc), out var info);
-            if (info.Loader == null)
-            {
-                TableLog.E("Cant Find Translation Loader {0}", nameof(TLoc));
-                return null;
-            }
+            _.LoadAll(lang);
 
-            var table = info.Loader(lang);
-            if (table == null)
-            {
-                TableLog.E("Load Translation Failed: {0}", lang);
-                return null;
-            }
-
-            var list = table.GetList<TLoc>();
+            var list = _.Loc.List;
             List<(LocId, string)> ret = new List<(LocId, string)>(list.Count);
-
             foreach (var p in list)
             {
                 ret.Add((new LocId(p.Id), p.Val));
@@ -56,21 +43,29 @@ namespace FH
             return ret;
         }
 
+        public static List<(LocId key, string tran)> EdLoadTranslation(string lang)
+        {
+            ITableReaderCreator table_reader_creator = new TableReaderCsvTextCreator(TableMgr.CDataDir);            
+            TableTLoc table = new TableTLoc();
+            if (!table_reader_creator.CreateTableReader(table.SheetName, lang, out var reader))
+                return new List<(LocId key, string tran)>();
+
+            if (!table.LoadFromCsv(reader))
+                return new List<(LocId key, string tran)>();
+
+            var list = table.List;
+            List<(LocId, string)> ret = new List<(LocId, string)>(list.Count);
+
+            foreach (var p in list)
+            {
+                ret.Add((new LocId(p.Id), p.Val));
+            }
+            return ret;             
+        }
+
         private void OnInstCreate()
         {
-            AddPostProcesser<TLoc>(_PP_Loc);
-
-            LoadAllTable();
-        }
-
-
-        private void OnAllLoaded()
-        {
-
-        }
-
-        private void _PP_Loc(Table table)
-        {
+            LoadAll();
         }
     }
 }

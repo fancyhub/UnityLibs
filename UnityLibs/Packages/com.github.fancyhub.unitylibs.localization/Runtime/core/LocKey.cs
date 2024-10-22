@@ -33,7 +33,7 @@ namespace FH
     {
         public static readonly IEqualityComparer<LocKey> EqualityComparer = new LocKey();
 
-        public readonly string Key;
+        public string Key;
         public LocKey(string str_key) { this.Key = str_key; }
 
         public bool IsValid() { return !string.IsNullOrEmpty(this.Key); }

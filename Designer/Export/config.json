@@ -35,19 +35,16 @@
         "csharp": {
             "enable": true,
             "namespaceName": "FH",
-            "parentClass": "",
-            "classPrefix": "T",
-            "classSuffix": "",
+            "itemParentClass": "",
+            "itemClassPrefix": "T",
+            "itemClassSuffix": "",
+			"tableMgrName": "TableMgr",
             "dir": "Output/Client/CS",
             "header": "using System;\nusing System.Collections;\nusing System.Collections.Generic;\nusing LocStr = FH.LocKey;\n",
             "loader": {
-                "enable": true
-            },
-            "getter": {
-                "enable": true,
-                "className": "TableMgr",
-                "useStatic": true,
-            },
+                "csv": true,
+				"json": false,
+            },            
             "locId": {
                 "enable": true,
                 "locIdStartWith": ""
