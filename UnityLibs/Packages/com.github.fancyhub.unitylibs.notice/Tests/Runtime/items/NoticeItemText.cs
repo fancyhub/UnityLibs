@@ -63,18 +63,18 @@ namespace FH.NoticeSample
             UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(_view);
         }
 
-        public void FadeIn(NoticeItemTime time, NoticeEffectConfig effect)
+        public void FadeIn(float progress, NoticeEffectConfig effect)
         {
-            NoticeEffectPlayer.Play(_view, time, effect.ShowUp);
+            NoticeEffectPlayer.Play(_view, progress, effect.ShowUp);
         }
 
-        public void FadeOut(NoticeItemTime time, NoticeEffectConfig effect)
+        public void FadeOut(float progress, NoticeEffectConfig effect)
         {
-            NoticeEffectPlayer.Play(_view, time, effect.HideOut);
+            NoticeEffectPlayer.Play(_view, progress, effect.HideOut);
         }
 
 
-        public void Update(NoticeItemTime time)
+        public void Update(float progress)
         {
         }
 

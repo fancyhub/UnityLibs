@@ -95,10 +95,7 @@ namespace FH
         {
             _time = notice_time;
             _time.SetTimeNow(_clock.Time);
-            if (_time.Phase == ENoticeItemPhase.Wait)
-                _move_obj.SetActive(false);
-            else
-                _move_obj.SetActive(true);
+            _move_obj.ExtSetGameObjectActive(false);
         }
 
         public bool IsValid()
@@ -124,6 +121,7 @@ namespace FH
             }
 
             //3. 根据阶段来调用不同的逻辑
+            var last_phase = _time.Phase;
             _time.SetTimeNow(now);
             switch (_time.Phase)
             {
@@ -131,18 +129,26 @@ namespace FH
                     return;
 
                 case ENoticeItemPhase.ShowIn:
-                    _move_obj.SetActive(true);
-                    _item.FadeIn(_time, _effectConfig);
-                    break;
+                    if (last_phase != _time.Phase)
+                        _move_obj.ExtSetGameObjectActive(true);
 
-                case ENoticeItemPhase.HideOut:
-                    _move_obj.SetActive(true);
-                    _item.FadeOut(_time, _effectConfig);
+                    _item.FadeIn(_time.GetCurPhaseProgress(), _effectConfig);
                     break;
 
                 case ENoticeItemPhase.Showing:
-                    _move_obj.SetActive(true);
-                    _item.Update(_time);
+                    if (last_phase != _time.Phase)
+                    {
+                        _item.FadeIn(1.0f, _effectConfig);
+                        _move_obj.ExtSetGameObjectActive(true);
+                    }
+
+                    _item.Update(_time.GetCurPhaseProgress());
+                    break;
+
+                case ENoticeItemPhase.HideOut:
+                    if (last_phase != _time.Phase)
+                        _move_obj.ExtSetGameObjectActive(true);
+                    _item.FadeOut(_time.GetCurPhaseProgress(), _effectConfig);
                     break;
 
                 case ENoticeItemPhase.End:

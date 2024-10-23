@@ -33,13 +33,13 @@ namespace FH
     public interface INoticeItem : IDestroyable
     {
         void Show(NoticeItemDummy dummy);
-        void FadeIn(NoticeItemTime time, NoticeEffectConfig effect);
-        void FadeOut(NoticeItemTime time, NoticeEffectConfig effect);
+        void FadeIn(float progress, NoticeEffectConfig effect);
+        void FadeOut(float progress, NoticeEffectConfig effect);
         
         bool TryMerge(INoticeItem other);
         bool IsValid();
         Vector2 GetViewSize();
 
-        void Update(NoticeItemTime time);
+        void Update(float progress);
     }
 }

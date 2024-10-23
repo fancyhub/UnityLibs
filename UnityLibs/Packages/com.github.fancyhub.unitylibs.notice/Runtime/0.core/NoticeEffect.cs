@@ -21,15 +21,15 @@ namespace FH
 
     public static class NoticeEffectPlayer
     {
-        public static void Play(RectTransform view, NoticeItemTime time, List<NoticeEffectItemConfig> effects)
+        public static void Play(RectTransform view, float progress, List<NoticeEffectItemConfig> effects)
         {
             foreach (var e in effects)
             {
-                Play(view, time, e);
+                Play(view, progress, e);
             }
         }
 
-        public static bool Play(RectTransform view, NoticeItemTime time, NoticeEffectItemConfig effect)
+        public static bool Play(RectTransform view, float progress, NoticeEffectItemConfig effect)
         {
             if (effect == null)
                 return true;
@@ -45,21 +45,21 @@ namespace FH
 
                 case ENoticeEffect.FadeIn:
                     {
-                        float alpha = time.GetCurPhaseProgress();
+                        float alpha = progress;
                         _SetViewAlpha(view, alpha);
                     }
                     break;
 
                 case ENoticeEffect.FadeOut:
                     {
-                        float alpha = time.GetCurPhaseProgress();
+                        float alpha = progress;
                         _SetViewAlpha(view, 1 - alpha);
                     }
                     break;
 
                 case ENoticeEffect.MoveUp:
                     {
-                        float dist = effect.MoveDistance * time.GetCurPhaseProgress();
+                        float dist = effect.MoveDistance * progress;
                         _SetViewPosY(view, dist);
                     }
                     break;
@@ -69,7 +69,7 @@ namespace FH
                         Vector2 size = view.rect.size;
                         float pos_x_show = -size.x * 0.5f;
                         float pos_x_hide = size.x * 0.5f;
-                        float pos_x = Mathf.Lerp(pos_x_hide, pos_x_show, time.GetCurPhaseProgress());
+                        float pos_x = Mathf.Lerp(pos_x_hide, pos_x_show, progress);
                         Vector2 pos = new Vector2(pos_x, 0);
                         view.anchoredPosition = pos;
                     }
@@ -80,7 +80,7 @@ namespace FH
                         Vector2 size = view.rect.size;
                         float pos_x_show = -size.x * 0.5f;
                         float pos_x_hide = size.x * 0.5f;
-                        float pos_x = Mathf.Lerp(pos_x_show, pos_x_hide, time.GetCurPhaseProgress());
+                        float pos_x = Mathf.Lerp(pos_x_show, pos_x_hide, progress);
                         Vector2 pos = new Vector2(pos_x, 0);
                         view.anchoredPosition = pos;
                     }
@@ -91,7 +91,7 @@ namespace FH
                         Vector2 size = view.rect.size;
                         float pos_x_show = size.x * 0.5f;
                         float pos_x_hide = -size.x * 0.5f;
-                        float pos_x = Mathf.Lerp(pos_x_hide, pos_x_show, time.GetCurPhaseProgress());
+                        float pos_x = Mathf.Lerp(pos_x_hide, pos_x_show, progress);
                         Vector2 pos = new Vector2(pos_x, 0);
                         view.anchoredPosition = pos;
                     }
@@ -102,7 +102,7 @@ namespace FH
                         Vector2 size = view.rect.size;
                         float pos_x_show = size.x * 0.5f;
                         float pos_x_hide = -size.x * 0.5f;
-                        float pos_x = Mathf.Lerp(pos_x_show, pos_x_hide, time.GetCurPhaseProgress());
+                        float pos_x = Mathf.Lerp(pos_x_show, pos_x_hide, progress);
                         Vector2 pos = new Vector2(pos_x, 0);
                         view.anchoredPosition = pos;
                     }
@@ -112,7 +112,7 @@ namespace FH
                     {
                         Vector3 show = Vector3.one;
                         Vector3 hide = new Vector3(1, 0, 1);
-                        Vector3 scale = Vector3.Lerp(hide, show, time.GetCurPhaseProgress());
+                        Vector3 scale = Vector3.Lerp(hide, show, progress);
                         view.localScale = scale;
                     }
                     break;
@@ -122,7 +122,7 @@ namespace FH
                     {
                         Vector3 show = Vector3.one;
                         Vector3 hide = new Vector3(1, 0, 1);
-                        Vector3 scale = Vector3.Lerp(show, hide, time.GetCurPhaseProgress());
+                        Vector3 scale = Vector3.Lerp(show, hide, progress);
                         view.localScale = scale;
                     }
                     break;
