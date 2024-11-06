@@ -16,6 +16,7 @@ namespace FH
         private TableMgr(ITableReaderCreator creator)
         {
             TableReaderCreator = creator;
+            TableLoaderCsvUtil.Init();
             OnInstCreate();
         }
 

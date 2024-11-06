@@ -145,6 +145,63 @@ namespace FH.ResManagement
             ResLog._.D("ResMgrImplement Destroy End");
         }
 
+        public ResRef GetResRef(UnityEngine.Object res)
+        {
+            if (res == null)
+                return default;
+            int inst_id = res.GetInstanceID();
+
+            if (inst_id < 0)
+            {               
+                {
+                    ResId res_id = new ResId(inst_id, EResType.Inst);
+                    if (_gobj_pool.GetInstPath(res_id, out var path) == EResError.OK)
+                    {
+                        return new ResRef(res_id, path, this);
+                    }
+                }
+
+                {
+                    if (_empty_go_pool.Get(inst_id, out var obj) == EResError.OK)
+                    {
+                        return new ResRef(new ResId(inst_id, EResType.EmptyInst), null, this);
+                    }
+                }
+                {
+                    if (_res_pool.GetPathById(inst_id, out var path) == EResError.OK)
+                    {
+                        ResId res_id = new ResId(inst_id, path.Sprite ? EResType.Sprite : EResType.Res);
+                        return new ResRef(res_id, path.Path, this);
+                    }
+                }
+            }
+            else
+            {
+                {
+                    if (_res_pool.GetPathById(inst_id, out var path) == EResError.OK)
+                    {
+                        ResId res_id = new ResId(inst_id, path.Sprite ? EResType.Sprite : EResType.Res);
+                        return new ResRef(res_id, path.Path, this);
+                    }
+                }
+                {
+                    ResId res_id = new ResId(inst_id, EResType.Inst);
+                    if (_gobj_pool.GetInstPath(res_id, out var path) == EResError.OK)
+                    {
+                        return new ResRef(res_id, path, this);
+                    }
+                }
+
+                {
+                    if (_empty_go_pool.Get(inst_id, out var obj) == EResError.OK)
+                    {
+                        return new ResRef(new ResId(inst_id, EResType.EmptyInst), null, this);
+                    }
+                }
+            }
+            return default;
+        }
+
         public EResError AddUser(ResId res_id, System.Object user)
         {
             //0.check
@@ -274,7 +331,7 @@ namespace FH.ResManagement
             EResError err = _res_pool.GetIdByPath(res_path, out var res_id);
             if (err == EResError.OK) //如果找到了，直接返回
             {
-                res_ref = new ResRef(res_id, path, sprite, this);
+                res_ref = new ResRef(res_id, path, this);
                 return EResError.OK;
             }
             if (!aync_load_enable)
@@ -292,7 +349,7 @@ namespace FH.ResManagement
             err = _res_pool.GetIdByPath(res_path, out res_id);
             //ResLog._.ErrCode(err, "找不到资源,可能不存在 {0}", path);
             if (err == EResError.OK)
-                res_ref = new ResRef(res_id, path, sprite, this);
+                res_ref = new ResRef(res_id, path, this);
             else
                 res_ref = default;
             return err;
@@ -390,7 +447,7 @@ namespace FH.ResManagement
             EResError err = _gobj_pool.PopInst(path, user, out var inst_id);
             if (err == EResError.OK)
             {
-                res_ref = new ResRef(inst_id, path, false, this);
+                res_ref = new ResRef(inst_id, path, this);
                 return err;
             }
 
@@ -417,7 +474,7 @@ namespace FH.ResManagement
             err = _gobj_pool.PopInst(path, user, out inst_id);
             if (err == EResError.OK)
             {
-                res_ref = new ResRef(inst_id, path, false, this);
+                res_ref = new ResRef(inst_id, path, this);
                 return err;
             }
             else
@@ -447,7 +504,7 @@ namespace FH.ResManagement
             EResError err = _gobj_pool.PopInst(path, user, out var inst_id);
             if (err == EResError.OK)
             {
-                res_ref = new ResRef(inst_id, path, false, this);
+                res_ref = new ResRef(inst_id, path, this);
                 return err;
             }
             else
@@ -524,7 +581,7 @@ namespace FH.ResManagement
                 return err;
             }
 
-            res_ref = new ResRef(res_id, null, false, this);
+            res_ref = new ResRef(res_id, null, this);
             return EResError.OK;
         }
         #endregion

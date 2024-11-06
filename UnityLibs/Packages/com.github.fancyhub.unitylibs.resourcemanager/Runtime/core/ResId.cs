@@ -30,7 +30,8 @@ namespace FH
 
         //internal ResId(int id, EResType resType) { Id = id; ResType = resType; }
         internal ResId(UnityEngine.Object obj, EResType resType) { Id = obj == null ? 0 : obj.GetInstanceID(); ResType = resType; }
-        
+        internal ResId(int id, EResType resType) { Id = id; ResType = resType; }
+
         public bool IsValid() { return Id != 0 && ResType != EResType.None; }
 
         public override int GetHashCode() { return System.HashCode.Combine(Id, ResType); }

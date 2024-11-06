@@ -17,6 +17,7 @@ public class UIViewTest : MonoBehaviour
         FH.UI.UIObjFinder.Show();
 
         _LayerMgr = new UIViewLayerMgr(UISharedBG.Inst);
+        _LayerMgr.AddLayer("test");
 
         _btn = FH.UI.UIBaseView.CreateView<FH.UI.UIButtonView>(UIRoot.Root2D);
         _btn.OnClick = () => UIPageScene2.Create(this, _LayerMgr);

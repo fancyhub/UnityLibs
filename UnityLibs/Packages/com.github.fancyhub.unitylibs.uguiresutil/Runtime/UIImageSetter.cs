@@ -133,8 +133,8 @@ namespace FH.UI
                     }
                     else
                     {
-                        EResError error = ResMgr.AsyncLoad(_Path, true, CPriority, _OnAsyncLoaded, out _JobId);
-                        if (error != EResError.OK)
+                        bool result= ResMgr.AsyncLoad(_Path, true, CPriority, _OnAsyncLoaded, out _JobId);
+                        if (!result)
                         {
                             _ResRef.RemoveUser(this);
                             _ResRef = default;
@@ -153,13 +153,13 @@ namespace FH.UI
                 _JobId = 0;
             }
 
-            private void _OnAsyncLoaded(EResError code, string path, EResType resType, int job_id)
+            private void _OnAsyncLoaded(bool succ, string path, EResType resType, int job_id)
             {
                 if (job_id != _JobId)
                     return;
                 _JobId = 0;
 
-                if (code != EResError.OK)
+                if (!succ)
                 {
                     _ResRef.RemoveUser(this);
                     _ResRef = default;

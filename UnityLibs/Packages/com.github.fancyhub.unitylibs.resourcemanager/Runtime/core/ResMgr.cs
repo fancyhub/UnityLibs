@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace FH
 {
-    public delegate void ResEvent(EResError code, string path, EResType resType, int job_id);
+    public delegate void ResEvent(bool succ, string path, EResType resType, int job_id);
 
     public struct ResSnapShotItem
     {
@@ -25,6 +25,12 @@ namespace FH
         Exist,
         NotExist,
         NotDownloaded,
+    }
+
+    public struct ResJobId
+    {
+        public readonly int JobId;
+        public ResJobId(int job_id) { JobId = job_id; }
     }
 
     public partial interface IResMgr : ICPtr
@@ -55,6 +61,8 @@ namespace FH
         #endregion
 
         public void CancelJob(int job_id);
+
+        public ResRef GetResRef(UnityEngine.Object res);
     }
 
     public static class ResMgr
@@ -185,19 +193,19 @@ namespace FH
             return res_ref;
         }
 
-        public static EResError AsyncLoad(string path, bool sprite, int priority, ResEvent cb, out int job_id)
+        public static bool AsyncLoad(string path, bool sprite, int priority, ResEvent cb, out int job_id)
         {
             IResMgr inst = _.Val;
             if (inst == null)
             {
                 job_id = default;
                 ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
-                return EResError.ResMgrNotInit;
+                return false;
             }
 
             var err = inst.AsyncLoad(path, sprite, priority, cb, out job_id);
             ResManagement.ResLog._.ErrCode(err, path);
-            return err;
+            return err == EResError.OK;
         }
 
         public static void ResSnapshot(ref List<ResSnapShotItem> out_snapshot)
@@ -226,18 +234,18 @@ namespace FH
             ResManagement.ResLog._.ErrCode(err, path);
             return res_ref;
         }
-        public static EResError AsyncCreate(string path, int priority, ResEvent cb, out int job_id)
+        public static bool AsyncCreate(string path, int priority, ResEvent cb, out int job_id)
         {
             IResMgr inst = _.Val;
             if (inst == null)
             {
                 job_id = default;
                 ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
-                return EResError.ResMgrNotInit;
+                return false;
             }
             var err = inst.AsyncCreate(path, priority, cb, out job_id);
             ResManagement.ResLog._.ErrCode(err, path);
-            return err;
+            return err == EResError.OK;
         }
 
         public static ResRef TryCreate(string path, System.Object user)
@@ -255,30 +263,30 @@ namespace FH
         #endregion
 
         #region 预实例化
-        public static EResError ReqPreInst(string path, int count, out int req_id)
+        public static bool ReqPreInst(string path, int count, out int req_id)
         {
             IResMgr inst = _.Val;
             if (inst == null)
             {
                 req_id = default;
                 ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
-                return EResError.ResMgrNotInit;
+                return false;
             }
             var err = inst.ReqPreInst(path, count, out req_id);
             ResManagement.ResLog._.ErrCode(err, path);
-            return err;
+            return err == EResError.OK;
         }
-        public static EResError CancelPreInst(int req_id)
+        public static bool CancelPreInst(int req_id)
         {
             IResMgr inst = _.Val;
             if (inst == null)
             {
                 ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
-                return EResError.ResMgrNotInit;
+                return false;
             }
             var err = inst.CancelPreInst(req_id);
             ResManagement.ResLog._.ErrCode(err);
-            return err;
+            return err == EResError.OK;
         }
         #endregion;
 
@@ -306,6 +314,17 @@ namespace FH
                 return;
             }
             inst.CancelJob(job_id);
+        }
+
+        public static ResRef GetResRef(UnityEngine.Object res)
+        {
+            var inst = _.Val;
+            if (inst == null)
+            {
+                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return default;
+            }
+            return inst.GetResRef(res);
         }
     }
 }

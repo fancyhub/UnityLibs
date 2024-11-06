@@ -139,12 +139,12 @@ namespace FH.ResManagement
             }
         }
 
-        private void _OnInstCB(EResError code, string path, EResType resType, int job_id)
+        private void _OnInstCB(bool succ, string path, EResType resType, int job_id)
         {
             if (!_PreCreateDict.Remove(job_id, out int priority))
                 return;
 
-            if (code != EResError.OK)
+            if (!succ)
             {
                 _Stat.Fail++;
                 _HolderCb?.OnHolderCallBack();

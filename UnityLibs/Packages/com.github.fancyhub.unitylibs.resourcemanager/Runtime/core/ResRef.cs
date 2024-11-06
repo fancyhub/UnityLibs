@@ -26,10 +26,9 @@ namespace FH
 
         public readonly ResId Id;
         public readonly string Path;
-        public readonly bool Sprite;
         private readonly CPtr<IResPool> ResPool;
 
-        internal ResRef(ResId id, string path, bool sprite, IResPool pool) { this.Id = id; this.Path = path; this.Sprite = sprite; this.ResPool = new CPtr<IResPool>(pool); }
+        internal ResRef(ResId id, string path, IResPool pool) { this.Id = id; this.Path = path; this.ResPool = new CPtr<IResPool>(pool); }
 
         public bool IsSelfValid()
         {
@@ -45,7 +44,7 @@ namespace FH
 
         public override string ToString()
         {
-            return $"ResId:({Id.Id},{Id.ResType}) ResPath:({Path},{Sprite})";
+            return $"ResId:({Id.Id},{Id.ResType}) ResPath:({Path})";
         }
 
         bool IEqualityComparer<ResRef>.Equals(ResRef x, ResRef y)
