@@ -10,6 +10,7 @@ using System.Collections.Generic;
 
 namespace FH.UI
 {
+
     /// <summary>
     /// 红点系统的数据类
     /// 虚拟节点本身不能被监听
@@ -21,15 +22,15 @@ namespace FH.UI
 
         private UIRedDotTree _Tree;
         private UIRedDotVirual _Virtual;
-        private EventSet2<Str, int> _EventSet;
-        private List<(Str path, int value)> _ChangeList;
+        private EventSet2<Str, UIRedDotValue> _EventSet;
+        private List<(Str path, UIRedDotValue value)> _ChangeList;
 
         private UIRedDotMgr()
         {
             _Tree = new UIRedDotTree();
             _Virtual = new UIRedDotVirual(_Tree);
-            _EventSet = new EventSet2<Str, int>();
-            _ChangeList = new List<(Str, int)>();
+            _EventSet = new EventSet2<Str, UIRedDotValue>();
+            _ChangeList = new List<(Str, UIRedDotValue)>();
         }
 
         public static void Init(ELogLvl log_lvl = ELogLvl.Info)
@@ -39,15 +40,6 @@ namespace FH.UI
                 _ = new UIRedDotMgr();
         }
 
-        public static ValueTree<UIRedDotNodeData> RootNode
-        {
-            get
-            {
-                if (Inst == null)
-                    return null;
-                return Inst._Tree._Root;
-            }
-        }
         public static UIRedDotTree Tree
         {
             get
@@ -63,7 +55,7 @@ namespace FH.UI
             if (Inst == null)
                 return;
 
-            Inst._Tree.Destroy();
+            Inst._Tree.Clear();
             Inst._EventSet.Clear();
         }
 
@@ -94,7 +86,7 @@ namespace FH.UI
         }
 
 
-        public static EventSet2<Str, int>.EventHandler Reg(string path, EventSet2<Str, int>.IHandler call_back)
+        public static EventSet2<Str, UIRedDotValue>.EventHandler Reg(string path, EventSet2<Str, UIRedDotValue>.IHandler call_back)
         {
             if (string.IsNullOrEmpty(path))
             {
@@ -114,18 +106,18 @@ namespace FH.UI
                 return default;
             }
 
-            return inst._EventSet.Reg(path, call_back);            
+            return inst._EventSet.Reg(path, call_back);
         }
 
-        public static int Get(string path)
+        public static UIRedDotValue Get(string path)
         {
             if (Inst == null)
-                return 0;
+                return default;
 
             if (Inst._Tree.TryGet(path, out var v))
                 return v.Value;
 
-            return 0;
+            return default;
         }
 
         public static void Set(string path, int count = 1)
@@ -139,6 +131,19 @@ namespace FH.UI
             UIRedDotLog.D("====Begin Set Path: {0} {1}", path, count);
             _._Set(path, count);
             UIRedDotLog.D("====End Set Path: {0} {1}", path, count);
+        }
+
+        public static void ResetIncrementFlag(string path)
+        {
+            if (_ == null)
+            {
+                UIRedDotLog.Assert(false, "UIRedDotMgr 实例还没有创建");
+                return;
+            }
+
+            UIRedDotLog.D("====Begin ResetIncrementFlag Path: {0}", path);
+            _._ResetIncrementFlag(path);
+            UIRedDotLog.D("====End ResetIncrementFlag Path: {0}", path);
         }
 
         public static void Del(string path)
@@ -184,25 +189,39 @@ namespace FH.UI
             _ChangeList.Clear();
         }
 
+        private void _ResetIncrementFlag(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return;
+
+            if (!_Tree.TryGet(path, out var temp_v))
+                return;
+
+            if (!temp_v.Value.IncrementFlag)
+                return;
+            temp_v.Value.IncrementFlag = false;
+            UIRedDotLog.D("\tPath Event Reset IncrementFlag: {0}", path);
+            _EventSet.FireAsync(path, temp_v.Value);
+        }
+
         private void _Set(string path, int count = 1)
         {
             if (string.IsNullOrEmpty(path))
                 return;
 
-            if (!_Tree.Set(path, count, EUIRedDotNodeType.ManualNode))
+            if (!_Tree.Set(path, count, UIRedDotTree.ENodeType.ManualNode))
                 return;
 
             _ChangeList.Clear();
+            bool has_node = _Tree.TryGet(path, out var temp_v);
             //如果是手动类型的节点, 并且值为0,就删除
-            if (count == 0 &&
-                _Tree.TryGet(path, out var temp_v) &&
-                temp_v.NodeType == EUIRedDotNodeType.ManualNode)
+            if (count == 0 && has_node && temp_v.NodeType == UIRedDotTree.ENodeType.ManualNode)
             {
                 _Tree.Delete(path, _ChangeList);
             }
             else
             {
-                _ChangeList.Add((path, count));
+                _ChangeList.Add((path, temp_v.Value));
             }
 
             _Tree.UpdateParent(path, _ChangeList);
@@ -215,7 +234,7 @@ namespace FH.UI
             _ChangeList.Clear();
         }
 
-        public void _Link(string real_path, string virtual_path)
+        private void _Link(string real_path, string virtual_path)
         {
             if (string.IsNullOrEmpty(real_path) || string.IsNullOrEmpty(real_path))
             {
@@ -239,7 +258,7 @@ namespace FH.UI
             _ChangeList.Clear();
         }
 
-        public void _Unlink(string real_path, string virual_path)
+        private void _Unlink(string real_path, string virual_path)
         {
             if (string.IsNullOrEmpty(real_path) || string.IsNullOrEmpty(real_path))
             {

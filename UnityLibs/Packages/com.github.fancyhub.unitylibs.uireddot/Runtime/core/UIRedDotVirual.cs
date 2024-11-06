@@ -36,7 +36,7 @@ namespace FH.UI
             return ret;
         }
 
-        public bool Link(string real_path, string virtual_path, List<(Str, int)> out_change_list)
+        public bool Link(string real_path, string virtual_path, List<(Str, UIRedDotValue)> out_change_list)
         {
             if (string.IsNullOrEmpty(real_path) || string.IsNullOrEmpty(virtual_path))
                 return false;
@@ -51,20 +51,20 @@ namespace FH.UI
 
             if (_Tree.TryGet(real_path, out var src_data))
             {
-                _Tree.Set(virtual_path, src_data.Value, EUIRedDotNodeType.VirtualNode);
+                _Tree.Set(virtual_path, src_data.Value.Count, UIRedDotTree.ENodeType.VirtualNode);
                 out_change_list.Add((virtual_path, src_data.Value));
                 _Tree.UpdateParent(virtual_path, out_change_list);
             }
             else
             {
-                _Tree.Set(virtual_path, 0, EUIRedDotNodeType.VirtualNode);
-                out_change_list.Add((virtual_path, 0));
+                _Tree.Set(virtual_path, 0, UIRedDotTree.ENodeType.VirtualNode);
+                out_change_list.Add((virtual_path, default));
                 _Tree.UpdateParent(virtual_path, out_change_list);
             }
             return true;
         }
 
-        public bool Unlink(string real_path, string virtual_path, List<(Str path, int value)> out_change_list)
+        public bool Unlink(string real_path, string virtual_path, List<(Str path, UIRedDotValue value)> out_change_list)
         {
             if (string.IsNullOrEmpty(real_path) || string.IsNullOrEmpty(virtual_path))
                 return false;
@@ -80,7 +80,7 @@ namespace FH.UI
             return true;
         }
 
-        public void Update(List<(Str path, int value)> inout_change_list)
+        public void Update(List<(Str path, UIRedDotValue value)> inout_change_list)
         {
             int count = inout_change_list.Count;
             //更新所有的虚拟节点
@@ -96,7 +96,7 @@ namespace FH.UI
 
                 foreach (Str virtual_path in virtual_path_set)
                 {
-                    if (!_Tree.Set(virtual_path, item.value))
+                    if (!_Tree.Set(virtual_path, item.value.Count))
                         continue;
 
                     //虚拟节点不要发出消息

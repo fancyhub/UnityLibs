@@ -12,27 +12,52 @@ using UnityEngine;
 
 namespace FH.UI
 {
-    public enum EUIRedDotNodeType
-    {
-        AutoNode, // 自动
-        ManualNode, //手动
-        VirtualNode//虚拟的
-    }
+   
 
-    public struct UIRedDotNodeData
+    public struct UIRedDotValue
     {
-        public Str Path;
-        public EUIRedDotNodeType NodeType;
-        internal bool Inited;
-        public int Value;
+        public int Count;
+        public bool IncrementFlag;
+
+        public UIRedDotValue(int count)
+        {
+            this.Count = count;
+            IncrementFlag = count > 0;
+        }
+
+        public override string ToString()
+        {
+            return $"{Count} : {IncrementFlag}";
+        }
     }
 
     public class UIRedDotTree
     {
-        public ValueTree<UIRedDotNodeData> _Root;
+        public enum ENodeType
+        {
+            AutoNode, // 自动
+            ManualNode, //手动
+            VirtualNode//虚拟的
+        }
+
+        public struct InnerNodeData
+        {
+            public Str Path;
+            public ENodeType NodeType;
+            internal bool Inited;
+            public UIRedDotValue Value;
+        }
+
+        public ValueTree<InnerNodeData> _Root;
         public UIRedDotTree()
         {
-            _Root = ValueTree<UIRedDotNodeData>.Create();
+            _Root = ValueTree<InnerNodeData>.Create();
+        }
+
+        public void Clear()
+        {
+            _Root.Destroy();
+            _Root = ValueTree<InnerNodeData>.Create();
         }
 
         public void Destroy()
@@ -43,29 +68,29 @@ namespace FH.UI
 
         public bool Set(Str path, int v)
         {
-            return Set(path, v, false, EUIRedDotNodeType.AutoNode);
+            return Set(path, v, false, ENodeType.AutoNode);
         }
 
-        public bool Set(Str path, int v, EUIRedDotNodeType type)
+        public bool Set(Str path, int v, ENodeType type)
         {
             return Set(path, v, true, type);
         }
 
-        public bool Set(Str path, int v, bool change_node_type, EUIRedDotNodeType type)
+        public bool Set(Str path, int v, bool change_node_type, ENodeType type)
         {
             //1. 检查
             if (path.IsEmpty())
                 return false;
 
             //2. 找到节点
-            ValueTree<UIRedDotNodeData> node = _GetOrCreate(_Root, path, true);
-            UIRedDotNodeData data = node.Data;
+            ValueTree<InnerNodeData> node = _GetOrCreate(_Root, path, true);
+            InnerNodeData data = node.Data;
 
             //3. 修改节点类型
             bool changed = false;
             if (change_node_type && data.NodeType != type)
             {
-                if (data.NodeType != EUIRedDotNodeType.AutoNode || type == EUIRedDotNodeType.AutoNode)
+                if (data.NodeType != ENodeType.AutoNode || type == ENodeType.AutoNode)
                 {
                     Log.Assert(false, "节点类型不能从 {0} -> {1}, {2}", data.NodeType, type, path);
                     return false;
@@ -77,16 +102,17 @@ namespace FH.UI
             }
 
             //4. 修改值
-            if (data.Value != v)
+            if (data.Value.Count != v)
             {
-                if (data.NodeType == EUIRedDotNodeType.AutoNode)
+                if (data.NodeType == ENodeType.AutoNode)
                 {
                     Log.Assert(false, "节点类型{0},{1} 不能修改值", data.NodeType, path);
                     return false;
                 }
 
                 UIRedDotLog.D("ChangeValue: [{0} : {1}], {2} -> {3}", data.NodeType, data.Path, data.Value, v);
-                data.Value = v;
+                data.Value.IncrementFlag = v > data.Value.Count;
+                data.Value.Count = v;
                 changed = true;
             }
 
@@ -97,13 +123,13 @@ namespace FH.UI
             return true;
         }
 
-        public bool Delete(Str path, List<(Str path, int value)> out_list)
+        public bool Delete(Str path, List<(Str path, UIRedDotValue value)> out_list)
         {
             //1. 找到对应的节点
-            ValueTree<UIRedDotNodeData> node = _GetOrCreate(_Root, path, false);
+            ValueTree<InnerNodeData> node = _GetOrCreate(_Root, path, false);
             if (node == null)
                 return false;
-            out_list.Add((path, 0));
+            out_list.Add((path, default));
 
             //2. 删除所有的子节点            
             _FindAllChildren(node, out_list);
@@ -122,10 +148,10 @@ namespace FH.UI
                     break;
 
                 //如果自己不是自动节点,删除
-                if (current.Data.NodeType != EUIRedDotNodeType.AutoNode)
+                if (current.Data.NodeType != ENodeType.AutoNode)
                     break;
 
-                out_list.Add((current.Data.Path, 0));
+                out_list.Add((current.Data.Path, default));
                 var temp_node = current;
                 current = current.Parent;
                 temp_node.Destroy();
@@ -133,7 +159,7 @@ namespace FH.UI
             return true;
         }
 
-        public void UpdateParent(Str path, List<(Str path, int value)> out_list)
+        public void UpdateParent(Str path, List<(Str path, UIRedDotValue value)> out_list)
         {
             //更新所有的父节点
             Str temp = path;
@@ -143,7 +169,7 @@ namespace FH.UI
                 if (!_GetParentPath(temp, out temp))
                     break;
 
-                ValueTree<UIRedDotNodeData> parent_node = _GetOrCreate(_Root, temp, false);
+                ValueTree<InnerNodeData> parent_node = _GetOrCreate(_Root, temp, false);
 
                 //如果为空,  比如 删除A.B.C,导致A.B 也被删除了, 还是要计算A路径的
                 if (parent_node == null)
@@ -160,9 +186,9 @@ namespace FH.UI
             }
         }
 
-        public bool TryGet(Str path, out UIRedDotNodeData v)
+        public bool TryGet(Str path, out InnerNodeData v)
         {
-            ValueTree<UIRedDotNodeData> node = _GetOrCreate(_Root, path, false);
+            ValueTree<InnerNodeData> node = _GetOrCreate(_Root, path, false);
             if (node != null)
             {
                 v = node.Data;
@@ -172,24 +198,24 @@ namespace FH.UI
             return false;
         }
 
-        private void _FindAllChildren(ValueTree<UIRedDotNodeData> node, List<(Str, int)> out_list)
+        private void _FindAllChildren(ValueTree<InnerNodeData> node, List<(Str, UIRedDotValue)> out_list)
         {
             foreach (var p in node.GetChildren())
             {
                 _FindAllChildren(p.Value, out_list);
 
-                out_list.Add((p.Value.Data.Path, 0));
+                out_list.Add((p.Value.Data.Path, default));
             }
         }
 
-        private static ValueTree<UIRedDotNodeData> _GetOrCreate(ValueTree<UIRedDotNodeData> root, Str path, bool auto_create)
+        private static ValueTree<InnerNodeData> _GetOrCreate(ValueTree<InnerNodeData> root, Str path, bool auto_create)
         {
             if (path.IsEmpty())
                 return null;
 
             int count = 0;
-            ValueTree<UIRedDotNodeData> temp_node = root;
-            foreach (Str node_name in path.Split(ValueTree<UIRedDotNodeData>.CPathSeparator))
+            ValueTree<InnerNodeData> temp_node = root;
+            foreach (Str node_name in path.Split(ValueTree<InnerNodeData>.CPathSeparator))
             {
                 temp_node = temp_node.Get(node_name, auto_create);
                 if (temp_node == null)
@@ -200,14 +226,14 @@ namespace FH.UI
                 else
                     count += node_name.Length + 1;
 
-                UIRedDotNodeData data = temp_node.Data;
+                InnerNodeData data = temp_node.Data;
                 if (!data.Inited)
                 {
                     Str node_path = path.Substr(0, count);
                     data.Inited = true;
                     data.Path = node_path;
-                    data.NodeType = EUIRedDotNodeType.AutoNode;
-                    data.Value = 0;
+                    data.NodeType = ENodeType.AutoNode;
+                    data.Value = default;
                     temp_node.Data = data;
 
                     UIRedDotLog.D("CreateNode: [{0} : {1}]", data.NodeType, data.Path);
@@ -219,7 +245,7 @@ namespace FH.UI
         private static bool _GetParentPath(Str path, out Str parent_path)
         {
             parent_path = Str.Empty;
-            int index = path.LastIndexOf(ValueTree<UIRedDotNodeData>.CPathSeparator);
+            int index = path.LastIndexOf(ValueTree<InnerNodeData>.CPathSeparator);
             if (index <= 0)
                 return false;
 
@@ -227,23 +253,24 @@ namespace FH.UI
             return true;
         }
 
-        private static bool _UpdateParentsValue(ValueTree<UIRedDotNodeData> node)
+        private static bool _UpdateParentsValue(ValueTree<InnerNodeData> node)
         {
             var data = node.Data;
-            if (data.NodeType != EUIRedDotNodeType.AutoNode)
+            if (data.NodeType != ENodeType.AutoNode)
                 return false;
 
-            int final_val = 0;
+            UIRedDotValue final_val = default;
             foreach (var p in node.GetChildren())
             {
-                final_val += p.Value.Data.Value;
+                final_val.Count += p.Value.Data.Value.Count;
             }
 
-            if (final_val == data.Value)
+            if (final_val.Count == data.Value.Count)
                 return false;
 
             UIRedDotLog.D("ChangeParentValue: [{0} : {1}], {2} -> {3}", data.NodeType, data.Path, data.Value, final_val);
-            data.Value = final_val;
+            data.Value.IncrementFlag = final_val.Count > data.Value.Count;
+            data.Value.Count = final_val.Count;
             node.Data = data;
             return true;
         }

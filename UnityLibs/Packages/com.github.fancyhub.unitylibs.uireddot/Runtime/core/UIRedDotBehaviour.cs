@@ -12,17 +12,17 @@ using UnityEngine;
 namespace FH.UI
 {
     [RequireComponent(typeof(RectTransform))]
-    public abstract class UIRedDotBehaviour : MonoBehaviour, EventSet2<Str, int>.IHandler
+    public abstract class UIRedDotBehaviour : MonoBehaviour, EventSet2<Str, UIRedDotValue>.IHandler
     {
         public string _Path = "";
         public bool _AutoBind = false;
 
-        [NonSerialized] protected string _BindPath;
-        [NonSerialized] protected EventSet2<Str, int>.EventHandler _EventHandler;
+        [NonSerialized] protected string _CurrentBindPath;
+        [NonSerialized] protected EventSet2<Str, UIRedDotValue>.EventHandler _EventHandler;
 
         public void Awake()
         {
-            _BindPath = _Path;
+            _CurrentBindPath = _Path;
         }
 
         public void OnEnable()
@@ -31,14 +31,14 @@ namespace FH.UI
                 return;
 
             UnBind();
-            _EventHandler = UIRedDotMgr.Reg(_BindPath, this);
+            _EventHandler = UIRedDotMgr.Reg(_CurrentBindPath, this);
             if (_EventHandler.Valid)
             {
-                OnEvent(_BindPath, UIRedDotMgr.Get(_BindPath));
+                OnEvent(_CurrentBindPath, UIRedDotMgr.Get(_CurrentBindPath));
             }
             else
             {
-                OnEvent(_BindPath, 0);
+                OnEvent(_CurrentBindPath, default);
             }
 
         }
@@ -55,7 +55,7 @@ namespace FH.UI
         public void BindWithParam(string param1, string param2)
         {
             UnBind();
-            _BindPath = string.Format(_Path, param1, param2);
+            _CurrentBindPath = string.Format(_Path, param1, param2);
             Bind();
         }
 
@@ -65,7 +65,7 @@ namespace FH.UI
         public void BindWithParam(string param)
         {
             UnBind();
-            _BindPath = string.Format(_Path, param);
+            _CurrentBindPath = string.Format(_Path, param);
             Bind();
         }
         /// <summary>
@@ -74,7 +74,7 @@ namespace FH.UI
         public void BindPath(string path)
         {
             UnBind();
-            _BindPath = path;
+            _CurrentBindPath = path;
             Bind();
         }
 
@@ -84,9 +84,9 @@ namespace FH.UI
         public void Bind()
         {
             UnBind();
-            _EventHandler = UIRedDotMgr.Reg(_BindPath, this);
+            _EventHandler = UIRedDotMgr.Reg(_CurrentBindPath, this);
             if (_EventHandler.Valid)                
-                OnEvent(_BindPath, 0);
+                OnEvent(_CurrentBindPath, default);
             _AutoBind = false;
         }
 
@@ -97,7 +97,7 @@ namespace FH.UI
             _EventHandler.Destroy();
             _EventHandler = default;
 
-            OnEvent(_BindPath, 0);
+            OnEvent(_CurrentBindPath, default);
         }
 
         public void OnDestroy()
@@ -106,11 +106,11 @@ namespace FH.UI
             _EventHandler = default;            
         }
 
-        void EventSet2<Str, int>.IHandler.HandleEvent(Str key, int val)
+        void EventSet2<Str, UIRedDotValue>.IHandler.HandleEvent(Str key, UIRedDotValue val)
         {
             OnEvent(key, val);
         }
 
-        protected abstract void OnEvent(Str key, int val);
+        protected abstract void OnEvent(Str key, UIRedDotValue val);
     }
 }

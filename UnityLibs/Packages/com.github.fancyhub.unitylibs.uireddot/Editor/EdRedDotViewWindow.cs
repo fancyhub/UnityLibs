@@ -12,14 +12,14 @@ using FH.UI.Ed;
 
 namespace FH.UI.RedDot.Ed
 {
-    public class EdRedDotViewWindow : EditorWindow, IEdTreeViewData<UIRedDotNodeData>
+    public class EdRedDotViewWindow : EditorWindow, IEdTreeViewData<UIRedDotTree.InnerNodeData>
     {
-        public EdTreeViewWithToolBar<UIRedDotNodeData> _tree_view;
+        public EdTreeViewWithToolBar<UIRedDotTree.InnerNodeData> _tree_view;
         public void OnEnable()
         {
-            _tree_view = new EdTreeViewWithToolBar<UIRedDotNodeData>();
+            _tree_view = new EdTreeViewWithToolBar<UIRedDotTree.InnerNodeData>();
 
-            ValueTree<UIRedDotNodeData> root = UIRedDotMgr.RootNode;
+            ValueTree<UIRedDotTree.InnerNodeData> root = UIRedDotMgr.Tree?._Root;
             _tree_view.SetData(root, this);
         }
 
@@ -36,7 +36,7 @@ namespace FH.UI.RedDot.Ed
             float btn_height = 30;
             if (GUILayout.Button("Refresh"))
             {
-                ValueTree<UIRedDotNodeData> root = UIRedDotMgr.RootNode;                
+                ValueTree<UIRedDotTree.InnerNodeData> root = UIRedDotMgr.Tree?._Root;
                 _tree_view.SetData(root, this);
             }
 
@@ -44,21 +44,21 @@ namespace FH.UI.RedDot.Ed
             _tree_view.OnGUI(rect);
         }
 
-        public Texture2D GetIcon(ValueTree<UIRedDotNodeData> node)
+        public Texture2D GetIcon(ValueTree<UIRedDotTree.InnerNodeData> node)
         {
             return AssetPreview.GetMiniTypeThumbnail(typeof(GameObject));
         }
 
-        public string GetName(ValueTree<UIRedDotNodeData> node)
+        public string GetName(ValueTree<UIRedDotTree.InnerNodeData> node)
         {
             switch (node.Data.NodeType)
             {
-                case EUIRedDotNodeType.AutoNode:
-                    return string.Format("A: {0}({1})", node.Key, node.Data.Value);
-                case EUIRedDotNodeType.ManualNode:
-                    return string.Format("M: {0}({1})", node.Key, node.Data.Value);
-                case EUIRedDotNodeType.VirtualNode:
-                    return string.Format("V: {0}({1})", node.Key, node.Data.Value);
+                case UIRedDotTree.ENodeType.AutoNode:
+                    return string.Format("{0} (A: {1}) ({2})", node.Key, node.Data.Value, node.Data.Path);
+                case UIRedDotTree.ENodeType.ManualNode:
+                    return string.Format("{0} (M: {1}) ({2})", node.Key, node.Data.Value, node.Data.Path);
+                case UIRedDotTree.ENodeType.VirtualNode:
+                    return string.Format("{0} (V: {1}) ({2})", node.Key, node.Data.Value,node.Data.Path);
                 default:
                     return "";
             }

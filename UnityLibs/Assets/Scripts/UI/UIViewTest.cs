@@ -121,6 +121,10 @@ public class UIPageScene2 : UIPage
         _view._btn_1.OnClick = _OnTestSceneClick;
         _view._btn_2.OnClick = _OnCloseFirstSceneClick;
         _view._btn_4.OnClick = _OnCloseLastSceneClick;
+        _view._btn_3._Button2.onClick.AddListener(() =>
+        {
+            FH.UI.UIRedDotMgr.ResetIncrementFlag("root.test.scene");
+        });
 
         _LayerMgr.AddView(_view, 0, this, EUIBgClickMode.Common);
     }

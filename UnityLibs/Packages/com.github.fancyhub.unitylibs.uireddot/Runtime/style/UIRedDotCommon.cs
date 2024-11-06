@@ -13,17 +13,37 @@ namespace FH.UI
 {
     public class UIRedDotCommon : UIRedDotBehaviour
     {
+        public enum EWatchType
+        {
+            Count,
+            IncrementFlag,
+        }
+        public EWatchType _watch_type = EWatchType.Count;
         public GameObject _obj;
         public UnityEngine.UI.Text _text;
 
-        protected override void OnEvent(Str key, int val)
-        {
-            if (_obj != null )            
-                _obj.SetActive(val > 0);           
-                
+        protected override void OnEvent(Str key, UIRedDotValue val)
+        {            
+            if (_obj != null)
+            {
+                switch (_watch_type)
+                {
+                    case EWatchType.Count:
+                        _obj.ExtSetGameObjectActive(val.Count > 0);
+                        break;
+
+                    case EWatchType.IncrementFlag:
+                        _obj.ExtSetGameObjectActive(val.IncrementFlag);
+                        break;
+
+                    default:
+                        _obj.ExtSetGameObjectActive(false);
+                        break;
+                }
+            }
 
             if (_text != null)
-                _text.text = val.ToString();
+                _text.text = val.Count.ToString();
         }
     }
 }
