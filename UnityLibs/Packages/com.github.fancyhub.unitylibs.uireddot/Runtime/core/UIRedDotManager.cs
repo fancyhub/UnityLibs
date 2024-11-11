@@ -86,7 +86,7 @@ namespace FH.UI
         }
 
 
-        public static EventSet2<Str, UIRedDotValue>.EventHandler Reg(string path, EventSet2<Str, UIRedDotValue>.IHandler call_back)
+        public static EventSet2<Str, UIRedDotValue>.Handle Reg(string path, EventSet2<Str, UIRedDotValue>.IHandler call_back)
         {
             if (string.IsNullOrEmpty(path))
             {

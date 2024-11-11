@@ -45,7 +45,7 @@ namespace FH.EventSet2Sample
 
     public class Event1Mgr2 : EventSet1<Type>
     {
-        public EventHandler Reg<TValue>(Action<TValue> action)
+        public Handle Reg<TValue>(Action<TValue> action)
         {
             return Reg<TValue>(typeof(TValue), action);
         }
@@ -63,7 +63,7 @@ namespace FH.EventSet2Sample
             {
                 Log.I("Begin set1 Test==================");
                 Event1Mgr1 set1 = new Event1Mgr1();
-                Event1Mgr1.EventHandlerList handlerList = null;
+                Event1Mgr1.HandleList handlerList = null;
 
                 handlerList += set1.Reg<string>(1, _set1_action1);
                 Log.Assert(!set1.Reg<string>(1, _set1_action1).Valid, "未通过: 重复添加的测试");
@@ -79,7 +79,7 @@ namespace FH.EventSet2Sample
             {
                 Log.I("Begin set2 Test==================");
                 Event1Mgr2 set2 = new Event1Mgr2();
-                Event1Mgr2.EventHandlerList handlerList = null;
+                Event1Mgr2.HandleList handlerList = null;
 
                 handlerList += set2.Reg<Event2Msg1>(_set2_action1);
                 handlerList += set2.Reg<Event2Msg1>(_set2_action1);
@@ -100,7 +100,7 @@ namespace FH.EventSet2Sample
             {
                 Log.I("Begin set3 Test==================");
                 Event2Mgr1 set3 = new Event2Mgr1();
-                Event2Mgr1.EventHandlerList handlerList1 = null;
+                Event2Mgr1.HandleList handlerList1 = null;
                 handlerList1 += set3.Reg(1, _set3_action1);
                 Log.Assert(!set3.Reg(1, _set3_action1).Valid, "未通过: 重复添加的测试");
                 handlerList1 += set3.Reg(1, _set3_action2);

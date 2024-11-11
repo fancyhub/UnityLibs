@@ -53,7 +53,6 @@ namespace FH
             _AppendFormat(ref sb, format, args);
 
             bool with_trace = (trace_mask & lvl_mask) != ELogMask.None;
-
             string log_msg = null;
             if ((unity_mask & lvl_mask) != ELogMask.None)
             {
@@ -213,6 +212,7 @@ namespace FH
             return (ELogMask)(1U << (int)lvl);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void _AppendFormat(ref ValueStringBuilder sb, string format, object[] args)
         {
             if (format == null)
@@ -225,6 +225,7 @@ namespace FH
                 sb.Append(format);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void _AppendTime(ref ValueStringBuilder sb)
         {
             sb.Append(ZString.Format(C_Timer_Formater, System.DateTime.Now, LogTimeUpdater.FrameCount));

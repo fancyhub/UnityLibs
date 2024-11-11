@@ -285,6 +285,10 @@ PrefabInstance:
       propertyPath: _AutoBind
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 264484100873295935, guid: ac2baeed247956f4da31dbe09275feae, type: 3}
+      propertyPath: _watch_type
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3637897936700125877, guid: ac2baeed247956f4da31dbe09275feae, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -401,7 +405,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 264484100873295935, guid: ac2baeed247956f4da31dbe09275feae, type: 3}
       propertyPath: _watch_type
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3637897936700125877, guid: ac2baeed247956f4da31dbe09275feae, type: 3}
       propertyPath: m_Pivot.x

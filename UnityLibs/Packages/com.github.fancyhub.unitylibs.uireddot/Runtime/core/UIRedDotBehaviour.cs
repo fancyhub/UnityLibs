@@ -18,7 +18,7 @@ namespace FH.UI
         public bool _AutoBind = false;
 
         [NonSerialized] protected string _CurrentBindPath;
-        [NonSerialized] protected EventSet2<Str, UIRedDotValue>.EventHandler _EventHandler;
+        [NonSerialized] protected EventSet2<Str, UIRedDotValue>.Handle _EventHandler;
 
         public void Awake()
         {

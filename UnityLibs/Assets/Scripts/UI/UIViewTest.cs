@@ -26,6 +26,7 @@ public class UIViewTest : MonoBehaviour
         TaskQueue.Init(10);
         FH.UI.UIRedDotMgr.Init();
         FH.UI.UIRedDotMgr.Link("root.test.scene", "vroot.test.scene.vscene");
+
         FH.NoticeSample.NoticeApi.Init();
     }
 
@@ -123,7 +124,7 @@ public class UIPageScene2 : UIPage
         _view._btn_4.OnClick = _OnCloseLastSceneClick;
         _view._btn_3._Button2.onClick.AddListener(() =>
         {
-            FH.UI.UIRedDotMgr.ResetIncrementFlag("root.test.scene");
+            FH.UI.UIRedDotMgr.ResetIncrementFlag("vroot.test.scene");
         });
 
         _LayerMgr.AddView(_view, 0, this, EUIBgClickMode.Common);

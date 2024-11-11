@@ -10,13 +10,13 @@ using System.Collections.Generic;
 
 namespace FH
 {
-    internal struct EventSet1EventNode
+    internal struct EventSet1NodeData
     {
+        private static int _id_gen = 0;
         public Delegate Action;
         public int Id;
-        public static int _id_gen = 0;
 
-        public EventSet1EventNode(Delegate action)
+        public EventSet1NodeData(Delegate action)
         {
             this.Action = action;
             _id_gen++;
@@ -30,11 +30,11 @@ namespace FH
     /// </summary>
     public class EventSet1<TKey> : ICPtr
     {
-        public struct EventHandler
+        public struct Handle
         {
             internal readonly CPtr<EventSet1<TKey>> Set;
             internal readonly int Id;
-            internal EventHandler(EventSet1<TKey> set, int id)
+            internal Handle(EventSet1<TKey> set, int id)
             {
                 this.Set = new CPtr<EventSet1<TKey>>(set);
                 this.Id = id;
@@ -52,12 +52,13 @@ namespace FH
                     return;
 
                 set._id_map.Remove(this.Id);
-                node.ExtRemoveFromList();
+                node.Value = default;
             }
         }
-        public sealed class EventHandlerList : CPoolItemBase
+
+        public sealed class HandleList : CPoolItemBase
         {
-            private LinkedList<EventHandler> _list = new LinkedList<EventHandler>();
+            private LinkedList<Handle> _list = new LinkedList<Handle>();
             protected override void OnPoolRelease()
             {
                 foreach (var p in _list)
@@ -65,23 +66,25 @@ namespace FH
                 _list.ExtClear();
             }
 
-            public static EventHandlerList operator +(EventHandlerList list, EventHandler handler)
+            public static HandleList operator +(HandleList list, Handle handle)
             {
-                if (!handler.Valid)
+                if (!handle.Valid)
                     return list;
 
                 if (list == null)
-                    list = GPool.New<EventHandlerList>();
-                list._list.ExtAddLast(handler);
+                    list = GPool.New<HandleList>();
+                list._list.ExtAddLast(handle);
                 return list;
             }
         }
 
-        internal sealed class ActionList : CPoolItemBase
+        private sealed class ActionList : CPoolItemBase
         {
             private TKey _key;
             private Type _value_type;
-            private LinkedList<EventSet1EventNode> _list = new LinkedList<EventSet1EventNode>();
+            private LinkedList<EventSet1NodeData> _list = new LinkedList<EventSet1NodeData>();
+            private int _stack_count = 0;
+            private bool _has_invalid_nodes = false;
 
             internal static ActionList Create(TKey key, Type value_type)
             {
@@ -99,6 +102,14 @@ namespace FH
                     return false;
                 }
 
+                if (_stack_count > 3)
+                {
+                    Log.Assert(false, "action in stack more than {0} times", _stack_count + 1);
+                    return false;
+                }
+                _stack_count++;
+                bool retval = true;
+
                 try
                 {
                     var node = _list.First;
@@ -109,28 +120,34 @@ namespace FH
                         if (node.List != _list) //Next Node is Removed when call current action
                             break;
 
-                        var cur = node.Value;
+                        EventSet1NodeData cur_node_data = node.Value;
                         node = node.Next;
-                        if (cur.Action == null)
+                        if (cur_node_data.Action == null)
+                        {
+                            _has_invalid_nodes = true;
                             continue;
+                        }
 
-                        if (cur.Action is Action<TValue> a_value)
-                            a_value(v);
-                        else if (cur.Action is Action<TKey, TValue> a_pair)
-                            a_pair(_key, v);
+                        if (cur_node_data.Action is Action<TValue> action0)
+                            action0(v);
+                        else if (cur_node_data.Action is Action<TKey, TValue> action1)
+                            action1(_key, v);
                         else
-                            Log.Assert(false, "Action Convert Fail, ActionType: {0}, ParamType: {1}", cur.GetType(), typeof(TValue));
+                            Log.Assert(false, "Action Convert Fail, ActionType: {0}, ParamType: {1}", cur_node_data.GetType(), typeof(TValue));
                     }
                 }
                 catch (System.Exception e)
                 {
                     Log.E(e);
-                    return false;
+                    retval = false;
                 }
-                return true;
+                _stack_count--;
+
+                _RemoveInvalidNodes();
+                return retval;
             }
 
-            public LinkedListNode<EventSet1EventNode> Add(Type value_type, Delegate action)
+            public LinkedListNode<EventSet1NodeData> Add(Type value_type, Delegate action)
             {
                 if (action == null)
                 {
@@ -151,7 +168,9 @@ namespace FH
                     return null;
                 }
 
-                return _list.ExtAddLast(new EventSet1EventNode(action));
+                _RemoveInvalidNodes();
+
+                return _list.ExtAddLast(new EventSet1NodeData(action));
             }
 
             public bool IsEmpty() { return _list.Count == 0; }
@@ -162,24 +181,46 @@ namespace FH
             }
 
 
-            private LinkedListNode<EventSet1EventNode> _Find(Delegate action)
+            private LinkedListNode<EventSet1NodeData> _Find(Delegate action)
             {
                 var node = _list.First;
                 for (; ; )
                 {
                     if (node == null)
                         return null;
-                    if (node.Value.Action == action)
+                    if (node.Value.Action == null)
+                    {
+                        _has_invalid_nodes = true;
+                        continue;
+                    }
+                    else if (node.Value.Action == action)
                         return node;
-
                     node = node.Next;
                 }
             }
 
+            private void _RemoveInvalidNodes()
+            {
+                if (_stack_count > 0 || !_has_invalid_nodes)
+                    return;
+                _has_invalid_nodes = false;
+                var node = _list.First;
+                for (; ; )
+                {
+                    if (node == null)
+                        break;
+
+                    var t = node;
+                    node = node.Next;
+
+                    if (t.Value.Action == null)
+                        t.ExtRemoveFromList();
+                }
+            }
         }
 
         private Dictionary<TKey, ActionList> _key_map;
-        private Dictionary<int, LinkedListNode<EventSet1EventNode>> _id_map;
+        private Dictionary<int, LinkedListNode<EventSet1NodeData>> _id_map;
 
         private int __ptr_ver = 0;
         int ICPtr.PtrVer { get => __ptr_ver; }
@@ -189,7 +230,7 @@ namespace FH
             if (equality_comparer == null)
                 equality_comparer = EqualityComparer<TKey>.Default;
             _key_map = new Dictionary<TKey, ActionList>(equality_comparer);
-            _id_map = new Dictionary<int, LinkedListNode<EventSet1EventNode>>();
+            _id_map = new Dictionary<int, LinkedListNode<EventSet1NodeData>>();
         }
 
         public EventSet1(int cap, IEqualityComparer<TKey> equality_comparer = null)
@@ -197,14 +238,13 @@ namespace FH
             if (equality_comparer == null)
                 equality_comparer = EqualityComparer<TKey>.Default;
             _key_map = new Dictionary<TKey, ActionList>(cap, equality_comparer);
-            _id_map = new Dictionary<int, LinkedListNode<EventSet1EventNode>>(cap);
+            _id_map = new Dictionary<int, LinkedListNode<EventSet1NodeData>>(cap);
         }
 
-        public EventHandler Reg<TValue>(TKey key, Action<TValue> action) { return _RegDelegate(key, typeof(TValue), action); }
-        public EventHandler Reg<TValue>(TKey key, Action<TKey, TValue> action) { return _RegDelegate(key, typeof(TValue), action); }
+        public Handle Reg<TValue>(TKey key, Action<TValue> action) { return _RegDelegate(key, typeof(TValue), action); }
+        public Handle Reg<TValue>(TKey key, Action<TKey, TValue> action) { return _RegDelegate(key, typeof(TValue), action); }
 
-
-        private EventHandler _RegDelegate(TKey key, Type value_type, Delegate action)
+        private Handle _RegDelegate(TKey key, Type value_type, Delegate action)
         {
             if (action == null)
             {
@@ -221,7 +261,7 @@ namespace FH
             if (node == null)
                 return default;
             _id_map[node.Value.Id] = node;
-            return new EventHandler(this, node.Value.Id);
+            return new Handle(this, node.Value.Id);
         }
 
         //立即发消息
@@ -247,7 +287,7 @@ namespace FH
     public sealed class EventSet1Auto<TKey> : CPoolItemBase
     {
         private CPtr<EventSet1<TKey>> _set;
-        private EventSet1<TKey>.EventHandlerList _list;
+        private EventSet1<TKey>.HandleList _list;
 
         public static EventSet1Auto<TKey> Create(EventSet1<TKey> set)
         {

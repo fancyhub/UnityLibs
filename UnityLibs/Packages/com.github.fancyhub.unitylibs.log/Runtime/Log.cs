@@ -108,6 +108,7 @@ namespace FH
             LogRecorderMgr.Init(recorder_list.ToArray());
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ELogMask Lvl2Mask(ELogLvl lvl)
         {
             uint m = 1U << (int)lvl;
@@ -115,6 +116,7 @@ namespace FH
             return mask;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool _IsEnable(ELogLvl lvl)
         {
             ELogMask lvl_mask = (ELogMask)(1u << (int)lvl);
@@ -535,6 +537,7 @@ namespace FH
             return new TagLog(tag_name, Log.Lvl2Mask(log_lvl));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool _IsEnable(ELogLvl lvl)
         {
             ELogMask lvl_mask = (ELogMask)(1u << (int)lvl);
