@@ -1,0 +1,13 @@
+{
+  "name": "com.github.fancyhub.omi",
+  "version": "1.0.0",
+  "displayName": "[fancyhub] Oh My Insespector Of Unity",
+  "description": "Oh My Insespector Of Unity",
+  "unity": "2022.3",
+  "keywords": [],
+  "author": {
+    "name": "fancyhub",
+    "email": "fancy113@msn.com",
+    "url": "https://github.com/fancyhub/UnityLibs"
+  }
+}
