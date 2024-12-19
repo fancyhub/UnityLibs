@@ -354,6 +354,7 @@ namespace FH.ResManagement
                 res_ref = default;
             return err;
         }
+ 
 
         public EResError AsyncLoad(string path, bool sprite, int priority, ResEvent cb, out int job_id)
         {

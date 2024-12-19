@@ -21,9 +21,8 @@ namespace FH
 
     public readonly struct ResId : IEquatable<ResId>, IEqualityComparer<ResId>
     {
-        public static IEqualityComparer<ResId> EqualityComparer = new ResId();
-
-        public static ResId Null = new ResId();
+        public readonly static IEqualityComparer<ResId> EqualityComparer = new ResId();
+        public readonly static ResId Null = new ResId();
 
         public readonly int Id;
         public readonly EResType ResType;

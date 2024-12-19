@@ -22,7 +22,7 @@ namespace FH
 
     public readonly struct ResRef : IEqualityComparer<ResRef>, IEquatable<ResRef>
     {
-        public static IEqualityComparer<ResRef> EqualityComparer = new ResRef();
+        public readonly static IEqualityComparer<ResRef> EqualityComparer = new ResRef();
 
         public readonly ResId Id;
         public readonly string Path;

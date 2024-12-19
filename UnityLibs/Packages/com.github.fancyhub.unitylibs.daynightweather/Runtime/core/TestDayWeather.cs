@@ -106,10 +106,10 @@ namespace FH.DayNightWeather
 
         public static long _hour_2_time(float hour)
         {
-            DateTime svr_time_now = DateUtil.NowSvr;
+            var  svr_time_now = DateUtil.NowSvr;
             int min = RenderTimeUtil.CalcTimeFromHour(hour);
             TimeSpan dt = svr_time_now.TimeOfDay;
-            DateTime new_time = svr_time_now - dt + new TimeSpan(0, min, 0);
+            var new_time = svr_time_now - dt + new TimeSpan(0, min, 0);
             return new_time.ToUnixMilli();
         }
     }

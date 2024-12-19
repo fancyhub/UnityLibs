@@ -66,7 +66,9 @@ public class UIViewTest : MonoBehaviour
     [FH.Omi.Button]
     public void Testevent()
     {
+#if UNITY_EDITOR
         FH.EventSet2Sample.TestEventSet.Test();
+#endif
     }
 }
 

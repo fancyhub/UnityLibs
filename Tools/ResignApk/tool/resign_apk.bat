@@ -34,7 +34,8 @@ set APK_SIGNER_SIGN=%APK_SIGNER% sign
 set APK_SIGNER_SIGN=%APK_SIGNER_SIGN% --ks %KEYSTORE_FILE%  --ks-pass pass:%KEYSTORE_STOREPASS% 
 set APK_SIGNER_SIGN=%APK_SIGNER_SIGN% --ks-key-alias %KEYSTORE_ALIAS% --key-pass pass:%KEYSTORE_KEYPASS%
 set APK_SIGNER_SIGN=%APK_SIGNER_SIGN% -verbose 
-set APK_SIGNER_SIGN=%APK_SIGNER_SIGN% --v1-signing-enabled true --v2-signing-enabled false
+set APK_SIGNER_SIGN=%APK_SIGNER_SIGN% --min-sdk-version 22
+set APK_SIGNER_SIGN=%APK_SIGNER_SIGN% --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true
 
 echo %INPUT_APK%
 

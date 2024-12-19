@@ -13,7 +13,7 @@ namespace FH.DayNightWeather
     {
         //public const float C_SCALE = RenderTimeUtil.C_TIME_OF_DAY_MAX / 1.0f; //1分钟一天
         public const float C_SCALE = 0;
-        public static DateTime CStartTime = new DateTime(2021, 1, 1, 12, 0, 0, DateTimeKind.Local);
+        public static DateTimeOffset CStartTime = new DateTimeOffset(2021, 1, 1, 12, 0, 0, DateTimeOffset.Now.Offset);
 
         public IClock _clock;
         public EWeather _weather1 = EWeather.sunny;
@@ -36,8 +36,7 @@ namespace FH.DayNightWeather
         public int GetTimeOfDay()
         {
             long now = GetClock().Time;
-            DateTime t = DateUtil.ToLocal(now);
-            int ret = (int)t.TimeOfDay.TotalMinutes;
+            int ret = (int)DateUtil.ToDateTimeLocal(now).TimeOfDay.TotalMinutes;
             return RenderTimeUtil.Clamp(ret);
         }
 
