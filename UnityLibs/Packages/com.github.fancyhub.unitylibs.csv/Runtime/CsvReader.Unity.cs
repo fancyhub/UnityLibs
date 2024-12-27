@@ -10,10 +10,10 @@ using UnityEngine;
 
 namespace FH
 {
-    public partial class CsvReader
+    public sealed partial class CsvReader
     {
         public CsvReader(TextAsset ta)
-        {            
+        {
             if (ta == null)
             {
                 byte[] buff = null;

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace FH
 {
-    public partial class CsvReader
+    public sealed partial class CsvReader
     {
         private CsvTokenizer _Tokenizer;
 

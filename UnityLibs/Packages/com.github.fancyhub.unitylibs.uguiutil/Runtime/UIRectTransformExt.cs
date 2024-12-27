@@ -14,6 +14,7 @@ namespace FH.UI
 	public static class RectTransformExt
 	{
 		private static Vector3[] _SRectWorldCorners = new Vector3[4];
+
         /// <summary>
         /// 获取屏幕对应的坐标, Normalized, 屏幕左下角(0,0),右上角(1,1)
         /// 同时返回对应的 屏幕大小
@@ -63,5 +64,18 @@ namespace FH.UI
             screenRectNormalize = new Rect(x, y, width, height);
             return true;
         }
-	}	 
+
+        /// <summary>
+        /// 获取屏幕对应的坐标, Normalized, 屏幕左上角(0,0),右下角(1,1)
+        /// 同时返回对应的 屏幕大小
+        /// </summary>
+        public static bool ExtToScreenNormalize2(this UnityEngine.RectTransform self, out Rect screenRectNormalize, out Vector2 screenSize)
+        {
+            if (!self.ExtToScreenNormalize(out screenRectNormalize, out screenSize))
+                return false;
+
+            screenRectNormalize.y = 1.0f - (screenRectNormalize.y + screenRectNormalize.height);
+            return true;
+        }
+    }	 
 }

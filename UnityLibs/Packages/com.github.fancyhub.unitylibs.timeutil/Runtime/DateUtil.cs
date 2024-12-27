@@ -11,8 +11,6 @@ namespace FH
 {
     public static class DateUtil
     {
-
-
         #region Svr time zone
         private static TimeSpan _svr_time_zone = DateTimeOffset.Now.Offset;
 
@@ -26,7 +24,6 @@ namespace FH
         public static DateTimeOffset NowLocal { get { return ToDateTimeLocal(TimeUtil.UnixMilli); } }
 
         public static DateTimeOffset NowSvr { get { return ToDateTimeSvr(TimeUtil.SvrUnixMilli); } }
-
 
         #region Convert
         /// <summary>

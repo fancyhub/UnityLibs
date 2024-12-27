@@ -25,7 +25,7 @@ namespace FH
         /// <summary>
         /// 获取系统启动时间
         /// </summary>
-        internal static class SystemStartTimer
+        internal static class SystemStartTimer32
         {
             private const int CThresholdMS = 1000 * 60 * 60 * 24 * 2;//小于2天
 
@@ -69,20 +69,20 @@ namespace FH
                 }
             }
         }
-
+         
         /// <summary>
         /// 获取系统开启到现在的时间，毫秒,用户不可修改, 线程安全的
         /// </summary>
-        public static long SystemStartTime => SystemStartTimer.Now;
+        public static long SystemStartTime => SystemStartTimer32.Now;
         #endregion
 
         #region Local time
-        private static readonly long _local_dt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - SystemStartTimer.Now;
+        private static readonly long _local_dt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - SystemStartTimer32.Now;
         /// <summary>
         /// 本地时间戳,毫秒
         /// </summary>
         //public static long UnixMilli { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); } }
-        public static long UnixMilli { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return SystemStartTimer.Now + _local_dt; } }
+        public static long UnixMilli { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return SystemStartTimer32.Now + _local_dt; } }
 
 
         /// <summary>
@@ -100,9 +100,9 @@ namespace FH
         public static int SvrUnix
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return (int)((UnixMilli + _svr_dt) / C_SEC_2_MILLI); }
+            get { return (int)(SvrUnixMilli / C_SEC_2_MILLI); }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set { _svr_dt = value * C_SEC_2_MILLI - UnixMilli; }
+            set { SvrUnixMilli = value * C_SEC_2_MILLI ; }
         }
 
         /// <summary>
@@ -117,7 +117,6 @@ namespace FH
         }
         #endregion
         
-
         #region Local & Server Time Converter
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long Loc2SvrMilli(long local_time_milli)

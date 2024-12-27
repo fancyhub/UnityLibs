@@ -18,6 +18,54 @@ namespace FH
 
     public struct CoolDownTimer
     {
+        #region Creater
+        public static CoolDownTimer CreateWithMillSec(long durationMs, ECoolDownTimer type = ECoolDownTimer.Local)
+        {
+            CoolDownTimer ret = new CoolDownTimer();
+            ret._Type = type;
+            ret._Duration = Math.Max(durationMs, 0);
+            ret._EndTime = 0;
+            return ret;
+        }
+
+        public static CoolDownTimer CreateWithSec(float durationSec, ECoolDownTimer type = ECoolDownTimer.Local)
+        {
+            CoolDownTimer ret = new CoolDownTimer();
+            ret._Type = type;
+            ret._Duration = Math.Max((long)(durationSec * 1000), 0);
+            ret._EndTime = 0;
+            return ret;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="timeStamp">毫秒者秒</param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static CoolDownTimer CreateWithTimeStamp(long timeStamp, ECoolDownTimer type = ECoolDownTimer.Local)
+        {
+            switch (type)
+            {
+                default:
+                case ECoolDownTimer.Local:
+                case ECoolDownTimer.Server:
+                    if (timeStamp < uint.MaxValue) //秒
+                        timeStamp = timeStamp * 1000L;
+                    break;
+                case ECoolDownTimer.UnityTime:
+                    //DoNothing
+                    break;
+            }
+            
+            CoolDownTimer ret = new CoolDownTimer();
+            ret._Type = type;
+            ret._EndTime = timeStamp;
+            ret._Duration = Math.Max(timeStamp - _GetNowTime(type), 0L);
+            return ret;
+        }
+        #endregion
+
         private ECoolDownTimer _Type;
         private long _EndTime;
         private long _Duration;
@@ -65,7 +113,12 @@ namespace FH
 
         private long _GetNowTime()
         {
-            switch (_Type)
+            return _GetNowTime(_Type);
+        }
+
+        private static long _GetNowTime(ECoolDownTimer type)
+        {
+            switch (type)
             {
                 case ECoolDownTimer.Local:
                     return TimeUtil.UnixMilli;
@@ -73,7 +126,6 @@ namespace FH
                     return TimeUtil.SvrUnixMilli;
                 case ECoolDownTimer.UnityTime:
                     return (long)(UnityEngine.Time.timeAsDouble * 1000);
-
                 default:
                     return TimeUtil.UnixMilli;
             }
