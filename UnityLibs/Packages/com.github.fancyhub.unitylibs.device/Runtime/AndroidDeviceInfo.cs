@@ -5,12 +5,14 @@
  * Desc    : 
 *************************************************************************************/
 
+using System.Text;
 using UnityEngine;
 
 namespace FH
 {
     public static class AndroidDeviceInfo
     {
+        #region Base
         private const bool ReturnExcpetion = false;
         private static void _PrintException(System.Exception e)
         {
@@ -22,6 +24,36 @@ namespace FH
             try
             {
                 return self.Call<T>(name);
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+                return default(T);
+            }
+        }
+
+        private static T _ExtCall<T, TArg0>(this AndroidJavaObject self, string name, TArg0 arg0)
+        {
+            try
+            {
+                return self.Call<T>(name, arg0);
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+                return default(T);
+            }
+        }
+
+        private static T _ExtCall<T, TArg0, TArg1>(this AndroidJavaObject self, string name, TArg0 arg0, TArg1 arg1)
+        {
+            try
+            {
+                return self.Call<T>(name, arg0, arg1);
             }
             catch (System.Exception ex)
             {
@@ -84,7 +116,7 @@ namespace FH
                 _UnityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
             return _UnityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
         }
-
+        #endregion
 
         //https://developer.android.google.cn/reference/android/telephony/TelephonyManager
         #region TelephonyManager
@@ -183,6 +215,126 @@ namespace FH
         public static long MemoryInfo_AvailMem => _GetMemoryInfo()._ExtGet<long>("availMem");
         #endregion
 
+
+        //https://developer.android.google.cn/reference/android/content/pm/PackageManager
+        //https://developer.android.google.cn/reference/android/content/pm/PackageManager.PackageInfoFlags
+        //https://developer.android.google.cn/reference/android/content/pm/PackageInfo
+        #region PackageManager
+        private static AndroidJavaObject _PackageManager;
+        private static AndroidJavaObject _GetPackageManager()
+        {
+            try
+            {
+                if (_PackageManager == null)
+                {
+                    AndroidJavaObject currentActivity = _GetCurrentActivity();
+                    _PackageManager = currentActivity.Call<AndroidJavaObject>("getPackageManager");
+                }
+                return _PackageManager;
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+                return default;
+            }
+        }
+
+        private static AndroidJavaObject _GetSelfPackageInfo(int flags)
+        {
+            return _GetPackageManager()._ExtCall<AndroidJavaObject, string, int>("getPackageInfo", UnityEngine.Application.identifier, flags);
+        }
+
+        public sealed class ApkSignature
+        {
+            public readonly byte[] Data;
+            public ApkSignature(byte[] data)
+            {
+                Data = data;
+            }
+
+            public string ToMd5()
+            {
+                System.Security.Cryptography.MD5 md5 = new System.Security.Cryptography.MD5CryptoServiceProvider();
+                byte[] result = md5.ComputeHash(Data);
+
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < result.Length; i++)
+                {
+                    sb.AppendFormat("{0:X2}", result[i]);
+                }
+                return sb.ToString();
+            }
+
+            public string ToSha1()
+            {
+                System.Security.Cryptography.SHA1 sha1 = new System.Security.Cryptography.SHA1CryptoServiceProvider();
+                byte[] result = sha1.ComputeHash(Data);
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < result.Length; i++)
+                {
+                    sb.AppendFormat("{0:X2}", result[i]);
+                }
+                return sb.ToString();
+            }
+
+            public string ToSha256()
+            {                
+                System.Security.Cryptography.SHA256 sha256 = new System.Security.Cryptography.SHA256CryptoServiceProvider();
+                byte[] result = sha256.ComputeHash(Data);
+
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < result.Length; i++)
+                {
+                    sb.AppendFormat("{0:X2}", result[i]);
+                }
+                return sb.ToString();
+            }
+        }
+
+        public static ApkSignature GetSelfPackageInfoSignature()
+        {
+            AndroidJavaObject[] signatures = _GetSelfPackageInfo(64)._ExtGet<AndroidJavaObject[]>("signatures");
+            if (signatures == null || signatures.Length == 0)
+                return null;
+            byte[] bytes = signatures[0].Call<byte[]>("toByteArray");
+            return new ApkSignature(bytes);
+        }
+
+        public static string ApkSignatureMd5
+        {
+            get
+            {
+                var signature = GetSelfPackageInfoSignature();
+                if(signature == null)
+                    return null;
+                return signature.ToMd5();
+            }
+        }
+
+        public static string ApkSignatureSh1
+        {
+            get
+            {
+                var signature = GetSelfPackageInfoSignature();
+                if (signature == null)
+                    return null;
+                return signature.ToSha1();
+            }
+        }
+
+        public static string ApkSignatureSh256
+        {
+            get
+            {
+                var signature = GetSelfPackageInfoSignature();
+                if (signature == null)
+                    return null;
+                return signature.ToSha256();
+            }
+        }
+        #endregion
 
         //https://developer.android.google.cn/reference/android/os/StatFs
         //https://developer.android.google.cn/reference/android/os/Environment

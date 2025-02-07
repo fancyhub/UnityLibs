@@ -171,8 +171,8 @@ PlayerSettings:
     tvOS: 0
   overrideDefaultApplicationIdentifier: 0
   AndroidBundleVersionCode: 2
-  AndroidMinSdkVersion: 33
-  AndroidTargetSdkVersion: 33
+  AndroidMinSdkVersion: 26
+  AndroidTargetSdkVersion: 31
   AndroidPreferredInstallLocation: 1
   aotOptions: 
   stripEngineCode: 1
@@ -252,15 +252,15 @@ PlayerSettings:
   clonedFromGUID: c0afd0d1d80e3634a9dac47e8a0426ea
   templatePackageId: com.unity.template.3d@8.1.1
   templateDefaultScene: Assets/Scenes/SampleScene.unity
-  useCustomMainManifest: 1
+  useCustomMainManifest: 0
   useCustomLauncherManifest: 0
   useCustomMainGradleTemplate: 0
-  useCustomLauncherGradleManifest: 1
-  useCustomBaseGradleTemplate: 1
-  useCustomGradlePropertiesTemplate: 1
-  useCustomGradleSettingsTemplate: 1
+  useCustomLauncherGradleManifest: 0
+  useCustomBaseGradleTemplate: 0
+  useCustomGradlePropertiesTemplate: 0
+  useCustomGradleSettingsTemplate: 0
   useCustomProguardFile: 0
-  AndroidTargetArchitectures: 1
+  AndroidTargetArchitectures: 3
   AndroidTargetDevices: 0
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}

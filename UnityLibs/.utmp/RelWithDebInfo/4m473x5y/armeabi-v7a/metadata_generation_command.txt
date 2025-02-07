@@ -1,0 +1,26 @@
+                    Executable : C:\tools\android_sdk_for_unity\cmake\3.22.1\bin\cmake.exe
+arguments : 
+-HD:\fancyHub\UnityLibs\UnityLibs\Library\Bee\Android\Prj\Mono2x\Gradle\unityLibrary\src\main\cpp
+-DCMAKE_SYSTEM_NAME=Android
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+-DCMAKE_SYSTEM_VERSION=26
+-DANDROID_PLATFORM=android-26
+-DANDROID_ABI=armeabi-v7a
+-DCMAKE_ANDROID_ARCH_ABI=armeabi-v7a
+-DANDROID_NDK=C:\tools\android_sdk_for_unity\ndk\23.1.7779620
+-DCMAKE_ANDROID_NDK=C:\tools\android_sdk_for_unity\ndk\23.1.7779620
+-DCMAKE_TOOLCHAIN_FILE=C:\tools\android_sdk_for_unity\ndk\23.1.7779620\build\cmake\android.toolchain.cmake
+-DCMAKE_MAKE_PROGRAM=C:\tools\android_sdk_for_unity\cmake\3.22.1\bin\ninja.exe
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=D:\fancyHub\UnityLibs\UnityLibs\Library\Bee\Android\Prj\Mono2x\Gradle\unityLibrary\build\intermediates\cxx\RelWithDebInfo\4m473x5y\obj\armeabi-v7a
+-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=D:\fancyHub\UnityLibs\UnityLibs\Library\Bee\Android\Prj\Mono2x\Gradle\unityLibrary\build\intermediates\cxx\RelWithDebInfo\4m473x5y\obj\armeabi-v7a
+-DCMAKE_BUILD_TYPE=RelWithDebInfo
+-DCMAKE_FIND_ROOT_PATH=D:\fancyHub\UnityLibs\UnityLibs\.utmp\RelWithDebInfo\4m473x5y\prefab\armeabi-v7a\prefab
+-BD:\fancyHub\UnityLibs\UnityLibs\.utmp\RelWithDebInfo\4m473x5y\armeabi-v7a
+-GNinja
+-DBUILD_GRADLE_DIRECTORY=D:\fancyHub\UnityLibs\UnityLibs\Library\Bee\Android\Prj\Mono2x\Gradle\unityLibrary
+-DANDROID_STL=c++_shared
+jvmArgs : 
+
+
+                    Build command args: []
+                    Version: 2

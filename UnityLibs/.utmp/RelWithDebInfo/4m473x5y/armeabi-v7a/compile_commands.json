@@ -1,0 +1,7 @@
+[
+{
+  "directory": "D:/fancyHub/UnityLibs/UnityLibs/.utmp/RelWithDebInfo/4m473x5y/armeabi-v7a",
+  "command": "C:\\tools\\android_sdk_for_unity\\ndk\\23.1.7779620\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=armv7-none-linux-androideabi26 --sysroot=C:/tools/android_sdk_for_unity/ndk/23.1.7779620/toolchains/llvm/prebuilt/windows-x86_64/sysroot -DEXTERNAL_FRAME_PACING_CODE -Dswappywrapper_EXPORTS -ID:/fancyHub/UnityLibs/UnityLibs/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/src/main/cpp/FramePacing -isystem C:/tools/gradle/.gradle/caches/transforms-3/409c1a28aadca3366770210e46e9a656/transformed/jetified-games-frame-pacing-1.10.0/prefab/modules/swappy_static/include -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security -fexceptions -frtti -stdlib=libc++ -Wall -Wextra -pedantic -Werror -O2 -g -DNDEBUG -fPIC -o FramePacing\\CMakeFiles\\swappywrapper.dir\\UnitySwappyWrapper.cpp.o -c D:\\fancyHub\\UnityLibs\\UnityLibs\\Library\\Bee\\Android\\Prj\\Mono2x\\Gradle\\unityLibrary\\src\\main\\cpp\\FramePacing\\UnitySwappyWrapper.cpp",
+  "file": "D:\\fancyHub\\UnityLibs\\UnityLibs\\Library\\Bee\\Android\\Prj\\Mono2x\\Gradle\\unityLibrary\\src\\main\\cpp\\FramePacing\\UnitySwappyWrapper.cpp"
+}
+]
