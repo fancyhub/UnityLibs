@@ -467,6 +467,7 @@ namespace FH
         }
 
         public static int BuildVersion_SDK_INT => _GetBuildVersion()._ExtGetStatic<int>("SDK_INT");
+        public static string BuildVersion_Release => _GetBuildVersion()._ExtGetStatic<string>("RELEASE");
         #endregion
 
 

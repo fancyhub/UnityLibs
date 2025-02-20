@@ -99,10 +99,14 @@ namespace FH
 
         public bool Append(ReadOnlySpan<char> value)
         {
-            if (_Pos > _Buff.Length - value.Length)
+            if(value.Length == 0)
+                return true;
+
+            int copy_count = Math.Min(_Buff.Length - _Pos, value.Length);
+            if (copy_count <= 0)
                 return false;
-            value.CopyTo(_Buff.Slice(_Pos));
-            _Pos += value.Length;
+            value.Slice(0, copy_count).CopyTo(_Buff.Slice(_Pos));
+            _Pos += copy_count;
             return true;
         }
 
