@@ -37,14 +37,16 @@ namespace FH.ResManagement
         public bool Immediately = false;
 
         public ResId ResId;
+        public ResRef ResRef;
 
-        public ResEvent EventCallBack;
+        public ResEvent EventResCallBack;
+        public InstEvent EventInstCallBack;
 
         private LinkedList<int> _workers = new LinkedList<int>();
 
         //调试用的
         private LinkedList<int> _done_workers = new LinkedList<int>();
-       
+
         //取消了事务
         public void Cancel()
         {
@@ -92,12 +94,14 @@ namespace FH.ResManagement
             _done_workers.ExtClear();
 
             ResId = ResId.Null;
-            EventCallBack = null;
+            EventResCallBack = null;
+            EventInstCallBack = null;
 
             JobId = 0;
             Priority = 0;
             IsCanceled = false;
             ErrorCode = EResError.OK;
-        }        
-    }     
+            ResRef = default;
+        }
+    }
 }

@@ -107,45 +107,34 @@ namespace FH.ResManagement
             }
         }
 
-        private void _OnResLoaded(bool succ, string path, EResType resType, int job_id)
+        private void _OnResLoaded(int job_id, EResError error, ResRef res_ref)
         {
             //1. 查找, 如果找不到,说明已经被销毁了            
             if (!_PreLoadDict.Remove(job_id, out var res_path))
+            {
                 return;
+            }
 
             //2. 检查错误
-            if (!succ)
+            UnityEngine.Object res = null;
+            if (res_ref.IsValid())
+                res = res_ref.Get();
+
+            //3. 添加
+            if (res == null)
             {
                 _Stat.Fail++;
                 if (!_All.ContainsKey(res_path))
                     _All[res_path] = default;
                 _HolderCb?.OnHolderCallBack();
-                return;
             }
-
-            IResMgr res_mgr = _ResMgr.Val;
-            if (res_mgr == null)
+            else
             {
-                _Stat.Fail++;
+                _Stat.Succ++;
+                res_ref.AddUser(this);
+                _All[res_path] = res_ref;
                 _HolderCb?.OnHolderCallBack();
-                return;
             }
-
-            //3. 添加
-            var err = res_mgr.Load(path, res_path.Sprite, false, out var res_ref);
-            ResLog._.ErrCode(err, path);
-            if (err != EResError.OK)
-            {
-                _Stat.Fail++;
-                _All[res_path] = default;
-                _HolderCb?.OnHolderCallBack();
-                return;
-            }
-
-            res_ref.AddUser(this);
-            _All[res_path] = res_ref;
-            _Stat.Succ++;
-            _HolderCb?.OnHolderCallBack();
         }
 
         protected override void OnPoolRelease()
@@ -174,7 +163,7 @@ namespace FH.ResManagement
         {
             foreach (var p in _All)
             {
-                if (p.Value.IsSelfValid())
+                if (p.Value.IsValid())
                     out_list.Add(p.Value);
             }
         }

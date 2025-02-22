@@ -30,7 +30,10 @@ namespace FH
 
         internal ResRef(ResId id, string path, IResPool pool) { this.Id = id; this.Path = path; this.ResPool = new CPtr<IResPool>(pool); }
 
-        public bool IsSelfValid()
+        /// <summary>
+        /// 只是判断自己是否合法, 不判断 后面的 资源是否已经被释放
+        /// </summary>
+        public bool IsValid()
         {
             if (ResPool.Null)
                 return false;

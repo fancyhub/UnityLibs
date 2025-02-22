@@ -10,7 +10,8 @@ using UnityEngine;
 
 namespace FH
 {
-    public delegate void ResEvent(bool succ, string path, EResType resType, int job_id);
+    public delegate void ResEvent(int job_id, EResError error, ResRef res_ref);
+    public delegate void InstEvent(int job_id, EResError error, string path);
 
     public struct ResSnapShotItem
     {
@@ -48,7 +49,7 @@ namespace FH
 
         #region GameObject Inst
         public EResError Create(string path, System.Object user, bool sync_load_enable, out ResRef res_ref);
-        public EResError AsyncCreate(string path, int priority, ResEvent cb, out int job_id);
+        public EResError AsyncCreate(string path, int priority, InstEvent cb, out int job_id);
         public EResError TryCreate(string path, System.Object user, out ResRef res_ref);
         #endregion
 
@@ -235,7 +236,7 @@ namespace FH
             ResManagement.ResLog._.ErrCode(err, path);
             return res_ref;
         }
-        public static bool AsyncCreate(string path, int priority, ResEvent cb, out int job_id)
+        public static bool AsyncCreate(string path, int priority, InstEvent cb, out int job_id)
         {
             IResMgr inst = _.Val;
             if (inst == null)

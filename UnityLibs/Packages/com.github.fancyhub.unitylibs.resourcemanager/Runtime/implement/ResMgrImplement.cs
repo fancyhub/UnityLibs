@@ -79,6 +79,7 @@ namespace FH.ResManagement
             _worker_res_async._external_loader = external_loader;
             _worker_res_async._job_db = _job_db;
             _worker_res_async._msg_queue = _msg_queue;
+            _worker_res_async._res_pool_interface = this;
             _worker_res_async.Init();
 
             _worker_res_sync = new ResLoaderSync();
@@ -152,7 +153,7 @@ namespace FH.ResManagement
             int inst_id = res.GetInstanceID();
 
             if (inst_id < 0)
-            {               
+            {
                 {
                     ResId res_id = new ResId(inst_id, EResType.Inst);
                     if (_gobj_pool.GetInstPath(res_id, out var path) == EResError.OK)
@@ -341,7 +342,7 @@ namespace FH.ResManagement
             }
 
             //3. 同步加载
-            ResJob job = _job_db.CreateJob(res_path, 0, null);
+            ResJob job = _job_db.CreateJob(res_path, 0);
             job.AddWorker(EResWoker.sync_load_res);
             _msg_queue.BeginJob(job, true);
 
@@ -354,7 +355,7 @@ namespace FH.ResManagement
                 res_ref = default;
             return err;
         }
- 
+
 
         public EResError AsyncLoad(string path, bool sprite, int priority, ResEvent cb, out int job_id)
         {
@@ -373,7 +374,8 @@ namespace FH.ResManagement
             }
 
             //2. 异步加载
-            ResJob job = _job_db.CreateJob(ResPath.Create(path, sprite), priority, cb);
+            ResJob job = _job_db.CreateJob(ResPath.Create(path, sprite), priority);
+            job.EventResCallBack = cb;
             job.AddWorker(EResWoker.async_load_res);
             job.AddWorker(EResWoker.call_res_event);
 
@@ -453,7 +455,7 @@ namespace FH.ResManagement
             }
 
             //3. 加载
-            ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), 0, null);
+            ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), 0);
             if (!aync_load_enable) //不允许同步加载
             {
                 err = _res_pool.GetIdByPath(ResPath.CreateRes(path), out job.ResId);
@@ -515,7 +517,7 @@ namespace FH.ResManagement
             }
         }
 
-        public EResError AsyncCreate(string path, int priority, ResEvent cb, out int job_id)
+        public EResError AsyncCreate(string path, int priority, InstEvent cb, out int job_id)
         {
             //1. check
             if (string.IsNullOrEmpty(path))
@@ -532,7 +534,8 @@ namespace FH.ResManagement
             }
 
             //2. 创建Job
-            ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), priority, cb);
+            ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), priority);
+            job.EventInstCallBack = cb;
             job.AddWorker(EResWoker.async_load_res);
             job.AddWorker(EResWoker.async_obj_inst);
             job.AddWorker(EResWoker.call_inst_event);

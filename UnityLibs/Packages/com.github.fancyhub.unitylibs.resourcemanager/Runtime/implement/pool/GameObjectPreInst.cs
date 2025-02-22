@@ -38,8 +38,7 @@ namespace FH.ResManagement
         //Val: Val 对应的该请求的 count
         public Dictionary<int, KeyValuePair<string, int>> _req_id_dict;
 
-        public IResMgr.Config.GameObjectPreInstConfig _conf;
-        public int _req_id_gen = 0;
+        public IResMgr.Config.GameObjectPreInstConfig _conf;        
 
         public GameObjectPreInstData(IResMgr.Config.GameObjectPreInstConfig conf)
         {
@@ -92,8 +91,7 @@ namespace FH.ResManagement
             }
 
             //3. 创建req id
-            _req_id_gen++;
-            req_id = _req_id_gen;
+            req_id = ResJobDB.NextJobId;
 
             //4. 添加到data里面
             inst_data._count += count;
@@ -183,7 +181,7 @@ namespace FH.ResManagement
                 int delta_count = count_need - count_now;
                 if (delta_count > 0)
                 {
-                    ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), _Priority, null);
+                    ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), _Priority);
                     job.AddWorker(EResWoker.async_load_res);
                     for (int k = 0; k < delta_count; ++k)
                         job.AddWorker(EResWoker.async_obj_inst);

@@ -149,7 +149,7 @@ namespace FH.UI
                     }
                     else
                     {
-                        bool result= ResMgr.AsyncLoad(_Path, false, CPriority, _OnAsyncLoaded, out _JobId);
+                        bool result = ResMgr.AsyncLoad(_Path, false, CPriority, _OnAsyncLoaded, out _JobId);
                         if (!result)
                         {
                             _ResRef.RemoveUser(this);
@@ -169,30 +169,26 @@ namespace FH.UI
                 _JobId = 0;
             }
 
-            private void _OnAsyncLoaded(bool succ, string path, EResType resType, int job_id)
+            private void _OnAsyncLoaded(int job_id, EResError error, ResRef res_ref)
             {
                 if (job_id != _JobId)
                     return;
                 _JobId = 0;
 
-                if (!succ)
-                {
-                    _ResRef.RemoveUser(this);
-                    _ResRef = default;
-                    OverrideTexture = null;
-                    return;
-                }
-
-                ResRef new_res_ref = ResMgr.Load(path, false);
-                Texture new_texture = new_res_ref.Get<Texture>();
-                OverrideTexture = new_texture;
+                Texture new_texture = null;
+                if (res_ref.IsValid())
+                    new_texture = res_ref.Get<Texture>();
 
                 _ResRef.RemoveUser(this);
                 _ResRef = default;
-                _ResRef = new_res_ref;
-                _ResRef.AddUser(this);
-            }
+                OverrideTexture = new_texture;
 
+                if (new_texture != null)
+                {
+                    _ResRef = res_ref;
+                    _ResRef.AddUser(this);
+                }
+            }
         }
     }
 }

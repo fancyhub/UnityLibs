@@ -92,7 +92,7 @@ namespace FH.ResManagement
                 _path = path,
             });
 
-            ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), 0, null);
+            ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), 0);
             job.AddWorker(EResWoker.async_load_res);
             job.AddWorker(EResWoker.call_res_event);
             job.AddWorker(EResWoker.call_set_atlas);         

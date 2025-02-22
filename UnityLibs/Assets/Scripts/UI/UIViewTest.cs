@@ -89,11 +89,17 @@ public class UIPageScene2 : UIPage
         ret.UIOpen();
         return ret;
     }
+    public string[] _SpriteNameList = new string[] { "s0", "s1", "s2" };
 
     protected override void OnUIPrepareRes(IResInstHolder holder)
     {
         //base.OnUIPrepareRes(holder);
         holder.PreCreate(FH.UI.UIPanelVariantView.CPath);
+        foreach (var p in _SpriteNameList)
+        {
+            string path = UIResMapConfig.FindSprite(p);
+            holder.PreLoad(path, true);
+        }
     }
 
     protected override void OnUIClose()
@@ -106,7 +112,7 @@ public class UIPageScene2 : UIPage
 
         foreach (var p in _SceneRefList)
         {
-            p.Unload();
+            //p.Unload();
         }
         _SceneRefList.Clear();
     }
@@ -126,7 +132,15 @@ public class UIPageScene2 : UIPage
         _view._btn_4.OnClick = _OnCloseLastSceneClick;
         _view._btn_3._Button2.onClick.AddListener(() =>
         {
-            FH.UI.UIRedDotMgr.ResetIncrementFlag("vroot.test.scene");
+            //FH.UI.UIRedDotMgr.ResetIncrementFlag("vroot.test.scene");
+
+            int index = UnityEngine.Random.Range(0, _SpriteNameList.Length);
+            _view._img_0.ExtAsyncSetSprite(_SpriteNameList[index]);
+
+            foreach (var p in _view._img_list)
+            {                
+            }
+
         });
 
         _LayerMgr.AddView(_view, 0, this, EUIBgClickMode.Common);

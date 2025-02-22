@@ -31,7 +31,7 @@ namespace FH.ResManagement
 
         public void OnMsgProc(ref ResJob job)
         {
-            if (job.IsCanceled || job.EventCallBack == null)
+            if (job.IsCanceled || (job.EventResCallBack == null && job.EventInstCallBack == null))
             {
                 _msg_queue.SendJobNext(job);
                 return;
@@ -42,14 +42,11 @@ namespace FH.ResManagement
             EResWoker job_type = job.GetCurrentWorker();
             if (job_type == EResWoker.call_inst_event)
             {
-                job.EventCallBack(job.ErrorCode == EResError.OK, job.Path.Path, EResType.Inst, job.JobId);
+                job.EventInstCallBack?.Invoke(job.JobId, job.ErrorCode, job.Path.Path);
             }
             else if (job_type == EResWoker.call_res_event)
             {
-                if (job.Path.Sprite)
-                    job.EventCallBack(job.ErrorCode == EResError.OK, job.Path.Path, EResType.Sprite, job.JobId);
-                else
-                    job.EventCallBack(job.ErrorCode == EResError.OK, job.Path.Path, EResType.Res, job.JobId);
+                job.EventResCallBack?.Invoke(job.JobId, job.ErrorCode, job.ResRef);
             }
             else
             {

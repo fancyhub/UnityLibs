@@ -23,19 +23,27 @@ namespace FH.ResManagement
             return _dict_job.Count;
         }
 
-        public ResJob CreateJob(ResPath path, int priority, ResEvent call_back)
+        public static int NextJobId
         {
-            _job_id_gen++;
+            get
+            {
+                _job_id_gen++;
+                return _job_id_gen;
+            }
+        }
+
+        public ResJob CreateJob(ResPath path, int priority)
+        {
             ResJob ret = GPool.New<ResJob>();
-            ret.JobId = _job_id_gen;
+            ret.JobId = NextJobId;
             ret.Path = path;
             ret.Priority = priority;
-            ret.EventCallBack = call_back;
+            ret.ResRef = new ResRef(ResId.Null, path.Path, null);
 
             _dict_job.Add(ret.JobId, ret);
             return ret;
-        }
-       
+        }         
+
 
         public bool CancelJob(int job_id)
         {

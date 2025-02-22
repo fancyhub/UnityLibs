@@ -83,7 +83,7 @@ namespace FH.UI
             {
                 //1. 判断是否相同
                 //这里不会因为 sync: true or false 发生变化
-                if (_Image==null || _Path == path)
+                if (_Image == null || _Path == path)
                     return;
 
                 //2.只是清除
@@ -133,7 +133,7 @@ namespace FH.UI
                     }
                     else
                     {
-                        bool result= ResMgr.AsyncLoad(_Path, true, CPriority, _OnAsyncLoaded, out _JobId);
+                        bool result = ResMgr.AsyncLoad(_Path, true, CPriority, _OnAsyncLoaded, out _JobId);
                         if (!result)
                         {
                             _ResRef.RemoveUser(this);
@@ -153,29 +153,27 @@ namespace FH.UI
                 _JobId = 0;
             }
 
-            private void _OnAsyncLoaded(bool succ, string path, EResType resType, int job_id)
+            private void _OnAsyncLoaded(int job_id, EResError error, ResRef res_ref)
             {
                 if (job_id != _JobId)
                     return;
-                _JobId = 0;
+                _JobId = 0;                
 
-                if (!succ)
+                Sprite new_sprite = null;
+                if (res_ref.IsValid())
                 {
-                    _ResRef.RemoveUser(this);
-                    _ResRef = default;
-                    _Image.overrideSprite = null;
-                    return;
+                    new_sprite = res_ref.Get<Sprite>();
                 }
 
-                ResRef new_res_ref = ResMgr.LoadSprite(path, false);
-                Sprite new_sprite = new_res_ref.Get<Sprite>();
                 _Image.overrideSprite = new_sprite;
-
                 _ResRef.RemoveUser(this);
                 _ResRef = default;
 
-                _ResRef = new_res_ref;
-                _ResRef.AddUser(this);
+                if (new_sprite != null)
+                {
+                    _ResRef = res_ref;
+                    _ResRef.AddUser(this);
+                }
             }
         }
     }
