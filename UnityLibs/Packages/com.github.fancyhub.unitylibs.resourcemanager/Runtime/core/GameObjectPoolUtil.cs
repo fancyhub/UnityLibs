@@ -105,7 +105,7 @@ namespace FH
                 return;
 
             //2. 清除动态增加的组件
-            var comps = obj.ExtGetCompsInChildren<Component>(true);
+            var comps = obj.ExtGetCompsInChildren<MonoBehaviour>(true);
             for (int i = 0; i < comps.Count; i++)
             {
                 if (comps[i] is IDynamicComponent dynamic_comp)
