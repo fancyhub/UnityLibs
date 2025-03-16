@@ -23,23 +23,10 @@ namespace FH.FileDownload
             _Workers = new WorkerFsm[config.WorkerCount];
             _WorkerConfig = new WorkerConfig()
             {
-                ServerUrl = config.ServerUrl,
                 RetryCount = config.MaxRetryCount,
                 MaxWorkerCount = config.WorkerCount,
+                DownloadTempDir = FileSetting.DownloadDir,
             };
-
-            if (_WorkerConfig.ServerUrl != null)
-            {
-                if (_WorkerConfig.ServerUrl.EndsWith('/') || _WorkerConfig.ServerUrl.EndsWith('\\'))
-                {
-                    _WorkerConfig.ServerUrl += FileSetting.Platform.ToString() + "/";
-                }
-                else
-                {
-                    _WorkerConfig.ServerUrl += "/" + FileSetting.Platform.ToString() + "/";
-                }
-            }
-
 
             for (int i = 0; i < config.WorkerCount; i++)
             {
@@ -55,6 +42,11 @@ namespace FH.FileDownload
             }
         }
 
+        public void SetCallBack(FileDownloadCallBack callback)
+        {
+            _WorkerConfig.CallBack = callback;            
+        }
+
         public void ClearAll()
         {
             _JobDB.ClearAll();
@@ -64,7 +56,7 @@ namespace FH.FileDownload
             }
         }
 
-        public void GetAllInfo(List<FileDownloadInfo> out_list)
+        public void GetAllJobs(List<FileDownloadJobInfo> out_list)
         {
             if (out_list == null)
             {
@@ -74,47 +66,40 @@ namespace FH.FileDownload
             out_list.Clear();
             foreach (var p in _JobDB._Dict)
             {
-                out_list.Add(p.Value.Value._DwonloadInfo);
+                out_list.Add(p.Value.Value._JobInfo);
             }
         }
 
-        public FileDownloadInfo FindInfo(string file_full_name)
+        public FileDownloadJobInfo FindInfo(string job_key_name)
         {
-            var job = _JobDB.FindJob(file_full_name);
+            var job = _JobDB.FindJob(job_key_name);
             if (job == null)
                 return null;
-            return job._DwonloadInfo;
+            return job._JobInfo;
         }
 
-        public FileDownloadInfo AddTask(FileManifest.FileItem file)
+        public FileDownloadJobInfo AddJob(FileDownloadJobDesc job_desc)
         {
-            if (file == null)
+            if (!job_desc.IsValid())
             {
-                FileDownloadLog.Assert(false, "param file is null");
-                return null;
-            }
-            if (string.IsNullOrEmpty(file.FullName))
-            {
-                FileDownloadLog.Assert(false, "param file.FullName is null");
+                FileDownloadLog.D("param task is not valid");
                 return null;
             }
 
-            string local_path = System.IO.Path.Combine(FileSetting.LocalDir, file.FullName);
-            if (System.IO.File.Exists(local_path))
-            {
-                FileDownloadLog.D("File {0} has Downloaded", file.FullName);
-                return new FileDownloadInfo(file.Name, file.FullName, file.Size, EFileDownloadStatus.Succ);
-
-            }
-            var job = _JobDB.AddJob(file);
+            var job = _JobDB.AddJob(job_desc);
             if (job == null)
                 return null;
-            return job._DwonloadInfo;
+            var ret = job._JobInfo;
+            if (ret != null)
+            {
+                _WorkerConfig.CallBack?.Invoke(ret);
+            }
+            return ret;
         }
 
-        public void Pause(string file_full_name)
+        public void Pause(string job_key_name)
         {
-            var job = _JobDB.FindJob(file_full_name);
+            var job = _JobDB.FindJob(job_key_name);
             if (job == null)
                 return;
 

@@ -46,7 +46,7 @@ namespace FH.FileManagement.Ed
                 });
             }
             EditorGUILayout.Space(10);
-            _CopyStreamingAssetDrawer.Draw("[Copy Streaming Assets] ( Only First Enabled)");
+            _CopyStreamingAssetDrawer.Draw("[Copy Streaming Assets]");
         }
     }
 }

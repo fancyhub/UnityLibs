@@ -10,6 +10,9 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace FH.AssetBundleBuilder.Ed
 {
+    /// <summary>
+    /// 根据ab里面含有的assets的路径, 来添加该ab包对应的tags
+    /// </summary>
     public class TagRuler_AssetPattern : BuilderTagRuler
     {
         [Header("eg: base;tag_a;tag_b")]

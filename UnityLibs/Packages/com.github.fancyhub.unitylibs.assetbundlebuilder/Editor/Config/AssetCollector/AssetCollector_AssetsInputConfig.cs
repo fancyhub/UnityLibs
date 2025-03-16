@@ -11,6 +11,9 @@ using UnityEngine;
 
 namespace FH.AssetBundleBuilder.Ed
 {
+    /// <summary>
+    /// 收集器, 通过 AssetInputConfig 来收集资源
+    /// </summary>
     public class AssetCollector_AssetsInputConfig : BuilderAssetCollector
     {
         public AssetsInputConfig Config;
@@ -19,6 +22,7 @@ namespace FH.AssetBundleBuilder.Ed
         {
             if (Config == null)
                 return new List<(string path, string address)>();
+            Config.BuildCache();
             return Config.GetResCollection();
         }
 

@@ -13,6 +13,9 @@ using FH.FileManagement.Ed;
 
 namespace FH.ResManagement.Ed
 {
+    /// <summary>
+    /// 生成自己的zip格式的 vfs, 并返回文件列表
+    /// </summary>
     public class FileBuildStep_BuildVfs : FH.FileManagement.Ed.BuildStep
     {
         public FH.VFSManagement.Builder.BuilderConfig BuilderConfig;
@@ -38,6 +41,7 @@ namespace FH.ResManagement.Ed
                     continue;
                 ret.Add(new BuildFileInfo()
                 {
+                    FileName = p.Name,
                     FilePath = dest_file,
                     FileHash = file_hash,
                     Tags = new List<string>(p.Tags.Split(';', StringSplitOptions.RemoveEmptyEntries)),

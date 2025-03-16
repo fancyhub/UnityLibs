@@ -12,6 +12,9 @@ using UnityEngine;
 
 namespace FH.AssetBundleBuilder.Ed
 {
+    /// <summary>
+    /// 通过配置来确定asset所在的报名
+    /// </summary>
     public class BundleRuler_AssetsInputConfig : BuilderBundleRuler
     {
         public AssetsInputConfig Config;

@@ -12,6 +12,9 @@ using UnityEngine;
 
 namespace FH.AssetBundleBuilder.Ed
 {
+    /// <summary>
+    /// 通过正则表达式来匹配asset_path , 确定包名
+    /// </summary>
     public class BundleRuler_Regular : BuilderBundleRuler, ISerializationCallbackReceiver
     {
         public bool OnlyExportFile = true;

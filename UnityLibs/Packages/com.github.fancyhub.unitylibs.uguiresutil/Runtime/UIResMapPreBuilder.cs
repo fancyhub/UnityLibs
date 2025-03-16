@@ -12,6 +12,9 @@ using FH.AssetBundleBuilder.Ed;
 
 namespace FH.UI
 {
+    /// <summary>
+    /// 预处理, 收集UI资源的映射表
+    /// </summary>
     public class PreBuild_UIResMap: BuilderPreBuild
     {
         public override void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target)

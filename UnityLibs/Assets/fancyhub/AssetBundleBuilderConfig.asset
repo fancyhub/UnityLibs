@@ -197,7 +197,7 @@ MonoBehaviour:
   Enable: 0
   RulerName: "atlas \u89C4\u5219 "
   OnlyExportFile: 0
-  RegularString: /([a-zA-Z0-9]*)[.]
+  RegularString: '/([a-zA-Z0-9]*)[.]'
   BundleNameFormater: a_{0}
   BundleNameParamCount: 1
   PatternList:
@@ -261,7 +261,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: affdca55e6dffdc40878253fe89c0f62, type: 3}
   m_Name: PreBuild_AssetsInputConfig
   m_EditorClassIdentifier: 
-  Enable: 1
+  Enable: 0
   Config: {fileID: 11400000, guid: 5fafba931ae9d5d4a98a3e3b776e2834, type: 2}
 --- !u!114 &8874996120352380956
 MonoBehaviour:

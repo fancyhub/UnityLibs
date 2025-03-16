@@ -10,12 +10,6 @@ using System.Collections.Generic;
 
 namespace FH.AssetBundleBuilder.Ed
 {
-    public interface IAssetDependency
-    {
-        List<string> CollectDirectDeps(string path, EAssetObjType asset_type);
-        string FileGuid(string path);
-    }
-
     /// <summary>
     /// 描述了 Unity的 Assets 之间的依赖关系
     /// </summary>

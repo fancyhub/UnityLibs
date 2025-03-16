@@ -658,6 +658,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1811144036}
   - component: {fileID: 1811144037}
+  - component: {fileID: 1811144038}
   m_Layer: 0
   m_Name: ResService
   m_TagString: Untagged
@@ -692,10 +693,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce6d81fca33831c4f9a035f3176f03a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Mode: 0
+  Mode: 1
   AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
   FileMgrConfig:
-    LogLvl: 1
+    LogLvl: 0
     BaseTags:
     - base
     AndroidExtractTag: android
@@ -722,10 +723,23 @@ MonoBehaviour:
   FileDownloadMgrConfig:
     LogLvl: 0
     WorkerCount: 4
-    ServerUrl: http://127.0.0.1:8080/
+    ServerUrl: http://127.0.0.1:5000/
     MaxRetryCount: 3
   TableLogLvl: 1
   LocLogLvl: 1
+--- !u!114 &1811144038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1811144034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f517cfa133c826d4e9f07e2c6bd3fc02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  FileList: []
 --- !u!1 &2098590053
 GameObject:
   m_ObjectHideFlags: 0

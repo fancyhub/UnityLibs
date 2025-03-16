@@ -21,6 +21,7 @@ public class UIViewTest : MonoBehaviour
 
         _btn = FH.UI.UIBaseView.CreateView<FH.UI.UIButtonView>(UIRoot.Root2D);
         _btn.OnClick = () => UIPageScene2.Create(this, _LayerMgr);
+        _btn.OnClick = _DownloadFile;
 
 
         TaskQueue.Init(10);
@@ -50,7 +51,20 @@ public class UIViewTest : MonoBehaviour
         var manifest = FileMgr.GetCurrentManifest();
         if (manifest == null)
             return;
-        FileDownloadMgr.AddTasks(manifest.Files);
+
+        List<FileManifest.FileItem> items = new List<FileManifest.FileItem>();
+        FileMgr.IsAllReady(null, items);
+
+        FileDownloadMgr.SetCallBack((info) =>
+        {
+            if (info.Status == EFileDownloadStatus.Succ)
+            {
+                FileManifest.FileItem file_item = info.GetUserData<FileManifest.FileItem>();
+                if(file_item !=null)
+                    FileMgr.OnFileDownloaded(file_item);
+            }               
+        });
+        FileDownloadMgr.AddTasks(items);
     }
 
     public void _OnOpenView()
@@ -138,7 +152,7 @@ public class UIPageScene2 : UIPage
             _view._img_0.ExtAsyncSetSprite(_SpriteNameList[index]);
 
             foreach (var p in _view._img_list)
-            {                
+            {
             }
 
         });

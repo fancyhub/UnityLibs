@@ -11,6 +11,9 @@ using UnityEngine;
 
 namespace FH.AssetBundleBuilder.Ed
 {
+    /// <summary>
+    /// asset 收集器, 根据文件夹 + 通配符来实现
+    /// </summary>
     public class AssetCollector_Folder : BuilderAssetCollector
     {
         [Serializable]

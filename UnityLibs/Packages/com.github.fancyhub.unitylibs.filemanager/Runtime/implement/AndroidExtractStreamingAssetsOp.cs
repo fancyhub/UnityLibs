@@ -14,14 +14,13 @@ namespace FH.FileManagement
     {
         private const string CVERSION_FILE_NAME = "base_res_version";
 
-        private List<string> _FileList = new List<string>();
+        private List<FileManifest.FileItem> _FileList = new List<FileManifest.FileItem>();
         private FileCollection _FileCollection;
         private string _Tag;
         private Thread _Thread;
         private int _TotalCount = 0;
         private int _DoneCount = 0;
         private string _Version;
-
 
         public AndroidExtractStreamingAssetsOp(FileCollection file_collection, string tag)
         {
@@ -65,10 +64,7 @@ namespace FH.FileManagement
             }
 
             _FileList.Clear();
-            foreach (var p in manifest.GetFilesWithTag(_Tag))
-            {
-                _FileList.Add(p.FullName);
-            }
+            _FileList.AddRange(manifest.GetFilesWithTag(_Tag));
             _TotalCount = _FileList.Count;
             if (_TotalCount == 0)
                 return;
@@ -77,33 +73,75 @@ namespace FH.FileManagement
             _Thread.IsBackground = true;
             _Thread.Priority = ThreadPriority.Normal;
             _Thread.Start();
+
+            UnityMono.StartCheck(this, _FileCollection,_Version);
+        }
+
+
+        public class UnityMono: UnityEngine.MonoBehaviour
+        {            
+            public static void StartCheck(ExtractStreamingAssetsOperation operation, FileCollection file_collection, string version)
+            {
+                UnityEngine.GameObject obj = new UnityEngine.GameObject("");
+                obj.hideFlags = UnityEngine.HideFlags.HideAndDontSave;
+                UnityEngine.GameObject.DontDestroyOnLoad(obj);
+                var comp= obj.AddComponent<UnityMono>();
+                comp.StartCoroutine(_WaitTaskDone(operation, file_collection,version, obj));
+            }
+
+            private static System.Collections.IEnumerator _WaitTaskDone(ExtractStreamingAssetsOperation operation, FileCollection file_collection,string version,UnityEngine.GameObject obj)
+            {
+                yield return operation;
+
+                string path = FileSetting.LocalDir + CVERSION_FILE_NAME;
+                if (System.IO.File.Exists(path))
+                    System.IO.File.Delete(path);
+                System.IO.File.WriteAllText(path, version);
+                file_collection.CollectLocalDir();
+
+
+                UnityEngine.GameObject.Destroy(obj);
+            }
         }
 
         private void _CopyTask()
         {
             foreach (var p in _FileList)
             {
-                FileLog._.D("Begin Extra Streamign Assets: {0}", p);
-                string src_file_path = FileSetting.StreamingAssetsDir + p;
-                string dest_file_path = FileSetting.LocalDir + p;
+                FileLog._.D("Begin Extra Streamign Assets: {0}", p.FullName);                
+                string src_file_path = FileSetting.StreamingAssetsDir;
+                string dest_file_path = FileSetting.LocalDir;
+                bool is_relative_file = false;
+                if (string.IsNullOrEmpty(p.RelativePath))
+                {
+                    src_file_path = FileSetting.StreamingAssetsDir+ p.FullName;
+                    dest_file_path = FileSetting.LocalDir+ p.FullName;
+                    is_relative_file = false;
+                }
+                else
+                {
+                    src_file_path = FileSetting.StreamingAssetsRelativeFileDir+ p.RelativePath;
+                    dest_file_path = FileSetting.LocalRelativeFileDir+ p.RelativePath;
+                    is_relative_file = true;
+                }
 
                 if (System.IO.File.Exists(dest_file_path))
                     System.IO.File.Delete(dest_file_path);
+                if (is_relative_file)
+                    FileUtil.CreateFileDir(dest_file_path);
+
                 Stream fs_in = SAFileSystem.OpenRead(src_file_path);
                 FileStream fs_out = File.Open(dest_file_path, FileMode.Create, FileAccess.Write);
                 fs_in.CopyTo(fs_out);
                 fs_out.Close();
                 fs_in.Close();
-
-                FileLog._.D("Done Extra Streamign Assets: {0}", p);
+                if (is_relative_file)
+                    File.WriteAllText(dest_file_path + FileSetting.CRelativeFileVersionExt, p.FullName);
+                FileLog._.D("Done Extra Streamign Assets: {0}", p.FullName);
                 _DoneCount++;
             }
 
-            string path = FileSetting.LocalDir + CVERSION_FILE_NAME;
-            if (System.IO.File.Exists(path))
-                System.IO.File.Delete(path);
-            System.IO.File.WriteAllText(path, _Version);
-            _FileCollection.CollectLocalDir();
+            
         }
     }
 }

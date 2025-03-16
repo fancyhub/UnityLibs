@@ -15,15 +15,17 @@ namespace FH.FileManagement.Ed
 {
     public sealed class BuildFileInfo
     {
-        public string FilePath;
-        public string FileHash;
+        public string FileName; //这个是key
+        public string FilePath; //这个是文件路径
+        public string FileHash; //文件Hash
+        public string FileRelativePath;//相对路径
         public List<string> Tags = new List<string>();
     }
 
     public interface IBuildStep
     {
         List<BuildFileInfo> Build(BuildContext context);
-    }     
+    }
 
     public abstract class BuildStep : ScriptableObject, IBuildStep
     {

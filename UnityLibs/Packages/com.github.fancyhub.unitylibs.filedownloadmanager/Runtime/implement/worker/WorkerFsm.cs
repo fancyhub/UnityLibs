@@ -27,7 +27,7 @@ namespace FH.FileDownload
 
     internal sealed class WorkerFsm
     {
-        private WorkerContext _WorkerContext;
+        internal WorkerContext _WorkerContext;
         public EWorkerState _State;
         public IFsm<EWorkerMsg> _Fsm;
 

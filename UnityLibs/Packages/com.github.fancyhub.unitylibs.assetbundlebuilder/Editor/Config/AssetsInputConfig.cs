@@ -20,6 +20,8 @@ namespace FH.AssetBundleBuilder.Ed
         public enum EAddressMode
         {
             None,
+            FullPath,
+            FileNameWithoutExt,
         }
 
 
@@ -137,9 +139,18 @@ namespace FH.AssetBundleBuilder.Ed
 
         private static string _GetAddressName(string path, EAddressMode mode)
         {
-            return null;
+            switch (mode)
+            {
+                case EAddressMode.FileNameWithoutExt:
+                    return System.IO.Path.GetFileNameWithoutExtension(path);
+                case EAddressMode.None:
+                    return null;
+                case EAddressMode.FullPath:
+                    return null;
+                default:
+                    return null;
+            }
         }
-
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {

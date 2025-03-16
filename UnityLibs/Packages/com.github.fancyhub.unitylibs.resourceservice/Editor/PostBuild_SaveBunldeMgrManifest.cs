@@ -12,6 +12,9 @@ using UnityEngine.UIElements;
 
 namespace FH.ResManagement.Ed
 {
+    /// <summary>
+    /// 后处理, 创建 bundle manifest, 不是unity自带的格式
+    /// </summary>
     public class PostBuild_SaveBunldeManifest : BuilderPostBuild
     {
         public override void OnPostBuild(PostBuildContext context)

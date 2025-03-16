@@ -14,6 +14,9 @@ using FH.Ed;
 
 namespace FH.ResManagement.Ed
 {
+    /// <summary>
+    /// 调用 AssetBundle的builder, 并返回文件列表
+    /// </summary>
     public class FileBuildStep_BuildBundle : FH.FileManagement.Ed.BuildStep
     {
         public AssetBundleBuilderConfig ABBuilderConfig;
@@ -34,6 +37,7 @@ namespace FH.ResManagement.Ed
                 string file_path = System.IO.Path.Combine(input_dir, p.Name);
                 ret.Add(new BuildFileInfo()
                 {
+                    FileName = p.Name,
                     FilePath = file_path,
                     FileHash = p.FileHash,
                     Tags = new List<string>(p.Tags),

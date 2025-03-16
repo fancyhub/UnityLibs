@@ -9,28 +9,17 @@ using System;
 
 namespace FH.FileDownload
 {
-    public struct JobInfo
-    {
-        public string FullName;
-        public uint Crc32;
-        public bool UseGz;
-    }
-
     internal sealed class Job : CPoolItemBase
     {
-        public int _WorkerIndex = -1;
-        public JobInfo _JobInfo;
-        public FileDownloadInfo _DwonloadInfo;
+        public int _WorkerIndex = -1;       
+        public FileDownloadJobInfo _JobInfo;
 
-        public static Job Create(FileManifest.FileItem file)
-        {
-            if (file == null)
-                return null;
-            var ret = GPool.New<Job>();
-            ret._JobInfo.FullName = file.FullName;
-            ret._JobInfo.Crc32 = file.Crc32;
-            ret._JobInfo.UseGz = file.UseGz;
-            ret._DwonloadInfo = new FileDownloadInfo(file.Name, file.FullName, file.Size, EFileDownloadStatus.Pending);
+        public static Job Create(FileDownloadJobDesc desc)
+        {        
+            var ret = GPool.New<Job>();           
+            ret._JobInfo = new FileDownloadJobInfo(desc);
+            ret._JobInfo._Status = EFileDownloadStatus.Pending;      
+            
             return ret;
         }
 
@@ -38,18 +27,31 @@ namespace FH.FileDownload
         {
             get
             {
-                return _DwonloadInfo._Status;
+                if(_JobInfo!=null)
+                    return _JobInfo._Status;
+                return EFileDownloadStatus.Failed;
             }
             set
             {
-                _DwonloadInfo._Status = value;
+                if(_JobInfo!=null)
+                    _JobInfo._Status = value;
+            }
+        }
+
+        public string JobKeyName
+        {
+            get
+            {
+                if (_JobInfo == null)
+                    return "";
+                return _JobInfo.JobDesc.KeyName;
             }
         }
 
         protected override void OnPoolRelease()
         {
             _WorkerIndex = -1;
-            _DwonloadInfo = null;
+            _JobInfo = null;
         }
     }
 }

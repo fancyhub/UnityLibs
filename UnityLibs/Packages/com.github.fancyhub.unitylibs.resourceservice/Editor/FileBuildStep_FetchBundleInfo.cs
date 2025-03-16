@@ -14,6 +14,9 @@ using FH.FileManagement.Ed;
 
 namespace FH.ResManagement.Ed
 {
+    /// <summary>
+    /// 从已经生成好的 assetbundle list 生成 file info list
+    /// </summary>
     public class FileBuildStep_FetchBundleInfo : FH.FileManagement.Ed.BuildStep
     {
         public AssetBundleBuilderConfig ABBuilderConfig;
@@ -33,6 +36,7 @@ namespace FH.ResManagement.Ed
                 string file_path = System.IO.Path.Combine(dir, p.Name);
                 ret.Add(new BuildFileInfo()
                 {
+                    FileName = p.Name,
                     FilePath = file_path,
                     FileHash = p.FileHash,
                     Tags = new List<string>(p.Tags),
@@ -47,6 +51,7 @@ namespace FH.ResManagement.Ed
                 }
                 ret.Add(new BuildFileInfo()
                 {
+                    FileName = BundleManifest.DefaultFileName,
                     FilePath = bundle_manifest_path,
                     FileHash = MD5Helper.ComputeFile(bundle_manifest_path),
                     Tags = new List<string>(BundleManifestTags.Split(';', StringSplitOptions.RemoveEmptyEntries)),

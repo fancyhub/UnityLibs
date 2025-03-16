@@ -10,6 +10,9 @@ using UnityEngine;
 
 namespace FH
 {
+
+    public delegate void FileDownloadCallBack( FileDownloadJobInfo info);
+
     public partial interface IFileDownloadMgr
     {
         [Serializable]
@@ -21,7 +24,7 @@ namespace FH
             public int WorkerCount = 4;
             public string ServerUrl;
 
-            [Range(0,5)]
+            [Range(0, 5)]
             public int MaxRetryCount = 3;
         }
     }

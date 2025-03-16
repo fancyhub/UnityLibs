@@ -21,25 +21,60 @@ namespace FH
         Succ, //下载成功
     }
 
-    public sealed class FileDownloadInfo
+    public struct FileDownloadJobDesc
     {
-        public readonly string Name;
-        public readonly string FullName;
-        public readonly long TotalSize;
+        public  string KeyName;
+        public  string RemoteUrl;   //全路径
+        public  string DestFilePath; //全路径
+        public  long TotalSize;
+        public  uint Crc32;
+        public  bool UseGz;
+        public System.Object UserData;
+
+        public bool IsValid()
+        {
+            if (string.IsNullOrEmpty(KeyName))
+                return false;
+            if (string.IsNullOrEmpty(RemoteUrl))
+                return false;
+            if (string.IsNullOrEmpty(DestFilePath))
+                return false;
+            return true;
+        }
+    }
+
+    public sealed class FileDownloadJobInfo
+    {
+        public readonly FileDownloadJobDesc JobDesc;
+
         internal long _DownloadSize;
         internal EFileDownloadStatus _Status;
 
-        internal FileDownloadInfo(string name, string full_name, long total_size, EFileDownloadStatus status)
+        internal FileDownloadJobInfo(FileDownloadJobDesc job_desc)
         {
-            this.Name = name;
-            this.FullName = full_name;
-            this.TotalSize = total_size;
-            this._Status = status;
+            this.JobDesc = job_desc;            
         }
 
         public EFileDownloadStatus Status => _Status;
         public long DownloadSize => _DownloadSize;
+        public long TotalSize => JobDesc.TotalSize;
 
+        public System.Object UserData => JobDesc.UserData;
+
+        public T GetUserData<T>()
+        {
+            if (JobDesc.UserData == null)
+                return default;
+
+            if (JobDesc.UserData is T ret)
+                return ret;
+            return default;
+        }
+
+        public bool IsValid()
+        {
+            return JobDesc.IsValid();
+        }
 
         public float Progress
         {
@@ -47,9 +82,9 @@ namespace FH
             {
                 if (_Status == EFileDownloadStatus.Succ)
                     return 1.0f;
-                if (TotalSize <= 0)
+                if (JobDesc.TotalSize <= 0)
                     return 0.99f;
-                float p = (float)((double)_DownloadSize / (double)TotalSize);
+                float p = (float)((double)_DownloadSize / (double)JobDesc.TotalSize);
 
                 return System.Math.Clamp(p, 0, 0.99f);
             }
@@ -60,22 +95,24 @@ namespace FH
     {
         public void Update();
 
-        public FileDownloadInfo AddTask(FileManifest.FileItem file);
+        public FileDownloadJobInfo AddJob(FileDownloadJobDesc job);
 
         /// <summary>
         /// Pending -> pause, Downloading -> pause
         /// </summary>
-        public void Pause(string file_full_name);
+        public void Pause(string job_key_name);
 
         /// <summary>
         /// Fail -> pending, Pause -> pending <br/>
         /// 有可能失效, 比如当前正在 Downloading, 先调用Pause, 还没有完全暂停, 再次调用 Restart        
         /// </summary>
-        public void Start(string file_full_name);
+        public void Start(string job_key_name);
 
-        public FileDownloadInfo FindInfo(string file_full_name);
+        public FileDownloadJobInfo FindInfo(string job_key_name);
 
-        public void GetAllInfo(List<FileDownloadInfo> out_list);
+        public void SetCallBack(FileDownloadCallBack callback);
+
+        public void GetAllJobs(List<FileDownloadJobInfo> out_job_list);
 
         public void ClearAll();
     }
@@ -84,6 +121,8 @@ namespace FH
     {
         private static CPtr<IFileDownloadMgr> _Inst;
 
+        private static string DefaultServerUrl;
+        private static string DefaultSaveDir;
         public static void Init(IFileDownloadMgr.Config config)
         {
             if (config == null)
@@ -106,6 +145,20 @@ namespace FH
 
             var file_download_mgr = new FileDownloadMgrImplement(config);
             _Inst = new CPtr<IFileDownloadMgr>(file_download_mgr);
+            DefaultServerUrl = config.ServerUrl;
+
+            if (DefaultServerUrl != null)
+            {
+                if (DefaultServerUrl.EndsWith('/') || DefaultServerUrl.EndsWith('\\'))
+                {
+                    DefaultServerUrl += FileSetting.Platform.ToString() + "/";
+                }
+                else
+                {
+                    DefaultServerUrl += "/" + FileSetting.Platform.ToString() + "/";
+                }
+            }
+            DefaultSaveDir = FileSetting.LocalDir;
         }
 
         public static void ClearAll()
@@ -119,7 +172,7 @@ namespace FH
             mgr.ClearAll();
         }
 
-        public static FileDownloadInfo AddTask(FileManifest.FileItem file)
+        public static FileDownloadJobInfo AddJob(FileManifest.FileItem file)
         {
             IFileDownloadMgr mgr = _Inst.Val;
             if (mgr == null)
@@ -127,13 +180,26 @@ namespace FH
                 FileDownloadLog.E("FileDownloadMgr is Null");
                 return null;
             }
-            return mgr.AddTask(file);
+
+            var desc = _CreateJobDesc(file);
+            return mgr.AddJob(desc);
+        }
+
+        public static void SetCallBack(FileDownloadCallBack callback)
+        {
+            IFileDownloadMgr mgr = _Inst.Val;
+            if (mgr == null)
+            {
+                FileDownloadLog.E("FileDownloadMgr is Null");
+                return;
+            }
+            mgr.SetCallBack(callback);
         }
 
         /// <summary>
         /// Pending -> pause, Downloading -> pause
         /// </summary>
-        public static void Pause(FileDownloadInfo info)
+        public static void Pause(FileDownloadJobInfo info)
         {
             IFileDownloadMgr mgr = _Inst.Val;
             if (mgr == null)
@@ -146,14 +212,29 @@ namespace FH
                 FileDownloadLog.Assert(false, "param info is Null");
                 return;
             }
-            mgr.Pause(info.FullName);
+            mgr.Pause(info.JobDesc.KeyName);
+        }
+
+        /// <summary>
+        /// Pending -> pause, Downloading -> pause
+        /// </summary>
+        public static void Pause(string job_key_name)
+        {
+            IFileDownloadMgr mgr = _Inst.Val;
+            if (mgr == null)
+            {
+                FileDownloadLog.E("FileDownloadMgr is Null");
+                return;
+            }
+           
+            mgr.Pause(job_key_name);
         }
 
         /// <summary>
         /// Fail -> pending, Pause -> pending <br/>
         /// 有可能失效, 比如当前正在 Downloading, 先调用Pause, 还没有完全暂停, 再次调用 Restart        
         /// </summary>
-        public static void Start(FileDownloadInfo info)
+        public static void Start(FileDownloadJobInfo info)
         {
             IFileDownloadMgr mgr = _Inst.Val;
             if (mgr == null)
@@ -166,10 +247,10 @@ namespace FH
                 FileDownloadLog.Assert(false, "param info is Null");
                 return;
             }
-            mgr.Start(info.FullName);
+            mgr.Start(info.JobDesc.KeyName);
         }
 
-        public static List<FileDownloadInfo> AddTasks(IList<FileManifest.FileItem> files)
+        public static List<FileDownloadJobInfo> AddTasks(IList<FileManifest.FileItem> files)
         {
             IFileDownloadMgr mgr = _Inst.Val;
             if (mgr == null)
@@ -184,17 +265,35 @@ namespace FH
                 return null;
             }
 
-            List<FileDownloadInfo> ret = new List<FileDownloadInfo>(files.Count);
+            List<FileDownloadJobInfo> ret = new List<FileDownloadJobInfo>(files.Count);
             foreach (var file in files)
             {
-                var info = mgr.AddTask(file);
+                var info = mgr.AddJob(_CreateJobDesc(file));
                 if (info != null)
                     ret.Add(info);
             }
             return ret;
         }
 
-        public static float GetProgress(this List<FileDownloadInfo> self, out long total_size, out long download_size)
+        private static FileDownloadJobDesc _CreateJobDesc(FileManifest.FileItem item)
+        {
+            string key_name = item.FullName;
+            string remote_url = item.FullName;
+            var ret = new FileDownloadJobDesc()
+            {
+                KeyName = item.FullName,
+                RemoteUrl = DefaultServerUrl+item.FullName,
+                Crc32 = item.Crc32,
+                TotalSize = item.Size,
+                UseGz = item.UseGz,        
+                UserData = item,
+                DestFilePath = DefaultSaveDir + item.FullName,
+            };        
+
+            return ret;
+        }
+
+        public static float GetProgress(this List<FileDownloadJobInfo> self, out long total_size, out long download_size)
         {
             total_size = 0;
             download_size = 0;
@@ -232,7 +331,7 @@ namespace FH
             return System.Math.Clamp(progress, 0, 0.99f);
         }
 
-        public static bool IsAllSucc(this List<FileDownloadInfo> self)
+        public static bool IsAllSucc(this List<FileDownloadJobInfo> self)
         {
             foreach (var p in self)
             {
@@ -243,7 +342,7 @@ namespace FH
         }
 
 
-        public static FileDownloadInfo FindInfo(string file_full_name)
+        public static FileDownloadJobInfo FindInfo(string file_full_name)
         {
             IFileDownloadMgr mgr = _Inst.Val;
             if (mgr == null)
@@ -254,7 +353,7 @@ namespace FH
             return mgr.FindInfo(file_full_name);
         }
 
-        public static void GetAllInfo(List<FileDownloadInfo> out_list)
+        public static void GetAllInfo(List<FileDownloadJobInfo> out_list)
         {
             IFileDownloadMgr mgr = _Inst.Val;
             if (mgr == null)
@@ -262,7 +361,7 @@ namespace FH
                 FileDownloadLog.E("FileDownloadMgr is Null");
                 return;
             }
-            mgr.GetAllInfo(out_list);
+            mgr.GetAllJobs(out_list);
         }
 
 

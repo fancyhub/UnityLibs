@@ -12,7 +12,9 @@ using UnityEngine;
 
 namespace FH.AssetBundleBuilder.Ed
 {
-
+    /// <summary>
+    /// 依赖收集工具
+    /// </summary>
     public class AssetDependency_Unity : BuilderAssetDependency, IAssetDependency
     {
         public List<string> IgnoreAssetPathList = new List<string>();

@@ -11,6 +11,9 @@ using UnityEngine;
 
 namespace FH.AssetBundleBuilder.Ed
 {
+    /// <summary>
+    /// 根据ab名, 来添加该ab包对应的tags
+    /// </summary>
     public class TagRuler_Bundle : BuilderTagRuler
     {
         [Header("eg: base;tag_a;tag_b")]

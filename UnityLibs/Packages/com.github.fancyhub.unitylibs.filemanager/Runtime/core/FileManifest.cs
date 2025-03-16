@@ -22,6 +22,7 @@ namespace FH
         {
             public string Name;
             public string FullName;
+            public string RelativePath;
             public int Size;
             public uint Crc32;
 
@@ -93,7 +94,27 @@ namespace FH
         }
 
         private Dictionary<string, FileItem> _FileDict;
+        private Dictionary<string, FileItem> _RelativeFileDict;
         public FileItem FindFile(string name)
+        {
+            _BuildDict();
+            if (name == null)
+                return null;
+
+            _FileDict.TryGetValue(name, out FileItem item);
+            return item;
+        }
+
+        public FileItem FindFileByRelativePath(string relative_path)
+        {
+            _BuildDict();
+            if (relative_path == null)
+                return null;
+            _RelativeFileDict.TryGetValue(relative_path, out FileItem item);
+            return item;
+        }
+
+        private void _BuildDict()
         {
             if (_FileDict == null)
             {
@@ -104,11 +125,17 @@ namespace FH
                     _FileDict.Add(p.Name, p);
                 }
             }
-            if (name == null)
-                return null;
 
-            _FileDict.TryGetValue(name, out FileItem item);
-            return item;
+            if(_RelativeFileDict ==null)
+            {
+                _RelativeFileDict = new();
+                foreach(var p in Files)
+                {
+                    if (string.IsNullOrEmpty(p.RelativePath))
+                        continue;
+                    _RelativeFileDict.Add(p.RelativePath, p);
+                }
+            }
         }
 
         private Dictionary<string, TagItem> _TagDict;
@@ -126,7 +153,7 @@ namespace FH
 
             _TagDict.TryGetValue(tag, out TagItem item);
             return item;
-        }         
+        }
 
         public void SaveTo(string file_path)
         {

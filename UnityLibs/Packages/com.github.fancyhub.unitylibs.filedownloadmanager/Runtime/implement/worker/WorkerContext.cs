@@ -12,9 +12,11 @@ namespace FH.FileDownload
 {
     internal class WorkerConfig
     {
-        public string ServerUrl;
         public int RetryCount = 3;
         public int MaxWorkerCount = 0;
+        public string DownloadTempDir;
+
+        public FileDownloadCallBack CallBack;
     }
 
     internal sealed class WorkerContext
@@ -27,11 +29,11 @@ namespace FH.FileDownload
 
         public HttpDownloaderError _HttpDownloaderError;
         public CPtr<Job> _CurrentJob;
+        public FileDownloadJobInfo _CurrentJobInfo;
+        public FileDownloadJobDesc _CurrentJobDesc;
 
-        public FileDownloadInfo _CurrentFileDownloadInfo;
-        public JobInfo _CurrentJobInfo;
         public CPtr<ITask> _Task;
-
+       
 
         public string _RemoteFileUri; // http://xxxx/Android/file_full_name 
         public string _LocalFilePath; // Application.persistentDataPath/some_folder/file_full_name        
@@ -55,13 +57,13 @@ namespace FH.FileDownload
             var job = _JobDB.PopPending();
             if (job == null)
                 return false;
-            _CurrentJob = job;
+            _CurrentJob = job;            
             _CurrentJobInfo = job._JobInfo;
-            _CurrentFileDownloadInfo = job._DwonloadInfo;
+            _CurrentJobDesc = _CurrentJobInfo.JobDesc;
 
-            _RemoteFileUri = _Config.ServerUrl + _CurrentJobInfo.FullName;
-            _LocalFilePath = FileSetting.LocalDir + _CurrentJobInfo.FullName;
-            _DownloadFilePath = FileSetting.DownloadDir + _CurrentJobInfo.FullName;
+            _RemoteFileUri =  _CurrentJobDesc.RemoteUrl;
+            _LocalFilePath = _CurrentJobDesc.DestFilePath;
+            _DownloadFilePath = _Config.DownloadTempDir + _CurrentJobDesc.KeyName;
             _RetryCount = _Config.RetryCount + 1;
             job._WorkerIndex = _WorkerIndex;
             return true;
@@ -80,7 +82,9 @@ namespace FH.FileDownload
 
             _JobDB.Change(job, status);
             job._WorkerIndex = -1;
+            
             _CurrentJob = null;
+            _Config.CallBack?.Invoke(job._JobInfo);
         }
 
         public bool StartDownload()
@@ -143,6 +147,7 @@ namespace FH.FileDownload
 
             try
             {
+                FileUtil.CreateFileDir(_LocalFilePath);
                 System.IO.File.Copy(_RemoteFileUri, _LocalFilePath);
             }
             catch (IOException e)
@@ -153,12 +158,12 @@ namespace FH.FileDownload
 
         private void _OnHttpDownloadFileSizeCB(long download_size, long total_size)
         {
-            if (_CurrentFileDownloadInfo == null)
+            if (_CurrentJobInfo == null)
             {
                 FileDownloadLog.D("Job Is Null,{0}", _RemoteFileUri);
                 return;
             }
-            _CurrentFileDownloadInfo._DownloadSize = download_size;
+            _CurrentJobInfo._DownloadSize = download_size;
         }
 
         private void _TaskHttpDownload()
@@ -179,7 +184,7 @@ namespace FH.FileDownload
             //4. 根据GZ 调整路径
             string temp_remote_file_url = _RemoteFileUri;
             string temp_download_file_path = _DownloadFilePath;
-            if (_CurrentJobInfo.UseGz)
+            if (_CurrentJobDesc.UseGz)
             {
                 temp_remote_file_url += ".gz";
                 temp_download_file_path += ".gz";
@@ -191,19 +196,19 @@ namespace FH.FileDownload
                temp_remote_file_url,
                temp_download_file_path,
                _OnHttpDownloadFileSizeCB,
-               _CurrentJobInfo.Crc32,
+               _CurrentJobDesc.Crc32,
                _CancellationToken);
 
             //6. 检查错误
             if (_HttpDownloaderError.Error != EHttpDownloaderError.OK)
             {
-                FileDownloadLog.D("下载错误 {0},{1}", _HttpDownloaderError.Error, _RemoteFileUri);
+                FileDownloadLog.E("下载错误 {0},{1}", _HttpDownloaderError.Error, _RemoteFileUri);
                 return;
             }
 
             //下面的不可取消
             //7. 解压缩
-            if (_CurrentJobInfo.UseGz)
+            if (_CurrentJobDesc.UseGz)
             {
                 try
                 {
@@ -234,6 +239,7 @@ namespace FH.FileDownload
             }
 
             //8.移动
+            FileUtil.CreateFileDir(_LocalFilePath);
             System.IO.File.Move(_DownloadFilePath, _LocalFilePath);
         }
     }

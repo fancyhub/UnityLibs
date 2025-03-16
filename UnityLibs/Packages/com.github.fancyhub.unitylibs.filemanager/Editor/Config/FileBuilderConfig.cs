@@ -20,7 +20,7 @@ namespace FH.FileManagement.Ed
         public const string CPath = "Assets/fancyhub/FileBuilderConfig.asset";
 
         [SerializeField]
-        private string _OutputDir = "ProjTemp/Build/Server/{Target}";
+        private string _OutputDir = "ProjTemp/Build/CDN/{Target}";
         public string DefaultExt = ".bytes";
         public bool GenGZ = false;
 
@@ -35,7 +35,7 @@ namespace FH.FileManagement.Ed
         public List<IBuildStep> GetBuildSteps()
         {
             List<IBuildStep> ret = new List<IBuildStep>();
-            foreach (var p in BuildSteps)
+            foreach (var p in BuildSteps) 
             {
                 IBuildStep step = p.GetBuildStep();
                 if (step != null)
@@ -45,18 +45,37 @@ namespace FH.FileManagement.Ed
             return ret;
         }
 
-        public IBuildCopyStreamingAsset GetCopyStreamingAsset()
+        public List<FileManifest.FileItem> GetFilesNeedToCopy2StreamingAssets(FileManifest file_manifest)
         {
+            HashSet<string> file_set = new HashSet<string>();
+
             foreach (var p in CopyStreamingAsset)
             {
                 if (p == null)
                     continue;
-                var r = p.GetCopyStreamingAsset();
+                IBuildCopyStreamingAsset r = p.GetCopyStreamingAsset();
                 if (r == null)
                     continue;
-                return r;
+
+                HashSet<string> temp = r.GetFilesToCopy(file_manifest);
+                foreach (var p2 in temp)
+                    file_set.Add(p2);
             }
-            return null;
+
+            List<FileManifest.FileItem> ret = new List<FileManifest.FileItem>();
+            foreach (var p in file_set)
+            {
+                var item = file_manifest.FindFile(p);
+                if (item == null)
+                {
+                    Debug.LogError($"找不到 {p} 复制到StreamingAssets");
+                }
+                else
+                {
+                    ret.Add(item);
+                }
+            }
+            return ret;
         }
 
         public static FileBuilderConfig GetDefault()

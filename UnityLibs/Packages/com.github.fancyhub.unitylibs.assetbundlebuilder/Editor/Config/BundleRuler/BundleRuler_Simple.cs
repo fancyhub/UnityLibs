@@ -10,6 +10,9 @@ using System.Collections.Generic;
 
 namespace FH.AssetBundleBuilder.Ed
 {
+    /// <summary>
+    /// 通过通配符来匹配asset_path , 确定包名
+    /// </summary>
     public class BundleRuler_Simple : BuilderBundleRuler
     {
         public string BundleName;

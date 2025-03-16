@@ -116,7 +116,7 @@ namespace FH
                 {
                     foreach (var p in VfsBuilderConfig.Items)
                     {
-                        FileMgr.FindFile(p.Name, out var full_path);
+                        FileMgr.FindFile(p.Name, out var full_path, out var _);
                         if (full_path == null)
                         {
                             Log.E("找不到文件 {0}", p.Name);

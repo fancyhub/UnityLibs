@@ -33,8 +33,8 @@ namespace FH
         private const int C_Stack_Start_Index = 3;
         private static int[] C_Stack_Depth = new int[]
         {
-            8, //Debug
-            8, //Info
+            0, //Debug
+            0, //Info
             1000, //Warning,
             1000,//Assert,
             1000,//Error,

@@ -24,7 +24,6 @@ namespace FH.FileDownload
             _StatusList[(int)EFileDownloadStatus.Pause] = new LinkedList<Job>();
             _StatusList[(int)EFileDownloadStatus.Failed] = new LinkedList<Job>();
             _StatusList[(int)EFileDownloadStatus.Succ] = new LinkedList<Job>();
-
         }
 
         public void ClearAll()
@@ -41,61 +40,64 @@ namespace FH.FileDownload
             }
         }
 
-        public Job AddJob(FileManifest.FileItem file)
+        public Job AddJob(FileDownloadJobDesc job_desc)
         {
-            if (file == null)
+            if (!job_desc.IsValid())
             {
-                FileDownloadLog.Assert(false, "param file is null");
+                FileDownloadLog.Assert(false, "param task is not valid");
                 return null;
-            }
-            if (file.FullName == null)
-            {
-                FileDownloadLog.Assert(false, "param file.FullName is null");
-                return null;
-            }
+            }          
 
-            _Dict.TryGetValue(file.FullName, out var job_node);
+            _Dict.TryGetValue(job_desc.KeyName, out var job_node);
             if (job_node != null)
                 return job_node.Value;
 
-            Job ret = Job.Create(file);
+            Job ret = Job.Create(job_desc);
+
+            if (System.IO.File.Exists(job_desc.DestFilePath))
+            {
+                FileDownloadLog.D("File {0} has Downloaded", job_desc.DestFilePath);
+                ret.Status = EFileDownloadStatus.Succ;               
+            }
+
             job_node = _StatusList[(int)ret.Status].ExtAddLast(ret);
-            _Dict.Add(file.FullName, job_node);
+            _Dict.Add(job_desc.KeyName, job_node);
             return ret;
         }
 
-        public Job FindJob(string file_full_name)
+        public Job FindJob(string job_key_name)
         {
-            if (string.IsNullOrEmpty(file_full_name))
+            if (string.IsNullOrEmpty(job_key_name))
             {
-                FileDownloadLog.Assert(false, "param file_full_name is null");
+                FileDownloadLog.Assert(false, "param job_key_name is null");
                 return null;
             }
 
-            _Dict.TryGetValue(file_full_name, out var job_node);
+            _Dict.TryGetValue(job_key_name, out var job_node);
             if (job_node != null)
             {
                 return job_node.Value;
             }
-            FileDownloadLog.Assert(false, "找不到 {0}", file_full_name);
+            FileDownloadLog.Assert(false, "找不到 {0}", job_key_name);
             return null;
         }
 
         public void Change(Job job, EFileDownloadStatus status)
         {
-            if (job == null || job._DwonloadInfo == null)
+            if (job == null || job._JobInfo == null)
             {
                 FileDownloadLog.Assert(false, "param job is null, 代码有问题");
                 return;
             }
 
-            if (string.IsNullOrEmpty(job._JobInfo.FullName))
+            if (string.IsNullOrEmpty(job.JobKeyName))
             {
-                FileDownloadLog.Assert(false, "param job.JobInfo.FullName is null, 代码有问题");
+                FileDownloadLog.Assert(false, "param job.JobKeyName is null, 代码有问题");
                 return;
             }
 
-            _Dict.TryGetValue(job._JobInfo.FullName, out var job_node);
+            _Dict.TryGetValue(job.JobKeyName, out var job_node);
+
             if (job_node == null)
             {
                 FileDownloadLog.Assert(false, "内部错误, 代码有问题");
@@ -114,7 +116,7 @@ namespace FH.FileDownload
             //状态检查
             if (!_CanChangeStatus(job.Status, status))
             {
-                FileDownloadLog.Assert(false, "FileDownloadStatus 不能从 {0} -> {1}", job._DwonloadInfo.Status, status);
+                FileDownloadLog.Assert(false, "FileDownloadStatus 不能从 {0} -> {1}", job._JobInfo.Status, status);
                 return;
             }
             job.Status = status;
@@ -162,7 +164,7 @@ namespace FH.FileDownload
                     .From(EFileDownloadStatus.Succ);
 
             }
-            return _JobStatusTranMap.Next(from, to, out var _);             
+            return _JobStatusTranMap.Next(from, to, out var _);
         }
     }
 }

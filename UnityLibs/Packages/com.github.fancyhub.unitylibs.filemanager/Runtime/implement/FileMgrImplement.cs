@@ -43,12 +43,16 @@ namespace FH.FileManagement
             _Manifest_Base = _LoadBaseManifest();
             if (_Manifest_Base == null && !Application.isEditor)
                 FileLog._.E("加载本地{0} 失败", FileManifest.CDefaultFileName);
+
+            _FileCollection.CollectStreamingAssets(_Manifest_Base);
+            _FileCollection.CollectLocalDir();
+
             _Manifest_Local = _LoadLocalManifest();
 
             //2. 收集文件
             if (_Manifest_Local != null)
             {
-                if (_IsAllReady(_FileCollection, _Manifest_Local, _Tags))
+                if (_IsAllReady(_FileCollection, _Manifest_Local, true, _Tags))
                 {
                     FileLog._.D("使用缓存里面的FileManifest,Version: {0}", _Manifest_Local.Version);
                     _Manifest_Current = _Manifest_Local;
@@ -61,7 +65,7 @@ namespace FH.FileManagement
 
             if (_Manifest_Current == null && _Manifest_Base != null)
             {
-                if (!_IsAllReady(_FileCollection, _Manifest_Base, _Tags))
+                if (!_IsAllReady(_FileCollection, _Manifest_Base, true, _Tags))
                     FileLog._.D("StreamingAssets的FileManifest有文件不存在");
 
                 _Manifest_Current = _Manifest_Base;
@@ -96,8 +100,6 @@ namespace FH.FileManagement
                 return false;
             }
 
-
-
             _FileCollection.CollectLocalDir();
             return true;
         }
@@ -131,10 +133,23 @@ namespace FH.FileManagement
             }
 
             _FileCollection.CollectLocalDir();
-            if (!_IsAllReady(_FileCollection, new_manifest, _Tags, out_need_download_list))
+            if (!_IsAllReady(_FileCollection, new_manifest, false, _Tags, out_need_download_list))
             {
                 FileLog._.D("new FileManifest Is Not Ready");
                 return false;
+            }
+
+            new_manifest.GetFilesWithTags(_Tags, _STempFileList);
+            foreach(var p in _STempFileList)
+            {
+                if (string.IsNullOrEmpty(p.RelativePath))
+                    continue;
+
+                if(!_FileCollection.MoveFile2RelativeFile(p))
+                {
+                    FileLog._.E("切换的时候, 文件移动到 relative 目录失败 {0}",p.FullName);
+                    return false;
+                }
             }
 
             string path = FileSetting.LocalDir + FileManifest.CDefaultFileName;
@@ -145,29 +160,62 @@ namespace FH.FileManagement
             return true;
         }
 
+        public void OnFileDownload(FileManifest.FileItem item)
+        {
+            if (item == null)
+            {
+                FileLog._.E("param item is null");
+                return;
+            }
+
+            string file_full_path = FileSetting.LocalDir + item.FullName;
+            if (!System.IO.File.Exists(file_full_path))
+            {
+                FileLog._.E("can't find the downloaded file: {0}", file_full_path);
+                return;
+            }
+
+            _FileCollection.AddDownloadFile(item.FullName, file_full_path);
+
+            if (string.IsNullOrEmpty(item.RelativePath))
+                return;
+
+            if (_Manifest_Current == null)
+            {
+                FileLog._.E("current FileManifest is null");
+                return;
+            }
+
+            //是当前manifest需要的文件 && 是relative 文件类型, 需要移动
+            if (_Manifest_Current.FindFile(item.Name) != null)
+            {
+                _FileCollection.MoveFile2RelativeFile(item);
+            }
+        }
+
         public bool IsAllReady(FileManifest manifest, HashSet<string> tags = null, List<FileManifest.FileItem> out_need_download_list = null)
         {
             if (manifest == null)
             {
-                FileLog._.Assert(false, "新的FileManifest 为空");
+                FileLog._.Assert(false, "the param manifest is null");
                 return false;
             }
 
-            return _IsAllReady(_FileCollection, manifest, tags, out_need_download_list);
+            return _IsAllReady(_FileCollection, manifest, manifest == _Manifest_Current, tags, out_need_download_list);
         }
 
         public byte[] ReadAllBytes(string name)
         {
-            var status = FindFile(name, out string full_path);
-            if (status != EFileStatus.Ready)
+            var status = FindFile(name, out string full_path, out var file_location);
+            if (status != EFileStatus.Ready || file_location == EFileLocation.None)
             {
-                FileLog._.E("读取文件失败 {0} : {1}", status, name);
+                FileLog._.E("read file failed, Status:{0}, Location:{1}, {2}", status, file_location, name);
                 return null;
             }
 
-            if (full_path.StartsWith(FileSetting.StreamingAssetsDir))
+            if (file_location == EFileLocation.StreamingAssets)
             {
-                FileLog._.D("从StreamingAssets 里面读取文件 {0}->{1}", name, full_path);
+                FileLog._.D("read file from StreamingAssets : {0}->{1}", name, full_path);
                 return SAFileSystem.ReadAllBytes(full_path);
             }
             else if (System.IO.File.Exists(full_path))
@@ -175,20 +223,20 @@ namespace FH.FileManagement
                 return System.IO.File.ReadAllBytes(full_path);
             }
 
-            FileLog._.Assert(false, "内部出错, 文件不存在 {0}->{1}", name, full_path);
+            FileLog._.Assert(false, "internal error, file is not exist: {0}->{1}", name, full_path);
             return null;
         }
 
         public System.IO.Stream OpenRead(string name)
         {
-            var status = FindFile(name, out string full_path);
-            if (status != EFileStatus.Ready)
+            var status = FindFile(name, out string full_path, out var file_location);
+            if (status != EFileStatus.Ready || file_location == EFileLocation.None)
             {
-                FileLog._.E("读取文件失败 {0} : {1}", status, name);
+                FileLog._.E("read file failed:  Status:{0}, Location:{1}, {2}", status, file_location, name);
                 return null;
             }
 
-            if (full_path.StartsWith(FileSetting.StreamingAssetsDir))
+            if (file_location == EFileLocation.StreamingAssets)
             {
                 FileLog._.D("从StreamingAssets 里面读取文件 {0}->{1}", name, full_path);
                 return SAFileSystem.OpenRead(full_path);
@@ -198,30 +246,45 @@ namespace FH.FileManagement
                 return System.IO.File.OpenRead(full_path);
             }
 
-            FileLog._.Assert(false, "内部出错, 文件不存在 {0}->{1}", name, full_path);
+            FileLog._.Assert(false, "internal error, file is not exist: {0}->{1}", name, full_path);
             return null;
         }
 
-        public EFileStatus FindFile(string name, out string full_path)
+        public EFileStatus FindFile(string name, out string full_path, out EFileLocation file_location)
         {
             if (_Manifest_Current == null)
             {
                 FileLog._.D("Current FileManifest Is Null");
                 full_path = null;
+                file_location = EFileLocation.None;
                 return EFileStatus.None;
             }
 
             var item = _Manifest_Current.FindFile(name);
             if (item == null)
             {
-                FileLog._.D("找不到文件 {0}", name);
+                FileLog._.D("can't find the file: {0}", name);
                 full_path = null;
+                file_location = EFileLocation.None;
                 return EFileStatus.None;
             }
 
-            full_path = _FileCollection.GetFullPath(item.FullName);
-            if (full_path == null)
-                return EFileStatus.Remote;
+            return FindFile(item, out full_path, out file_location);
+        }
+
+        public EFileStatus FindFile(FileManifest.FileItem file, out string full_path, out EFileLocation file_location)
+        {
+            if (file == null)
+            {
+                FileLog._.D("Current FileManifest Is Null");
+                full_path = null;
+                file_location = EFileLocation.None;
+                return EFileStatus.None;
+            }
+
+            (full_path, file_location) = _FileCollection.GetFullPath(file.FullName);
+            if (file_location == EFileLocation.Remote)
+                return EFileStatus.NeedDownload;
             return EFileStatus.Ready;
         }
 
@@ -268,6 +331,7 @@ namespace FH.FileManagement
         private static bool _IsAllReady(
             FileCollection file_collection,
             FileManifest manifest,
+            bool should_in_relative,
             HashSet<string> tags = null,
             List<FileManifest.FileItem> out_not_ready_list = null)
         {
@@ -285,7 +349,7 @@ namespace FH.FileManagement
                 bool ret = true;
                 foreach (var p in _STempFileList)
                 {
-                    if (file_collection.GetFullPath(p.FullName) != null)
+                    if (file_collection.IsExist(p.FullName,  should_in_relative,p.RelativePath))
                         continue;
 
                     FileLog._.D("文件 {0} 不存在", p.FullName);
@@ -301,7 +365,7 @@ namespace FH.FileManagement
                 out_not_ready_list.Clear();
                 foreach (var p in _STempFileList)
                 {
-                    if (file_collection.GetFullPath(p.FullName) != null)
+                    if (file_collection.IsExist(p.FullName, should_in_relative, p.RelativePath))
                         continue;
 
                     FileLog._.D("文件 {0} 不存在", p.FullName);

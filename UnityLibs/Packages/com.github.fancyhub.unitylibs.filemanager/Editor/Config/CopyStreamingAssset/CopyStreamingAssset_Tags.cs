@@ -12,6 +12,9 @@ using UnityEngine;
 
 namespace FH.FileManagement.Ed
 {
+    /// <summary>
+    /// 根据tags复制文件到 streamingassets目录
+    /// </summary>
     public class BuildCopyStreamingAsset_Tags : BuildCopyStreamingAsset
     {
         [Header("eg: tag_a;tag_b")]
@@ -28,7 +31,7 @@ namespace FH.FileManagement.Ed
 
                 foreach (int file_index in tag_item.Files)
                 {
-                    file_need_copy.Add(manifest.Files[file_index].FullName);
+                    file_need_copy.Add(manifest.Files[file_index].Name);
                 }
             }
             return file_need_copy;

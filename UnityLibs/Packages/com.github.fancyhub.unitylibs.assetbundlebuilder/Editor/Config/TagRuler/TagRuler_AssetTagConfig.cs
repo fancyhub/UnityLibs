@@ -10,6 +10,9 @@ using System.Collections.Generic;
 
 namespace FH.AssetBundleBuilder.Ed
 {
+    /// <summary>
+    /// 根据配置来确定该包所对应的tags
+    /// </summary>
     public class TagRuler_AssetTagConfig : BuilderTagRuler
     {
         public AssetsInputConfig Config;

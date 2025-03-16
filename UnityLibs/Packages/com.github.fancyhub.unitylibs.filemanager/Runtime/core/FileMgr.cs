@@ -20,7 +20,15 @@ namespace FH
     {
         None, //不存在
         Ready, //可以直接读取
-        Remote, //在远程, 还没有下载
+        NeedDownload, //在远程, 还没有下载
+    }
+
+    public enum EFileLocation
+    {
+        None, //
+        StreamingAssets,
+        Persistent,
+        Remote,
     }
 
     public partial interface IFileMgr : ICPtr
@@ -30,11 +38,15 @@ namespace FH
 
         public bool Upgrade(FileManifest new_manifest, List<FileManifest.FileItem> out_need_download_list = null);
 
-        public EFileStatus FindFile(string name, out string full_path);
+        public EFileStatus FindFile(string name, out string full_path, out EFileLocation file_location);
+
+        public EFileStatus FindFile(FileManifest.FileItem file, out string full_path, out EFileLocation file_location);
 
         public bool IsAllReady(FileManifest manifest, HashSet<string> tags = null, List<FileManifest.FileItem> out_need_download_list = null);
-
+         
         public ExtractStreamingAssetsOperation GetExtractOperation();
+
+        public void OnFileDownload(FileManifest.FileItem item);
 
         public void RefreshFileList();
 
@@ -44,6 +56,14 @@ namespace FH
 
     public static class FileMgr
     {
+        public struct FileInfo
+        {
+            public FileManifest.FileItem Base;
+            public string FullPath;
+            public EFileLocation Location;
+            public EFileStatus Status;
+        }
+
         private static CPtr<IFileMgr> _;
         private static HashSet<string> _S_TempTags = new HashSet<string>();
 
@@ -133,22 +153,81 @@ namespace FH
                     continue;
                 _S_TempTags.Add(p);
             }
-            return mgr.IsAllReady(manifest, null, out_need_download_list);
+            return mgr.IsAllReady(manifest, _S_TempTags, out_need_download_list);
         }
 
-        public static EFileStatus FindFile(string name, out string full_path)
+        public static bool IsAllReady(List<string> tags = null, List<FileManifest.FileItem> out_need_download_list = null)
+        {
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                FileLog._.E("FileMgr Is Null");
+                return false;
+            }
+            if (tags == null)
+            {
+                return mgr.IsAllReady(mgr.GetCurrentManifest(), null, out_need_download_list);
+            }
+            _S_TempTags.Clear();
+            foreach (var p in tags)
+            {
+                if (string.IsNullOrEmpty(p))
+                    continue;
+                _S_TempTags.Add(p);
+            }
+            return mgr.IsAllReady(mgr.GetCurrentManifest(), _S_TempTags, out_need_download_list);
+        }
+
+        public static EFileStatus FindFile(string name, out string full_path, out EFileLocation file_location)
         {
             var mgr = _.Val;
             if (mgr == null)
             {
                 FileLog._.E("FileMgr Is Null");
                 full_path = null;
+                file_location = EFileLocation.None;
                 return EFileStatus.None;
             }
 
-            return mgr.FindFile(name, out full_path);
+            return mgr.FindFile(name, out full_path, out file_location);
         }
 
+        public static bool GetFilesByTags(List<string> tags, List<FileInfo> out_file_list)
+        {
+            out_file_list.Clear();
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                FileLog._.E("FileMgr Is Null");
+                return false;
+            }
+
+            var file_manifest = mgr.GetCurrentManifest();
+            if (file_manifest == null)
+            {
+                FileLog._.E("current manifest is null");
+                return false;
+            }
+
+            _S_TempTags.Clear();
+            foreach (var p in tags)
+            {
+                if (string.IsNullOrEmpty(p))
+                    continue;
+                _S_TempTags.Add(p);
+            }
+
+            var file_list = file_manifest.GetFilesWithTags(_S_TempTags);
+            foreach (var p in file_list)
+            {
+                FileInfo file_info = new FileInfo();
+                file_info.Base = p;
+                file_info.Status = mgr.FindFile(p, out file_info.FullPath, out file_info.Location);
+                out_file_list.Add(file_info);
+            }
+
+            return true;
+        }
 
         public static System.IO.Stream OpenRead(string name)
         {
@@ -170,6 +249,18 @@ namespace FH
                 return null;
             }
             return mgr.ReadAllBytes(name);
+        }
+
+        public static void OnFileDownloaded(FileManifest.FileItem item)
+        {
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                FileLog._.E("FileMgr Is Null");
+                return;
+            }
+
+            mgr.OnFileDownload(item);
         }
 
         public static FileManifest GetCurrentManifest()

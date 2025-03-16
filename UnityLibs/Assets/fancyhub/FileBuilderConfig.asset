@@ -1,5 +1,28 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7427608599996604877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4b070213b49b2c4e83642eb171499d8, type: 3}
+  m_Name: FileBuildStep_BuildRawFiles
+  m_EditorClassIdentifier: 
+  Name: 
+  Enable: 1
+  Tags: sound;base;android
+  RootDir: E:\p4_dev2\KD\Dev\Client\Krad_Wwise\GeneratedSoundBanks\
+  KeepReletivePath: 1
+  SearchList:
+  - SearchDir: E:\p4_dev2\KD\Dev\Client\Krad_Wwise\GeneratedSoundBanks\Android
+    SearchPattern: '*.*'
+    SearchOption: 1
+    BuildTargets:
+      Value: 2147491840
 --- !u!114 &-7090512732746861786
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43,13 +66,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57c2968c92f25554d86a4a41fdbf0957, type: 3}
   m_Name: FileBuilderConfig
   m_EditorClassIdentifier: 
-  _OutputDir: ProjTemp/Build/Server/{Target}
+  _OutputDir: ProjTemp/Build/CDN/{Target}
   DefaultExt: .bytes
-  GenGZ: 1
+  GenGZ: 0
   BuildSteps:
   - {fileID: -2045977716326401409}
   - {fileID: 2352148290529512183}
   - {fileID: 5932817073366880787}
+  - {fileID: -7427608599996604877}
   CopyStreamingAsset:
   - {fileID: 6191568943613744893}
   - {fileID: -7090512732746861786}
@@ -66,7 +90,7 @@ MonoBehaviour:
   m_Name: FileBuildStep_BuildBundle
   m_EditorClassIdentifier: 
   Name: Build Bundle
-  Enable: 1
+  Enable: 0
   ABBuilderConfig: {fileID: 11400000, guid: afc6bfbe5ee333f45b93dbf1fae4c3ad, type: 2}
   BundleManifestTags: base
 --- !u!114 &5932817073366880787
@@ -82,7 +106,7 @@ MonoBehaviour:
   m_Name: FileBuildStep_FetchBundleInfo
   m_EditorClassIdentifier: 
   Name: Fetch Bundle Asset Graph
-  Enable: 0
+  Enable: 1
   ABBuilderConfig: {fileID: 11400000, guid: afc6bfbe5ee333f45b93dbf1fae4c3ad, type: 2}
   BundleManifestTags: base
 --- !u!114 &6191568943613744893

@@ -21,6 +21,9 @@ namespace FH
 
     public static class FileSetting
     {
+        public const string CRelativeFileVersionExt = "._version";
+      
+
         #region Platform
         private static EFilePlatform _Platform = EFilePlatform.None;
         public static EFilePlatform Platform
@@ -113,11 +116,25 @@ namespace FH
             {
                 if (_LocalDir != null)
                     return _LocalDir;
-                _LocalDir = PersistentDir + "/Files/";
+                _LocalDir = PersistentDir + "Files/";
                 FileUtil.CreateDir(_LocalDir);
                 return _LocalDir;
             }
         }
+
+        private static string _LocalRelativeFileDir;
+        public static string LocalRelativeFileDir
+        {
+            get
+            {
+                if (_LocalRelativeFileDir != null)
+                    return _LocalRelativeFileDir;
+                _LocalRelativeFileDir = LocalDir + "Raw/";
+                FileUtil.CreateDir(_LocalRelativeFileDir);
+                return _LocalRelativeFileDir;
+            }
+        }
+
 
         private static string _DownloadDir;
         public static string DownloadDir
@@ -126,7 +143,7 @@ namespace FH
             {
                 if (_DownloadDir != null)
                     return _DownloadDir;
-                _DownloadDir = PersistentDir + "/Download/";
+                _DownloadDir = PersistentDir + "Download/";
                 FileUtil.CreateDir(_DownloadDir);
                 return _DownloadDir;
             }
@@ -148,6 +165,22 @@ namespace FH
                 }
                 return _StreamingAssetsDir;
             }
-        }        
+        }
+
+        private static string _StreamingAssetsRelativeFileDir;
+        /// <summary>
+        /// [Win|Android|IOS|OSX]/
+        /// </summary>
+        public static string StreamingAssetsRelativeFileDir
+        {
+            get
+            {
+                if (_StreamingAssetsRelativeFileDir == null)
+                {
+                    _StreamingAssetsRelativeFileDir = StreamingAssetsDir + "Raw/";
+                }
+                return _StreamingAssetsRelativeFileDir;
+            }
+        }
     }
 }
