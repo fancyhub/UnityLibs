@@ -370,4 +370,90 @@ namespace FH
             _Inst.Val?.Update();
         }
     }
+
+    public struct FileDownloadStat
+    {
+        public long TotalSize;
+        public long DownloadedSize;
+
+        public int SuccCount;
+        public int FailedCount;
+        public int DownloadingCount;
+        public int PausedCount;
+
+        public bool IsAllDone => DownloadingCount == 0 && PausedCount == 0;
+        public int TotalCount => SuccCount + FailedCount + PausedCount + DownloadingCount;
+
+        public float ProgressSize
+        {
+            get
+            {
+                if (DownloadingCount == 0 || PausedCount == 0)
+                    return 1.0f;
+
+                if (TotalSize <= 0)
+                    return 0.99f;
+
+                double ret = DownloadedSize / (double)TotalSize;
+                return (float)Math.Clamp(ret, 0, 0.99);
+            }
+        }      
+    
+        public float ProgressCount
+        {
+            get
+            {
+                if (DownloadingCount == 0 || PausedCount == 0 )
+                    return 1.0f;
+
+                int total = TotalCount;
+                int done_count = SuccCount + FailedCount;
+
+                if (total <= 0)
+                    return 1.0f;
+
+                double ret = done_count / (double)total;
+                return (float)Math.Clamp(ret, 0, 0.99);
+            }
+        }
+    }
+
+    public static class FileDownloadJobInfoExt
+    {
+        public static FileDownloadStat ExtGetSizeStat(this List<FileDownloadJobInfo> self)
+        {
+            FileDownloadStat ret = new();             
+            if (self == null)
+                return ret;
+
+            foreach(var p in self)
+            {
+                if (p == null)
+                    continue;
+                ret.TotalSize +=p.TotalSize;
+                ret.DownloadedSize += p.DownloadSize;
+
+                switch (p.Status)
+                {
+                    case EFileDownloadStatus.Downloading:
+                    case EFileDownloadStatus.Pending:
+                        ret.DownloadingCount++;
+                        break;
+                    case EFileDownloadStatus.Succ:
+                        ret.SuccCount++;
+                        break;
+                    case EFileDownloadStatus.Failed:
+                        ret.FailedCount++;
+                        break;
+                    case EFileDownloadStatus.Pause:
+                        ret.PausedCount++;
+                        break;
+                    default:
+                        FileDownloadLog.E("unkown status {0}",p.Status);
+                        break;
+                } 
+            }
+            return ret;
+        }      
+    }
 }
