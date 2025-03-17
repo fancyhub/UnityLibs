@@ -42,8 +42,10 @@ namespace FH
 
         public EFileStatus FindFile(FileManifest.FileItem file, out string full_path, out EFileLocation file_location);
 
-        public bool IsAllReady(FileManifest manifest, HashSet<string> tags = null, List<FileManifest.FileItem> out_need_download_list = null);
-         
+        public bool IsAllTagsReady(FileManifest manifest, HashSet<string> tags = null, List<FileManifest.FileItem> out_need_download_list = null);
+
+        public bool IsAllFilesReady(FileManifest manifest, HashSet<string> file_names, List<FileManifest.FileItem> out_need_download_list = null);
+
         public ExtractStreamingAssetsOperation GetExtractOperation();
 
         public void OnFileDownload(FileManifest.FileItem item);
@@ -65,11 +67,11 @@ namespace FH
         }
 
         private static CPtr<IFileMgr> _;
-        private static HashSet<string> _S_TempTags = new HashSet<string>();
+        private static HashSet<string> _S_TempStringHashSet = new HashSet<string>();
 
         public static IFileMgr Inst { get { return _.Val; } }
 
-        public static void Init(IFileMgr.Config config)
+        public static void InitMgr(IFileMgr.Config config, bool disable_in_editor)
         {
             if (config == null)
             {
@@ -82,6 +84,12 @@ namespace FH
                 return;
             }
             FileLog._ = TagLog.Create(FileLog._.Tag, config.LogLvl);
+
+            if (disable_in_editor && Application.isEditor)
+            {
+                _ = new FileMgrImplementEmpty();
+                return;
+            }
 
             FileMgrImplement file_mgr = new FileMgrImplement(config);
             file_mgr.Init();
@@ -132,7 +140,7 @@ namespace FH
             return mgr.Upgrade(new_manifest, out_need_download_list);
         }
 
-        public static bool IsAllReady(FileManifest manifest, List<string> tags = null, List<FileManifest.FileItem> out_need_download_list = null)
+        public static bool IsAllTagsReady(FileManifest manifest, List<string> tags = null, List<FileManifest.FileItem> out_need_download_list = null)
         {
             var mgr = _.Val;
             if (mgr == null)
@@ -143,20 +151,20 @@ namespace FH
 
             if (tags == null)
             {
-                return mgr.IsAllReady(manifest, null, out_need_download_list);
+                return mgr.IsAllTagsReady(manifest, null, out_need_download_list);
             }
 
-            _S_TempTags.Clear();
+            _S_TempStringHashSet.Clear();
             foreach (var p in tags)
             {
                 if (string.IsNullOrEmpty(p))
                     continue;
-                _S_TempTags.Add(p);
+                _S_TempStringHashSet.Add(p);
             }
-            return mgr.IsAllReady(manifest, _S_TempTags, out_need_download_list);
+            return mgr.IsAllTagsReady(manifest, _S_TempStringHashSet, out_need_download_list);
         }
 
-        public static bool IsAllReady(List<string> tags = null, List<FileManifest.FileItem> out_need_download_list = null)
+        public static bool IsAllTagsReady(List<string> tags = null, List<FileManifest.FileItem> out_need_download_list = null)
         {
             var mgr = _.Val;
             if (mgr == null)
@@ -166,16 +174,38 @@ namespace FH
             }
             if (tags == null)
             {
-                return mgr.IsAllReady(mgr.GetCurrentManifest(), null, out_need_download_list);
+                return mgr.IsAllTagsReady(mgr.GetCurrentManifest(), null, out_need_download_list);
             }
-            _S_TempTags.Clear();
+            _S_TempStringHashSet.Clear();
             foreach (var p in tags)
             {
                 if (string.IsNullOrEmpty(p))
                     continue;
-                _S_TempTags.Add(p);
+                _S_TempStringHashSet.Add(p);
             }
-            return mgr.IsAllReady(mgr.GetCurrentManifest(), _S_TempTags, out_need_download_list);
+            return mgr.IsAllTagsReady(mgr.GetCurrentManifest(), _S_TempStringHashSet, out_need_download_list);
+        }
+
+        public static bool IsAllFilesReady(List<string> files, List<FileManifest.FileItem> out_need_download_list = null)
+        {
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                FileLog._.E("FileMgr Is Null");
+                return false;
+            }
+            if (files == null)
+                return true;
+
+            _S_TempStringHashSet.Clear();
+            foreach (var p in files)
+            {
+                if (string.IsNullOrEmpty(p))
+                    continue;
+                _S_TempStringHashSet.Add(p);
+            }
+
+            return mgr.IsAllFilesReady(mgr.GetCurrentManifest(), _S_TempStringHashSet, out_need_download_list);
         }
 
         public static EFileStatus FindFile(string name, out string full_path, out EFileLocation file_location)
@@ -209,15 +239,15 @@ namespace FH
                 return false;
             }
 
-            _S_TempTags.Clear();
+            _S_TempStringHashSet.Clear();
             foreach (var p in tags)
             {
                 if (string.IsNullOrEmpty(p))
                     continue;
-                _S_TempTags.Add(p);
+                _S_TempStringHashSet.Add(p);
             }
 
-            var file_list = file_manifest.GetFilesWithTags(_S_TempTags);
+            var file_list = file_manifest.GetFilesWithTags(_S_TempStringHashSet);
             foreach (var p in file_list)
             {
                 FileInfo file_info = new FileInfo();

@@ -48,23 +48,8 @@ public class UIViewTest : MonoBehaviour
 
     public void _DownloadFile()
     {
-        var manifest = FileMgr.GetCurrentManifest();
-        if (manifest == null)
-            return;
-
-        List<FileManifest.FileItem> items = new List<FileManifest.FileItem>();
-        FileMgr.IsAllReady(null, items);
-
-        FileDownloadMgr.SetCallBack((info) =>
-        {
-            if (info.Status == EFileDownloadStatus.Succ)
-            {
-                FileManifest.FileItem file_item = info.GetUserData<FileManifest.FileItem>();
-                if(file_item !=null)
-                    FileMgr.OnFileDownloaded(file_item);
-            }               
-        });
-        FileDownloadMgr.AddTasks(items);
+        ResServiceUtil.DownloadFilesByAssets(new() { "Assets/Scenes/a.unity" });
+        ResServiceUtil.DownloadAllFiles();
     }
 
     public void _OnOpenView()

@@ -31,6 +31,12 @@ namespace FH.FileManagement
             }
         }
 
+        private struct TempRelativeFileInfo
+        {
+            public string OrigFilePath;
+            public string FullNameFilePath;
+        }
+
         private readonly string _LocalDir;
         private readonly string _LocalRelativeFileDir;
 
@@ -43,6 +49,8 @@ namespace FH.FileManagement
         //key: relative path
         private Dictionary<string, FileInfo> _RelativeFilesInLocalDir = new();
 
+        private Dictionary<string, TempRelativeFileInfo> _TempRelativeFileInfo = new();
+
         public FileCollection()
         {
             _LocalDir = FileSetting.LocalDir;
@@ -54,37 +62,68 @@ namespace FH.FileManagement
         {
             //1. 清除
             _FilesInLocalDir.Clear();
-            
+
             //2.collect normal files
             string[] files = System.IO.Directory.GetFiles(_LocalDir, "*.*", System.IO.SearchOption.TopDirectoryOnly);
             foreach (var full_path in files)
             {
-                string file_name = System.IO.Path.GetFileName(full_path);                 
-                    _FilesInLocalDir[file_name] = new(file_name, full_path);               
+                string file_name = System.IO.Path.GetFileName(full_path);
+                _FilesInLocalDir[file_name] = new(file_name, full_path);
             }
 
             //3. collect relative files
             files = System.IO.Directory.GetFiles(_LocalRelativeFileDir, "*.*", System.IO.SearchOption.AllDirectories);
+            _TempRelativeFileInfo.Clear();
             foreach (var full_path in files)
             {
                 string relative_path = full_path.Substring(_LocalRelativeFileDir.Length);
 
 #if UNITY_EDITOR || UNITY_STANDALONE_WIN
                 relative_path = relative_path.Replace('\\', '/');
-#endif                              
+#endif
+                if (relative_path.EndsWith(FileSetting.CRelativeFileFullNameExt))
+                {
+                    relative_path = relative_path.Substring(0, relative_path.Length - FileSetting.CRelativeFileFullNameExt.Length);
 
-                if (full_path.EndsWith(FileSetting.CRelativeFileVersionExt)) //这个是版本文件                
-                    continue;
-
-                string file_version_file_path = full_path + FileSetting.CRelativeFileVersionExt;
-                if (!System.IO.File.Exists(file_version_file_path)) //没有找到版本号文件
-                    continue;
-
-                string full_name = System.IO.File.ReadAllText(file_version_file_path);                 
-                FileInfo file_info = new(full_name, full_path, relative_path);
-                _FilesInLocalDir[full_name] = file_info;
-                _RelativeFilesInLocalDir[relative_path] = file_info;
+                    _TempRelativeFileInfo.TryGetValue(relative_path, out var info);
+                    info.FullNameFilePath = full_path;
+                    _TempRelativeFileInfo[relative_path] = info;
+                }
+                else
+                {
+                    _TempRelativeFileInfo.TryGetValue(relative_path, out var info);
+                    info.OrigFilePath = full_path;
+                    _TempRelativeFileInfo[relative_path] = info;
+                }
             }
+
+            foreach (var p in _TempRelativeFileInfo)
+            {
+                var info = p.Value;
+                if (info.OrigFilePath != null && info.FullNameFilePath != null)
+                {
+                    string full_name = System.IO.File.ReadAllText(info.FullNameFilePath);
+
+                    FileInfo file_info = new(full_name, info.OrigFilePath, p.Key);
+                    _FilesInLocalDir[full_name] = file_info;
+                    _RelativeFilesInLocalDir[p.Key] = file_info;
+                }
+                else
+                {
+                    try
+                    {
+                        if (info.OrigFilePath != null)
+                            System.IO.File.Delete(info.OrigFilePath);
+                        if (info.FullNameFilePath != null)
+                            System.IO.File.Delete(info.FullNameFilePath);
+                    }
+                    catch (System.Exception e)
+                    {
+                        FileLog._.E(e);
+                    }
+                }
+            }
+            _TempRelativeFileInfo.Clear();
         }
 
         //只在主线程执行
@@ -122,7 +161,7 @@ namespace FH.FileManagement
             {
                 FileUtil.CreateFileDir(dest_file_path);
                 System.IO.File.Move(src_file_path, dest_file_path);
-                System.IO.File.WriteAllText(dest_file_path + FileSetting.CRelativeFileVersionExt, item.FullName);
+                System.IO.File.WriteAllText(dest_file_path + FileSetting.CRelativeFileFullNameExt, item.FullName);
 
                 info = new FileInfo(item.FullName, dest_file_path, item.RelativePath);
                 _FilesInLocalDir[item.FullName] = info;
@@ -162,7 +201,7 @@ namespace FH.FileManagement
             {
                 if (!should_in_retaive || string.IsNullOrEmpty(relative_path))
                     return true;
-                else if(info.RelativePath == relative_path)
+                else if (info.RelativePath == relative_path)
                     return true;
             }
 
@@ -183,9 +222,9 @@ namespace FH.FileManagement
             //3. collect normal files
             List<string> files = new List<string>();
             FH.SAFileSystem.GetFileList(FileSetting.StreamingAssetsDir, false, files);
-            if (files.Count == 0)            
+            if (files.Count == 0)
                 FileLog._.D("StreamingAssets文件为空: {0}", FileSetting.StreamingAssetsDir);
-            foreach(var full_path in files)
+            foreach (var full_path in files)
             {
                 string file_name = System.IO.Path.GetFileName(full_path);
                 _FilesInStreamingAssets.Add(file_name, full_path);
@@ -199,13 +238,13 @@ namespace FH.FileManagement
                 string relative_file_path = full_path.Substring(FileSetting.StreamingAssetsRelativeFileDir.Length);
 
                 var item = base_manifest.FindFileByRelativePath(relative_file_path);
-                if(item ==null)
+                if (item == null)
                 {
-                    FileLog._.E("can't find the file in the base manifest: {0}" ,full_path);
+                    FileLog._.E("can't find the file in the base manifest: {0}", full_path);
                     continue;
                 }
 
-                _FilesInStreamingAssets.Add(item.FullName, full_path);                 
+                _FilesInStreamingAssets.Add(item.FullName, full_path);
                 FileLog._.D("StreamingAssets Collect: {0} -> {1}", item.FullName, full_path);
             }
         }

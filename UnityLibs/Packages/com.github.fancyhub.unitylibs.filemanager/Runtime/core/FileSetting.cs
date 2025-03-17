@@ -21,7 +21,7 @@ namespace FH
 
     public static class FileSetting
     {
-        public const string CRelativeFileVersionExt = "._version";
+        public const string CRelativeFileFullNameExt = "._fullname";
       
 
         #region Platform

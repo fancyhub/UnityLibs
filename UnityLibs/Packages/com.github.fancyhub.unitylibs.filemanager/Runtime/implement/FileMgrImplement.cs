@@ -52,7 +52,7 @@ namespace FH.FileManagement
             //2. 收集文件
             if (_Manifest_Local != null)
             {
-                if (_IsAllReady(_FileCollection, _Manifest_Local, true, _Tags))
+                if (_IsAllTagsReady(_FileCollection, _Manifest_Local, true, _Tags))
                 {
                     FileLog._.D("使用缓存里面的FileManifest,Version: {0}", _Manifest_Local.Version);
                     _Manifest_Current = _Manifest_Local;
@@ -65,8 +65,15 @@ namespace FH.FileManagement
 
             if (_Manifest_Current == null && _Manifest_Base != null)
             {
-                if (!_IsAllReady(_FileCollection, _Manifest_Base, true, _Tags))
-                    FileLog._.D("StreamingAssets的FileManifest有文件不存在");
+                List<FileManifest.FileItem> list = new();
+                if (!_IsAllTagsReady(_FileCollection, _Manifest_Base, true, _Tags, list))
+                {
+                    FileLog._.E("Base Manifest, 有文件不存在, 打包出错了?");
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        FileLog._.E("Base Manifest, 文件不存在 {0}/{1} : {2}", i + 1, list.Count, list[i].FullName);
+                    }
+                }
 
                 _Manifest_Current = _Manifest_Base;
                 FileLog._.D("使用StreamingAssets 里面的 FileManifest,Version: {0}", _Manifest_Base.Version);
@@ -133,21 +140,21 @@ namespace FH.FileManagement
             }
 
             _FileCollection.CollectLocalDir();
-            if (!_IsAllReady(_FileCollection, new_manifest, false, _Tags, out_need_download_list))
+            if (!_IsAllTagsReady(_FileCollection, new_manifest, false, _Tags, out_need_download_list))
             {
                 FileLog._.D("new FileManifest Is Not Ready");
                 return false;
             }
 
             new_manifest.GetFilesWithTags(_Tags, _STempFileList);
-            foreach(var p in _STempFileList)
+            foreach (var p in _STempFileList)
             {
                 if (string.IsNullOrEmpty(p.RelativePath))
                     continue;
 
-                if(!_FileCollection.MoveFile2RelativeFile(p))
+                if (!_FileCollection.MoveFile2RelativeFile(p))
                 {
-                    FileLog._.E("切换的时候, 文件移动到 relative 目录失败 {0}",p.FullName);
+                    FileLog._.E("切换的时候, 文件移动到 relative 目录失败 {0}", p.FullName);
                     return false;
                 }
             }
@@ -193,7 +200,7 @@ namespace FH.FileManagement
             }
         }
 
-        public bool IsAllReady(FileManifest manifest, HashSet<string> tags = null, List<FileManifest.FileItem> out_need_download_list = null)
+        public bool IsAllTagsReady(FileManifest manifest, HashSet<string> tags = null, List<FileManifest.FileItem> out_need_download_list = null)
         {
             if (manifest == null)
             {
@@ -201,7 +208,20 @@ namespace FH.FileManagement
                 return false;
             }
 
-            return _IsAllReady(_FileCollection, manifest, manifest == _Manifest_Current, tags, out_need_download_list);
+            return _IsAllTagsReady(_FileCollection, manifest, manifest == _Manifest_Current, tags, out_need_download_list);
+        }
+
+        public bool IsAllFilesReady(FileManifest manifest, HashSet<string> file_names, List<FileManifest.FileItem> out_need_download_list = null)
+        {
+            if (manifest == null)
+            {
+                FileLog._.Assert(false, "the param manifest is null");
+                return false;
+            }
+
+            _STempFileList.Clear();
+            manifest.FindFiles(file_names, _STempFileList);
+            return _IsAllFilesReady(_FileCollection, _STempFileList, manifest == _Manifest_Current, out_need_download_list);
         }
 
         public byte[] ReadAllBytes(string name)
@@ -325,10 +345,11 @@ namespace FH.FileManagement
         }
 
         private static List<FileManifest.FileItem> _STempFileList = new List<FileManifest.FileItem>();
+
         /// <summary>
         /// 检查 manifest 里面有 含有 tag FileSetting.TagBase  的文件都存在
         /// </summary>        
-        private static bool _IsAllReady(
+        private static bool _IsAllTagsReady(
             FileCollection file_collection,
             FileManifest manifest,
             bool should_in_relative,
@@ -344,12 +365,24 @@ namespace FH.FileManagement
             else
                 manifest.GetFilesWithTags(tags, _STempFileList);
 
+            return _IsAllFilesReady(file_collection, _STempFileList, should_in_relative, out_not_ready_list);
+        }
+
+        private static bool _IsAllFilesReady(
+            FileCollection file_collection,
+            List<FileManifest.FileItem> file_items,
+            bool should_in_relative,
+            List<FileManifest.FileItem> out_not_ready_list = null)
+        {
+            if (file_collection == null || file_items == null)
+                return false;
+
             if (out_not_ready_list == null)
             {
                 bool ret = true;
-                foreach (var p in _STempFileList)
+                foreach (var p in file_items)
                 {
-                    if (file_collection.IsExist(p.FullName,  should_in_relative,p.RelativePath))
+                    if (file_collection.IsExist(p.FullName, should_in_relative, p.RelativePath))
                         continue;
 
                     FileLog._.D("文件 {0} 不存在", p.FullName);
@@ -363,7 +396,7 @@ namespace FH.FileManagement
             else
             {
                 out_not_ready_list.Clear();
-                foreach (var p in _STempFileList)
+                foreach (var p in file_items)
                 {
                     if (file_collection.IsExist(p.FullName, should_in_relative, p.RelativePath))
                         continue;

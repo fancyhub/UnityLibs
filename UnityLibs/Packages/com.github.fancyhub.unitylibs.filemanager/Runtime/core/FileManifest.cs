@@ -105,6 +105,24 @@ namespace FH
             return item;
         }
 
+        public void FindFiles(HashSet<string> file_names, List<FileItem> all_file_items)
+        {
+            _BuildDict();
+            if (file_names == null || file_names.Count==0)
+                return;
+
+            foreach(var p in file_names)
+            {
+                if (p == null)
+                    continue;
+                _FileDict.TryGetValue(p, out FileItem item);
+                if(item!=null)
+                {
+                    all_file_items.Add(item);
+                }
+            }            
+        }
+
         public FileItem FindFileByRelativePath(string relative_path)
         {
             _BuildDict();
@@ -126,10 +144,10 @@ namespace FH
                 }
             }
 
-            if(_RelativeFileDict ==null)
+            if (_RelativeFileDict == null)
             {
                 _RelativeFileDict = new();
-                foreach(var p in Files)
+                foreach (var p in Files)
                 {
                     if (string.IsNullOrEmpty(p.RelativePath))
                         continue;

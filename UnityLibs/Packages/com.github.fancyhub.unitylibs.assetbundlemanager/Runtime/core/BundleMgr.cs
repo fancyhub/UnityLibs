@@ -57,15 +57,14 @@ namespace FH
 
     public partial interface IBundleMgr : ICPtr
     {
-        public IExternalLoader ExternalLoader { get; }
-
         public IBundle LoadBundleByAsset(string asset);
 
         public IBundle FindBundleByAsset(string asset);
 
+        public IBundleMgr.EBundleFileStatus GetBundleStatus(IBundle bundle);
+
         public void GetAllBundles(List<IBundle> bundles);
     }
-
 
     public static class BundleMgr
     {
@@ -73,7 +72,7 @@ namespace FH
 
         public static IBundleMgr Inst { get { return _.Val; } }
 
-        public static bool InitMgr(IBundleMgr.Config config, IBundleMgr.IExternalLoader external_loader)
+        public static bool InitMgr(IBundleMgr.Config config, IBundleMgr.IExternalLoader external_loader, bool disable_in_editor)
         {
             if (config == null)
             {
@@ -86,22 +85,26 @@ namespace FH
                 BundleLog.E("BundleMgr 已经创建了");
                 return false;
             }
+            
+            BundleLog.SetMasks(config.LogLvl);
+
+            if (disable_in_editor && Application.isEditor)
+            {                
+                _ = new ABManagement.BundleMgrImplementEmpty();
+                return true;
+            }
 
             if (external_loader == null)
             {
                 BundleLog.E("BundlerLoader is Null");
                 return false;
             }
-
-            BundleLog.SetMasks(config.LogLvl);
-
             var manifest = external_loader.LoadManifest();
             if (manifest == null)
             {
                 BundleLog.E("bundle manifest is Null");
                 return false;
             }
-
 
             ABManagement.BundleMgrImplement mgr = new ABManagement.BundleMgrImplement();
             mgr.Init(external_loader, manifest);
@@ -128,8 +131,9 @@ namespace FH
 
         private static Dictionary<string, IBundle> _S_TempDict = new Dictionary<string, IBundle>();
         private static List<IBundle> _S_TempList = new List<IBundle>();
+        private static List<IBundle> _S_TempList2 = new List<IBundle>();
 
-        public static void GetAllNeedDownload(List<string> asset_list, List<IBundle> out_bundle_list)
+        public static void GetAllBundles(List<string> asset_list, List<IBundle> out_bundle_list)
         {
             out_bundle_list.Clear();
 
@@ -137,12 +141,6 @@ namespace FH
             if (mgr == null)
             {
                 BundleLog.E("BundleMgr is null");
-                return;
-            }
-            var external_loader = mgr.ExternalLoader;
-            if (external_loader == null)
-            {
-                BundleLog.E("BundleMgr.ExternalLoader is null");
                 return;
             }
 
@@ -163,22 +161,40 @@ namespace FH
                     _S_TempDict[p2.Name] = bundle;
                 }
             }
-
             foreach (var p in _S_TempDict)
             {
-                var status = external_loader.GetBundleFileStatus(p.Key);
+                out_bundle_list.Add(p.Value);
+            }
+        }
+
+        public static void GetAllNeedDownload(List<string> asset_list, List<IBundle> out_bundle_list)
+        {
+            out_bundle_list.Clear();
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                BundleLog.E("BundleMgr is null");
+                return;
+            }
+
+            GetAllBundles(asset_list, _S_TempList2);
+
+            foreach (var p in _S_TempList2)
+            {
+                var status = mgr.GetBundleStatus(p);
+
                 switch (status)
                 {
                     default:
                     case IBundleMgr.EBundleFileStatus.None:
-                        BundleLog.E("Bundle: {0}, Status: {1}, 有问题", p.Key, status);
+                        BundleLog.E("Bundle: {0}, Status: {1}, 有问题", p.Name, status);
                         break;
 
                     case IBundleMgr.EBundleFileStatus.Ready:
                         break;
 
                     case IBundleMgr.EBundleFileStatus.Remote:
-                        out_bundle_list.Add(p.Value);
+                        out_bundle_list.Add(p);
                         break;
                 }
             }

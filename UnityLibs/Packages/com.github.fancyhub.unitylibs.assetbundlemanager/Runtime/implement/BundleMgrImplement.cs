@@ -52,7 +52,6 @@ namespace FH.ABManagement
             }
         }
 
-        public IBundleMgr.IExternalLoader ExternalLoader => _ExternalLoader.Val;
 
         public IBundle FindBundleByAsset(string asset)
         {
@@ -70,6 +69,24 @@ namespace FH.ABManagement
             return b;
         }
 
+        public IBundleMgr.EBundleFileStatus GetBundleStatus(IBundle bundle)
+        {
+            if (bundle == null)
+            {
+                BundleLog.Assert(false, "param bundle is null");
+                return IBundleMgr.EBundleFileStatus.None;
+            }
+
+            var loader = _ExternalLoader.Val;
+            if (loader == null)
+            {
+                BundleLog.Assert(false, "external loader is null");
+                return IBundleMgr.EBundleFileStatus.None;
+            }
+
+            return loader.GetBundleFileStatus(bundle.Name);
+        }
+         
         public void GetAllBundles(List<IBundle> bundles)
         {
             bundles.Clear();

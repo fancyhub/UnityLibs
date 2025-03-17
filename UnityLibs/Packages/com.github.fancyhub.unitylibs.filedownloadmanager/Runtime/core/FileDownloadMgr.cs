@@ -23,12 +23,12 @@ namespace FH
 
     public struct FileDownloadJobDesc
     {
-        public  string KeyName;
-        public  string RemoteUrl;   //全路径
-        public  string DestFilePath; //全路径
-        public  long TotalSize;
-        public  uint Crc32;
-        public  bool UseGz;
+        public string KeyName;
+        public string RemoteUrl;   //全路径
+        public string DestFilePath; //全路径
+        public long TotalSize;
+        public uint Crc32;
+        public bool UseGz;
         public System.Object UserData;
 
         public bool IsValid()
@@ -52,7 +52,7 @@ namespace FH
 
         internal FileDownloadJobInfo(FileDownloadJobDesc job_desc)
         {
-            this.JobDesc = job_desc;            
+            this.JobDesc = job_desc;
         }
 
         public EFileDownloadStatus Status => _Status;
@@ -226,7 +226,7 @@ namespace FH
                 FileDownloadLog.E("FileDownloadMgr is Null");
                 return;
             }
-           
+
             mgr.Pause(job_key_name);
         }
 
@@ -250,29 +250,35 @@ namespace FH
             mgr.Start(info.JobDesc.KeyName);
         }
 
+        private static List<FileDownloadJobInfo> _SharedJobInfoList = new();
         public static List<FileDownloadJobInfo> AddTasks(IList<FileManifest.FileItem> files)
+        {
+            _SharedJobInfoList.Clear();
+            AddTasks(files, _SharedJobInfoList);
+            return _SharedJobInfoList;
+        }
+
+        public static void AddTasks(IList<FileManifest.FileItem> files, List<FileDownloadJobInfo> out_job_list)
         {
             IFileDownloadMgr mgr = _Inst.Val;
             if (mgr == null)
             {
                 FileDownloadLog.E("FileDownloadMgr is Null");
-                return null;
+                return;
             }
 
             if (files == null)
             {
                 FileDownloadLog.Assert(false, "param files is Null");
-                return null;
+                return;
             }
 
-            List<FileDownloadJobInfo> ret = new List<FileDownloadJobInfo>(files.Count);
             foreach (var file in files)
             {
                 var info = mgr.AddJob(_CreateJobDesc(file));
                 if (info != null)
-                    ret.Add(info);
+                    out_job_list.Add(info);
             }
-            return ret;
         }
 
         private static FileDownloadJobDesc _CreateJobDesc(FileManifest.FileItem item)
@@ -282,13 +288,13 @@ namespace FH
             var ret = new FileDownloadJobDesc()
             {
                 KeyName = item.FullName,
-                RemoteUrl = DefaultServerUrl+item.FullName,
+                RemoteUrl = DefaultServerUrl + item.FullName,
                 Crc32 = item.Crc32,
                 TotalSize = item.Size,
-                UseGz = item.UseGz,        
+                UseGz = item.UseGz,
                 UserData = item,
                 DestFilePath = DefaultSaveDir + item.FullName,
-            };        
+            };
 
             return ret;
         }
@@ -397,13 +403,13 @@ namespace FH
                 double ret = DownloadedSize / (double)TotalSize;
                 return (float)Math.Clamp(ret, 0, 0.99);
             }
-        }      
-    
+        }
+
         public float ProgressCount
         {
             get
             {
-                if (DownloadingCount == 0 || PausedCount == 0 )
+                if (DownloadingCount == 0 || PausedCount == 0)
                     return 1.0f;
 
                 int total = TotalCount;
@@ -422,15 +428,15 @@ namespace FH
     {
         public static FileDownloadStat ExtGetSizeStat(this List<FileDownloadJobInfo> self)
         {
-            FileDownloadStat ret = new();             
+            FileDownloadStat ret = new();
             if (self == null)
                 return ret;
 
-            foreach(var p in self)
+            foreach (var p in self)
             {
                 if (p == null)
                     continue;
-                ret.TotalSize +=p.TotalSize;
+                ret.TotalSize += p.TotalSize;
                 ret.DownloadedSize += p.DownloadSize;
 
                 switch (p.Status)
@@ -449,11 +455,11 @@ namespace FH
                         ret.PausedCount++;
                         break;
                     default:
-                        FileDownloadLog.E("unkown status {0}",p.Status);
+                        FileDownloadLog.E("unkown status {0}", p.Status);
                         break;
-                } 
+                }
             }
             return ret;
-        }      
+        }
     }
 }

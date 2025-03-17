@@ -696,7 +696,7 @@ MonoBehaviour:
   Mode: 1
   AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
   FileMgrConfig:
-    LogLvl: 0
+    LogLvl: 1
     BaseTags:
     - base
     AndroidExtractTag: android
@@ -723,7 +723,7 @@ MonoBehaviour:
   FileDownloadMgrConfig:
     LogLvl: 0
     WorkerCount: 4
-    ServerUrl: http://127.0.0.1:5000/
+    ServerUrl: http://10.21.76.68:5000/
     MaxRetryCount: 3
   TableLogLvl: 1
   LocLogLvl: 1
@@ -739,7 +739,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f517cfa133c826d4e9f07e2c6bd3fc02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FileList: []
+  StreamingAssetsFileList: []
+  LocalFileList: []
+  NeedDownloadFileList: []
 --- !u!1 &2098590053
 GameObject:
   m_ObjectHideFlags: 0
