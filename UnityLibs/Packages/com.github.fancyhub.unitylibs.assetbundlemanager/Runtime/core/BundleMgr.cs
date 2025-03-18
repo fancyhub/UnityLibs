@@ -23,14 +23,58 @@ namespace FH
             Remote,
         }
 
+        public sealed class ExternalBundle
+        {
+            private AssetBundle _Bundle;
+            private Stream _Stream;
+            public static ExternalBundle Create(UnityEngine.AssetBundle ab, Stream stream = null)
+            {
+                if (ab == null)
+                    return null;
+                ExternalBundle ret = new ExternalBundle();
+                ret._Bundle = ab;
+                ret._Stream = stream;
+                return ret;
+            }
+
+            public AssetBundle Bundle => _Bundle;
+
+            public T LoadAsset<T>(string name) where T : UnityEngine.Object
+            {
+                return _Bundle.LoadAsset<T>(name);
+            }
+
+            public AssetBundleRequest LoadAssetAsync<T>(string name) where T : UnityEngine.Object
+            {
+                return _Bundle.LoadAssetAsync<T>(name);
+            }
+
+            public void Unload(bool unloadAllLoadedObjects)
+            {
+                if (_Bundle != null)
+                {
+                    var t = _Bundle;
+                    _Bundle = null;
+                    t.Unload(unloadAllLoadedObjects);
+                }
+
+                if (_Stream != null)
+                {
+                    var t = _Stream;
+                    _Stream = null;
+                    t.Close();
+                }
+            }
+        }
+
         public interface IExternalLoader : ICPtr
         {
             /// <summary>
             /// 如果返回null, 使用 AssetBundle.LoadFromFile
             /// 如果返回正确的值, 使用 AssetBundle.LoadFromStream
             /// </summary>
-            public Stream LoadBundleFile(string name);
-            public string GetBundleFilePath(string name);
+            public ExternalBundle LoadBundleFile(string name);
+
             public EBundleFileStatus GetBundleFileStatus(string name);
 
             public BundleManifest LoadManifest();
@@ -85,11 +129,11 @@ namespace FH
                 BundleLog.E("BundleMgr 已经创建了");
                 return false;
             }
-            
+
             BundleLog.SetMasks(config.LogLvl);
 
             if (disable_in_editor && Application.isEditor)
-            {                
+            {
                 _ = new ABManagement.BundleMgrImplementEmpty();
                 return true;
             }

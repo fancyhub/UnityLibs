@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace FH.FileManagement
+namespace FH
 {
     public sealed class StreamXOR : System.IO.Stream
     {
@@ -101,6 +101,16 @@ namespace FH.FileManagement
         public override void SetLength(long value)
         {
             _OrigStream.SetLength(value);
+        }
+
+        public override void Close()
+        {            
+            if (_OrigStream != null)
+            {
+                var t = _OrigStream;
+                _OrigStream = null;
+                t.Close();
+            }
         }
 
         public unsafe override void Write(byte[] buffer, int offset, int count)

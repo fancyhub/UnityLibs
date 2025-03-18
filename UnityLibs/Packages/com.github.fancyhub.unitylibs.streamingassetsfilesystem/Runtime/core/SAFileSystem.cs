@@ -13,6 +13,40 @@ using UnityEngine;
 
 namespace FH
 {
+    internal static class SAFileSystemDef
+    {
+        private static string _StreamingAssetsDir;
+        public static string StreamingAssetsDir
+        {
+            get
+            {
+                if (_StreamingAssetsDir != null)
+                    return _StreamingAssetsDir;
+
+                _StreamingAssetsDir = Application.streamingAssetsPath;
+                if (!_StreamingAssetsDir.EndsWith("/"))
+                    _StreamingAssetsDir += "/";
+                return _StreamingAssetsDir;
+            }
+        }
+
+        public static bool CheckPath(string file_path)
+        {
+            if (string.IsNullOrEmpty(file_path))
+            {
+                UnityEngine.Debug.LogError($"SA can't read \"{file_path}\"");
+                return false;
+            }
+
+            if (!file_path.StartsWith(StreamingAssetsDir))
+            {
+                UnityEngine.Debug.LogError($"SA can't read \"{file_path}\", it doesn't start with \"{StreamingAssetsDir}\"");
+                return false ;
+            }
+            return true;
+        }
+    }
+
     /// <summary>
     /// 路径格式 都是 Application.StreamingAssetsPath 开始
     /// </summary>
@@ -75,7 +109,10 @@ namespace FH
         {
             var inst = Inst;
             if (inst == null)
+            {
+                UnityEngine.Debug.LogError($"SA is not init");
                 return;
+            }
             if (out_file_list == null)
                 return;
             out_file_list.AddRange(inst.GetAllFileList());
@@ -88,7 +125,10 @@ namespace FH
         {
             var inst = Inst;
             if (inst == null)
+            {
+                UnityEngine.Debug.LogError($"SA is not init");
                 return;
+            }
             if (out_file_list == null || dir == null)
                 return;
 
@@ -127,12 +167,22 @@ namespace FH
         {
             var inst = Inst;
             if (inst == null)
+            {
+                UnityEngine.Debug.LogError($"SA is not init");
                 return System.Array.Empty<byte>();
+            }
+
             if (string.IsNullOrEmpty(file_path))
+            {
+                UnityEngine.Debug.LogError($"SA can't read \"{file_path}\"");
                 return null;
+            }
 
             if (!file_path.StartsWith(Application.streamingAssetsPath))
+            {
+                UnityEngine.Debug.LogError($"SA can't read \"{file_path}\"");
                 return null;
+            }
 
             return inst.ReadAllBytes(file_path);
         }
@@ -142,12 +192,12 @@ namespace FH
         {
             var inst = Inst;
             if (inst == null)
+            {
+                UnityEngine.Debug.LogError($"SA is not init");
                 return null;
-            if (string.IsNullOrEmpty(file_path))
-                return null;
-            if (!file_path.StartsWith(Application.streamingAssetsPath))
-                return null;
-
+            }
+          
+            
             return inst.OpenRead(file_path);
         }
     }

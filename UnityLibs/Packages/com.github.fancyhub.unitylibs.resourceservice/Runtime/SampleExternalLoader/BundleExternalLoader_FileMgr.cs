@@ -27,7 +27,7 @@ namespace FH.SampleExternalLoader
             var mgr = _FileMgr.Val;
             if (mgr == null)
                 return IBundleMgr.EBundleFileStatus.None;
-            switch (mgr.FindFile(name, out var _,out var _))
+            switch (mgr.FindFile(name, out var _, out var _))
             {
                 case EFileStatus.None:
                     return IBundleMgr.EBundleFileStatus.None;
@@ -49,9 +49,16 @@ namespace FH.SampleExternalLoader
             return ret;
         }
 
-        public Stream LoadBundleFile(string name)
+        public IBundleMgr.ExternalBundle LoadBundleFile(string name)
         {
-            return null;
+            var mgr = _FileMgr.Val;
+            if (mgr == null)
+                return null;
+            mgr.FindFile(name, out var ret, out var _);
+            if (ret == null)
+                return null;
+            var ab = UnityEngine.AssetBundle.LoadFromFile(ret);
+            return IBundleMgr.ExternalBundle.Create(ab);
         }
 
         public BundleManifest LoadManifest()

@@ -28,24 +28,18 @@ namespace FH.StreamingAssetsFileSystem
 
         private List<string> _FileList;
         private AndroidJavaClass _JNIContext;
-        private string _StreamingAssetsDir;
         public SAFileSystem_Apk()
-        {
-            _StreamingAssetsDir = Application.streamingAssetsPath;
-            if (!_StreamingAssetsDir.EndsWith("/"))
-                _StreamingAssetsDir += "/";
+        {  
         }
 
         //只是针对 StreamingAssets 里面的文件
         public Stream OpenRead(string file_path)
         {
-            if (string.IsNullOrEmpty(file_path))
-                return null;
-            if (!file_path.StartsWith(_StreamingAssetsDir))
+            if (!SAFileSystemDef.CheckPath(file_path))
                 return null;
 
             _InitAndroidJNIContext();
-            string file_relative_path = file_path.Substring(_StreamingAssetsDir.Length);
+            string file_relative_path = file_path.Substring(SAFileSystemDef.StreamingAssetsDir.Length);
             IntPtr fhandle = AndroidNativeIO.fh_native_io_file_open(file_relative_path, (int)AndroidNativeIO.EAssetOpenMode.AASSET_MODE_STREAMING);
             if (fhandle == IntPtr.Zero)
                 return null;
@@ -103,7 +97,7 @@ namespace FH.StreamingAssetsFileSystem
                     }
 
                     if (!ignore)
-                        _FileList.Add(_StreamingAssetsDir + file_name);
+                        _FileList.Add(SAFileSystemDef.StreamingAssetsDir + file_name);
                 }
             }
             return _FileList;

@@ -25,8 +25,8 @@ namespace FH.ABManagement
         public BundleManifest.Item _Config;
         public Bundle[] _AllDeps;
 
-        private AssetBundle _AssetBundle;
-        private System.IO.Stream _Stream;
+        private IBundleMgr.ExternalBundle _AssetBundle;
+
         private EBundleLoadStatus _LoadStatus = EBundleLoadStatus.None;
         private int _RefCount = 0;
         private int _DepRefCount = 0;
@@ -126,7 +126,7 @@ namespace FH.ABManagement
         internal void Dispose()
         {
             _AssetBundle?.Unload(false);
-            _Stream?.Close();
+            _AssetBundle = null;
         }
 
         internal bool Load()
@@ -158,7 +158,7 @@ namespace FH.ABManagement
                     IBundleMgr.EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
                     if (bundleStatus != IBundleMgr.EBundleFileStatus.Ready)
                     {
-                        BundleLog.Assert(false,"Bundle {0} Is {1}", _Config.Name, bundleStatus);
+                        BundleLog.Assert(false, "Bundle {0} Is {1}", _Config.Name, bundleStatus);
                         return false;
                     }
 
@@ -176,7 +176,7 @@ namespace FH.ABManagement
                             case EBundleLoadStatus.None:
                                 if (!p.IsDownloaded())
                                 {
-                                    BundleLog.Assert(false,"Bundle {0} Dep {1} Is not Downloaded", _Config.Name, p._Config.Name);
+                                    BundleLog.Assert(false, "Bundle {0} Dep {1} Is not Downloaded", _Config.Name, p._Config.Name);
                                     return false;
                                 }
                                 break;
@@ -203,11 +203,7 @@ namespace FH.ABManagement
                         return false;
                     }
 
-                    _Stream = loader.LoadBundleFile(_Config.Name);
-                    if (_Stream != null)
-                        _AssetBundle = AssetBundle.LoadFromStream(_Stream);
-                    else
-                        _AssetBundle = AssetBundle.LoadFromFile(loader.GetBundleFilePath(_Config.Name));
+                    _AssetBundle = loader.LoadBundleFile(_Config.Name);
 
                     if (_AssetBundle != null)
                     {
@@ -244,14 +240,7 @@ namespace FH.ABManagement
                         return false;
                     }
 
-                    _Stream = loader.LoadBundleFile(_Config.Name);
-                    if (_Stream != null)
-                        _AssetBundle = AssetBundle.LoadFromStream(_Stream);
-                    else
-                    {
-                        var path = loader.GetBundleFilePath(_Config.Name);
-                        _AssetBundle = AssetBundle.LoadFromFile(path);
-                    }
+                    _AssetBundle = loader.LoadBundleFile(_Config.Name);
 
                     if (_AssetBundle == null)
                     {
@@ -290,10 +279,7 @@ namespace FH.ABManagement
                 return;
 
             BundleLog.D("Bundle {0} Unload By DepRef", _Config.Name);
-            _AssetBundle.Unload(false);
-            _AssetBundle = null;
-            _Stream?.Close();
-            _Stream = null;
+            _AssetBundle?.Unload(false);
             _LoadStatus = EBundleLoadStatus.None;
             return;
         }

@@ -18,16 +18,12 @@ namespace FH.StreamingAssetsFileSystem
     {
         private const string CAssetDir = "assets/";
         private string _ObbPath;
-        private string _StreamingAssetsDir;
 
         private List<string> _FileList;
 
         public SAFileSystem_Obb(string ObbPath)
         {
             _ObbPath = ObbPath;
-            _StreamingAssetsDir = Application.streamingAssetsPath;
-            if (!_StreamingAssetsDir.EndsWith("/"))
-                _StreamingAssetsDir += "/";
         }
 
         public void Dispose()
@@ -36,26 +32,22 @@ namespace FH.StreamingAssetsFileSystem
         }
         public Stream OpenRead(string file_path)
         {
-            if (string.IsNullOrEmpty(file_path))
+            if (!SAFileSystemDef.CheckPath(file_path))
                 return null;
-            if (!file_path.StartsWith(_StreamingAssetsDir))
-                return null;
-            
-            string path = CAssetDir + file_path.Substring(_StreamingAssetsDir.Length);
+
+            string path = CAssetDir + file_path.Substring(SAFileSystemDef.StreamingAssetsDir.Length);
 
             return ZipEntryStream.Create(_ObbPath, path);
         }
 
         public byte[] ReadAllBytes(string file_path)
         {
-            if (string.IsNullOrEmpty(file_path))
-                return null;
-            if (!file_path.StartsWith(_StreamingAssetsDir))
+            if (!SAFileSystemDef.CheckPath(file_path))
                 return null;
 
-            string path = CAssetDir + file_path.Substring(_StreamingAssetsDir.Length);
+            string path = CAssetDir + file_path.Substring(SAFileSystemDef.StreamingAssetsDir.Length);
             try
-            {                
+            {
                 using ZipArchive archive = ZipFile.OpenRead(_ObbPath);
                 ZipArchiveEntry entry = archive.GetEntry(path);
 
@@ -93,7 +85,7 @@ namespace FH.StreamingAssetsFileSystem
                     if (!path.StartsWith(CAssetDir))
                         continue;
 
-                    string file_path = _StreamingAssetsDir + path.Substring(CAssetDir.Length);
+                    string file_path = SAFileSystemDef.StreamingAssetsDir + path.Substring(CAssetDir.Length);
                     _FileList.Add(file_path);
                 }
             }

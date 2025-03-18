@@ -15,23 +15,17 @@ namespace FH.StreamingAssetsFileSystem
     internal sealed class SAFileSystem_Normal : ISAFileSystem
     {
         private List<string> _FileList;
-        private string _StreamingAssetsDir;
         public SAFileSystem_Normal()
         {
-            _StreamingAssetsDir = Application.streamingAssetsPath;
-            if (!_StreamingAssetsDir.EndsWith("/"))
-                _StreamingAssetsDir += "/";
         }
 
         public void Dispose()
         {
-            
+
         }
         public Stream OpenRead(string file_path)
         {
-            if (string.IsNullOrEmpty(file_path))
-                return null;
-            if (!file_path.StartsWith(_StreamingAssetsDir))
+            if (!SAFileSystemDef.CheckPath(file_path))
                 return null;
 
             if (!File.Exists(file_path))
@@ -41,11 +35,8 @@ namespace FH.StreamingAssetsFileSystem
 
         public byte[] ReadAllBytes(string file_path)
         {
-            if (string.IsNullOrEmpty(file_path))
+            if (!SAFileSystemDef.CheckPath(file_path))
                 return null;
-            if (!file_path.StartsWith(_StreamingAssetsDir))
-                return null;
-
 
             if (!File.Exists(file_path))
                 return null;
@@ -57,13 +48,13 @@ namespace FH.StreamingAssetsFileSystem
             if (_FileList == null)
             {
                 _FileList = new List<string>();
-                string[] files = System.IO.Directory.GetFiles(_StreamingAssetsDir, "*.*", SearchOption.AllDirectories);
+                string[] files = System.IO.Directory.GetFiles(SAFileSystemDef.StreamingAssetsDir, "*.*", SearchOption.AllDirectories);
 
                 foreach (var p in files)
                 {
                     if (p.EndsWith(".meta"))
                         continue;
-                    
+
                     string path = p.Replace('\\', '/');
                     _FileList.Add(path);
                 }
