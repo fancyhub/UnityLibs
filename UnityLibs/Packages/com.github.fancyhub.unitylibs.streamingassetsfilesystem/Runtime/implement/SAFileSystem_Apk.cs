@@ -143,6 +143,9 @@ namespace FH.StreamingAssetsFileSystem
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
             public static extern bool fh_native_io_file_can_seek(IntPtr fhandle);
 
+            [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern int fh_native_io_file_get_pos(IntPtr fhandle);
+
 
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
             public static extern int fh_native_io_file_read(IntPtr fhandle, byte[] buff, int offset, int count);
