@@ -5,7 +5,8 @@
  * Desc    : 
 *************************************************************************************/
 
-#if UNITY_ANDROID && !UNITY_EDITOR
+//#if UNITY_ANDROID && !UNITY_EDITOR
+#if UNITY_ANDROID 
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ namespace FH.StreamingAssetsFileSystem
         private List<string> _FileList;
         private AndroidJavaClass _JNIContext;
         public SAFileSystem_Apk()
-        {  
+        {
         }
 
         //只是针对 StreamingAssets 里面的文件
@@ -40,10 +41,7 @@ namespace FH.StreamingAssetsFileSystem
 
             _InitAndroidJNIContext();
             string file_relative_path = file_path.Substring(SAFileSystemDef.StreamingAssetsDir.Length);
-            IntPtr fhandle = AndroidNativeIO.fh_native_io_file_open(file_relative_path, (int)AndroidNativeIO.EAssetOpenMode.AASSET_MODE_STREAMING);
-            if (fhandle == IntPtr.Zero)
-                return null;
-            return new AndroidStreamingAssetStream(fhandle);
+            return AndroidStreamingAssetStream.OpenRead(file_relative_path);            
         }
 
         public byte[] ReadAllBytes(string file_path)
@@ -131,7 +129,7 @@ namespace FH.StreamingAssetsFileSystem
             public const string C_DLL_NAME = "fhnativeio";
 
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr fh_native_io_file_open(string file_path, int mode);
+            public static extern IntPtr fh_native_io_file_open(string file_path);
 
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
             public static extern void fh_native_io_file_close(IntPtr fhandle);
@@ -141,6 +139,10 @@ namespace FH.StreamingAssetsFileSystem
 
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
             public static extern long fh_native_io_file_seek(IntPtr fhandle, long offset, int whence);
+
+            [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern bool fh_native_io_file_can_seek(IntPtr fhandle);
+
 
             [DllImport(C_DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
             public static extern int fh_native_io_file_read(IntPtr fhandle, byte[] buff, int offset, int count);
@@ -170,7 +172,16 @@ namespace FH.StreamingAssetsFileSystem
             public long _len;
             public long _pos;
 
-            public AndroidStreamingAssetStream(System.IntPtr fhandle)
+            public static AndroidStreamingAssetStream OpenRead(string file_path)
+            {
+                //(int)AndroidNativeIO.EAssetOpenMode.AASSET_MODE_STREAMING
+               IntPtr fhandle = AndroidNativeIO.fh_native_io_file_open(file_path);
+               if (fhandle == IntPtr.Zero)
+                    return null;
+               return new AndroidStreamingAssetStream(fhandle);
+            }
+
+            private AndroidStreamingAssetStream(System.IntPtr fhandle)
             {
                 _fhandle = fhandle;
                 _len = AndroidNativeIO.fh_native_io_file_get_len(fhandle);
@@ -188,8 +199,9 @@ namespace FH.StreamingAssetsFileSystem
                 base.Close();
                 if (_fhandle != IntPtr.Zero)
                 {
-                    AndroidNativeIO.fh_native_io_file_close(_fhandle);
+                    var t = _fhandle;
                     _fhandle = IntPtr.Zero;
+                    AndroidNativeIO.fh_native_io_file_close(t);
                 }
             }
 
@@ -201,15 +213,16 @@ namespace FH.StreamingAssetsFileSystem
                 {
                     if (_fhandle != IntPtr.Zero)
                     {
-                        AndroidNativeIO.fh_native_io_file_close(_fhandle);
+                        var t = _fhandle;
                         _fhandle = IntPtr.Zero;
+                        AndroidNativeIO.fh_native_io_file_close(t);
                     }
                 }
             }
 
             public override bool CanRead { get { return _fhandle != IntPtr.Zero; } }
 
-            public override bool CanSeek => false;
+            public override bool CanSeek => AndroidNativeIO.fh_native_io_file_can_seek(_fhandle);
 
             public override bool CanWrite => false;
 
@@ -241,6 +254,12 @@ namespace FH.StreamingAssetsFileSystem
 
             public override long Seek(long offset, SeekOrigin origin)
             {
+                if (!CanSeek)
+                    throw new Exception("can't seek");
+                var pos = AndroidNativeIO.fh_native_io_file_seek(_fhandle, offset, (int)origin);
+                if (pos < 0)
+                    return _pos;
+                _pos = pos;
                 return _pos;
             }
 

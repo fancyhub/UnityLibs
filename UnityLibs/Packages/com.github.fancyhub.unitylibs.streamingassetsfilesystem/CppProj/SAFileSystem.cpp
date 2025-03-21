@@ -3,6 +3,7 @@
 #include <vector>
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
+#include <unistd.h>
 #include <memory.h>
 #include <android/log.h>
 
@@ -27,6 +28,14 @@ extern "C" {
 
 static AAssetManager* g_asset_mgr=NULL;
 
+
+struct MyAsset
+{
+	AAsset* AssetHandle;
+	int FD;
+	off64_t Start;
+	off64_t Length;	
+};
 
 JNIEXPORT void JNICALL Java_com_github_fancyhub_nativeio_JNIContext_nativeSetContext(
         JNIEnv* env,
@@ -83,16 +92,14 @@ JNIEXPORT void JNICALL Java_com_github_fancyhub_nativeio_JNIContext_nativeAddFol
             const char* const_buff = buff;
             g_fh_file_list.push_back(const_buff);
             LOGD("Add File: %s",buff);
-        }
-        
+        }        
     }
 
     AAssetDir_close(asset_dir);
     env->ReleaseStringUTFChars(jstrFolderPath, folder_path);
 }
 
-
-AAsset* fh_native_io_file_open(const char* file_path,int mode) {
+MyAsset* fh_native_io_file_open(const char* file_path) {
     if(g_asset_mgr== NULL)
     {
         LOGE("fh_native_io_file_open g_asset_mgr is NULl");
@@ -100,15 +107,30 @@ AAsset* fh_native_io_file_open(const char* file_path,int mode) {
     }
 
     LOGD("fh_native_io_file_open g_asset_mgr is not null: %s",file_path);
-    AAsset* ret= AAssetManager_open(g_asset_mgr,file_path,mode );
-    if(ret == NULL)
+    AAsset* asset= AAssetManager_open(g_asset_mgr,file_path,AASSET_MODE_STREAMING);
+    if(asset == NULL)
+	{	
         LOGE("fh_native_io_file_open Failed: %s", file_path);
-    else
-        LOGD("fh_native_io_file_open Succ: %p, %s",ret, file_path);
+		return NULL;
+	}
+	
+	off64_t start,length;
+	int fd= AAsset_openFileDescriptor64(asset,&start, &length);
+	if(fd>=0)	
+		lseek64(fd,start,SEEK_SET);	
+	LOGD("fh_native_io_file_open Succ: AssetHandle: %p, FD:%d, Start:%lld, Length:%lld, Path:%s",asset, fd,(long long )start,(long long )length, file_path);
+	
+	MyAsset* ret = new MyAsset();
+	ret->AssetHandle = asset;
+	
+	ret->FD= fd;
+	ret->Start = start;
+	ret->Length = length;
+	
     return ret;
 }
 
-void fh_native_io_file_close(AAsset* fhandle)
+void fh_native_io_file_close(MyAsset* fhandle)
 {    
     LOGD("fh_native_io_file_close: %p",fhandle);
     if(fhandle == NULL)
@@ -116,10 +138,45 @@ void fh_native_io_file_close(AAsset* fhandle)
         LOGE("fh_native_io_file_close: handle is null");
         return;
     }
-    AAsset_close(fhandle);
+	if(fhandle->FD>=0)
+	{
+		close(fhandle->FD);
+		fhandle->FD=-1;
+	}
+	
+	if(fhandle->AssetHandle!=NULL)
+	{
+		AAsset_close(fhandle->AssetHandle);
+		fhandle->AssetHandle=NULL;
+	}
+	delete fhandle;	
 }
 
-long long  fh_native_io_file_get_len(AAsset* fhandle)
+int fh_native_io_file_get_pos(MyAsset* fhandle)
+{
+	LOGD("fh_native_io_file_get_pos : %p", fhandle);
+    if(fhandle == NULL)
+    {
+        LOGE("fh_native_io_file_get_pos: handle is null");
+        return -1;
+    }
+	
+	if(fhandle->FD>=0)
+	{
+		long long nowPos =lseek64(fhandle->FD, 0, SEEK_CUR);
+		long long ret= nowPos - fhandle->Start;
+		LOGD("fh_native_io_file_get_pos : %p, FD:%d, %lld, nowPos:%lld, start:%lld", fhandle->AssetHandle,fhandle->FD,ret, nowPos,(long long)fhandle->Start);		
+		return (int)ret;
+	}
+	else 
+	{
+		long long ret= AAsset_seek64(fhandle->AssetHandle,0, SEEK_CUR);
+		LOGD("fh_native_io_file_get_pos : %p, %lld", fhandle->AssetHandle,ret);	
+		return (int)ret;
+	}
+}
+
+long long  fh_native_io_file_get_len(MyAsset* fhandle)
 {
     LOGD("fh_native_io_file_get_len : %p", fhandle);
     if(fhandle == NULL)
@@ -127,13 +184,19 @@ long long  fh_native_io_file_get_len(AAsset* fhandle)
         LOGE("fh_native_io_file_get_len: handle is null");
         return 0;
     }
+	
+	if(fhandle->FD>=0)
+	{
+		return fhandle->Length;
+	}
         
-    long long ret= AAsset_getLength64(fhandle);
+    long long ret= AAsset_getLength64(fhandle->AssetHandle);
     LOGD("fh_native_io_file_get_len : %p, %lld", fhandle,ret);
     return ret;
 }
 
-long long   fh_native_io_file_seek(AAsset* fhandle,long long  offset, int whence)
+//ret current pos
+long long fh_native_io_file_seek(MyAsset* fhandle, long long  offset, int whence)
 {
     if(fhandle==NULL)
     {
@@ -141,12 +204,54 @@ long long   fh_native_io_file_seek(AAsset* fhandle,long long  offset, int whence
         return 0;
     }
     LOGD("fh_native_io_file_seek : %p, %lld,%d", fhandle,offset,whence);
-    long long ret = AAsset_seek64(fhandle,offset,whence);
-    LOGD("fh_native_io_file_seek : result %lld", ret);
-    return ret;
+	
+	long long ret=0;
+	if(fhandle->FD<0)
+	{
+		ret= AAsset_seek64(fhandle->AssetHandle,offset,whence);
+		LOGD("fh_native_io_file_seek : result %lld", ret);
+		return ret;
+	}
+	
+	long long newRelativePos=0;
+	
+	switch(whence)
+	{
+		case SEEK_SET:
+			newRelativePos = offset;
+			break;
+			
+		case SEEK_CUR:
+			 newRelativePos= lseek64(fhandle->FD, 0, SEEK_CUR) - fhandle->Start + offset;
+			break;
+			
+		case SEEK_END:
+			newRelativePos = fhandle->Length + offset;
+			break;
+	}
+
+	if(newRelativePos <0 || newRelativePos > fhandle->Length)
+		return -1;
+
+	long long newPos= fhandle->Start + newRelativePos;
+	long long temp = lseek64(fhandle->FD, newPos, SEEK_SET);
+	if(temp<0)
+		return -1;
+	return temp - fhandle->Start;
 }
 
-int fh_native_io_file_read(AAsset* fhandle,unsigned char* buf,int offset, int count)
+
+bool fh_native_io_file_can_seek(MyAsset* fhandle)
+{
+    if(fhandle==NULL)
+    {
+        LOGE("fh_native_io_file_can_seek: handle is null");
+        return false;
+    }
+	return fhandle->FD>=0;
+}
+
+int fh_native_io_file_read(MyAsset* fhandle,unsigned char* buf,int offset, int count)
 {
     LOGD("fh_native_io_file_read : %p, %p, %d,%d", fhandle,buf,offset,count);
     if(buf == NULL)
@@ -170,10 +275,22 @@ int fh_native_io_file_read(AAsset* fhandle,unsigned char* buf,int offset, int co
         LOGD("fh_native_io_file_read : count <=0, %d",count);
         return 0;
     }
-
-    int ret= AAsset_read(fhandle,buf+offset,count);
-    LOGD("fh_native_io_file_read : readed count %d", ret);
-    return ret;
+	
+	if(fhandle->FD<0)
+	{
+		int ret= AAsset_read(fhandle->AssetHandle,buf+offset,count);
+		LOGD("fh_native_io_file_read : readed count %d", ret);
+		return ret;
+	}
+	else
+	{
+		long long nowPos = lseek64(fhandle->FD, 0, SEEK_CUR);		
+		int  remainCount = (int)(fhandle->Length - (nowPos - fhandle->Start));		
+		int toReadCount = remainCount>count? count:remainCount;
+		int ret = read(fhandle->FD,buf+offset,toReadCount);			
+		LOGD("fh_native_io_file_read : readed count %d", ret);
+		return ret;
+	}    
 }
 
 int fh_native_io_get_file_count()

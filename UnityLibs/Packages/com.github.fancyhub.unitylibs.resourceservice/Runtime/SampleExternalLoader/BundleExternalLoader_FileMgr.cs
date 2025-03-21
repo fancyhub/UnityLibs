@@ -54,11 +54,39 @@ namespace FH.SampleExternalLoader
             var mgr = _FileMgr.Val;
             if (mgr == null)
                 return null;
-            mgr.FindFile(name, out var ret, out var _);
-            if (ret == null)
+            mgr.FindFile(name, out var file_path, out var file_location);
+            if (file_path == null)
                 return null;
-            var ab = UnityEngine.AssetBundle.LoadFromFile(ret);
-            return IBundleMgr.ExternalBundle.Create(ab);
+
+            switch (file_location)
+            {
+                default:
+                    return null;
+                case EFileLocation.Persistent:
+                    {
+                        var ab = UnityEngine.AssetBundle.LoadFromFile(file_path);
+                        return IBundleMgr.ExternalBundle.Create(ab);
+                    }
+
+                case EFileLocation.Remote:
+                    return null;
+
+                case EFileLocation.StreamingAssets:
+                    var stream = SAFileSystem.OpenRead(file_path);
+                    //if (stream != null && stream.CanSeek)
+                    if (stream != null)
+                    {
+                        Log.E("Stream Seekable: {0}, {1}", stream.CanSeek, file_path);
+                        var ab = UnityEngine.AssetBundle.LoadFromStream(stream);
+                        return IBundleMgr.ExternalBundle.Create(ab, stream);
+                    }
+                    else
+                    {
+                        stream?.Close();
+                        var ab = UnityEngine.AssetBundle.LoadFromFile(file_path);
+                        return IBundleMgr.ExternalBundle.Create(ab);
+                    }
+            }
         }
 
         public BundleManifest LoadManifest()

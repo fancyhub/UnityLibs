@@ -41,7 +41,7 @@ namespace FH
             if (!file_path.StartsWith(StreamingAssetsDir))
             {
                 UnityEngine.Debug.LogError($"SA can't read \"{file_path}\", it doesn't start with \"{StreamingAssetsDir}\"");
-                return false ;
+                return false;
             }
             return true;
         }
@@ -60,9 +60,7 @@ namespace FH
     public static class SAFileSystem
     {
 
-#if UNITY_EDITOR
         private static string _EditorObbPath;
-#endif        
         [System.Diagnostics.Conditional("UNITY_EDITOR")]
         public static void EdSetObbPath(string obb_path)
         {
@@ -91,13 +89,11 @@ namespace FH
                         _ = new SAFileSystem_Obb(UnityEngine.Application.dataPath);
                     }
 
-#elif UNITY_EDITOR
+#else 
                     if (_EditorObbPath != null)
                         _ = new SAFileSystem_Obb(_EditorObbPath);
                     else
                         _ = new SAFileSystem_Normal();
-#else 
-                    _ = new SAFileSystem_Normal();
 #endif
                 }
 
@@ -129,12 +125,11 @@ namespace FH
                 UnityEngine.Debug.LogError($"SA is not init");
                 return;
             }
-            if (out_file_list == null || dir == null)
+            if (!SAFileSystemDef.CheckPath(dir))
                 return;
 
-            if (!dir.StartsWith(Application.streamingAssetsPath))
+            if (out_file_list == null)
                 return;
-
 
             var file_list = inst.GetAllFileList();
 
@@ -172,21 +167,11 @@ namespace FH
                 return System.Array.Empty<byte>();
             }
 
-            if (string.IsNullOrEmpty(file_path))
-            {
-                UnityEngine.Debug.LogError($"SA can't read \"{file_path}\"");
+            if (!SAFileSystemDef.CheckPath(file_path))
                 return null;
-            }
-
-            if (!file_path.StartsWith(Application.streamingAssetsPath))
-            {
-                UnityEngine.Debug.LogError($"SA can't read \"{file_path}\"");
-                return null;
-            }
 
             return inst.ReadAllBytes(file_path);
         }
-
 
         public static Stream OpenRead(string file_path)
         {
@@ -196,8 +181,10 @@ namespace FH
                 UnityEngine.Debug.LogError($"SA is not init");
                 return null;
             }
-          
-            
+
+            if (!SAFileSystemDef.CheckPath(file_path))
+                return null;
+
             return inst.OpenRead(file_path);
         }
     }
