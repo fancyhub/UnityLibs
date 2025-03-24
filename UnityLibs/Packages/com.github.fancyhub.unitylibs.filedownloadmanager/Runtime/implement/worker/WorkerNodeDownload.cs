@@ -11,7 +11,7 @@ using System.IO;
 
 namespace FH.FileDownload
 {
-    internal sealed class WorkerNodeDownload : IFsmStateNode<WorkerContext, EWorkerMsg, int>
+    internal sealed class WorkerNodeDownload : IFsmStateNodeWithContext<WorkerContext, EWorkerMsg, int>
     {
         public const int ResultSucc = 1;
         public const int ResultFail = 2;

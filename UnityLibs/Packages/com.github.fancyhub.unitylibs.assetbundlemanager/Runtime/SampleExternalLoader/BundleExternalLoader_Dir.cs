@@ -29,11 +29,10 @@ namespace FH.SampleExternalLoader
             else
                 return IBundleMgr.EBundleFileStatus.None;
         }
-         
+        
         public IBundleMgr.ExternalBundle LoadBundleFile(string name)
         {
-            var ab = UnityEngine.AssetBundle.LoadFromFile(System.IO.Path.Combine(_Dir, name));
-            return IBundleMgr.ExternalBundle.Create(ab, null);
+            return IBundleMgr.ExternalBundle.LoadFromFile(System.IO.Path.Combine(_Dir, name));
         }
 
         public BundleManifest LoadManifest()

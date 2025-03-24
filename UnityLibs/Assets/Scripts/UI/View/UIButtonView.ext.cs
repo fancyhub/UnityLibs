@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-namespace FH.UI
+namespace Game
 {
 
     public partial class UIButtonView // : FH.UI.UIBaseView 
@@ -19,10 +19,34 @@ namespace FH.UI
 
         public override void OnDestroy()
         {
-            this._Button.onClick.RemoveAllListeners();
+            this._Button.onClick.RemoveListener(_OnClick);
             base.OnDestroy();
             OnClick = null;
         }
+         
+        public string ButtonName
+        {
+            get
+            {
+                return _TextName.text;
+            }
+            set
+            {
+                _TextName.text = value;
+            }
+        }
+
+        public bool Enable
+        {
+            get
+            {
+                return _Button.enabled;
+            }
+            set
+            {
+                _Button.enabled = value;            
+            }
+        }         
 
         private void _OnClick()
         {

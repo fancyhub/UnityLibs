@@ -50,7 +50,6 @@ namespace FH
             _thread?.Abort();
             _thread = null;
             _semaphore?.Dispose();
-            _semaphore = null;
             _task = null;
             _status = E_WORKER_STATUS.none;
         }
@@ -102,7 +101,14 @@ namespace FH
             for (; ; )
             {
                 //1. 等待信号量
-                _semaphore.WaitOne();
+                try
+                {
+                    _semaphore.WaitOne();
+                }
+                catch (ObjectDisposedException)
+                {
+                    return;
+                }
                 //2. 检查状态， 下面的两种情况都有问题
                 if (_status != E_WORKER_STATUS.wait)
                     continue;

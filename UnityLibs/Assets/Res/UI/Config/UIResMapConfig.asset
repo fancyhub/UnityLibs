@@ -51,13 +51,7 @@ MonoBehaviour:
       ext: .png
     prefab:
     - name: Button
-      dir: 
-      ext: .prefab
-    - name: Button2
-      dir: 
-      ext: .prefab
-    - name: Button_Variant
-      dir: 
+      dir: Common
       ext: .prefab
     - name: Panel
       dir: 
@@ -69,5 +63,8 @@ MonoBehaviour:
       dir: 
       ext: .prefab
     - name: TestLocalization
+      dir: 
+      ext: .prefab
+    - name: Upgrader
       dir: 
       ext: .prefab

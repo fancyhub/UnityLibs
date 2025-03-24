@@ -36,6 +36,7 @@ namespace FH.UI.ViewGenerate.Ed
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(desc.PrefabPath);
 
+            Debug.Assert(prefab != null, "Load Prefab failed "+desc.PrefabPath);
             var type = PrefabUtility.GetPrefabAssetType(prefab);
             switch (type)
             {

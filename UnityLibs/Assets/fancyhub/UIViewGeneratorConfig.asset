@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: UIViewGeneratorConfig
   m_EditorClassIdentifier: 
   Csharp:
-    NameSpace: FH.UI
+    NameSpace: Game
     Prefix: UI
     Suffix: View
     BaseClassName: FH.UI.UIBaseView

@@ -74,7 +74,7 @@ namespace FH.UI
         }
 
 #if UNITY_EDITOR
-        // [Sirenix.OdinInspector.ShowInInspector]
+        // [Sirenix.OdinInspector.ShowInInspector]        
 #endif
         public EState State
         {

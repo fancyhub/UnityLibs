@@ -5,9 +5,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using FH.UI;
 
-public sealed class UIPageTestLocalization : UIPage
+public sealed class UIPageTestLocalization : UIPageBase
 {
-    private UITestLocalizationView _view;
+    //private UITestLocalizationView _view;
 
     public static UIPageTestLocalization Create()
     {
@@ -16,33 +16,33 @@ public sealed class UIPageTestLocalization : UIPage
         return ret;
     }
 
-    protected override void OnUIInit()
+    protected override void OnUI2Init()
     {
-        _view = CreateView<UITestLocalizationView>();
-        _view._btn_0.OnClick = () =>
-        {
-            LocMgr.ChangeLang("en");
-        };
-        _view._btn_1.OnClick = () =>
-        {
-            LocMgr.ChangeLang("zh-Hans");
-        };
+        //_view = CreateView<UITestLocalizationView>();
+        //_view._btn_0.OnClick = () =>
+        //{
+        //    LocMgr.ChangeLang("en");
+        //};
+        //_view._btn_1.OnClick = () =>
+        //{
+        //    LocMgr.ChangeLang("zh-Hans");
+        //};
     }
-    protected override void OnUIPrepareRes(IResInstHolder holder)
+    protected override void OnUI1PrepareRes(IResInstHolder holder)
     {
-        holder.PreCreate(UITestLocalizationView.CPath);
+        //holder.PreCreate(UITestLocalizationView.CPath);
     }
-    protected override void OnUIShow()
-    {
-        throw new System.NotImplementedException();
-    }
-
-    protected override void OnUIHide()
+    protected override void OnUI3Show()
     {
         throw new System.NotImplementedException();
     }
 
-    protected override void OnUIClose()
+    protected override void OnUI4Hide()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    protected override void OnUI5Close()
     {
         throw new System.NotImplementedException();
     }

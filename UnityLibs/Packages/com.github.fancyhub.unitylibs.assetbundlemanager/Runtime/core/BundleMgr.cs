@@ -37,6 +37,28 @@ namespace FH
                 return ret;
             }
 
+            public static ExternalBundle LoadFromFile(string file_path)
+            {
+                UnityEngine.AssetBundle ab = UnityEngine.AssetBundle.LoadFromFile(file_path);
+                if (ab == null)
+                    return null;
+                ExternalBundle ret = new ExternalBundle();
+                ret._Bundle = ab;
+                ret._Stream = null;
+                return ret;
+            }
+
+            public static ExternalBundle LoadFromStream(Stream stream)
+            {
+                UnityEngine.AssetBundle ab = UnityEngine.AssetBundle.LoadFromStream(stream);
+                if (ab == null)
+                    return null;
+                ExternalBundle ret = new ExternalBundle();
+                ret._Bundle = ab;
+                ret._Stream = stream;
+                return ret;
+            }
+
             public AssetBundle Bundle => _Bundle;
 
             public T LoadAsset<T>(string name) where T : UnityEngine.Object

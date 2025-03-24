@@ -5,16 +5,16 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-namespace FH.UI
+namespace Game
 {
 
-    //PrefabPath:"Assets/Res/UI/Prefab/Button.prefab", ParentPrefabPath:"", CsClassName:"UIButtonView", ParentCsClassName:"FH.UI.UIBaseView"
+    //PrefabPath:"Assets/Res/UI/Prefab/Common/Button.prefab", ParentPrefabPath:"", CsClassName:"UIButtonView", ParentCsClassName:"FH.UI.UIBaseView"
     public partial class UIButtonView : FH.UI.UIBaseView
     {
-        public  const string CPath = "Assets/Res/UI/Prefab/Button.prefab";
+        public  const string CPath = "Assets/Res/UI/Prefab/Common/Button.prefab";
 
 		public UnityEngine.UI.Button _Button;
-		public UnityEngine.UI.Text _Text;
+		public UnityEngine.UI.Text _TextName;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -27,7 +27,7 @@ namespace FH.UI
                 return;
 
 			_Button = refs.GetComp<UnityEngine.UI.Button>("_Button");
-			_Text = refs.GetComp<UnityEngine.UI.Text>("_Text");
+			_TextName = refs.GetComp<UnityEngine.UI.Text>("_TextName");
 
         }
 

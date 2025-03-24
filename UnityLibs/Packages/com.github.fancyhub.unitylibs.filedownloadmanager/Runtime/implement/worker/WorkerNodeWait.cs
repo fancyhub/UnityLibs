@@ -12,7 +12,7 @@ using System.IO;
 namespace FH.FileDownload
 {
 
-    internal sealed class WorkerNodeWait : IFsmStateNode<WorkerContext, EWorkerMsg, int>
+    internal sealed class WorkerNodeWait : IFsmStateNodeWithContext<WorkerContext, EWorkerMsg, int>
     {
         public const int ResultNext = 1;
 

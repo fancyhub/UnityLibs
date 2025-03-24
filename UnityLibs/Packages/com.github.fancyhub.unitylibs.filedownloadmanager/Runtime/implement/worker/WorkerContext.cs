@@ -33,7 +33,7 @@ namespace FH.FileDownload
         public FileDownloadJobDesc _CurrentJobDesc;
 
         public CPtr<ITask> _Task;
-       
+
 
         public string _RemoteFileUri; // http://xxxx/Android/file_full_name 
         public string _LocalFilePath; // Application.persistentDataPath/some_folder/file_full_name        
@@ -44,12 +44,16 @@ namespace FH.FileDownload
         public System.Threading.CancellationToken _CancellationToken;
 
 
-        public WorkerContext(WorkerConfig config, IFsm<EWorkerState, EWorkerMsg> fsm, JobDB job_db, int worker_index)
+        public WorkerContext(WorkerConfig config, JobDB job_db, int worker_index)
         {
-            _Fsm = fsm;
             _JobDB = job_db;
             _Config = config;
             _WorkerIndex = worker_index;
+        }
+
+        public void SetFsm(IFsm<EWorkerState, EWorkerMsg> fsm)
+        {
+            _Fsm = fsm;
         }
 
         public bool RequestJob()
@@ -57,11 +61,11 @@ namespace FH.FileDownload
             var job = _JobDB.PopPending();
             if (job == null)
                 return false;
-            _CurrentJob = job;            
+            _CurrentJob = job;
             _CurrentJobInfo = job._JobInfo;
             _CurrentJobDesc = _CurrentJobInfo.JobDesc;
 
-            _RemoteFileUri =  _CurrentJobDesc.RemoteUrl;
+            _RemoteFileUri = _CurrentJobDesc.RemoteUrl;
             _LocalFilePath = _CurrentJobDesc.DestFilePath;
             _DownloadFilePath = _Config.DownloadTempDir + _CurrentJobDesc.KeyName;
             _RetryCount = _Config.RetryCount + 1;
@@ -82,7 +86,7 @@ namespace FH.FileDownload
 
             _JobDB.Change(job, status);
             job._WorkerIndex = -1;
-            
+
             _CurrentJob = null;
             _Config.CallBack?.Invoke(job._JobInfo);
         }

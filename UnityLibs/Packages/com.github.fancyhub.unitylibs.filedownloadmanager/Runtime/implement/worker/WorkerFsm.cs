@@ -33,11 +33,10 @@ namespace FH.FileDownload
 
         public WorkerFsm(WorkerConfig config, JobDB job_db, int index)
         {
-            var fsm = new FsmWithContext<WorkerContext, EWorkerState, EWorkerMsg, int>(EFsmMode.Async);
-            _WorkerContext = new WorkerContext(config, fsm, job_db, index);
-            fsm.StateTranMap = CreateStateTranMap();
-            fsm.StateVT = CreateStateVT();
-            fsm.Context = _WorkerContext;
+            _WorkerContext = new WorkerContext(config, job_db, index);
+            var fsm = FsmCreator.CreateFsmWithContext(EFsmMode.Async, _WorkerContext, CreateStateVT(), CreateStateTranMap());
+
+            _WorkerContext.SetFsm(fsm);
             fsm.Start();
             _Fsm = fsm;
         }
@@ -53,13 +52,13 @@ namespace FH.FileDownload
             _Fsm.SendMsg(EWorkerMsg.Cancel);
         }
 
-        private static StateTranMap<EWorkerState, int> _StateTranMap;
-        public static StateTranMap<EWorkerState, int> CreateStateTranMap()
+        private static FsmStateTranMap<EWorkerState, int> _StateTranMap;
+        public static FsmStateTranMap<EWorkerState, int> CreateStateTranMap()
         {
             if (_StateTranMap != null)
                 return _StateTranMap;
 
-            _StateTranMap = new StateTranMap<EWorkerState, int>(EWorkerState.Wait);
+            _StateTranMap = new FsmStateTranMap<EWorkerState, int>(EWorkerState.Wait);
             _StateTranMap
                 .From(EWorkerState.Wait)
                     .To(WorkerNodeWait.ResultNext, EWorkerState.Download)
@@ -71,12 +70,12 @@ namespace FH.FileDownload
             return _StateTranMap;
         }
 
-        private static FsmStateVT<WorkerContext, EWorkerState, EWorkerMsg, int> _StateVT;
-        public static FsmStateVT<WorkerContext, EWorkerState, EWorkerMsg, int> CreateStateVT()
+        private static FsmStateVTWithContext<WorkerContext, EWorkerState, EWorkerMsg, int> _StateVT;
+        public static FsmStateVTWithContext<WorkerContext, EWorkerState, EWorkerMsg, int> CreateStateVT()
         {
             if (_StateVT != null)
                 return _StateVT;
-            _StateVT = new FsmStateVT<WorkerContext, EWorkerState, EWorkerMsg, int>(4);
+            _StateVT = new FsmStateVTWithContext<WorkerContext, EWorkerState, EWorkerMsg, int>(4);
             _StateVT[EWorkerState.Wait] = new WorkerNodeWait();
             _StateVT[EWorkerState.Download] = new WorkerNodeDownload();
 

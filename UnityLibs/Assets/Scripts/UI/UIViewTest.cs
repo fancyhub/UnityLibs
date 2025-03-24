@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 public class UIViewTest : MonoBehaviour
 {
-    private FH.UI.UIButtonView _btn;
+    private Game.UIButtonView _btn;
 
     private UIViewLayerMgr _LayerMgr;
     // Start is called before the first frame update
@@ -19,7 +19,7 @@ public class UIViewTest : MonoBehaviour
         _LayerMgr = new UIViewLayerMgr(UISharedBG.Inst);
         _LayerMgr.AddLayer("test");
 
-        _btn = FH.UI.UIBaseView.CreateView<FH.UI.UIButtonView>(UIRoot.Root2D);
+        _btn = FH.UI.UIBaseView.CreateView<Game.UIButtonView>(UIRoot.Root2D);
         _btn.OnClick = () => UIPageScene2.Create(this, _LayerMgr);
         _btn.OnClick = _DownloadFile;
 
@@ -71,9 +71,9 @@ public class UIViewTest : MonoBehaviour
     }
 }
 
-public class UIPageScene2 : UIPage
+public class UIPageScene2 : UIPageBase
 {
-    private FH.UI.UIPanelVariantView _view;
+    //private FH.UI.UIPanelVariantView _view;
     private UIViewLayerMgr _LayerMgr;
 
     public MonoBehaviour _Behaviour;
@@ -90,10 +90,10 @@ public class UIPageScene2 : UIPage
     }
     public string[] _SpriteNameList = new string[] { "s0", "s1", "s2" };
 
-    protected override void OnUIPrepareRes(IResInstHolder holder)
+    protected override void OnUI1PrepareRes(IResInstHolder holder)
     {
         //base.OnUIPrepareRes(holder);
-        holder.PreCreate(FH.UI.UIPanelVariantView.CPath);
+        //holder.PreCreate(FH.UI.UIPanelVariantView.CPath);
         foreach (var p in _SpriteNameList)
         {
             string path = UIResMapConfig.FindSprite(p);
@@ -101,7 +101,7 @@ public class UIPageScene2 : UIPage
         }
     }
 
-    protected override void OnUIClose()
+    protected override void OnUI5Close()
     {
         foreach (var p in _Routinues)
         {
@@ -116,36 +116,36 @@ public class UIPageScene2 : UIPage
         _SceneRefList.Clear();
     }
 
-    protected override void OnUIHide()
+    protected override void OnUI4Hide()
     {
         Log.D("OnUIHide");
     }
 
-    protected override void OnUIInit()
+    protected override void OnUI2Init()
     {
         Log.D("OnUIInit");
-        _view = CreateView<FH.UI.UIPanelVariantView>();
-        _view._btn_0.OnClick = _OnCloseClick;
-        _view._btn_1.OnClick = _OnTestSceneClick;
-        _view._btn_2.OnClick = _OnCloseFirstSceneClick;
-        _view._btn_4.OnClick = _OnCloseLastSceneClick;
-        _view._btn_3._Button2.onClick.AddListener(() =>
-        {
-            //FH.UI.UIRedDotMgr.ResetIncrementFlag("vroot.test.scene");
+        //_view = CreateView<FH.UI.UIPanelVariantView>();
+        //_view._btn_0.OnClick = _OnCloseClick;
+        //_view._btn_1.OnClick = _OnTestSceneClick;
+        //_view._btn_2.OnClick = _OnCloseFirstSceneClick;
+        //_view._btn_4.OnClick = _OnCloseLastSceneClick;
+        //_view._btn_3._Button2.onClick.AddListener(() =>
+        //{
+        //    //FH.UI.UIRedDotMgr.ResetIncrementFlag("vroot.test.scene");
 
-            int index = UnityEngine.Random.Range(0, _SpriteNameList.Length);
-            _view._img_0.ExtAsyncSetSprite(_SpriteNameList[index]);
+        //    int index = UnityEngine.Random.Range(0, _SpriteNameList.Length);
+        //    _view._img_0.ExtAsyncSetSprite(_SpriteNameList[index]);
 
-            foreach (var p in _view._img_list)
-            {
-            }
+        //    foreach (var p in _view._img_list)
+        //    {
+        //    }
 
-        });
+        //});
 
-        _LayerMgr.AddView(_view, 0, this, EUIBgClickMode.Common);
+        //_LayerMgr.AddView(_view, 0, this, EUIBgClickMode.Common);
     }
 
-    protected override void OnUIShow()
+    protected override void OnUI3Show()
     {
         Log.D("OnUIShow");
     }

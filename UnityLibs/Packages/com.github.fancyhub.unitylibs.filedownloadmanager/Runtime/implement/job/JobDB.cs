@@ -143,12 +143,12 @@ namespace FH.FileDownload
         }
 
 
-        private static StateTranMap<EFileDownloadStatus, EFileDownloadStatus> _JobStatusTranMap;
+        private static FsmStateTranMap<EFileDownloadStatus, EFileDownloadStatus> _JobStatusTranMap;
         private static bool _CanChangeStatus(EFileDownloadStatus from, EFileDownloadStatus to)
         {
             if (_JobStatusTranMap == null)
             {
-                _JobStatusTranMap = new StateTranMap<EFileDownloadStatus, EFileDownloadStatus>(EFileDownloadStatus.Pending);
+                _JobStatusTranMap = new FsmStateTranMap<EFileDownloadStatus, EFileDownloadStatus>(EFileDownloadStatus.Pending);
                 _JobStatusTranMap
                     .From(EFileDownloadStatus.Pending)
                         .To(EFileDownloadStatus.Downloading, EFileDownloadStatus.Downloading)

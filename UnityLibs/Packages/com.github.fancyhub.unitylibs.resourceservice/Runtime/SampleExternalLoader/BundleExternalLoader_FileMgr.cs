@@ -64,28 +64,27 @@ namespace FH.SampleExternalLoader
                     return null;
                 case EFileLocation.Persistent:
                     {
-                        var ab = UnityEngine.AssetBundle.LoadFromFile(file_path);
-                        return IBundleMgr.ExternalBundle.Create(ab);
+                        return IBundleMgr.ExternalBundle.LoadFromFile(file_path);
                     }
 
                 case EFileLocation.Remote:
                     return null;
 
                 case EFileLocation.StreamingAssets:
-                    var stream = SAFileSystem.OpenRead(file_path);
-                    //if (stream != null && stream.CanSeek)
-                    if (stream != null)
                     {
-                        Log.E("Stream Seekable: {0}, {1}", stream.CanSeek, file_path);
-                        var ab = UnityEngine.AssetBundle.LoadFromStream(stream);
-                        return IBundleMgr.ExternalBundle.Create(ab, stream);
+                        var stream = SAFileSystem.OpenRead(file_path);
+                        if (stream != null)
+                        {
+                            if (stream.CanSeek)
+                                return IBundleMgr.ExternalBundle.LoadFromStream(stream);
+
+                            Log.E("Stream is not seekable: {0}, {1}", stream.CanSeek, file_path);
+                            stream?.Close();
+                        }
+
+                        return IBundleMgr.ExternalBundle.LoadFromFile(file_path);
                     }
-                    else
-                    {
-                        stream?.Close();
-                        var ab = UnityEngine.AssetBundle.LoadFromFile(file_path);
-                        return IBundleMgr.ExternalBundle.Create(ab);
-                    }
+
             }
         }
 
