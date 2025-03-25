@@ -12,8 +12,10 @@ namespace Game
         {
             new MyUISceneMgr().Init();
             FH.UI.UISceneMgr.ChangeScene<UISceneUpgrader>();
-
             FH.TaskQueue.Init(10);
+            FH.UI.UIRedDotMgr.Init(FH.ELogLvl.Debug);
+            FH.UI.UISceneMgr.AddUpdate(() => { FH.UI.UIRedDotMgr.Update(); return FH.UI.EUIUpdateResult.Continue; });
+
         }
     }
 
@@ -40,6 +42,10 @@ namespace Game
         {
             this.OpenUI<UIUpgraderPage>();
         }
+
+        public override void OnUpdate()
+        {
+        }
     }
 
     public class UISceneMain : FH.UI.UISceneBase
@@ -47,6 +53,11 @@ namespace Game
         public override void OnSceneEnter(FH.UI.IUIScene lastScene)
         {
             this.OpenUI<UIMainPage>(Tag: FH.UI.EUITagIndex.BG);
+
+        }
+
+        public override void OnUpdate()
+        {
         }
     }
 }

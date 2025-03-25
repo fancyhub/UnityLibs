@@ -13,7 +13,17 @@ namespace Game
             base.OnUI2Init();
             BaseView._BtnUpgrade.OnClick = _OnBtnUpgradeClick;
             BaseView._BtnNext.OnClick = _OnBtnNextClick;
-            BaseView._BtnNext.Active = false;
+            BaseView._BtnNext.Active = false;            
+        }
+
+        protected override void OnUI3Show()
+        {
+            base.OnUI3Show();
+
+            if(FileMgr.IsAllTagsReady())
+            {
+                UISceneMgr.ChangeScene<UISceneMain>();
+            }
         }
 
         protected override void OnUI5Close()

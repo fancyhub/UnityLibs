@@ -10,6 +10,8 @@ namespace FH.UI
         {
         }
 
+        public abstract void OnUpdate();
+
         public T OpenUI<T>(
             EUIPageGroupChannel GroupChannel = EUIPageGroupChannel.Free,
             bool GroupUniquePage = false,

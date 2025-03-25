@@ -240,6 +240,7 @@ namespace FH.UI
     {
         public void OnSceneEnter(IUIScene lastScene);
         public void OnSceneExit(IUIScene nextScene);
+        public void OnUpdate();
     }
 
     public struct UIScenePageInfo

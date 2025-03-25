@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace FH.UI
 {
-    public static class UILog  
+    internal static class UILog  
     {
         public static TagLog _ = TagLog.Create("UI", ELogLvl.Debug);
     }

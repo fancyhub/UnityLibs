@@ -34,10 +34,12 @@ namespace FH
         {
             internal readonly CPtr<EventSet1<TKey>> Set;
             internal readonly int Id;
-            internal Handle(EventSet1<TKey> set, int id)
+            internal readonly TKey Key;
+            internal Handle(EventSet1<TKey> set, int id, TKey key)
             {
                 this.Set = new CPtr<EventSet1<TKey>>(set);
                 this.Id = id;
+                this.Key = key;
             }
 
             public bool Valid => !Set.Null && Id != 0;
@@ -52,6 +54,7 @@ namespace FH
                     return;
 
                 set._id_map.Remove(this.Id);
+                EventSetLog._.D("Unreg Handler {0}", Key);
                 node.Value = default;
             }
         }
@@ -98,13 +101,13 @@ namespace FH
             {
                 if (typeof(TValue) != _value_type)
                 {
-                    Log.Assert(false, "value type Is Different Key:{0}, Need ValueType: {1}, MsgType: {2}", _key, _value_type, typeof(TValue));
+                    EventSetLog._.Assert(false, "value type Is Different Key:{0}, Need ValueType: {1}, MsgType: {2}", _key, _value_type, typeof(TValue));
                     return false;
                 }
 
                 if (_stack_count > 3)
                 {
-                    Log.Assert(false, "action in stack more than {0} times", _stack_count + 1);
+                    EventSetLog._.Assert(false, "action in stack more than {0} times", _stack_count + 1);
                     return false;
                 }
                 _stack_count++;
@@ -112,6 +115,9 @@ namespace FH
 
                 try
                 {
+                    int list_count = _list.Count;
+                    int total_count = Math.Max(list_count, 5) * 2;
+                    int count = 0;
                     var node = _list.First;
                     for (; ; )
                     {
@@ -119,6 +125,12 @@ namespace FH
                             break;
                         if (node.List != _list) //Next Node is Removed when call current action
                             break;
+                        count++;
+                        if (count > total_count)
+                        {
+                            EventSetLog._.Assert(false, "dead loop, {0}, {1}/{2}", _key, count, list_count);
+                            break;
+                        }
 
                         EventSet1NodeData cur_node_data = node.Value;
                         node = node.Next;
@@ -133,12 +145,12 @@ namespace FH
                         else if (cur_node_data.Action is Action<TKey, TValue> action1)
                             action1(_key, v);
                         else
-                            Log.Assert(false, "Action Convert Fail, ActionType: {0}, ParamType: {1}", cur_node_data.GetType(), typeof(TValue));
+                            EventSetLog._.Assert(false, "Action Convert Fail, ActionType: {0}, ParamType: {1}", cur_node_data.GetType(), typeof(TValue));
                     }
                 }
                 catch (System.Exception e)
                 {
-                    Log.E(e);
+                    EventSetLog._.E(e);
                     retval = false;
                 }
                 _stack_count--;
@@ -151,25 +163,25 @@ namespace FH
             {
                 if (action == null)
                 {
-                    Log.Assert(false, "Can't reg null action");
+                    EventSetLog._.Assert(false, "Can't reg null action");
                     return null;
                 }
 
                 if (value_type != _value_type)
                 {
-                    Log.Assert(false, "can't reg, value type Is Different Key:{0}, Need ValueType: {1}, NewValueType: {2}", _key, _value_type, value_type);
+                    EventSetLog._.Assert(false, "can't reg, value type Is Different Key:{0}, Need ValueType: {1}, NewValueType: {2}", _key, _value_type, value_type);
                     return null;
                 }
 
                 // Cant Add Twice
                 if (_Find(action) != null)
                 {
-                    Log.Assert(false, "Can't reg twice {0} {1}", _key, action);
+                    EventSetLog._.Assert(false, "Can't reg twice {0} {1}", _key, action);
                     return null;
                 }
 
                 _RemoveInvalidNodes();
-
+                EventSetLog._.D("Reg Handler {0}", _key);
                 return _list.ExtAddLast(new EventSet1NodeData(action));
             }
 
@@ -248,7 +260,7 @@ namespace FH
         {
             if (action == null)
             {
-                Log.Assert(false, "Can't reg null action {0}", key);
+                EventSetLog._.Assert(false, "Can't reg null action {0}", key);
                 return default;
             }
 
@@ -261,7 +273,7 @@ namespace FH
             if (node == null)
                 return default;
             _id_map[node.Value.Id] = node;
-            return new Handle(this, node.Value.Id);
+            return new Handle(this, node.Value.Id, key);
         }
 
         //立即发消息

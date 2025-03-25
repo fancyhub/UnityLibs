@@ -21,6 +21,7 @@ namespace FH
         private struct NodeData
         {
             private static int _id_gen = 0;
+            public readonly int Type; //1:IHandler, 2: Action, 3: Action<TValue> 4:Action<TKey,TValue>
             public readonly IHandler Handler;
             public readonly Action Action;
             public readonly Action<TValue> Action1;
@@ -29,6 +30,7 @@ namespace FH
 
             public NodeData(IHandler handler)
             {
+                this.Type = 1;
                 this.Handler = handler;
                 this.Action = null;
                 this.Action1 = null;
@@ -44,6 +46,7 @@ namespace FH
 
             public NodeData(Action action)
             {
+                this.Type = 2;
                 this.Handler = null;
                 this.Action = action;
                 this.Action1 = null;
@@ -59,6 +62,7 @@ namespace FH
 
             public NodeData(Action<TValue> action)
             {
+                this.Type = 3;
                 this.Handler = null;
                 this.Action = null;
                 this.Action1 = action;
@@ -74,6 +78,7 @@ namespace FH
 
             public NodeData(Action<TKey, TValue> action)
             {
+                this.Type = 4;
                 this.Handler = null;
                 this.Action = null;
                 this.Action1 = null;
@@ -96,8 +101,22 @@ namespace FH
             {
                 if (Id == 0)
                     return false;
+                if (node.Type != Type)
+                    return false;
 
-                return Handler == node.Handler || Action == node.Action || Action1 == node.Action1 || Action2 == node.Action2;
+                switch (Type)
+                {
+                    case 1:
+                        return Handler == node.Handler;
+                    case 2:
+                        return Action == node.Action;
+                    case 3:
+                        return Action1 == node.Action1;
+                    case 4:
+                        return Action2 == node.Action2;
+                    default:
+                        return true;
+                }
             }
         }
 
@@ -105,10 +124,12 @@ namespace FH
         {
             internal readonly CPtr<EventSet2<TKey, TValue>> Set;
             internal readonly int Id;
-            internal Handle(EventSet2<TKey, TValue> set, int id)
+            internal readonly TKey Key;
+            internal Handle(EventSet2<TKey, TValue> set, int id, TKey key)
             {
                 this.Set = new CPtr<EventSet2<TKey, TValue>>(set);
                 this.Id = id;
+                this.Key = key;
             }
 
             public bool Valid => !Set.Null && Id != 0;
@@ -124,6 +145,8 @@ namespace FH
 
                 set._id_map.Remove(this.Id);
                 node.Value = default;
+
+                EventSetLog._.D("Unreg Handler {0}", Key);
             }
         }
 
@@ -172,7 +195,7 @@ namespace FH
             {
                 if (_stack_count > 3)
                 {
-                    Log.Assert(false, "action in stack more than {0} times", _stack_count + 1);
+                    EventSetLog._.Assert(false, "action in stack more than {0} times", _stack_count + 1);
                     return false;
                 }
 
@@ -182,33 +205,52 @@ namespace FH
                 try
                 {
                     var node = _list.First;
+                    var list_count = _list.Count;
+                    int total_count = Math.Max(list_count, 5) * 2;
+                    int count = 0;
                     for (; ; )
                     {
                         if (node == null)
                             break;
                         if (node.List != _list) //Next Node is Removed when call current action
                             break;
-                        if (!node.Value.IsValid())
+                        count++;
+                        if (count > total_count)
+                        {
+                            EventSetLog._.Assert(false, "dead loop, {0}, {1}/{2}", _key, count, list_count);
+                            break;
+                        }
+                        NodeData cur = node.Value;
+                        node = node.Next;
+
+                        if (!cur.IsValid())
                         {
                             _dirty = true;
                             continue;
-                        }
+                        }                       
+                        switch (cur.Type)
+                        {
+                            case 1:
+                                cur.Handler?.HandleEvent(_key, v);
+                                break;
 
-                        NodeData cur = node.Value;
-                        node = node.Next;
-                        if (cur.Handler != null)
-                            cur.Handler.HandleEvent(_key, v);
-                        else if (cur.Action != null)
-                            cur.Action();
-                        else if (cur.Action1 != null)
-                            cur.Action1(v);
-                        else if (cur.Action2 != null)
-                            cur.Action2(_key, v);
+                            case 2:
+                                cur.Action?.Invoke();
+                                break;
+
+                            case 3:
+                                cur.Action1.Invoke(v);
+                                break;
+
+                            case 4:
+                                cur.Action2?.Invoke(_key, v);
+                                break;
+                        }
                     }
                 }
                 catch (System.Exception e)
                 {
-                    Log.E(e);
+                    EventSetLog._.E(e);
                     retval = false;
                 }
 
@@ -244,17 +286,17 @@ namespace FH
             {
                 if (!data.IsValid())
                 {
-                    Log.Assert(false, "Can't reg null action");
+                    EventSetLog._.Assert(false, "Can't reg null action");
                     return null;
                 }
 
                 // Cant Add Twice
                 if (_Find(data) != null)
                 {
-                    Log.Assert(false, "Can't reg twice key:{0} action:{1}", _key, data);
+                    EventSetLog._.Assert(false, "Can't reg twice key:{0} action:{1}", _key, data);
                     return null;
                 }
-
+                EventSetLog._.D("Reg Handler {0}", _key);
                 _RemoveInvalidNodes();
                 return _list.ExtAddLast(data);
             }
@@ -397,7 +439,7 @@ namespace FH
         {
             if (!data.IsValid())
             {
-                Log.Assert(false, "Can't reg null action {0}", key);
+                EventSetLog._.Assert(false, "Can't reg null action {0}", key);
                 return default;
             }
 
@@ -411,7 +453,7 @@ namespace FH
                 return default;
 
             _id_map[node.Value.Id] = node;
-            return new Handle(this, node.Value.Id);
+            return new Handle(this, node.Value.Id, key);
         }
     }
 

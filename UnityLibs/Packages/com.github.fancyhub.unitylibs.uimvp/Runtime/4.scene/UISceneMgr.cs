@@ -42,9 +42,7 @@ namespace FH.UI
 
         protected CPtr<IUIScene> _CurrentScene;
         private PtrList _CurrentScenePages;
-
-        protected IUIScene _LastScene;
-        protected IUIScene _NextScene;
+        protected CPtr<IUIScene> _NextScene;
 
         protected UIUpdaterMgr _UpdaterMgr;
         protected UIViewLayerMgr _ViewLayerMgr;
@@ -143,9 +141,8 @@ namespace FH.UI
             if (_ == null)
                 return;
 
-            _._NextScene?.Destroy();
-            _._NextScene = null;
-            _._NextScene = _.CreateScene<T>();
+            _._NextScene.Destroy();
+            _._NextScene = new CPtr<IUIScene>(_.CreateScene<T>());
         }
 
         public static bool AddUpdate(IUIUpdater updater)
@@ -169,26 +166,24 @@ namespace FH.UI
             return _._UpdaterMgr.RemoveUpdate(id);
         }
 
-
-
         protected abstract IUIScene CreateScene<T>();
 
 
         private void _Update()
         {
             _SwitchScene();
-
+            _CurrentScene.Val?.OnUpdate();
             _UpdaterMgr.Update();
         }
 
         private void _SwitchScene()
         {
-            if (_NextScene == null)
+            IUIScene nextScene = _NextScene.Val;
+            if (nextScene == null)
                 return;
 
             IUIScene currentScene = _CurrentScene.Val;
-            IUIScene nextScene = _NextScene;
-            _CurrentScene = new CPtr<IUIScene>(_NextScene);
+            _CurrentScene = new CPtr<IUIScene>(nextScene);
             _NextScene = null;
 
             //退出旧的

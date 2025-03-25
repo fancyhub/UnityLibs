@@ -14,12 +14,20 @@ namespace FH
         public void OnDynamicRelease();
     }
 
+    public sealed class DynamicCoroutineComp : MonoBehaviour, IDynamicComponent
+    {        
+        void IDynamicComponent.OnDynamicRelease()
+        {
+            this.StopAllCoroutines();
+        }
+    }
+
     //GameObject pool 相关的操作
     public static class GameObjectPoolUtil
     {
         public static Transform _dummy_inactive;
         public static Transform _dummy_active;
-        public static Transform _dummy_dynamic_root;        
+        public static Transform _dummy_dynamic_root;
         public static Transform GetDynamicRoot()
         {
             if (_dummy_dynamic_root == null)
@@ -73,7 +81,7 @@ namespace FH
                 Log.Assert(null != prefab, "prefab 为空");
                 Log.Assert(!string.IsNullOrEmpty(path), "路径为空");
                 return null;
-            }    
+            }
 
             Transform dummy = GetDummyInactive();
             GameObject obj_inst = GameObject.Instantiate(prefab, dummy, false);
@@ -86,7 +94,7 @@ namespace FH
         }
 
         internal static void InstActive(GameObject obj)
-        {            
+        {
             if (obj == null)
                 return;
 
@@ -95,7 +103,7 @@ namespace FH
 
             Transform inactive_dummy = GetDummyInactive();
             obj.transform.SetParent(inactive_dummy, false);
-            
+
         }
 
         internal static void Push2Pool(GameObject obj)

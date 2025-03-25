@@ -14,7 +14,8 @@ namespace Game
         public  const string CPath = "Assets/Res/UI/Prefab/MainPanel.prefab";
 
 		public UnityEngine.RectTransform _MainPanel;
-		public UIButtonView _BtnTestUIDialog;
+		public UIButtonView _BtnTestUIGroupDialog;
+		public UIButtonView _BtnTestLoadScene;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -27,7 +28,8 @@ namespace Game
                 return;
 
 			_MainPanel = refs.GetComp<UnityEngine.RectTransform>("_MainPanel");
-			_BtnTestUIDialog = _CreateSub<UIButtonView>(refs.GetObj("_BtnTestUIDialog"));
+			_BtnTestUIGroupDialog = _CreateSub<UIButtonView>(refs.GetObj("_BtnTestUIGroupDialog"));
+			_BtnTestLoadScene = _CreateSub<UIButtonView>(refs.GetObj("_BtnTestLoadScene"));
 
         }
 
@@ -35,7 +37,8 @@ namespace Game
         {
             base._AutoDestroy();
 
-			_BtnTestUIDialog.Destroy();
+			_BtnTestUIGroupDialog.Destroy();
+			_BtnTestLoadScene.Destroy();
 
         }
 
