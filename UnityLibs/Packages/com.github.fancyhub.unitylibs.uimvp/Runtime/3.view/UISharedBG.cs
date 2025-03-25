@@ -36,6 +36,7 @@ namespace FH.UI
             }
         }
 
+
         public void DisableMask()
         {
             //1. check
@@ -93,7 +94,7 @@ namespace FH.UI
                 return;
 
             GameObject prefab = Resources.Load<GameObject>(CResPath);
-            _root = GameObject.Instantiate<GameObject>(prefab, UIRoot.Root2D);
+            _root = GameObject.Instantiate<GameObject>(prefab, FH.UI.UIRoot.Root2D);
             _root.name = "UISharedBG";
 
             UISharedBGMono mono = _root.GetComponent<UISharedBGMono>();

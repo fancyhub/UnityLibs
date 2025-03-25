@@ -12,12 +12,10 @@ using UnityEngine;
 
 namespace FH.UI
 {
-  
-
     /// <summary>
     /// Tag 的矩阵,  
     /// </summary>
-    public sealed class UIPageTagMatrix : IUIPageTagMgr
+    public sealed class UIPageTagMatrix
     {
         public const int C_TAG_MAX = Bit64.LENGTH;
         private MyDict<int, (byte tag, CPtr<IUITagPage> page)> _dict_tag;
@@ -37,16 +35,23 @@ namespace FH.UI
             _dict_hide_mask.Clear();
         }
 
-        public bool AddPage(IUITagPage page, byte page_tag)
+        public bool AddTag(IUITagPage page, byte page_tag)
         {
-            Log.Assert(page != null, "handler 不能为空");
-            Log.Assert(page_tag < C_TAG_MAX, "tag {0} 要在 [0,{1})", page_tag, C_TAG_MAX);
-            if (page == null || page_tag >= C_TAG_MAX || page_tag < 0)
+            if (page == null)
+            {
+                UILog._.Assert(false, "handler 不能为空");
                 return false;
+            }
+
+            if (page_tag < 0 || page_tag >= C_TAG_MAX)
+            {
+                UILog._.Assert(false, "tag {0} 要在 [0,{1})", page_tag, C_TAG_MAX);                
+                return false;
+            }
 
             if (_dict_tag.ContainsKey(page.Id))
             {
-                Log.Assert(false, "id {0} 对应的tag {1} 重复添加", page.Id, page_tag);
+                UILog._.Assert(false, "id {0} 对应的tag {1} 重复添加", page.Id, page_tag);
                 return false;
             }
 
@@ -55,7 +60,7 @@ namespace FH.UI
             return true;
         }
 
-        public bool RemovePage(int page_id)
+        public bool RemoveTag(int page_id)
         {
             return _dict_tag.Remove(page_id);
         }
@@ -137,6 +142,6 @@ namespace FH.UI
                 }
             }
             return true;
-        }        
+        }
     }
 }

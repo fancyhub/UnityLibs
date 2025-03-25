@@ -42,6 +42,15 @@ namespace FH.UI
         void SetOrder(int order, bool relative = false);
     }
 
+
+    #region Res Page
+    public interface IUIResPage : IHolderCallBack, IUIElement
+    {
+        internal void SetResHolder(IResInstHolder resHolder);
+        public IResInstHolder ResHolder { get; }
+    }
+    #endregion
+
     #region PageGroup
     public enum EUIPageGroupType
     {
@@ -53,17 +62,25 @@ namespace FH.UI
     public struct UIGroupPageInfo
     {
         public readonly IUIPageGroupMgr Mgr;
+        public readonly EUIPageGroupChannel GroupChannel;
+
+        public UIGroupPageInfo(IUIPageGroupMgr mgr, EUIPageGroupChannel channel)
+        {
+            this.Mgr = mgr;
+            this.GroupChannel = channel;
+        }
 
         public UIGroupPageInfo(IUIPageGroupMgr mgr)
         {
             this.Mgr = mgr;
+            this.GroupChannel = default;
         }
     }
 
     public interface IUIGroupPage : IUIElement
     {
-        public UIGroupPageInfo UIGroupPageInfo { get; }
-        internal void SetUIGroupPageInfo(UIGroupPageInfo info);
+        public UIGroupPageInfo GroupPageInfo { get; }
+        internal void SetGroupPageInfo(UIGroupPageInfo info);
         public void SetPageGroupVisible(bool visible);
     }
 
@@ -110,20 +127,15 @@ namespace FH.UI
     }
     public interface IUITagPage : IUIElement
     {
-        public UITagPageInfo UITagPageInfo { get; }
-        internal void SetUITagPageInfo(UITagPageInfo info);
+        public UITagPageInfo TagPageInfo { get; }
+        internal void SetTagPageInfo(UITagPageInfo info);
         void SetPageTagVisible(bool visible);
     }
 
     public interface IUIPageTagMgr
     {
-        public void ClearTags();
-
-        public bool AddPage(IUITagPage page, byte page_tag);
-        public bool RemovePage(int page_id);
-
-        public bool AddMask(int mask_id, Bit64 hide_mask);
-        public bool RemoveMask(int mask_id);
+        public void AddPage(IUITagPage page, EUITagIndex tagId);
+        public void RemovePage(int page_id);
     }
     #endregion
 
@@ -137,6 +149,13 @@ namespace FH.UI
             Mgr = mgr;
             ViewLayer = viewLayer;
         }
+
+        public RectTransform GetNormalLayer()
+        {
+            if (Mgr == null)
+                return null;
+            return Mgr.GetLayer(ViewLayer);
+        }
     }
 
     public interface IUILayerView : IUIElement
@@ -147,8 +166,8 @@ namespace FH.UI
 
     public interface IUILayerViewPage : IUIElement
     {
-        public UILayerViewPageInfo UILayerViewPageInfo { get; }
-        internal void SetUILayerViewPageInfo(UILayerViewPageInfo info);
+        public UILayerViewPageInfo LayerViewPageInfo { get; }
+        internal void SetLayerViewPageInfo(UILayerViewPageInfo info);
     }
 
     public interface IUILayerViewBGHandler : IUIElement
@@ -178,6 +197,10 @@ namespace FH.UI
 
     public interface IUIViewLayerMgr
     {
+        public void AddPage(IUILayerViewPage page, EUIViewLayer layer);
+
+        public UnityEngine.RectTransform GetLayer(EUIViewLayer layer);
+
         public bool AddView(IUILayerView view, int layer_index);
         public bool RemoveView(int view_id);
         public bool MoveView(int view_id, int offset);
@@ -185,7 +208,6 @@ namespace FH.UI
         public bool SetBgClick(int view_id, IUILayerViewBGHandler handler, EUIBgClickMode click_mode);
     }
     #endregion
-
 
     #region update
     public interface IUIUpdater : IUIElement
@@ -212,47 +234,12 @@ namespace FH.UI
     #endregion
 
     #region IUIScene
-    public struct SceneSharedData
-    {
-        public IUIPageGroupMgr PageGroupMgr;
-        public IUIViewLayerMgr ViewLayerMgr;
-        public IUIPageTagMgr PageTagMgr;
-        public IUISceneMgr SceneMgr;
-    }
 
-    public struct PageOpenInfo
-    {
-        public static PageOpenInfo Default = new PageOpenInfo()
-        {
-            GroupChannel = EUIPageGroupChannel.Free,
-            GroupUniquePage = false,
-
-            AddToScene = true,
-            ViewLayer = EUIViewLayer.Normal,
-
-            ResHolder = null,
-        };
-
-        public EUIPageGroupChannel GroupChannel;
-        public bool GroupUniquePage;
-
-        public bool AddToScene;
-        public EUIViewLayer ViewLayer;
-
-        public IResInstHolder ResHolder;
-    }
 
     public interface IUIScene : IUIElement
     {
-        public SceneSharedData SceneSharedData { get; internal set; }
-
-        public void OnSceneEnter(Type lastSceneType);
-        public void OnSceneExit(Type nextSceneType);
-
-        public IUIPageGroupMgr GetPageGroupMgr();
-
-        public T OpenPage<T>(PageOpenInfo open_info)
-            where T : class, IUIPage, IUIGroupPage, IUITagPage, IUILayerViewPage, IUIScenePage, new();
+        public void OnSceneEnter(IUIScene lastScene);
+        public void OnSceneExit(IUIScene nextScene);
     }
 
     public struct UIScenePageInfo
@@ -268,7 +255,7 @@ namespace FH.UI
 
     public interface IUISceneMgr
     {
-        public T OpenPage<T>(PageOpenInfo open_info) where T : class, IUIPage, IUIGroupPage, IUITagPage, IUILayerViewPage, IUIScenePage, new();
+        public void AddPage(IUIScenePage page, bool add_to_scene);
     }
     #endregion
 }

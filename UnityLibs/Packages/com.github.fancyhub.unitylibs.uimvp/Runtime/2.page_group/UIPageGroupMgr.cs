@@ -64,6 +64,7 @@ namespace FH.UI
         {
             if (page == null)
                 return false;
+            page.SetGroupPageInfo(new UIGroupPageInfo(this));
             var group = GetGroup(channel);
             if (group == null)
                 return false;
@@ -71,7 +72,7 @@ namespace FH.UI
             //已经添加了
             if (_dict.TryGetValue(page.Id, out var info))
             {
-                UILog._.W("add page to group duplicate: PageId:{0}, PageType:{1}", page.Id, page.GetType());
+                UILog._.W("Page:{0},{1}, add page to group duplicate", page.Id, page.GetType());
                 return false;
             }
 
@@ -81,9 +82,9 @@ namespace FH.UI
                 GroupType = group.GroupType,
                 Channel = channel,
             });
-
+            page.SetGroupPageInfo(new UIGroupPageInfo(this, channel));
             group.AddPage(page);
-            UILog._.D("add page to group: PageId:{0}, PageType:{1}, GroupType: {2}", page.Id, page.GetType(), group);
+            UILog._.D("Page:{0},{1},add page to group succ", page.Id, page.GetType(), group);
             return true;
         }
 
@@ -91,18 +92,18 @@ namespace FH.UI
         {
             if (!_dict.Remove(pageId, out var info))
             {
-                UILog._.D("remove page from group failed, Cant find page : {0}", pageId);
+                UILog._.D("Page:{0}, remove page from group failed, Cant find page", pageId);
                 return false;
             }
 
             var group = GetGroup(info.Channel);
             if (group == null)
             {
-                UILog._.E("remove page from group failed, canot find group {0}", info.Channel);
+                UILog._.E("Page:{0}, remove page from group failed, canot find group {1}", pageId, info.Channel);
                 return false;
             }
             group.RemovePage(pageId);
-            UILog._.D("remove page from group, pageid:{0}", pageId);
+            UILog._.D("Page:{0}, remove page from group succ {1}", pageId, info.Channel);
             return true;
         }
 

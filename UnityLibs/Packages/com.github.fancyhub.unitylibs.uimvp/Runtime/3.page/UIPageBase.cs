@@ -15,7 +15,7 @@ namespace FH.UI
     /// <summary>
     /// 带有Group 信息, Res 的管理
     /// </summary>
-    public abstract class UIPageBase : UIElement, IUIPage, IUIGroupPage, IUITagPage, IUILayerViewPage, IUIScenePage, IHolderCallBack, IUILayerViewBGHandler
+    public abstract class UIPageBase : UIElement, IUIPage, IUIGroupPage, IUITagPage, IUILayerViewPage, IUIScenePage, IUIResPage
     {
         internal enum EResState
         {
@@ -74,27 +74,23 @@ namespace FH.UI
         private List<CPtr<UIPageBase>> _ChildPages;
 
         public UIPageBase() { }
-        public UIPageBase(IResInstHolder holder)
-        {
-            _Holder = holder;
-            if (_Holder != null)
-            {
-                _PageStatusData.ResState = EResState.Done;
-            }
-        }
 
         public T OpenChildPage<T>(PageOpenInfo pageOpenInfo) where T : UIPageBase, new()
         {
-            if (_UIScenePageInfo.Mgr == null)
-                return null;
+            T ret = new T();
 
-            T ret = _UIScenePageInfo.Mgr.OpenPage<T>(pageOpenInfo);
-            if (ret == null)
-                return null;
+            GroupPageInfo.Mgr?.AddPage(ret, pageOpenInfo.GroupChannel);
+            TagPageInfo.Mgr?.AddPage(ret, pageOpenInfo.Tag);
+            UIScenePageInfo.Mgr?.AddPage(ret, pageOpenInfo.AddToScene);
+            LayerViewPageInfo.Mgr?.AddPage(ret, pageOpenInfo.ViewLayer);
+            ((IUIResPage)ret).SetResHolder(_Holder);
+
             PtrList += ret;
             if (_ChildPages == null)
                 _ChildPages = new List<CPtr<UIPageBase>>();
             _ChildPages.Add(ret);
+
+            ret.UIOpen();
             return ret;
         }
 
@@ -108,6 +104,7 @@ namespace FH.UI
             if (_PageStatusData.PageVisible)
                 return;
             _PageStatusData.PageVisible = true;
+            UILog._.D("Page:{0},{1},  UIVisible true", Id, GetType());
             _ProcessStateMsg(EMsg.UpdateVisible);
         }
 
@@ -117,6 +114,7 @@ namespace FH.UI
                 return;
 
             _PageStatusData.PageVisible = false;
+            UILog._.D("Page:{0},{1},  UIVisible false", Id, GetType());
             _ProcessStateMsg(EMsg.UpdateVisible);
         }
 
@@ -125,23 +123,24 @@ namespace FH.UI
             Destroy();
         }
 
-        public virtual void OnBgClick()
-        {
-            UILog._.D("OnBgClick unprocess {0}", this.GetType());
-        }
-
         protected virtual void OnParentPageVisible(bool visible)
         {
             if (_PageStatusData.ParentPageVisible == visible)
                 return;
             _PageStatusData.ParentPageVisible = visible;
+            UILog._.D("Page:{0},{1},  OnParentPageVisible {2}", Id, GetType(), visible);
             _ProcessStateMsg(EMsg.UpdateVisible);
         }
 
         public virtual T CreateView<T>(Transform parent = null) where T : UIBaseView, new()
         {
             if (parent == null)
-                parent = UIRoot.Root2D;
+            {
+                parent = LayerViewPageInfo.GetNormalLayer();
+                if (parent == null)
+                    parent = UIRoot.Root2D;
+            }
+
             T ret = UIBaseView.CreateView<T>(parent, _Holder);
             PtrList += ret;
             return ret;
@@ -173,13 +172,14 @@ namespace FH.UI
             _UITagPageInfo.Mgr?.RemovePage(Id);
         }
 
-        #region Res
+        #region UIResPage
         protected virtual IResInstHolder CreateHolder()
         {
             var ret = ResMgr.CreateHolder(true, true);
             PtrList += ret;
             return ret;
         }
+
         void IHolderCallBack.OnHolderCallBack()
         {
             if (!_Holder.GetStat().IsAllDone)
@@ -193,17 +193,35 @@ namespace FH.UI
             }
             _ProcessStateMsg(EMsg.ResDone);
         }
+
+        void IUIResPage.SetResHolder(IResInstHolder resHolder)
+        {
+            if (_PageStatusData.ResState != EResState.None)
+            {
+                UILog._.E("cant set res holder, because res state is {0}", _PageStatusData.ResState);
+                return;
+            }
+
+            if (resHolder == null)
+                return;
+
+            _Holder = resHolder;
+            _PageStatusData.ResState = EResState.Done;
+        }
+
+        public IResInstHolder ResHolder => _Holder;
         #endregion
 
         #region IUITagPage
         private UITagPageInfo _UITagPageInfo;
-        public UITagPageInfo UITagPageInfo { get => _UITagPageInfo; }
-        void IUITagPage.SetUITagPageInfo(UITagPageInfo info) { _UITagPageInfo = info; }
+        public UITagPageInfo TagPageInfo { get => _UITagPageInfo; }
+        void IUITagPage.SetTagPageInfo(UITagPageInfo info) { _UITagPageInfo = info; }
         void IUITagPage.SetPageTagVisible(bool visible)
         {
             if (_PageStatusData.PageTagVisible == visible)
                 return;
             _PageStatusData.PageTagVisible = visible;
+            UILog._.D("Page:{0},{1},  SetPageTagVisible {2}", Id, GetType(), visible);
             _ProcessStateMsg(EMsg.UpdateVisible);
         }
 
@@ -211,23 +229,23 @@ namespace FH.UI
 
         #region IUIGroupPage
         private UIGroupPageInfo _GroupPageInfo;
-        public UIGroupPageInfo UIGroupPageInfo { get => _GroupPageInfo; }
-        void IUIGroupPage.SetUIGroupPageInfo(UIGroupPageInfo info) { _GroupPageInfo = info; }
+        public UIGroupPageInfo GroupPageInfo { get => _GroupPageInfo; }
+        void IUIGroupPage.SetGroupPageInfo(UIGroupPageInfo info) { _GroupPageInfo = info; }
 
         void IUIGroupPage.SetPageGroupVisible(bool visible)
         {
             if (_PageStatusData.PageGroupVisible == visible)
                 return;
             _PageStatusData.PageGroupVisible = visible;
-
+            UILog._.D("Page:{0},{1},  SetPageGroupVisible {2}", Id, GetType(), visible);
             _ProcessStateMsg(EMsg.UpdateVisible);
         }
         #endregion
 
         #region IUILayerViewPage
         private UILayerViewPageInfo _UILayerViewPageInfo;
-        public UILayerViewPageInfo UILayerViewPageInfo { get => _UILayerViewPageInfo; }
-        void IUILayerViewPage.SetUILayerViewPageInfo(UILayerViewPageInfo info) { _UILayerViewPageInfo = info; }
+        public UILayerViewPageInfo LayerViewPageInfo { get => _UILayerViewPageInfo; }
+        void IUILayerViewPage.SetLayerViewPageInfo(UILayerViewPageInfo info) { _UILayerViewPageInfo = info; }
         #endregion
 
         #region IUIScenePage

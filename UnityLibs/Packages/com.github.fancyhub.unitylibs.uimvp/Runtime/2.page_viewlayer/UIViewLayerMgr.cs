@@ -35,9 +35,22 @@ namespace FH.UI
         private List<UIViewNode> _temp_list;
         private IUISharedBG _ui_shared_bg;
 
+        private RectTransform _ui_root;
+        private List<RectTransform> _layer_nodes;
+
+        public enum EMode
+        {
+            None,
+            VirtualLayer,
+            NormalLayer,
+        }
+
+        private EMode _Mode = EMode.None;
+
         public UIViewLayerMgr(IUISharedBG ui_bg)
         {
             _layer_list = new UIViewLayerList();
+            _layer_nodes = new List<RectTransform>();
 
             _temp_list = new List<UIViewNode>();
             _count_of_tip_click = 0;
@@ -47,15 +60,87 @@ namespace FH.UI
             UIBGEvent.GlobalBGClick = _on_bg_click;
             UIBGEvent.GlobalEventClick = _on_global_click;
             UIBGEvent.GlobalEventDown = _on_global_down;
+
+            _Mode = EMode.VirtualLayer;
         }
 
-        public void AddLayer(string layer_name)
+        public UIViewLayerMgr(RectTransform ui_root)
         {
-            _layer_list.AddLayer(layer_name);
+            _ui_root = ui_root;
+            if (_ui_root != null)
+                _Mode = EMode.NormalLayer;
+            _layer_nodes = new List<RectTransform>();
+        }
+
+        public void AddLayer(string layer_name, bool has_safe_area)
+        {
+            switch (_Mode)
+            {
+                default:
+                    UILog._.E("Current Mode {0}, can't add layer", _Mode);
+                    break;
+
+                case EMode.NormalLayer:
+                    {
+                        var go = new GameObject(layer_name);
+                        var layer = go.AddComponent<RectTransform>();
+                        layer.SetParent(_ui_root, false);
+                        layer.anchorMin = Vector2.zero;
+                        layer.anchorMax = Vector2.one;
+                        layer.offsetMin = Vector2.zero;
+                        layer.offsetMax = Vector2.zero;
+                        layer.pivot = new Vector2(0.5f, 0.5f);
+
+                        var canvas = layer.gameObject.AddComponent<Canvas>();
+                        layer.gameObject.layer = _ui_root.gameObject.layer;
+                        layer.gameObject.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+
+                        canvas.overrideSorting = true;
+                        canvas.sortingOrder = UIViewLayerConst.LayerOrderInterval * _layer_nodes.Count + UIViewLayerConst.OrderMin;
+
+                        if (has_safe_area)
+                        {
+                            go.AddComponent<FH.UI.UISafeAreaPanel>();
+                        }
+                        _layer_nodes.Add(layer);
+                    }
+                    break;
+
+                case EMode.VirtualLayer:
+                    _layer_list.AddLayer(layer_name);
+                    break;
+            }
+
+        }
+
+        public UnityEngine.RectTransform GetLayer(EUIViewLayer layer)
+        {
+            if (_Mode != EMode.NormalLayer)
+            {
+                UILog._.E("current mode {0} does not support this operation", _Mode);
+                return null;
+            }
+
+            if (layer < 0 || (int)layer >= _layer_nodes.Count)
+                return null;
+            return _layer_nodes[(int)layer];
+        }
+
+        public void AddPage(IUILayerViewPage page, EUIViewLayer layer)
+        {
+            if (page == null)
+                return;
+            page.SetLayerViewPageInfo(new UILayerViewPageInfo(this, layer));
         }
 
         public bool AddView(IUILayerView view, int layer_index, IUILayerViewBGHandler handler, EUIBgClickMode click_mode)
         {
+            if (_Mode != EMode.VirtualLayer)
+            {
+                UILog._.E("current mode {0} does not support this operation", _Mode);
+                return false;
+            }
+
             if (!AddView(view, layer_index))
                 return false;
 
@@ -64,6 +149,12 @@ namespace FH.UI
 
         public bool AddView(IUILayerView view, int layer_index)
         {
+            if (_Mode != EMode.VirtualLayer)
+            {
+                UILog._.E("current mode {0} does not support this operation", _Mode);
+                return false;
+            }
+
             //1. 检查
             if (view == null)
                 return false;
@@ -94,6 +185,12 @@ namespace FH.UI
 
         public bool RemoveView(int view_id)
         {
+            if (_Mode != EMode.VirtualLayer)
+            {
+                UILog._.E("current mode {0} does not support this operation", _Mode);
+                return false;
+            }
+
             if (!_layer_list.Del(view_id, out var data))
                 return false;
 
@@ -123,6 +220,12 @@ namespace FH.UI
         /// <param name="offset">0: 不移动<br/> &gt;0: 向上移动 <br/> &lt;0: 向下移动</param>
         public bool MoveView(int view_id, int offset)
         {
+            if (_Mode != EMode.VirtualLayer)
+            {
+                UILog._.E("current mode {0} does not support this operation", _Mode);
+                return false;
+            }
+
             if (!_layer_list.MoveInLayer(view_id, offset, _temp_list))
                 return false;
 
@@ -141,6 +244,12 @@ namespace FH.UI
 
         public bool SetBgMask(int view_id, bool enable)
         {
+            if (_Mode != EMode.VirtualLayer)
+            {
+                UILog._.E("current mode {0} does not support this operation", _Mode);
+                return false;
+            }
+
             if (!_layer_list.GetVal(view_id, out var data))
             {
                 Log.Assert(false, "找不到 id 的 Layer {0}", view_id);
@@ -158,6 +267,12 @@ namespace FH.UI
 
         public bool SetBgClick(int view_id, IUILayerViewBGHandler handler, EUIBgClickMode click_mode)
         {
+            if (_Mode != EMode.VirtualLayer)
+            {
+                UILog._.E("current mode {0} does not support this operation", _Mode);
+                return false;
+            }
+
             //1. 获取对应的val,并检查存在
             if (!_layer_list.GetVal(view_id, out var data))
             {

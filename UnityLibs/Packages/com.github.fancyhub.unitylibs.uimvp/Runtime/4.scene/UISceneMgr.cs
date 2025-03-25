@@ -3,7 +3,33 @@ using System.Collections.Generic;
 
 namespace FH.UI
 {
-    public class UISceneMgr : IUISceneMgr
+    public struct PageOpenInfo
+    {
+        public static PageOpenInfo Default = new PageOpenInfo()
+        {
+            GroupChannel = EUIPageGroupChannel.Free,
+            GroupUniquePage = false,
+
+            AddToScene = true,
+            ViewLayer = EUIViewLayer.Normal,
+
+            Tag = EUITagIndex.None,
+
+            ResHolder = null,
+        };
+
+        public EUIPageGroupChannel GroupChannel;
+        public bool GroupUniquePage;
+
+        public bool AddToScene;
+        public EUIViewLayer ViewLayer;
+
+        public EUITagIndex Tag;
+
+        public IResInstHolder ResHolder;
+    }
+
+    public abstract class UISceneMgr : IUISceneMgr
     {
         private static UISceneMgr _;
         public static UISceneMgr Inst
@@ -14,13 +40,16 @@ namespace FH.UI
             }
         }
 
-        protected SceneSharedData _SceneSharedData;
         protected CPtr<IUIScene> _CurrentScene;
-        protected Type _LastSceneType;
-        protected Type _CurrentSceneType;
-        protected Type _NextSceneType;
+        private PtrList _CurrentScenePages;
+
+        protected IUIScene _LastScene;
+        protected IUIScene _NextScene;
+
         protected UIUpdaterMgr _UpdaterMgr;
-        protected Func<Type, IUIScene> _SceneCreator;
+        protected UIViewLayerMgr _ViewLayerMgr;
+        protected UIPageTagMgr _TagMgr;
+        protected UIPageGroupMgr _GroupMgr;
 
         public UISceneMgr()
         {
@@ -31,23 +60,38 @@ namespace FH.UI
 
         public virtual UISceneMgr Init()
         {
-            UISharedBG shared_bg = UISharedBG.Inst;
-            _SceneSharedData = new SceneSharedData()
+            _ViewLayerMgr = new UIViewLayerMgr(UIRoot.Root2D);
+            _ViewLayerMgr.AddLayer(EUIViewLayer.Normal.ToString(), true);
+            _ViewLayerMgr.AddLayer(EUIViewLayer.Dialog.ToString(), true);
+            _ViewLayerMgr.AddLayer(EUIViewLayer.Top.ToString(), false);
+
+            List<UITagItem> tagItems = new List<UITagItem>()
             {
-                PageGroupMgr = new UIPageGroupMgr(),
-                PageTagMgr = new UIPageTagMatrix(),
-                ViewLayerMgr = new UIViewLayerMgr(shared_bg),
-                SceneMgr = this,
+                new UITagItem(EUITagIndex.BG, EUITag.BG),
+                new UITagItem(EUITagIndex.FullScreenDialog,new BitEnum64<EUITag>(EUITag.BG)),
+                new UITagItem(EUITagIndex.Dialog),
             };
+
+            _TagMgr = new UIPageTagMgr(tagItems);
+
+            _GroupMgr = new UIPageGroupMgr();
 
             return this;
         }
 
-        public void SetSceneCreator(Func<Type, IUIScene> scene_creator)
+        public void AddPage(IUIScenePage page, bool add_to_scene)
         {
-            _SceneCreator = scene_creator;
-        }
+            if (page == null)
+                return;
 
+            page.SetUIScenePageInfo(new UIScenePageInfo()
+            {
+                Mgr = this
+            });
+
+            if (add_to_scene)
+                _CurrentScenePages += page;
+        }
 
         public static IUIScene CurrentScene
         {
@@ -59,33 +103,49 @@ namespace FH.UI
             }
         }
 
-        public T OpenPage<T>(PageOpenInfo pageOpenInfo) where T : class, IUIPage, IUIGroupPage, IUITagPage, IUILayerViewPage, IUIScenePage, new()
-        {
-            IUIScene scene = CurrentScene;
-            if (scene == null)
-                return null;
-            return scene.OpenPage<T>(pageOpenInfo);
-        }
-
         public static T OpenUI<T>(PageOpenInfo pageOpenInfo) where T : UIPageBase, new()
         {
             if (_ == null)
                 return null;
-            return _.OpenPage<T>(pageOpenInfo);
+
+            T ret = new T();
+
+            _._GroupMgr?.AddPage(ret, pageOpenInfo.GroupChannel);
+            _._TagMgr?.AddPage(ret, pageOpenInfo.Tag);
+            _.AddPage(ret, pageOpenInfo.AddToScene);
+            _._ViewLayerMgr?.AddPage(ret, pageOpenInfo.ViewLayer);
+            ((IUIResPage)ret).SetResHolder(pageOpenInfo.ResHolder);
+
+            ret.UIOpen();
+            return ret;
         }
 
-        public static T OpenUI<T>() where T : UIPageBase, new()
+        public static T OpenUI<T>(
+               EUIPageGroupChannel GroupChannel = EUIPageGroupChannel.Free,
+               bool GroupUniquePage = false,
+               bool AddToScene = true,
+               EUIViewLayer ViewLayer = EUIViewLayer.Normal,
+               EUITagIndex Tag = EUITagIndex.None,
+               IResInstHolder ResHolder = null) where T : UIPageBase, new()
         {
-
+            PageOpenInfo defaultInfo = PageOpenInfo.Default;
+            defaultInfo.GroupChannel = GroupChannel;
+            defaultInfo.GroupUniquePage = GroupUniquePage;
+            defaultInfo.AddToScene = AddToScene;
+            defaultInfo.ViewLayer = ViewLayer;
+            defaultInfo.Tag = Tag;
+            defaultInfo.ResHolder = ResHolder;
             return OpenUI<T>(PageOpenInfo.Default);
         }
 
-        public static void ChangeScene<T>() where T : IUIScene
+        public static void ChangeScene<T>() where T : class, IUIScene
         {
             if (_ == null)
                 return;
 
-            _._NextSceneType = typeof(T);
+            _._NextScene?.Destroy();
+            _._NextScene = null;
+            _._NextScene = _.CreateScene<T>();
         }
 
         public static bool AddUpdate(IUIUpdater updater)
@@ -109,6 +169,11 @@ namespace FH.UI
             return _._UpdaterMgr.RemoveUpdate(id);
         }
 
+
+
+        protected abstract IUIScene CreateScene<T>();
+
+
         private void _Update()
         {
             _SwitchScene();
@@ -118,25 +183,24 @@ namespace FH.UI
 
         private void _SwitchScene()
         {
-            if (_NextSceneType == null)
+            if (_NextScene == null)
                 return;
 
-            //销毁旧的
-            _CurrentScene.Val?.OnSceneExit(_NextSceneType);
-            _CurrentScene.Destroy();
-            _LastSceneType = _CurrentSceneType;
+            IUIScene currentScene = _CurrentScene.Val;
+            IUIScene nextScene = _NextScene;
+            _CurrentScene = new CPtr<IUIScene>(_NextScene);
+            _NextScene = null;
 
-            //创建新的
-            _CurrentSceneType = _NextSceneType;
-            _NextSceneType = null;
+            //退出旧的
+            currentScene?.OnSceneExit(nextScene);
+            _CurrentScenePages?.Destroy();
+            _CurrentScenePages = null;
 
-            var newScene = _SceneCreator(_CurrentSceneType);
-            newScene.SceneSharedData = _SceneSharedData;
-            _CurrentScene = new CPtr<IUIScene>(newScene);
+            //进入新的
+            nextScene.OnSceneEnter(currentScene);
 
-            newScene?.OnSceneEnter(_LastSceneType);
+            currentScene?.Destroy();
         }
-
 
         private class SceneMgrUpdater : UnityEngine.MonoBehaviour
         {

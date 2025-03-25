@@ -9,7 +9,7 @@ namespace Game
         {
             base.OnUI2Init();
             BaseView._BtnClose.OnClick = this.UIClose;
-            BaseView._Title.text = Id.ToString();
+            BaseView._Title.text = $"{GroupPageInfo.GroupChannel}_{Id}";
 
             BaseView._BtnOpenFree.OnClick = () =>
                 {
@@ -18,6 +18,8 @@ namespace Game
                         GroupChannel = FH.UI.EUIPageGroupChannel.Free,
                         AddToScene = true,
                         GroupUniquePage = false,
+                        ViewLayer = FH.UI.EUIViewLayer.Dialog,
+                        Tag = FH.UI.EUITagIndex.Dialog,
                     });
                 };
 
@@ -28,6 +30,8 @@ namespace Game
                     GroupChannel = FH.UI.EUIPageGroupChannel.Free,
                     AddToScene = true,
                     GroupUniquePage = true,
+                    ViewLayer = FH.UI.EUIViewLayer.Dialog,
+                    Tag = FH.UI.EUITagIndex.Dialog,
                 });
             };
 
@@ -38,6 +42,9 @@ namespace Game
                     GroupChannel = FH.UI.EUIPageGroupChannel.Stack,
                     AddToScene = true,
                     GroupUniquePage = false,
+                    ViewLayer = FH.UI.EUIViewLayer.Dialog,
+
+                    Tag = FH.UI.EUITagIndex.FullScreenDialog,
                 });
             };
 
@@ -48,6 +55,9 @@ namespace Game
                     GroupChannel = FH.UI.EUIPageGroupChannel.Stack,
                     AddToScene = true,
                     GroupUniquePage = true,
+                    ViewLayer = FH.UI.EUIViewLayer.Dialog,
+
+                    Tag = FH.UI.EUITagIndex.FullScreenDialog,
                 });
             };
 
@@ -58,6 +68,8 @@ namespace Game
                     GroupChannel = FH.UI.EUIPageGroupChannel.Queue,
                     AddToScene = true,
                     GroupUniquePage = false,
+                    ViewLayer = FH.UI.EUIViewLayer.Dialog,
+                    Tag = FH.UI.EUITagIndex.FullScreenDialog,
                 });
             };
 
@@ -68,10 +80,12 @@ namespace Game
                     GroupChannel = FH.UI.EUIPageGroupChannel.Queue,
                     AddToScene = true,
                     GroupUniquePage = true,
+                    ViewLayer = FH.UI.EUIViewLayer.Dialog,
+                    Tag = FH.UI.EUITagIndex.FullScreenDialog,
                 });
             };
         }
-        
+
         protected override void OnUI5Close()
         {
         }

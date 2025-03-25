@@ -3,44 +3,50 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AppLauncher : MonoBehaviour
+namespace Game
 {
-    // Start is called before the first frame update
-    void Start()
+    public class AppLauncher : MonoBehaviour
     {
-        new FH.UI.UISceneMgr().Init().SetSceneCreator(_CreateScene);
-        FH.UI.UISceneMgr.ChangeScene<UISceneUpgrader>();
+        // Start is called before the first frame update
+        void Start()
+        {
+            new MyUISceneMgr().Init();
+            FH.UI.UISceneMgr.ChangeScene<UISceneUpgrader>();
 
-        FH.TaskQueue.Init(10);
+            FH.TaskQueue.Init(10);
+        }
     }
 
-    private static FH.UI.IUIScene _CreateScene(System.Type sceneType)
-    {
-        if (sceneType == typeof(UISceneUpgrader))
-            return new UISceneUpgrader();
-        else if (sceneType == typeof(UISceneMain))
-            return new UISceneMain();
 
-        return null;
+    public class MyUISceneMgr : FH.UI.UISceneMgr
+    {
+        protected override FH.UI.IUIScene CreateScene<T>()
+        {
+            var sceneType = typeof(T);
+
+            if (sceneType == typeof(UISceneUpgrader))
+                return new UISceneUpgrader();
+            else if (sceneType == typeof(UISceneMain))
+                return new UISceneMain();
+
+            return null;
+        }
     }
-}
 
-
-public class UISceneUpgrader : FH.UI.UISceneBase
-{ 
-
-    public override void OnSceneEnter(Type lastSceneType)
+    public class UISceneUpgrader : FH.UI.UISceneBase
     {
-        base.OnSceneEnter(lastSceneType);
-        this.OpenPage<UIUpgraderPage>();
+
+        public override void OnSceneEnter(FH.UI.IUIScene lastScene)
+        {
+            this.OpenUI<UIUpgraderPage>();
+        }
     }
-}
 
-public class UISceneMain : FH.UI.UISceneBase
-{
-    public override void OnSceneEnter(Type lastSceneType)
+    public class UISceneMain : FH.UI.UISceneBase
     {
-        base.OnSceneEnter(lastSceneType);
-        this.OpenPage<UIMainPage>();
+        public override void OnSceneEnter(FH.UI.IUIScene lastScene)
+        {
+            this.OpenUI<UIMainPage>(Tag: FH.UI.EUITagIndex.BG);
+        }
     }
 }

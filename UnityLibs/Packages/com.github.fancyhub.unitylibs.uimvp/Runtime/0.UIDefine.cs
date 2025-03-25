@@ -26,4 +26,20 @@ namespace FH.UI
         Dialog,
         Top,
     }
+
+    public enum EUITag : byte
+    {
+        None = byte.MaxValue,
+        BG = 0,
+        FullScreenDialog,
+        Dialog,
+    }
+
+    public enum EUITagIndex
+    {
+        None,
+        BG,
+        FullScreenDialog,
+        Dialog,
+    }
 }

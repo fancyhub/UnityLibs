@@ -13,15 +13,18 @@ namespace FH.UI
 {
     public static class UIViewLayerConst
     {
-        public const int OrderMin = 100;
+        public const int OrderMin = 50;
         public const int OrderMax = 32767;
 
         //层和层之间的间隔
         //每个view之间的 order 间隔
-        public const int ViewOrderInterval = 100;
-
+        public const int ViewOrderInterval = 50;
         //最多多少个view
         public const int ViewMaxCount = (OrderMax - OrderMin) / ViewOrderInterval;
+
+
+        public const int LayerOrderInterval = 1000;
+        public const int LayerMaxCount = (OrderMax - OrderMin) / LayerOrderInterval;
 
         //BG 的order 比目标的小5
         public const int BgOrderInterval = 5;
