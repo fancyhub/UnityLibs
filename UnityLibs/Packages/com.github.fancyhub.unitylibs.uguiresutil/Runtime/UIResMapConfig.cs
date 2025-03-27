@@ -78,7 +78,7 @@ namespace FH.UI
 #endif
 
             //不持有该 ref,  就让他自然卸载
-            var res_ref = ResMgr.Load(CPath, true);
+            var res_ref = ResMgr.Load(CPath);
             var asset = res_ref.Get<UIResMapConfig>();
             if (asset != null)
                 _GlobalResMap = asset.Config;

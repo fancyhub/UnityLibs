@@ -21,8 +21,8 @@ namespace FH
         /// </summary>
         public interface IExternalLoader : ICPtr
         {
-            IExternalRef Load(string path, bool sprite);
-            IExternalRef LoadAsync(string path, bool sprite);
+            IExternalRef Load(string path, EResPathType resPathType);
+            IExternalRef LoadAsync(string path, EResPathType resPathType);
 
             string AtlasTag2Path(string atlasName);
 

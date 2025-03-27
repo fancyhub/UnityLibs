@@ -23,22 +23,20 @@ namespace FH.SampleExternalLoader
         {
             public AsyncOperation _AsyncOperation;
             public string _SceneName;
-            public LoadSceneParameters _LoadParams;
-            public AsyncOperation LoadScene()
+            public AsyncOperation LoadScene(LoadSceneParameters load_param)
             {
                 if (_AsyncOperation != null)
                 {
                     return _AsyncOperation;
                 }
-                _AsyncOperation = UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(_SceneName, _LoadParams);
+                _AsyncOperation = UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(_SceneName, load_param);
                 return _AsyncOperation;
-            }
+            }             
 
-            public static SceneRef Create(string scene, LoadSceneParameters load_param)
+            public static SceneRef Create(string scene)
             {
                 var ret = GPool.New<SceneRef>();
                 ret._SceneName = scene;
-                ret._LoadParams = load_param;
                 return ret;
             }
 
@@ -51,11 +49,11 @@ namespace FH.SampleExternalLoader
 
         public void Destroy()
         {
-        }        
+        }
 
-        public ISceneMgr.IExternalRef Load(string scene, LoadSceneMode load_mod)
+        public ISceneMgr.IExternalRef Load(string scene)
         {
-            return SceneRef.Create(scene, new LoadSceneParameters(load_mod));
+            return SceneRef.Create(scene);
         }
     }
 #endif

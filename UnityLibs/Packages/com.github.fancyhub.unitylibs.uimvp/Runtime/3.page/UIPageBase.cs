@@ -80,9 +80,9 @@ namespace FH.UI
             T ret = new T();
 
             GroupPageInfo.Mgr?.AddPage(ret, pageOpenInfo.GroupChannel);
-            TagPageInfo.Mgr?.AddPage(ret, pageOpenInfo.Tag);
+            TagPageInfo.Mgr?.AddTag(ret, pageOpenInfo.Tag);
             UIScenePageInfo.Mgr?.AddPage(ret, pageOpenInfo.AddToScene);
-            LayerViewPageInfo.Mgr?.AddPage(ret, pageOpenInfo.ViewLayer);
+            LayerViewPageInfo.Mgr?.AddPage(ret, pageOpenInfo.ViewLayer, pageOpenInfo.ViewParent);
             ((IUIResPage)ret).SetResHolder(_Holder);
 
             PtrList += ret;
@@ -136,7 +136,7 @@ namespace FH.UI
         {
             if (parent == null)
             {
-                parent = LayerViewPageInfo.GetNormalLayer();
+                parent = LayerViewPageInfo.GetParent();
                 if (parent == null)
                     parent = UIRoot.Root2D;
             }
@@ -144,6 +144,14 @@ namespace FH.UI
             T ret = UIBaseView.CreateView<T>(parent, _Holder);
             PtrList += ret;
             return ret;
+        }
+
+        public bool IsVisible
+        {
+            get
+            {
+                return _PageState == EPageState.Show;
+            }
         }
 
         protected virtual void OnUI1PrepareRes(IResInstHolder holder) { }
@@ -169,7 +177,7 @@ namespace FH.UI
             _ChildPages?.Clear();
 
             _GroupPageInfo.Mgr?.RemovePage(Id);
-            _UITagPageInfo.Mgr?.RemovePage(Id);
+            _UITagPageInfo.Mgr?.RemoveTag(Id);
         }
 
         #region UIResPage
@@ -495,7 +503,7 @@ namespace FH.UI
             {
                 UILog._.D("Page:{0},{1} , OnUIShow", Id, GetType());
                 OnUI3Show();
-
+                TagPageInfo.Mgr?.ApplyMask(this, TagPageInfo.TagIndex);
 
                 if (_ChildPages != null)
                     foreach (var p in _ChildPages)
@@ -513,6 +521,7 @@ namespace FH.UI
             try
             {
                 UILog._.D("Page:{0},{1} , OnUIHide", Id, GetType());
+                TagPageInfo.Mgr?.WithdrawMask(Id);
                 OnUI4Hide();
 
                 if (_ChildPages != null)
@@ -559,6 +568,10 @@ namespace FH.UI
         {
             if (BaseView != null)
                 BaseView.Active = false;
+        }
+
+        protected override void OnUI5Close()
+        {
         }
     }
 }

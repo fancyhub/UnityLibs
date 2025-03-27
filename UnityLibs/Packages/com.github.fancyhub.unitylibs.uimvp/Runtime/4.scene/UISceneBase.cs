@@ -17,6 +17,7 @@ namespace FH.UI
             bool GroupUniquePage = false,
             bool AddToScene = true,
             EUIViewLayer ViewLayer = EUIViewLayer.Normal,
+            UnityEngine.RectTransform Parent = null,
             EUITagIndex Tag = EUITagIndex.None,
             IResInstHolder ResHolder = null) where T : UIPageBase, new()
         {
@@ -27,6 +28,7 @@ namespace FH.UI
             defaultInfo.ViewLayer = ViewLayer;
             defaultInfo.Tag = Tag;
             defaultInfo.ResHolder = ResHolder;
+            defaultInfo.ViewParent = Parent;
 
             return UISceneMgr.OpenUI<T>(defaultInfo);
         }

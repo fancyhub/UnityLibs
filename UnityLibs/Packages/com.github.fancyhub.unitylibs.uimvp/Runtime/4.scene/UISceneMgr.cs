@@ -18,10 +18,28 @@ namespace FH.UI
             ResHolder = null,
         };
 
+        public static PageOpenInfo CreateDefaultSubPage(UnityEngine.RectTransform parent, IResInstHolder resHolder)
+        {
+            return new PageOpenInfo()
+            {
+                GroupChannel = EUIPageGroupChannel.None,
+                GroupUniquePage = false,
+                AddToScene = false,
+
+                ViewParent = parent,
+                ViewLayer = EUIViewLayer.Normal,
+
+                Tag = EUITagIndex.None,
+                ResHolder = resHolder,
+            };
+        }
+
         public EUIPageGroupChannel GroupChannel;
         public bool GroupUniquePage;
 
         public bool AddToScene;
+
+        public UnityEngine.RectTransform ViewParent;
         public EUIViewLayer ViewLayer;
 
         public EUITagIndex Tag;
@@ -109,9 +127,9 @@ namespace FH.UI
             T ret = new T();
 
             _._GroupMgr?.AddPage(ret, pageOpenInfo.GroupChannel);
-            _._TagMgr?.AddPage(ret, pageOpenInfo.Tag);
+            _._TagMgr?.AddTag(ret, pageOpenInfo.Tag);
             _.AddPage(ret, pageOpenInfo.AddToScene);
-            _._ViewLayerMgr?.AddPage(ret, pageOpenInfo.ViewLayer);
+            _._ViewLayerMgr?.AddPage(ret, pageOpenInfo.ViewLayer, pageOpenInfo.ViewParent);
             ((IUIResPage)ret).SetResHolder(pageOpenInfo.ResHolder);
 
             ret.UIOpen();
@@ -123,6 +141,7 @@ namespace FH.UI
                bool GroupUniquePage = false,
                bool AddToScene = true,
                EUIViewLayer ViewLayer = EUIViewLayer.Normal,
+               UnityEngine.RectTransform Parent = null,
                EUITagIndex Tag = EUITagIndex.None,
                IResInstHolder ResHolder = null) where T : UIPageBase, new()
         {
@@ -131,6 +150,7 @@ namespace FH.UI
             defaultInfo.GroupUniquePage = GroupUniquePage;
             defaultInfo.AddToScene = AddToScene;
             defaultInfo.ViewLayer = ViewLayer;
+            defaultInfo.ViewParent = Parent;
             defaultInfo.Tag = Tag;
             defaultInfo.ResHolder = ResHolder;
             return OpenUI<T>(PageOpenInfo.Default);

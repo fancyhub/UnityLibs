@@ -126,11 +126,11 @@ namespace FH.UI
             return _layer_nodes[(int)layer];
         }
 
-        public void AddPage(IUILayerViewPage page, EUIViewLayer layer)
+        public void AddPage(IUILayerViewPage page, EUIViewLayer layer, RectTransform parent)
         {
             if (page == null)
                 return;
-            page.SetLayerViewPageInfo(new UILayerViewPageInfo(this, layer));
+            page.SetLayerViewPageInfo(new UILayerViewPageInfo(this, layer, parent));
         }
 
         public bool AddView(IUILayerView view, int layer_index, IUILayerViewBGHandler handler, EUIBgClickMode click_mode)

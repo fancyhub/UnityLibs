@@ -9,6 +9,7 @@ namespace Game
     public class UITestScenePage : FH.UI.UIPageBase<UITestSceneView>
     {
         public List<SceneRef> _SceneRefList = new List<SceneRef>();
+        public List<UIServerItemPage> _ItemViews = new List<UIServerItemPage>();
 
         public DynamicCoroutineComp _Comp;
         protected override void OnUI2Init()
@@ -16,10 +17,17 @@ namespace Game
             base.OnUI2Init();
 
             BaseView._BtnClose.OnClick = this.UIClose;
-            BaseView._BtnLoadScene.OnClick = _OnTestSceneClick;
-            BaseView._BtnUnloadFirstScene.OnClick = _OnCloseFirstSceneClick;
-            BaseView._BtnUnloadLastScene.OnClick = _OnCloseLastSceneClick;
+            BaseView._BtnLoadSceneSingle.OnClick = _OnLoadSingle;
+            BaseView._BtnLoadSceneAdditive.OnClick = _OnLoadAdditive;
+
             _Comp = BaseView.SelfRoot.ExtGetComp<DynamicCoroutineComp>(true);
+        }
+
+        protected override void OnUI3Show()
+        {
+            base.OnUI3Show();
+
+            FH.UI.UISceneMgr.AddUpdate(_Update);
         }
 
         protected override void OnUI5Close()
@@ -30,62 +38,112 @@ namespace Game
             }
             _SceneRefList.Clear();
 
+
             FH.UI.UIRedDotMgr.Set("root.test.scene", 1);
-        }    
+        }
 
-        private void _OnCloseFirstSceneClick()
+        private FH.UI.EUIUpdateResult _Update()
         {
-            if (_SceneRefList.Count == 0)
-                return;
-            _SceneRefList[0].Unload();
-            _SceneRefList.RemoveAt(0);
+            if (!IsVisible || IsDestroyed())
+                return FH.UI.EUIUpdateResult.Stop;
+
+            bool isDirty = false;
+            for (int i = _SceneRefList.Count - 1; i >= 0; i--)
+            {
+                if (!_SceneRefList[i].IsValid)
+                {
+
+                    _SceneRefList.RemoveAt(i);
+                    isDirty = true;
+                }
+            }
+
+            if (isDirty)
+                FH.UI.UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
+
+            //1. 删除多余的
+            for (int i = _ItemViews.Count - 1; i >= _SceneRefList.Count; i--)
+            {
+                _ItemViews[i].Destroy();
+                _ItemViews.RemoveAt(i);
+            }
+
+            //2. 创建新的
+            for (int i = _ItemViews.Count; i < _SceneRefList.Count; i++)
+            {
+                var openInfo = FH.UI.PageOpenInfo.CreateDefaultSubPage(BaseView._ItemList, ResHolder);
+                var item = OpenChildPage<UIServerItemPage>(openInfo);
+                _ItemViews.Add(item);
+            }
+
+            //3. 数据同步
+            for (int i = 0; i < _SceneRefList.Count; i++)
+            {
+                _ItemViews[i].SetData(_SceneRefList[i]);
+            }
+            return FH.UI.EUIUpdateResult.Continue;
+        }
+
+        private void _OnLoadSingle()
+        {
+            var scene_a = SceneMgr.LoadScene("Assets/Scenes/a.unity", UnityEngine.SceneManagement.LoadSceneMode.Single);
+            var scene_b = SceneMgr.LoadScene("Assets/Scenes/b.unity", UnityEngine.SceneManagement.LoadSceneMode.Single);
+
+            _SceneRefList.Add(scene_a);
+            _SceneRefList.Add(scene_b);
 
             FH.UI.UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
         }
 
-
-        private void _OnCloseLastSceneClick()
+        private void _OnLoadAdditive()
         {
-            if (_SceneRefList.Count == 0)
-                return;
-            _SceneRefList[_SceneRefList.Count - 1].Unload();
-            _SceneRefList.RemoveAt(_SceneRefList.Count - 1);
+            var scene_a = SceneMgr.LoadScene("Assets/Scenes/a.unity", UnityEngine.SceneManagement.LoadSceneMode.Additive);
+            var scene_b = SceneMgr.LoadScene("Assets/Scenes/b.unity", UnityEngine.SceneManagement.LoadSceneMode.Additive);
+
+            Log.I("LoadScene {0}", scene_a.SceneId);
+            _SceneRefList.Add(scene_a);
+            _SceneRefList.Add(scene_b);
+
             FH.UI.UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
         }
+    }
 
-        private void _OnTestSceneClick()
+
+    public class UIServerItemPage : FH.UI.UIPageBase<Game.UISceneItemView>
+    {
+        private FH.SceneRef _Data;
+        public UIServerItemPage()
         {
-            _Comp.StartCoroutine(_TestSceneLoad());
         }
 
-        private IEnumerator _TestSceneLoad()
+        protected override void OnUI2Init()
         {
-            yield return new WaitForSeconds(1.0f);
+            base.OnUI2Init();
 
-            var scene_a = SceneMgr.LoadScene("Assets/Scenes/a.unity", true);
-            var scene_b = SceneMgr.LoadScene("Assets/Scenes/a.unity", true);
-
-            for (; ; )
-            {
-                if (scene_a.IsDone)
+            BaseView._Unload.OnClick = () =>
                 {
-                    _SceneRefList.Add(scene_a);
-                    FH.UI.UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
-                    break;
-                }
-                yield return string.Empty;
-            }
+                    _Data.Unload();
+                };
+        }
 
-            for (; ; )
-            {
-                if (scene_b.IsDone)
-                {
-                    _SceneRefList.Add(scene_b);
-                    FH.UI.UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
-                    break;
-                }
-                yield return string.Empty;
-            }
+        protected override void OnUI3Show()
+        {
+            base.OnUI3Show();
+            _Apply();
+        }
+
+        public void SetData(FH.SceneRef scene)
+        {
+            _Data = scene;
+            _Apply();
+        }
+
+        private void _Apply()
+        {
+            if (BaseView == null)
+                return;
+
+            BaseView._Name.text = $"{_Data.SceneId}, Name:{_Data.UnityScene.name}_Valid:{_Data.IsValid}_Done:{_Data.IsDone} ";
         }
     }
 }

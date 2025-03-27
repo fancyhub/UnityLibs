@@ -37,8 +37,11 @@ namespace FH
         ResPool_res_not_exist_5,
         ResPool_res_not_exist_6,
         ResPool_user_not_exist,
-        ResPool_res_is_sprite,
+        ResPool_res_is_not_sprite,
+        ResPool_res_is_not_anim_clip,
         ResPool_multi_path_to_one_res,
+        ResPool_e3,
+        ResPool_e4,
 
 
         ResLoaderAsync_start = -1100,

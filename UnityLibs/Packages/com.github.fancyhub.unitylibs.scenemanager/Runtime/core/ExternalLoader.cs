@@ -13,12 +13,15 @@ namespace FH
     {
         public interface IExternalRef : ICPtr
         {
-            UnityEngine.AsyncOperation LoadScene();
+            UnityEngine.AsyncOperation LoadScene(UnityEngine.SceneManagement.LoadSceneParameters load_param);
         }
 
         public interface IExternalLoader : ICPtr
         {
-            IExternalRef Load(string scene_path, UnityEngine.SceneManagement.LoadSceneMode mode);
+            /// <summary>
+            /// 不是真的Load Scene
+            /// </summary>            
+            IExternalRef Load(string scene_path);
         }
-    }   
+    }
 }

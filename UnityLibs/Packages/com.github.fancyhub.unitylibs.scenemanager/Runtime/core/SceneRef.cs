@@ -7,16 +7,41 @@
 
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace FH
 {
+    internal interface IScenePool : ICPtr
+    {
+        void UnloadScene(int sceneId);
+        (bool done, float progress) GetSceneStat(int sceneId);
+        bool IsValid(int sceneId);
+        UnityEngine.SceneManagement.Scene GetUnityScene(int sceneId);
+    }
+
+
     public struct SceneRef
     {
         public static SceneRef Empty = new SceneRef();
 
-        public readonly SceneID Id;
+        public readonly int SceneId;
         private CPtr<IScenePool> _ScenePool;
-        public void Unload() { _ScenePool.Val?.UnloadScene(Id); }
+        public void Unload()
+        {
+            if (SceneId == 0)
+            {
+                SceneManagement.SceneLog._.D("scene id is 0, can't unload");
+                return;
+            }
+
+            if (_ScenePool.Val == null)
+            {
+                SceneManagement.SceneLog._.Assert(false, "can't unload scene {0}, scene pool is null", SceneId);
+                return;
+            }
+            _ScenePool.Val?.UnloadScene(SceneId);
+        }
+
         public bool IsDone
         {
             get
@@ -24,9 +49,10 @@ namespace FH
                 IScenePool pool = _ScenePool.Val;
                 if (pool == null)
                     return true;
-                return pool.GetSceneStat(Id).Done;
+                return pool.GetSceneStat(SceneId).done;
             }
         }
+
         public float Progress
         {
             get
@@ -34,15 +60,41 @@ namespace FH
                 IScenePool pool = _ScenePool.Val;
                 if (pool == null)
                     return 1;
-                return pool.GetSceneStat(Id).Progress;
+                return pool.GetSceneStat(SceneId).progress;
+            }
+        }
+
+        public bool IsValid
+        {
+            get
+            {
+                IScenePool pool = _ScenePool.Val;
+                if (pool == null)
+                    return false;
+                return pool.IsValid(SceneId);
+            }
+        }
+
+        public UnityEngine.SceneManagement.Scene UnityScene
+        {
+            get
+            {
+                IScenePool pool = _ScenePool.Val;
+                if (pool == null)
+                    return default;
+                return pool.GetUnityScene(SceneId);
             }
         }
 
 
-        internal SceneRef(SceneID id, IScenePool scene_pool)
+        
+
+        internal SceneRef(int sceneId, IScenePool scene_pool)
         {
-            Id = id;
+            this.SceneId = sceneId;
             _ScenePool = new CPtr<IScenePool>(scene_pool);
         }
+
+
     }
 }

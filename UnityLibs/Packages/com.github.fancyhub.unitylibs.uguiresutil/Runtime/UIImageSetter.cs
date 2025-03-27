@@ -133,7 +133,7 @@ namespace FH.UI
                     }
                     else
                     {
-                        bool result = ResMgr.AsyncLoad(_Path, true, CPriority, _OnAsyncLoaded, out _JobId);
+                        bool result = ResMgr.AsyncLoad(_Path,  EResPathType.Sprite, CPriority, _OnAsyncLoaded, out _JobId);
                         if (!result)
                         {
                             _ResRef.RemoveUser(this);

@@ -124,20 +124,14 @@ namespace FH.SampleExternalLoader
             return EAssetStatus.Exist;
         }
 
-        public IResMgr.IExternalRef Load(string path, bool sprite)
+        public IResMgr.IExternalRef Load(string path, EResPathType resPathType)
         {
-            if (!sprite)
-                return AssetRef.Create(_ResRefDB, Resources.Load(path));
-            else
-                return AssetRef.Create(_ResRefDB, Resources.Load<Sprite>(path));
+            return AssetRef.Create(_ResRefDB, Resources.Load(path, resPathType.ExtResPathType2UnityType()));
         }
 
-        public IResMgr.IExternalRef LoadAsync(string path, bool sprite)
+        public IResMgr.IExternalRef LoadAsync(string path, EResPathType resPathType)
         {
-            if (!sprite)
-                return AssetRef.Create(_ResRefDB, Resources.LoadAsync(path));
-            else
-                return AssetRef.Create(_ResRefDB, Resources.LoadAsync<Sprite>(path));
+            return AssetRef.Create(_ResRefDB, Resources.LoadAsync(path, resPathType.ExtResPathType2UnityType()));
         }
 
         protected override void OnRelease()

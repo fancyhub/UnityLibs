@@ -41,22 +41,14 @@ namespace FH.SampleExternalLoader
         private sealed class EditorResRequest
         {
             private string _resPath;
-            private bool _sprite;
+            private EResPathType _resPathType;
             public bool isDone;
             public UnityEngine.Object asset;
 
             private IEnumerator _LoadAsync()
             {
                 yield return null;
-
-                if (_sprite)
-                {
-                    asset = AssetDatabase.LoadAssetAtPath<Sprite>(_resPath);
-                }
-                else
-                {
-                    asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(_resPath);
-                }
+                asset = AssetDatabase.LoadAssetAtPath(_resPath, _resPathType.ExtResPathType2UnityType());
                 isDone = true;
                 if (asset != null)
                 {
@@ -70,11 +62,11 @@ namespace FH.SampleExternalLoader
                 yield return null;
             }
 
-            public static EditorResRequest LoadAsync(string path, bool sprite)
+            public static EditorResRequest LoadAsync(string path, EResPathType resPathType)
             {
                 EditorResRequest req = new EditorResRequest();
                 req._resPath = path;
-                req._sprite = sprite;
+                req._resPathType = resPathType;
                 EditorResRequestComp.StartReq(req._LoadAsync());
 
                 return req;
@@ -214,7 +206,7 @@ namespace FH.SampleExternalLoader
 
         public EAssetStatus GetAssetStatus(string path)
         {
-            if(_AssetDict!=null)
+            if (_AssetDict != null)
             {
                 if (_AssetDict.ContainsKey(path))
                     return EAssetStatus.Exist;
@@ -228,15 +220,15 @@ namespace FH.SampleExternalLoader
             string full_path = fileInfo.FullName;
             full_path = full_path.Replace('\\', '/');
             if (!full_path.EndsWith(path)) //大小写                                                   
-            {                
-                ResLog._.E("路径大小写不对, {0} -> {1}", full_path.Substring(full_path.Length - path.Length),path);
+            {
+                ResLog._.E("路径大小写不对, {0} -> {1}", full_path.Substring(full_path.Length - path.Length), path);
                 return EAssetStatus.NotExist;
             }
 
             return EAssetStatus.Exist;
         }
 
-        public IResMgr.IExternalRef Load(string path, bool sprite)
+        public IResMgr.IExternalRef Load(string path, EResPathType resPathType)
         {
             if (_AssetDict != null)
             {
@@ -246,11 +238,7 @@ namespace FH.SampleExternalLoader
                 path = new_path;
             }
 
-            UnityEngine.Object asset = null;
-            if (!sprite)
-                asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
-            else
-                asset = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            UnityEngine.Object asset = AssetDatabase.LoadAssetAtPath(path, resPathType.ExtResPathType2UnityType());
 
             if (_AssetDict == null && asset != null)
             {
@@ -265,7 +253,7 @@ namespace FH.SampleExternalLoader
             return AssetRef.Create(_ResRefDB, asset);
         }
 
-        public IResMgr.IExternalRef LoadAsync(string path, bool sprite)
+        public IResMgr.IExternalRef LoadAsync(string path, EResPathType resPathType)
         {
             if (_AssetDict != null)
             {
@@ -277,10 +265,10 @@ namespace FH.SampleExternalLoader
 
             if (!Application.isPlaying)
             {
-                return Load(path, sprite);
+                return Load(path, resPathType);
             }
 
-            return AssetRef.Create(_ResRefDB, EditorResRequest.LoadAsync(path, sprite));
+            return AssetRef.Create(_ResRefDB, EditorResRequest.LoadAsync(path, resPathType));
         }
 
         protected override void OnRelease()

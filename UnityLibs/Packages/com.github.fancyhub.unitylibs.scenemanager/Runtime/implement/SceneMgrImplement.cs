@@ -17,7 +17,6 @@ namespace FH.SceneManagement
 
         static SceneMgrImplement()
         {
-            MyEqualityComparer.Reg(SceneID.EqualityComparer);
         }
 
         public SceneMgrImplement(ISceneMgr.IExternalLoader external_loader)
@@ -28,7 +27,12 @@ namespace FH.SceneManagement
             _LoadingQueue = new SceneLoadingQueue(_Pool);
         }
 
-        public SceneRef LoadScene(string scene_path, bool additive)
+        public void GetAllScenes(List<SceneRef> out_list)
+        {
+            _Pool.GetAllScenes(out_list);
+        }
+
+        public SceneRef LoadScene(string scene_path, UnityEngine.SceneManagement.LoadSceneMode loadMode)
         {
             ISceneMgr.IExternalLoader scene_loader = _ExternalLoader.Val;
             if (scene_loader == null)
@@ -37,26 +41,26 @@ namespace FH.SceneManagement
                 return SceneRef.Empty;
             }
 
-            LoadSceneMode load_mode = additive ? LoadSceneMode.Additive : LoadSceneMode.Single;
-            ISceneMgr.IExternalRef scene_ref = scene_loader.Load(scene_path, load_mode);
+            ISceneMgr.IExternalRef scene_ref = scene_loader.Load(scene_path);
 
             if (scene_ref == null)
+            {
+                SceneLog._.Assert(false, "load scene failed: {0}", scene_path);
                 return SceneRef.Empty;
+            }
 
-            SceneItem sceneItem = SceneItem.Create(scene_ref, scene_path, load_mode);
-            if (sceneItem == null)
-                return SceneRef.Empty;
+            SceneItem sceneItem = SceneItem.Create(_PlaceHolderScene, scene_ref, scene_path, new LoadSceneParameters(loadMode));         
+
+            SceneLog._.D("Scene:{0} CreateScene, Mode: {1}, Path: {2}", sceneItem.SceneId, loadMode, scene_path);
 
             _Pool.Add(sceneItem);
             _LoadingQueue.Enqueue(sceneItem);
 
-            return new SceneRef(sceneItem._Id, _Pool);
+            return new SceneRef(sceneItem.SceneId, _Pool);
         }
 
         public void Update()
         {
-            _PlaceHolderScene.Update();
-
             _LoadingQueue.Update();
             _Pool.Update();
         }

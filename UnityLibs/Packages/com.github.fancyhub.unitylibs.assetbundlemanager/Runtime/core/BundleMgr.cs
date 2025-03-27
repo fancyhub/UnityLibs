@@ -117,7 +117,6 @@ namespace FH
         public int RefCount { get; }
 
         public T LoadAsset<T>(string path) where T : UnityEngine.Object;
-
         public AssetBundleRequest LoadAssetAsync<T>(string path) where T : UnityEngine.Object;
     }
 

@@ -167,6 +167,9 @@ namespace FH.ResManagement
                 EResError error_code = _res_pool.AddRes(task.Path, task.AssetRequest, out ResId res_id);
                 ResLog._.ErrCode(error_code, $"添加资源失败 {task.Path}");
 
+                if (error_code != EResError.OK)
+                    task.AssetRequest.Destroy();
+
                 //1.3 把下面的所有job 发到下一个worker里面去
                 foreach (int job_id in task.JobList)
                 {
@@ -234,7 +237,7 @@ namespace FH.ResManagement
                     task_slot.AddLinkJobId(job_id);
                     continue;
                 }
-                IResMgr.IExternalRef asset = _external_loader.LoadAsync(job.Path.Path, job.Path.Sprite);
+                IResMgr.IExternalRef asset = _external_loader.LoadAsync(job.Path.Path, job.Path.PathType);
 
                 if (asset != null)
                 {

@@ -19,14 +19,14 @@ namespace FH.ResManagement
 
         #region IResHolder
 
-        public UnityEngine.Object Load(string path, bool sprite)
+        public UnityEngine.Object Load(string path, EResPathType pathType = EResPathType.Default)
         {
-            return _res_holder.Load(path, sprite);
+            return _res_holder.Load(path, pathType);
         }
 
-        public void PreLoad(string path, bool sprite, int priority = 0)
+        public void PreLoad(string path, EResPathType pathType = EResPathType.Default, int priority = 0)
         {
-            _res_holder.PreLoad(path, sprite, priority);
+            _res_holder.PreLoad(path, pathType, priority);
         }
 
         public void GetAllRes(List<ResRef> out_list)
@@ -40,11 +40,7 @@ namespace FH.ResManagement
         }
         #endregion
 
-        #region Inst
-        public GameObject CreateEmpty()
-        {
-            return _inst_holder.CreateEmpty();
-        }
+        #region Inst       
 
         public GameObject Create(string path)
         {
@@ -53,7 +49,7 @@ namespace FH.ResManagement
 
         public void PreCreate(string path, int count, int priority = 0)
         {
-            _res_holder.PreLoad(path, false, priority);
+            _res_holder.PreLoad(path, EResPathType.Default, priority);
             _inst_holder.PreCreate(path, count, priority);
             _pre_inst_holder.PreInst(path, count);
         }
@@ -82,7 +78,7 @@ namespace FH.ResManagement
         #region Pre Inst
         public void PreInst(string path, int count)
         {
-            _res_holder.PreLoad(path, false);
+            _res_holder.PreLoad(path, EResPathType.Default);
             _pre_inst_holder.PreInst(path, count);
         }
         public void ClearPreInst()

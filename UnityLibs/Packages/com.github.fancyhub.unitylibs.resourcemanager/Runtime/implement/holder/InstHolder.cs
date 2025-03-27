@@ -86,27 +86,7 @@ namespace FH.ResManagement
             _Dict.Add(obj.GetInstanceID(), res_ref);
             return obj;
         }
-
-        public GameObject CreateEmpty()
-        {
-            IResMgr res_mgr = _ResMgr.Val;
-            if (res_mgr == null)
-            {
-                ResLog._.E("ResMgr 已经被销毁了");
-                return null;
-            }
-
-            EResError err = res_mgr.CreateEmpty(this, out var res_ref);
-            if (err != EResError.OK)
-                return null;
-
-            GameObject obj = res_ref.Get<GameObject>();
-            if (obj == null)
-                return null;
-
-            _Dict.Add(obj.GetInstanceID(), res_ref);
-            return obj;
-        }
+         
 
         public void PreCreate(string path, int count, int priority = 0)
         {
@@ -199,7 +179,7 @@ namespace FH.ResManagement
                 return true;
             }
 
-            if (_Share || res_ref.Id.ResType == EResType.EmptyInst)
+            if (_Share )
                 res_ref.RemoveUser(this);
             else
             {

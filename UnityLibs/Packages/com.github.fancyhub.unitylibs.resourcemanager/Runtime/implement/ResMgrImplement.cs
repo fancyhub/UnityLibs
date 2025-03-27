@@ -21,7 +21,6 @@ namespace FH.ResManagement
         public ResPool _res_pool;
         public GameObjectInstPool _gobj_pool;
         public ResJobDB _job_db;
-        public EmptyGameObjectPool _empty_go_pool;
         public GameObjectStat _gobj_stat;
         public GameObjectPreInstData _gobj_pre_data;
         public ResInstGc _gc;
@@ -39,6 +38,7 @@ namespace FH.ResManagement
         {
             MyEqualityComparer.Reg(ResId.EqualityComparer);
             MyEqualityComparer.Reg(ResPath.EqualityComparer);
+            MyEqualityComparer.Reg(ResRef.EqualityComparer);
         }
 
         public ResMgrImplement(IResMgr.IExternalLoader external_loader, IResMgr.Config conf)
@@ -51,7 +51,6 @@ namespace FH.ResManagement
             _gobj_pool = new GameObjectInstPool(_gobj_stat);
             _job_db = new ResJobDB();
             _gobj_pre_data = new GameObjectPreInstData(conf.PreInst);
-            _empty_go_pool = new EmptyGameObjectPool();
             _msg_queue = new ResMsgQueue();
             _msg_queue._job_db = _job_db;
 
@@ -128,7 +127,6 @@ namespace FH.ResManagement
 
             _gobj_pool.Destroy();
             _res_pool.Destroy();
-            _empty_go_pool.Destroy();
 
             _atlas_loader = null;
             _worker_go_async = null;
@@ -163,15 +161,9 @@ namespace FH.ResManagement
                 }
 
                 {
-                    if (_empty_go_pool.Get(inst_id, out var obj) == EResError.OK)
-                    {
-                        return new ResRef(new ResId(inst_id, EResType.EmptyInst), null, this);
-                    }
-                }
-                {
                     if (_res_pool.GetPathById(inst_id, out var path) == EResError.OK)
                     {
-                        ResId res_id = new ResId(inst_id, path.Sprite ? EResType.Sprite : EResType.Res);
+                        ResId res_id = new ResId(inst_id, EResType.Res);
                         return new ResRef(res_id, path.Path, this);
                     }
                 }
@@ -181,7 +173,7 @@ namespace FH.ResManagement
                 {
                     if (_res_pool.GetPathById(inst_id, out var path) == EResError.OK)
                     {
-                        ResId res_id = new ResId(inst_id, path.Sprite ? EResType.Sprite : EResType.Res);
+                        ResId res_id = new ResId(inst_id, EResType.Res);
                         return new ResRef(res_id, path.Path, this);
                     }
                 }
@@ -190,13 +182,6 @@ namespace FH.ResManagement
                     if (_gobj_pool.GetInstPath(res_id, out var path) == EResError.OK)
                     {
                         return new ResRef(res_id, path, this);
-                    }
-                }
-
-                {
-                    if (_empty_go_pool.Get(inst_id, out var obj) == EResError.OK)
-                    {
-                        return new ResRef(new ResId(inst_id, EResType.EmptyInst), null, this);
                     }
                 }
             }
@@ -215,7 +200,6 @@ namespace FH.ResManagement
             switch (res_id.ResType)
             {
                 case EResType.Res:
-                case EResType.Sprite:
                     {
                         EResError err2 = _res_pool.AddUser(res_id.Id, user);
                         ResLog._.ErrCode(err2, "add user ，{0} 类型的资源", res_id.ResType);
@@ -227,13 +211,6 @@ namespace FH.ResManagement
                         EResError err3 = _gobj_pool.AddUsage(res_id, user);
                         ResLog._.ErrCode(err3, "add user ，实例类型的资源");
                         return err3;
-                    }
-
-                case EResType.EmptyInst:
-                    {
-                        EResError err2 = _empty_go_pool.AddUser(res_id.Id, user);
-                        ResLog._.ErrCode(err2, "add user ，Empty 类型的资源");
-                        return err2;
                     }
                 default:
                     return EResError.Error;
@@ -252,7 +229,6 @@ namespace FH.ResManagement
             switch (res_id.ResType)
             {
                 case EResType.Res:
-                case EResType.Sprite:
                     {
                         EResError err2 = _res_pool.RemoveUser(res_id.Id, user);
                         ResLog._.ErrCode(err2, "remove user ，{0} 类型的资源, {1}", res_id.ResType, res_id.Id);
@@ -264,13 +240,6 @@ namespace FH.ResManagement
                         EResError err3 = _gobj_pool.RemoveUser(res_id, user);
                         ResLog._.ErrCode(err3, "remove user ，实例类型的资源");
                         return err3;
-                    }
-
-                case EResType.EmptyInst:
-                    {
-                        EResError err2 = _empty_go_pool.RemoveUser(res_id.Id, user);
-                        ResLog._.ErrCode(err2, "remove user ，Empty 类型的资源");
-                        return err2;
                     }
                 default:
                     return EResError.Error;
@@ -292,16 +261,10 @@ namespace FH.ResManagement
                     return null;
 
                 case EResType.Res:
-                case EResType.Sprite:
                     return _res_pool.GetRes(res_id.Id);
 
                 case EResType.Inst:
                     return _gobj_pool.GetInst(res_id, true);
-
-                case EResType.EmptyInst:
-                    EResError err = _empty_go_pool.Get(res_id.Id, out UnityEngine.GameObject obj);
-                    ResLog._.ErrCode(err);
-                    return obj;
             }
         }
 
@@ -317,7 +280,7 @@ namespace FH.ResManagement
         }
 
         #region Res
-        public EResError Load(string path, bool sprite, bool aync_load_enable, out ResRef res_ref)
+        public EResError Load(string path, EResPathType pathType, bool aync_load_enable, out ResRef res_ref)
         {
             //1. check
             if (string.IsNullOrEmpty(path))
@@ -328,7 +291,7 @@ namespace FH.ResManagement
             }
 
             //2. 先尝试找一下
-            ResPath res_path = ResPath.Create(path, sprite);
+            ResPath res_path = ResPath.Create(path, pathType);
             EResError err = _res_pool.GetIdByPath(res_path, out var res_id);
             if (err == EResError.OK) //如果找到了，直接返回
             {
@@ -357,7 +320,7 @@ namespace FH.ResManagement
         }
 
 
-        public EResError AsyncLoad(string path, bool sprite, int priority, ResEvent cb, out int job_id)
+        public EResError AsyncLoad(string path, EResPathType pathType, int priority, ResEvent cb, out int job_id)
         {
             //1. check
             if (string.IsNullOrEmpty(path))
@@ -374,7 +337,7 @@ namespace FH.ResManagement
             }
 
             //2. 异步加载
-            ResJob job = _job_db.CreateJob(ResPath.Create(path, sprite), priority);
+            ResJob job = _job_db.CreateJob(ResPath.Create(path, pathType), priority);
             job.EventResCallBack = cb;
             job.AddWorker(EResWoker.async_load_res);
             job.AddWorker(EResWoker.call_res_event);
@@ -572,21 +535,6 @@ namespace FH.ResManagement
         public EResError CancelPreInst(int req_id)
         {
             return _gobj_pre_data.Cancel(req_id);
-        }
-        #endregion
-
-        #region EmptyGo
-        public EResError CreateEmpty(System.Object user, out ResRef res_ref)
-        {
-            EResError err = _empty_go_pool.Create(user, out var res_id);
-            if (err != EResError.OK)
-            {
-                res_ref = default;
-                return err;
-            }
-
-            res_ref = new ResRef(res_id, null, this);
-            return EResError.OK;
         }
         #endregion
 

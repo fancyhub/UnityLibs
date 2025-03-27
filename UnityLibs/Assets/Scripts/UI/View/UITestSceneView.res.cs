@@ -14,10 +14,10 @@ namespace Game
         public  const string CPath = "Assets/Res/UI/Prefab/TestScene.prefab";
 
 		public UnityEngine.RectTransform _TestScene;
+		public UnityEngine.RectTransform _ItemList;
 		public UIButtonView _BtnClose;
-		public UIButtonView _BtnLoadScene;
-		public UIButtonView _BtnUnloadFirstScene;
-		public UIButtonView _BtnUnloadLastScene;
+		public UIButtonView _BtnLoadSceneSingle;
+		public UIButtonView _BtnLoadSceneAdditive;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -30,10 +30,10 @@ namespace Game
                 return;
 
 			_TestScene = refs.GetComp<UnityEngine.RectTransform>("_TestScene");
+			_ItemList = refs.GetComp<UnityEngine.RectTransform>("_ItemList");
 			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
-			_BtnLoadScene = _CreateSub<UIButtonView>(refs.GetObj("_BtnLoadScene"));
-			_BtnUnloadFirstScene = _CreateSub<UIButtonView>(refs.GetObj("_BtnUnloadFirstScene"));
-			_BtnUnloadLastScene = _CreateSub<UIButtonView>(refs.GetObj("_BtnUnloadLastScene"));
+			_BtnLoadSceneSingle = _CreateSub<UIButtonView>(refs.GetObj("_BtnLoadSceneSingle"));
+			_BtnLoadSceneAdditive = _CreateSub<UIButtonView>(refs.GetObj("_BtnLoadSceneAdditive"));
 
         }
 
@@ -42,9 +42,8 @@ namespace Game
             base._AutoDestroy();
 
 			_BtnClose.Destroy();
-			_BtnLoadScene.Destroy();
-			_BtnUnloadFirstScene.Destroy();
-			_BtnUnloadLastScene.Destroy();
+			_BtnLoadSceneSingle.Destroy();
+			_BtnLoadSceneAdditive.Destroy();
 
         }
 

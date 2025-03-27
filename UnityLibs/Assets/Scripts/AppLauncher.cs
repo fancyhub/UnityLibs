@@ -13,7 +13,7 @@ namespace Game
             new MyUISceneMgr().Init();
             FH.UI.UISceneMgr.ChangeScene<UISceneUpgrader>();
             FH.TaskQueue.Init(10);
-            FH.UI.UIRedDotMgr.Init(FH.ELogLvl.Debug);
+            FH.UI.UIRedDotMgr.Init(FH.ELogLvl.Info);
             FH.UI.UISceneMgr.AddUpdate(() => { FH.UI.UIRedDotMgr.Update(); return FH.UI.EUIUpdateResult.Continue; });
 
         }

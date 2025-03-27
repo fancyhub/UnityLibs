@@ -120,9 +120,11 @@ namespace FH.UI
     public struct UITagPageInfo
     {
         public readonly IUIPageTagMgr Mgr;
-        public UITagPageInfo(IUIPageTagMgr mgr)
+        public readonly EUITagIndex TagIndex;
+        public UITagPageInfo(IUIPageTagMgr mgr, EUITagIndex tagIndex)
         {
             Mgr = mgr;
+            TagIndex = tagIndex;
         }
     }
     public interface IUITagPage : IUIElement
@@ -134,8 +136,11 @@ namespace FH.UI
 
     public interface IUIPageTagMgr
     {
-        public void AddPage(IUITagPage page, EUITagIndex tagId);
-        public void RemovePage(int page_id);
+        public void AddTag(IUITagPage page, EUITagIndex tagId);
+        public void RemoveTag(int page_id);
+
+        public void ApplyMask(IUITagPage page, EUITagIndex tagId);
+        public void WithdrawMask(int page_id);
     }
     #endregion
 
@@ -144,14 +149,18 @@ namespace FH.UI
     {
         public readonly IUIViewLayerMgr Mgr;
         public readonly EUIViewLayer ViewLayer;
-        public UILayerViewPageInfo(IUIViewLayerMgr mgr, EUIViewLayer viewLayer)
+        public readonly RectTransform Parent;
+        public UILayerViewPageInfo(IUIViewLayerMgr mgr, EUIViewLayer viewLayer, RectTransform parent)
         {
             Mgr = mgr;
             ViewLayer = viewLayer;
+            this.Parent = parent;
         }
 
-        public RectTransform GetNormalLayer()
+        public RectTransform GetParent()
         {
+            if (Parent != null)
+                return Parent;
             if (Mgr == null)
                 return null;
             return Mgr.GetLayer(ViewLayer);
@@ -197,7 +206,7 @@ namespace FH.UI
 
     public interface IUIViewLayerMgr
     {
-        public void AddPage(IUILayerViewPage page, EUIViewLayer layer);
+        public void AddPage(IUILayerViewPage page, EUIViewLayer layer, RectTransform parent);
 
         public UnityEngine.RectTransform GetLayer(EUIViewLayer layer);
 

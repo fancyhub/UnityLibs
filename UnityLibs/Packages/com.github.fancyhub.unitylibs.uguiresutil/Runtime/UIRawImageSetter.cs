@@ -126,7 +126,7 @@ namespace FH.UI
                     _ResRef = default;
                     OverrideTexture = null;
 
-                    _ResRef = ResMgr.Load(path, true);
+                    _ResRef = ResMgr.Load(path);
                     OverrideTexture = _ResRef.Get<Texture>();
                     if (OverrideTexture != null)
                         _ResRef.AddUser(this);
@@ -149,7 +149,7 @@ namespace FH.UI
                     }
                     else
                     {
-                        bool result = ResMgr.AsyncLoad(_Path, false, CPriority, _OnAsyncLoaded, out _JobId);
+                        bool result = ResMgr.AsyncLoad(_Path, EResPathType.Sprite, CPriority, _OnAsyncLoaded, out _JobId);
                         if (!result)
                         {
                             _ResRef.RemoveUser(this);

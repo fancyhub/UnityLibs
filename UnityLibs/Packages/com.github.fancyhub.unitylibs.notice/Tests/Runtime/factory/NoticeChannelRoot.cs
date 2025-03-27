@@ -84,7 +84,7 @@ namespace FH.NoticeSample
             if (_UIRootCanvas == null)
             {
                 //找到UIRoot
-                CanvasScaler canvas = GameObject.FindObjectOfType<CanvasScaler>();
+                CanvasScaler canvas = GameObject.FindFirstObjectByType<CanvasScaler>();
                 if (canvas == null)
                 {
                     UnityEngine.Debug.Log("找不到UIRoot");

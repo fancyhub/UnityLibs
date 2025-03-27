@@ -27,7 +27,7 @@ namespace FH.SampleExternalLoader
 
         }
 
-        public ISceneMgr.IExternalRef Load(string scene, LoadSceneMode mode)
+        public ISceneMgr.IExternalRef Load(string scene)
         {
             IBundleMgr bundle_mgr = _BundleMgr.Val;
             if (bundle_mgr == null)
@@ -40,25 +40,24 @@ namespace FH.SampleExternalLoader
             if (bundle == null)
                 return null;
 
-            return SceneRef.Create(bundle, scene, new LoadSceneParameters(mode));
+            return SceneRef.Create(bundle, scene);
         }
 
         private sealed class SceneRef : CPoolItemBase, ISceneMgr.IExternalRef
         {
             public AsyncOperation _AsyncOperation;
             public string _SceneName;
-            public LoadSceneParameters _LoadParams;
             public IBundle _Bundle;
 
-            public AsyncOperation LoadScene()
+            public AsyncOperation LoadScene(LoadSceneParameters load_param)
             {
                 if (_AsyncOperation != null)
                     return _AsyncOperation;
-                _AsyncOperation = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(_SceneName, _LoadParams);
+                _AsyncOperation = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(_SceneName, load_param);
                 return _AsyncOperation;
             }
 
-            public static SceneRef Create(IBundle bundle, string scene, LoadSceneParameters load_param)
+            public static SceneRef Create(IBundle bundle, string scene)
             {
                 if (bundle == null)
                     return null;
@@ -66,7 +65,6 @@ namespace FH.SampleExternalLoader
                 var ret = GPool.New<SceneRef>();
                 ret._Bundle = bundle;
                 ret._SceneName = scene;
-                ret._LoadParams = load_param;
                 return ret;
             }
 

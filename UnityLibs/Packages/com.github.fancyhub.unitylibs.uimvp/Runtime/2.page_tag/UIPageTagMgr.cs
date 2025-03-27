@@ -59,52 +59,70 @@ namespace FH.UI
         {
             foreach (var p in configs)
             {
-                _Dict.Add(p.Id, p);
+                UITagItem item = p;
+                if (item.Tag != EUITag.None && item.HideMask[item.Tag])
+                    UILog._.E("Tag Item:{0}, hideMask cannot hide self, {1}", item.Id, item.Tag);
+                else
+                    _Dict.Add(p.Id, p);
             }
         }
 
-        public void AddPage(IUITagPage page, EUITagIndex tagId)
+        public void AddTag(IUITagPage page, EUITagIndex tagId)
         {
             if (page == null)
                 return;
-            page.SetTagPageInfo(new UITagPageInfo(this));
+            page.SetTagPageInfo(new UITagPageInfo(this, tagId));
 
             if (!_Dict.TryGetValue(tagId, out var item))
                 return;
 
-            if (item.Tag != EUITag.None)
-            {
-                if (_PageTagMatrix.AddTag(page, (byte)item.Tag))
-                {
-                    UILog._.D("Page:{0}, add tag to page succ", page.Id);
-                }
-                else
-                {
-                    UILog._.D("Page:{0}, add tag to page failed, tag {1} is not supported", page.Id, item.Tag);
-                }
-            }
+            if (item.Tag == EUITag.None)
+                return;
 
-            if (item.HideMask.Value != 0)
+            if (_PageTagMatrix.AddTag(page, (byte)item.Tag))
             {
-                if (_PageTagMatrix.AddMask(page.Id, item.HideMask.Value))
-                {
-                    UILog._.D("Page:{0}, add mask to page succ", page.Id);
-                }
-                else
-                {
-                    UILog._.D("Page:{0}, add mask to page succ, failed", page.Id);
-                }
+                UILog._.D("Page:{0}, add tag to page succ", page.Id);
+            }
+            else
+            {
+                UILog._.D("Page:{0}, add tag to page failed, tag {1} is not supported", page.Id, item.Tag);
             }
         }
 
-        public void RemovePage(int page_id)
+        public void RemoveTag(int page_id)
         {
             if (_PageTagMatrix.RemoveTag(page_id))
             {
                 UILog._.D("Page:{0}, remove page tag succ", page_id);
             }
+        }
 
-            if(_PageTagMatrix.RemoveMask(page_id))
+
+        public void ApplyMask(IUITagPage page, EUITagIndex tagId)
+        {
+            if (page == null)
+                return;
+
+            if (!_Dict.TryGetValue(tagId, out var item))
+                return;
+
+            if (item.HideMask.Value == 0)
+                return;
+
+            if (_PageTagMatrix.AddMask(page.Id, item.HideMask.Value))
+            {
+                UILog._.D("Page:{0}, add mask to page succ", page.Id);
+            }
+            else
+            {
+                UILog._.D("Page:{0}, add mask to page succ, failed", page.Id);
+            }
+
+        }
+
+        public void WithdrawMask(int page_id)
+        {
+            if (_PageTagMatrix.RemoveMask(page_id))
             {
                 UILog._.D("Page:{0}, remove page mask succ", page_id);
             }

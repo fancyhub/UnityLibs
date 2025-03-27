@@ -34,18 +34,18 @@ namespace FH.SampleExternalLoader
             return _ResLoader.GetAssetStatus(path);
         }
 
-        public IResMgr.IExternalRef Load(string path, bool sprite)
+        public IResMgr.IExternalRef Load(string path, EResPathType resPathType)
         {
             if (_UseAB(path))
-                return _AbLoader.Load(path, sprite);
-            return _ResLoader.Load(path, sprite);
+                return _AbLoader.Load(path, resPathType);
+            return _ResLoader.Load(path, resPathType);
         }
 
-        public IResMgr.IExternalRef LoadAsync(string path, bool sprite)
+        public IResMgr.IExternalRef LoadAsync(string path, EResPathType resPathType)
         {
             if (_UseAB(path))
-                return _AbLoader.LoadAsync(path, sprite);
-            return _ResLoader.LoadAsync(path, sprite);
+                return _AbLoader.LoadAsync(path, resPathType);
+            return _ResLoader.LoadAsync(path, resPathType);
         }
 
         private static bool _UseAB(string path)

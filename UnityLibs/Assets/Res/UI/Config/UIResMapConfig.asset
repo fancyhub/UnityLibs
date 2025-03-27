@@ -53,16 +53,22 @@ MonoBehaviour:
     - name: Button
       dir: Common
       ext: .prefab
-    - name: Panel
-      dir: 
-      ext: .prefab
-    - name: Panel_Variant
+    - name: MainPanel
       dir: 
       ext: .prefab
     - name: RedDotCommon
       dir: 
       ext: .prefab
+    - name: SceneItem
+      dir: 
+      ext: .prefab
     - name: TestLocalization
+      dir: 
+      ext: .prefab
+    - name: TestScene
+      dir: 
+      ext: .prefab
+    - name: TestUIGroupDialog
       dir: 
       ext: .prefab
     - name: Upgrader

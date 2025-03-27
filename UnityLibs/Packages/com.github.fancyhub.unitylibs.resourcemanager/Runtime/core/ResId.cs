@@ -14,9 +14,14 @@ namespace FH
     {
         None,
         Res,
-        Sprite,
         Inst,
-        EmptyInst,
+    }
+
+    public enum EResPathType
+    {
+        Default,
+        Sprite,
+        AnimClip,
     }
 
     public readonly struct ResId : IEquatable<ResId>, IEqualityComparer<ResId>
@@ -44,5 +49,27 @@ namespace FH
 
         bool IEqualityComparer<ResId>.Equals(ResId x, ResId y) { return x.Id == y.Id && x.ResType == y.ResType; }
         int IEqualityComparer<ResId>.GetHashCode(ResId obj) { return obj.GetHashCode(); }
+    }
+
+    public static class ResPathExt
+    {
+        public static System.Type ExtResPathType2UnityType(this EResPathType self)
+        {
+            switch (self)
+            {
+                default:
+                    ResManagement.ResLog._.E("unkown type {0}", self);
+                    return typeof(UnityEngine.Object);
+
+                case EResPathType.Default:
+                    return typeof(UnityEngine.Object);
+
+                case EResPathType.Sprite:
+                    return typeof(UnityEngine.Sprite);
+
+                case EResPathType.AnimClip:
+                    return typeof(UnityEngine.AnimationClip);
+            }
+        }
     }
 }

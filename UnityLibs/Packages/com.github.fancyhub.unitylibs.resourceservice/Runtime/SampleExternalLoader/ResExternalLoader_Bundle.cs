@@ -131,7 +131,7 @@ namespace FH.SampleExternalLoader
 
         private ResRefDB _ResRefDB = new ResRefDB();
 
-        public ResExternalLoader_Bundle(IBundleMgr bundle_mgr,Func<string,string> atlas_tag)
+        public ResExternalLoader_Bundle(IBundleMgr bundle_mgr, Func<string, string> atlas_tag)
         {
             _BundleMgr = new CPtr<IBundleMgr>(bundle_mgr);
             _AtlasTag = atlas_tag;
@@ -159,7 +159,7 @@ namespace FH.SampleExternalLoader
                 return EAssetStatus.NotDownloaded;
         }
 
-        public IResMgr.IExternalRef Load(string path, bool sprite)
+        public IResMgr.IExternalRef Load(string path, EResPathType resPathType)
         {
             IBundleMgr bundleMgr = _BundleMgr.Val;
             if (bundleMgr == null)
@@ -171,10 +171,26 @@ namespace FH.SampleExternalLoader
                 return null;
 
             UnityEngine.Object asset = null;
-            if (sprite)
-                asset = bundle.LoadAsset<Sprite>(path);
-            else
-                asset = bundle.LoadAsset<UnityEngine.Object>(path);
+            switch (resPathType)
+            {
+                default:
+                    Log.E("unkown type {0}", resPathType);
+                    asset = bundle.LoadAsset<UnityEngine.Object>(path);
+                    break;
+
+                case EResPathType.Default:
+                    asset = bundle.LoadAsset<UnityEngine.Object>(path);
+                    break;
+
+                case EResPathType.Sprite:
+                    asset = bundle.LoadAsset<Sprite>(path);
+                    break;
+
+                case EResPathType.AnimClip:
+                    asset = bundle.LoadAsset<AnimationClip>(path);
+                    break;
+            }
+
 
             AssetRef ret = AssetRef.Create(_ResRefDB, bundle, asset);
 
@@ -182,7 +198,7 @@ namespace FH.SampleExternalLoader
             return ret;
         }
 
-        public IResMgr.IExternalRef LoadAsync(string path, bool sprite)
+        public IResMgr.IExternalRef LoadAsync(string path, EResPathType resPathType)
         {
             IBundleMgr bundleMgr = _BundleMgr.Val;
             if (bundleMgr == null)
@@ -193,10 +209,26 @@ namespace FH.SampleExternalLoader
                 return null;
 
             UnityEngine.AssetBundleRequest req = null;
-            if (sprite)
-                req = bundle.LoadAssetAsync<Sprite>(path);
-            else
-                req = bundle.LoadAssetAsync<UnityEngine.Object>(path);
+            switch (resPathType)
+            {
+                default:
+                    Log.E("unkown type {0}", resPathType);
+                    req = bundle.LoadAssetAsync<UnityEngine.Object>(path);
+                    break;
+
+                case EResPathType.Default:
+                    req = bundle.LoadAssetAsync<UnityEngine.Object>(path);
+                    break;
+
+                case EResPathType.Sprite:
+                    req = bundle.LoadAssetAsync<Sprite>(path);
+                    break;
+
+                case EResPathType.AnimClip:
+                    req = bundle.LoadAssetAsync<AnimationClip>(path);
+                    break;
+            }
+
             AssetRef ret = AssetRef.Create(_ResRefDB, bundle, req);
 
             bundle.DecRefCount();

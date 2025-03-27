@@ -47,11 +47,10 @@ namespace FH
 
     public interface IResHolder : ICPtr, IHolderObserver
     {
-        public UnityEngine.Object Load(string path, bool sprite);
-        public void PreLoad(string path, bool sprite, int priority = 0);
+        public UnityEngine.Object Load(string path, EResPathType pathType = EResPathType.Default);
+        public void PreLoad(string path, EResPathType pathType = EResPathType.Default, int priority = 0);
         public void GetAllRes(List<ResRef> out_list);
         public HolderStat GetResStat();
-
     }
 
     public interface IPreInstHolder : ICPtr
@@ -62,7 +61,6 @@ namespace FH
 
     public interface IInstHolder : ICPtr, IHolderObserver
     {
-        public GameObject CreateEmpty();
         public GameObject Create(string path);
 
         public void PreCreate(string path, int count = 1, int priority = 0);

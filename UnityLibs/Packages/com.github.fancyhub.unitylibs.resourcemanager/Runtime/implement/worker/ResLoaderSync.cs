@@ -56,17 +56,17 @@ namespace FH.ResManagement
             }
 
             //5. 不存在, 加载
-            IResMgr.IExternalRef asset_ref = _external_loader.Load(job.Path.Path, job.Path.Sprite);
+            IResMgr.IExternalRef asset_ref = _external_loader.Load(job.Path.Path, job.Path.PathType);
             if (asset_ref == null)
             {
-                ResLog._.D("load failed res {0}", job.Path.Path);
+                ResLog._.D("load failed res {0}", job.Path);
                 job.ErrorCode = EResError.ResLoaderSync_load_res_failed;
                 _msg_queue.SendJobNext(job);
                 return;
             }
             else//添加到 ResPool
             {
-                ResLog._.D("load res  {0}", job.Path.Path);
+                ResLog._.D("load res  {0}", job.Path);
                 err = _res_pool.AddRes(job.Path, asset_ref, out job.ResId);
                 ResLog._.ErrCode(err);
                 if (err != EResError.OK)

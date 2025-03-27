@@ -17,7 +17,7 @@ public class UIViewTest : MonoBehaviour
         FH.UI.UIObjFinder.Show();
 
         _LayerMgr = new UIViewLayerMgr(UISharedBG.Inst);
-        _LayerMgr.AddLayer("test",false);
+        _LayerMgr.AddLayer("test", false);
 
         _btn = FH.UI.UIBaseView.CreateView<Game.UIButtonView>(UIRoot.Root2D);
         _btn.OnClick = () => UIPageScene2.Create(this, _LayerMgr);
@@ -97,7 +97,7 @@ public class UIPageScene2 : UIPageBase
         foreach (var p in _SpriteNameList)
         {
             string path = UIResMapConfig.FindSprite(p);
-            holder.PreLoad(path, true);
+            holder.PreLoad(path,  EResPathType.Sprite);
         }
     }
 
@@ -159,8 +159,8 @@ public class UIPageScene2 : UIPageBase
     {
         yield return new WaitForSeconds(1.0f);
 
-        var scene_a = SceneMgr.LoadScene("Assets/Scenes/a.unity", true);
-        var scene_b = SceneMgr.LoadScene("Assets/Scenes/a.unity", true);
+        var scene_a = SceneMgr.LoadScene("Assets/Scenes/a.unity", UnityEngine.SceneManagement.LoadSceneMode.Additive);
+        var scene_b = SceneMgr.LoadScene("Assets/Scenes/a.unity", UnityEngine.SceneManagement.LoadSceneMode.Additive);
 
         for (; ; )
         {

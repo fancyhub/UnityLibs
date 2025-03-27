@@ -18,7 +18,8 @@ namespace FH.ResManagement
         IPool IPoolItem.Pool { get => ___pool; set => ___pool = value; }
         bool IPoolItem.InPool { get => ___in_pool; set => ___in_pool = value; }
 
-        public ResPath Path;
+        public string Path;
+        public BitEnum32<EResPathType> PathTypeMask;
         public ResId ResId;
         public UnityEngine.Object Asset;
         public CPtr<IResMgr.IExternalRef> AssetRef;
@@ -26,19 +27,51 @@ namespace FH.ResManagement
         public ResPoolItem()
         {
         }
+
         public static ResPoolItem Create(ResPath path, IResMgr.IExternalRef asset_ref)
         {
             var ret = S_Pool.New();
-            ret.Path = path;
+            ret.Path = path.Path;
+            ret.PathTypeMask.Clear(false);
+            ret.PathTypeMask[path.PathType] = true;
             ret.AssetRef = new CPtr<IResMgr.IExternalRef>(asset_ref);
             ret.Asset = asset_ref.Asset;
-
-            if (path.Sprite)
-                ret.ResId = new ResId(asset_ref.Asset, EResType.Sprite);
-            else
-                ret.ResId = new ResId(asset_ref.Asset, EResType.Res);
+            ret.ResId = new ResId(asset_ref.Asset, EResType.Res);
 
             return ret;
+        }
+
+        public bool HasPathType(EResPathType type)
+        {
+            return PathTypeMask[type];
+        }
+
+        public void AddPathType(EResPathType type)
+        {
+            PathTypeMask[type] = true;
+        }
+
+        public bool GetPath(EResPathType type, out ResPath path)
+        {
+            if (PathTypeMask[type])
+            {
+                path = ResPath.Create(Path, type);
+                return true;
+            }
+            path = default;
+            return false;
+        }
+
+        public ResPath GetPath()
+        {
+            if (PathTypeMask[EResPathType.Default])
+                return ResPath.Create(Path, EResPathType.Default);
+            if (PathTypeMask[EResPathType.Sprite])
+                return ResPath.Create(Path, EResPathType.Sprite);
+            if (PathTypeMask[EResPathType.AnimClip])
+                return ResPath.Create(Path, EResPathType.AnimClip);
+            ResLog._.E("严重错误");
+            return ResPath.Empty;
         }
 
         public override void Destroy()
@@ -56,8 +89,9 @@ namespace FH.ResManagement
 
         //Key: Inst Id 
         public Dictionary<int, ResPoolItem> _pool;
-        //Path-> Inst Id
-        public Dictionary<ResPath, ResId> _index_by_path;
+
+        //Path -> Inst Id,  多对一
+        public Dictionary<ResPath, ResId> _path_2_index_dict;
 
         //Key: ResId, Value: TimeFrameCount
         public LruList<ResId, int> _lru_free_list;
@@ -66,17 +100,17 @@ namespace FH.ResManagement
         {
             _pool = new Dictionary<int, ResPoolItem>(C_POOL_CAP);
             _lru_free_list = new LruList<ResId, int>();
-            _index_by_path = new Dictionary<ResPath, ResId>(MyEqualityComparer<ResPath>.Default);
+            _path_2_index_dict = new Dictionary<ResPath, ResId>(MyEqualityComparer<ResPath>.Default);
         }
 
         public void Destroy()
         {
             _pool.ExtFreeMembers();
             _lru_free_list.Clear();
-            _index_by_path.Clear();
+            _path_2_index_dict.Clear();
             _pool = null;
             _lru_free_list = null;
-            _index_by_path = null;
+            _path_2_index_dict = null;
         }
 
         // 资源的部分,key: path
@@ -100,8 +134,8 @@ namespace FH.ResManagement
 
                 //填充数据                
                 ResSnapShotItem data = new ResSnapShotItem();
-                data.Path = pool_val.Path.Path;
-                data.Sprite = pool_val.Path.Sprite;
+                data.Path = pool_val.Path;
+                data.PathType = pool_val.PathTypeMask;
                 data.Id = pool_val.ResId;
                 data.UserCount = pool_val._user_count;
                 pool_val.CopyUserList(ref data.Users);
@@ -118,21 +152,21 @@ namespace FH.ResManagement
                 return EResError.ResPool_res_not_exist_6;
             }
 
-            path = val.Path;
+            path = val.GetPath();
             return EResError.OK;
         }
 
-        public EResError GetIdByPath(ResPath path, out ResId id)
+        public EResError GetIdByPath(ResPath path, out ResId resId)
         {
             if (!path.IsValid())
             {
-                id = ResId.Null;
+                resId = ResId.Null;
                 return EResError.ResPool_path_null_1;
             }
 
-            bool succ = _index_by_path.TryGetValue(path, out id);
-            if (succ)
-                return EResError.OK;
+            bool succ = _path_2_index_dict.TryGetValue(path, out resId);
+            if (succ)            
+                return EResError.OK;            
             return EResError.ResPool_res_not_exist_5;
         }
 
@@ -150,68 +184,101 @@ namespace FH.ResManagement
                 return EResError.ResPool_res_null;
             }
 
-            bool asset_is_sprite = asset_ref.Asset is Sprite;
-            //路径指定的Sprite类型 和 资源类型不一致
-            //主要是打包之后 可能会发生该情况
-            // 比如: a.png 对应一个sprite, 如果没有其他资源引用该 Texture, 并且该Sprite 打包进了atlas
-            // 在Editor模式下, 如果要加载该Sprite, 必须是 ResPath{path,Sprite:true) 来加载
-            // 但是在打包之后, 两种方法都会加载该对象, ResPath(path,Sprite:false) 和 ResPath(path, Sprite:true) 都会加载出Sprite, 这个地方杜绝
-            // 还有就是 AssetLoader的实现问题, 如果出错, 会导致 ResPath(path,Sprite:true) 加载出Texture出来, 也要杜绝
-            if (path.Sprite != asset_is_sprite)
+            if (path.PathType == EResPathType.Sprite && !(asset_ref.Asset is Sprite))
             {
                 id = ResId.Null;
-                return EResError.ResPool_res_is_sprite;
+                return EResError.ResPool_res_is_not_sprite;
+            }
+            else if (path.PathType == EResPathType.AnimClip && !(asset_ref.Asset is AnimationClip))
+            {
+                id = ResId.Null;
+                return EResError.ResPool_res_is_not_anim_clip;
             }
 
-            //2. 根据路径找到 ResId
-            ResPoolItem pool_val;
-            bool succ = _index_by_path.TryGetValue(path, out id);
-            if (succ)
-            {
-                //1.1. 检查资源是否一致
-                succ = _pool.TryGetValue(id.Id, out pool_val);
-                if (!succ)
-                {
-                    ResLog._.Assert(false, "严重错误");
-                    id = ResId.Null;
-                    return EResError.ResPool_e2;
-                }
+            id = new ResId(asset_ref.Asset, EResType.Res);
 
+            //2. 根据id 和 路径找对象
+            bool result_in_id = _pool.TryGetValue(id.Id, out var exist_item);
+            bool result_in_path = _path_2_index_dict.TryGetValue(path, out var exist_res_id);
+
+            //3. 都存在
+            if (result_in_id && result_in_path)
+            {
                 //这个地方的发生: AB模式下, 加载成功之后, 该AB包被卸载了, 然后重新加载该AB包,并加载该资源,会导致 同一个路径,加载出的资源不一样
-                if (pool_val.Asset != asset_ref.Asset)
+                if (exist_item.Asset != asset_ref.Asset)
                 {
                     ResLog._.Assert(false, "添加资源的时候，资源不一致 {0}", path);
                     id = ResId.Null;
                     return EResError.ResPool_same_path_diff_res;
                 }
 
-                //新的 asset ref 销毁, 只要保存一份就行了
-                asset_ref.Destroy();
+                if (exist_res_id != id)
+                {
+                    ResLog._.Assert(false, "资源id 不一致 {0}", path);
+                    _path_2_index_dict[path] = id;
+                }
 
-                //刷新lru
+                ResLog._.D("res is already in pool {0}", path);
+                asset_ref.Destroy(); //不需要两个, 销毁一个
                 _lru_free_list.Set(id, UnityEngine.Time.frameCount);
                 return EResError.OK;
             }
 
-            //3. 创建poolval
-            pool_val = ResPoolItem.Create(path, asset_ref);
-            id = pool_val.ResId;
-
-            //4. 再次检查, 这里会发生, 是因为两个路径加载出了同一个资源导致的,可能的原因,比如
-            // 1) : 路径大小写
-            // 2) : AssetLoader 可以通过别名加载资源
-            if (_pool.TryGetValue(id.Id, out var _))
+            //4. id存在, path 不存在
+            if (result_in_id && !result_in_path)
             {
-                pool_val.Destroy();
-                return EResError.ResPool_multi_path_to_one_res;
+                if (exist_item.Path != path.Path) //路径不相同
+                {
+                    //因为两个路径加载出了同一个资源导致的,可能的原因,比如
+                    // 1) : 路径大小写
+                    // 2) : AssetLoader 可以通过别名加载资源
+                    return EResError.ResPool_multi_path_to_one_res;
+                }
+
+                if (exist_item.HasPathType(path.PathType)) //类型不同
+                {
+                    //严重错误
+                    ResLog._.Assert(false, "严重错误 {0}", path.Path);
+                    return EResError.ResPool_e3;
+                }
+
+                ResLog._.D(" {0} res is already in pool, add an other res type {1},{2}", id, exist_item.GetPath(), path.PathType);
+                //类型不一样, 添加一下类型就行了
+                _path_2_index_dict[path] = id;
+                exist_item.AddPathType(path.PathType);
+                asset_ref.Destroy(); //不需要两个, 销毁一个
+                _lru_free_list.Set(id, UnityEngine.Time.frameCount);
+                return EResError.OK;
             }
 
-            //4. 向各个pool里面添加
+            //5. path 存在,id 不存在
+            if (!result_in_id && result_in_path)
+            {
+                ResLog._.Assert(false, "严重错误, 同一个路径加载出来两个不同的 asset,{0}", path.Path);
+                return EResError.ResPool_e4;
+            }
+
+            //6. 都不存在, 就添加
+            ResPoolItem pool_val = ResPoolItem.Create(path, asset_ref);
             ResLog._.D("{0} add res {1}", id.Id, path);
             _pool.Add(id.Id, pool_val);
-            _index_by_path.Add(path, id);
+            _path_2_index_dict.Add(path, id);
             _lru_free_list.Set(id, UnityEngine.Time.frameCount);
-
+            if (path.PathType == EResPathType.Default)
+            {
+                if (asset_ref.Asset is Sprite)
+                {
+                    var path_2 = ResPath.Create(path.Path, EResPathType.Sprite);
+                    ResLog._.D("{0} add res {1}", id.Id, path_2);
+                    _path_2_index_dict.Add(path_2, id);
+                }
+                else if (asset_ref.Asset is AnimationClip)
+                {
+                    var path_2 = ResPath.Create(path.Path, EResPathType.AnimClip);
+                    ResLog._.D("{0} add res {1}", id.Id, path_2);
+                    _path_2_index_dict.Add(path_2, id);
+                }
+            }
             return EResError.OK;
         }
 
@@ -227,7 +294,7 @@ namespace FH.ResManagement
             }
 
             //2. 检查 user 列表是否为空       
-            path = pool_val.Path;
+            path = pool_val.GetPath();
             if (pool_val.GetUserCount() > 0)
             {
                 _pool.Add(inst_id, pool_val);
@@ -242,7 +309,13 @@ namespace FH.ResManagement
 
             //3. 从lru 以及 index里面删除
             _lru_free_list.Remove(pool_val.ResId, out int _);
-            _index_by_path.Remove(pool_val.Path);
+            if (pool_val.GetPath(EResPathType.Default, out var p1))
+                _path_2_index_dict.Remove(p1);
+            if (pool_val.GetPath(EResPathType.Sprite, out var p2))
+                _path_2_index_dict.Remove(p2);
+            if (pool_val.GetPath(EResPathType.AnimClip, out var p3))
+                _path_2_index_dict.Remove(p3);
+
             pool_val.Destroy();
             return EResError.OK;
         }
@@ -348,7 +421,7 @@ namespace FH.ResManagement
             if (user_count == 0)
                 _lru_free_list.Set(pool_val.ResId, UnityEngine.Time.frameCount);
             return EResError.OK;
-        } 
+        }
 
         public void RefreshLru(ResId res_id)
         {

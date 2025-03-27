@@ -6,8 +6,8 @@ namespace FH.SceneManagement
     internal sealed class SceneLoadingQueue
     {
         private ScenePool _Pool;
-        private Queue<SceneID> _LoadingQueue = new Queue<SceneID>();
-        private SceneID _CurrentLoading = SceneID.Empty;
+        private Queue<int> _LoadingQueue = new Queue<int>();
+        private int _CurrentLoading = 0;
 
         public SceneLoadingQueue(ScenePool pool)
         {
@@ -19,10 +19,10 @@ namespace FH.SceneManagement
             if (item == null)
                 return;
 
-            if (item._LoadMode == UnityEngine.SceneManagement.LoadSceneMode.Single)            
-                _LoadingQueue.Clear();            
+            if (item.IsSingleLoadMode())
+                _LoadingQueue.Clear();
 
-            _LoadingQueue.Enqueue(item._Id);
+            _LoadingQueue.Enqueue(item.SceneId);
         }
 
         public void Update()
@@ -30,13 +30,13 @@ namespace FH.SceneManagement
             SceneItem item = _Pool.Get(_CurrentLoading);
             if (item != null)
             {
-                if (item._Status == ESceneStatus.Loading)
+                if (item.IsLoading())
                     return;
             }
 
             for (; ; )
             {
-                _CurrentLoading = SceneID.Empty;
+                _CurrentLoading = 0;
                 if (_LoadingQueue.Count == 0)
                     return;
 
@@ -46,7 +46,7 @@ namespace FH.SceneManagement
                     continue;
 
                 item.BeginLoad();
-                if (item._Status == ESceneStatus.Loading)
+                if (item.IsLoading())
                     return;
             }
         }

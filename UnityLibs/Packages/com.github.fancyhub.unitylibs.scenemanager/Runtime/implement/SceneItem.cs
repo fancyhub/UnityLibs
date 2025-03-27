@@ -14,57 +14,57 @@ namespace FH.SceneManagement
         Unloaded,
         Failed,
     }
-    /*
-     
-    switch (_Status)
-    {
-        case ESceneStatus.None:
-            break;
-
-        case ESceneStatus.Loading:
-            break;
-
-        case ESceneStatus.Loaded:            
-            break;
-
-        case ESceneStatus.Unloading:
-            break;
-
-        case ESceneStatus.Loading2Unloading:
-            break;
-
-        case ESceneStatus.Unloaded:
-            break;
-
-        case ESceneStatus.Failed:
-            break;
-    }
-     
-     */
 
     internal class SceneItem : CPoolItemBase
     {
-        public string _ScenePath;
-        public LoadSceneMode _LoadMode;
-        public SceneID _Id;
-        public ESceneStatus _Status;
-        public AsyncOperation _LoadingAsyncOperation;
-        public AsyncOperation _UnloadingAsyncOperation;
-        public CPtr<ISceneMgr.IExternalRef> _SceneRef;
-        public Scene _Scene;
+        private static int _SceneIdGen = 1;
+        private string _ScenePath;
+        private LoadSceneParameters _LoadParam;
+        private ESceneStatus _Status;
+        private AsyncOperation _LoadingAsyncOperation;
+        private AsyncOperation _UnloadingAsyncOperation;
+        private CPtr<ISceneMgr.IExternalRef> _SceneRef;
+        private ScenePlaceHolderItem _PlaceHolderItem;
 
-        public static SceneItem Create(ISceneMgr.IExternalRef scene_ref, string scene_path, LoadSceneMode mode)
+        private Transform _SceneRoot;
+
+
+        public int SceneId;
+        public Scene UnityScene;
+
+        public static SceneItem Create(ScenePlaceHolderItem placeHolderItem, ISceneMgr.IExternalRef scene_ref, string scene_path, LoadSceneParameters load_param)
         {
             SceneItem ret = new SceneItem();
-            ret._Id = SceneID.Create();
+            ret.SceneId = _SceneIdGen++;
             ret._ScenePath = scene_path;
-            ret._LoadMode = mode;
+            ret._LoadParam = load_param;
             ret._Status = ESceneStatus.None;
             ret._SceneRef = new CPtr<ISceneMgr.IExternalRef>(scene_ref);
+            ret._PlaceHolderItem = placeHolderItem;
             return ret;
         }
 
-        public (bool Done, float Progress) GetSceneStat()
+        public bool IsLoading()
+        {
+            return _Status == ESceneStatus.Loading || _Status == ESceneStatus.Loading2Unloading;
+        }
+
+        public bool ShouldBeDestroyed()
+        {
+            return _Status == ESceneStatus.Failed || _Status == ESceneStatus.Unloaded;
+        }
+
+        public bool IsSingleLoadMode()
+        {
+            return _LoadParam.loadSceneMode == LoadSceneMode.Single;
+        }
+
+        public LoadSceneMode GetLoadMode()
+        {
+            return _LoadParam.loadSceneMode;
+        }
+
+        public (bool done, float progress) GetSceneStat()
         {
             switch (_Status)
             {
@@ -93,65 +93,35 @@ namespace FH.SceneManagement
             }
         }
 
-        public void Unload()
+        public Vector3 ScenePos
         {
-            switch (_Status)
+            get
             {
-                case ESceneStatus.None:
-                    _Status = ESceneStatus.Unloaded;
-                    break;
+                if (_SceneRoot != null)
+                    return _SceneRoot.position;
+                return Vector3.zero;
+            }
+            set
+            {
 
-                case ESceneStatus.Loading:
-                    _Status = ESceneStatus.Loading2Unloading;
-                    break;
-
-                case ESceneStatus.Loaded:
-                    if (!_Scene.IsValid())
-                        _Status = ESceneStatus.Unloaded;
-                    else
-                    {
-                        _UnloadingAsyncOperation = UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(_Scene);
-                        if (_UnloadingAsyncOperation == null)
-                            _Status = ESceneStatus.Unloaded;
-                        else
-                        {
-                            _Status = ESceneStatus.Unloading;
-                            _UnloadingAsyncOperation.completed += _OnSceneUnloaded;
-                        }
-                    }
-                    break;
-
-                case ESceneStatus.Unloading:
-                    //Do nothing
-                    break;
-
-                case ESceneStatus.Loading2Unloading:
-                    //Do nothing
-                    break;
-
-                case ESceneStatus.Unloaded:
-                    //Do nothing
-                    break;
-
-                case ESceneStatus.Failed:
-                    _Status = ESceneStatus.Unloaded;
-                    break;
             }
         }
+ 
 
         public void BeginLoad()
         {
             switch (_Status)
             {
                 case ESceneStatus.None:
-                    _LoadingAsyncOperation = _SceneRef.Val.LoadScene();
+                    _LoadingAsyncOperation = _SceneRef.Val.LoadScene(_LoadParam);
                     if (_LoadingAsyncOperation == null)
                     {
-                        SceneLog._.E("加载场景失败 {0}", _ScenePath);
+                        SceneLog._.E("Scene:{0} load failed, Mode: {1}, Path: {2}", SceneId, _LoadParam.loadSceneMode, _ScenePath);
                         _Status = ESceneStatus.Failed;
                     }
                     else
                     {
+                        SceneLog._.D("Scene:{0} begin loading, Mode: {1}, Path: {2}", SceneId, _LoadParam.loadSceneMode, _ScenePath);
                         _LoadingAsyncOperation.completed += _OnSceneLoaded;
                         _Status = ESceneStatus.Loading;
                     }
@@ -163,16 +133,110 @@ namespace FH.SceneManagement
                 case ESceneStatus.Loading2Unloading:
                 case ESceneStatus.Unloaded:
                 case ESceneStatus.Failed:
-                    //Do Nothing
+                    SceneLog._.D("Scene:{0} cant load because status is incorrect, Mode: {1}, Path: {2}, Status:{3}", SceneId, _LoadParam.loadSceneMode, _ScenePath, _Status);
                     break;
 
+                default:
+                    SceneLog._.Assert(false, "unkown status {0}", _Status);
+                    break;
+            }
+        }
+
+
+        public bool IsValid()
+        {
+            switch (_Status)
+            {
+                default:
+                    return false;
+
+                case ESceneStatus.None:
+                    return true;
+
+                case ESceneStatus.Loading:
+                    return true;
+
+                case ESceneStatus.Loaded:
+                    return UnityScene.IsValid();
+
+                case ESceneStatus.Unloading:
+                    return false;
+
+                case ESceneStatus.Loading2Unloading:
+                    return false;
+
+                case ESceneStatus.Unloaded:
+                    return false;
+
+                case ESceneStatus.Failed:
+                    return false;
+            }
+        }
+
+        public void Unload()
+        {
+            switch (_Status)
+            {
+                case ESceneStatus.None:
+                    _Status = ESceneStatus.Unloaded;
+                    SceneLog._.D("Scene:{0} unload, Status: {1} -> {2}", SceneId, ESceneStatus.None, ESceneStatus.Unloaded);
+                    break;
+
+                case ESceneStatus.Loading:
+                    _Status = ESceneStatus.Loading2Unloading;
+                    break;
+
+                case ESceneStatus.Loaded:
+                    if (!UnityScene.IsValid())
+                    {
+                        _Status = ESceneStatus.Unloaded;
+                        SceneLog._.D("Scene:{0} unload, scene is invalid, Status: {1} -> {2}", SceneId, ESceneStatus.Loaded, ESceneStatus.Unloaded);
+                    }
+                    else
+                    {
+                        _PlaceHolderItem.CreateForUnload();
+                        SceneLog._.D("Scene:{0} bein unload scene async {1}:{2} ", SceneId, UnityScene.path, _ScenePath);
+                        _UnloadingAsyncOperation = UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(UnityScene);
+                        if (_UnloadingAsyncOperation == null)
+                        {
+                            _Status = ESceneStatus.Unloaded;
+                            SceneLog._.W("Scene:{0} unload async operation is null, Status: {1} -> {2}, {3}, because there is an other scene is in unloading async ", SceneId, ESceneStatus.Loaded, ESceneStatus.Unloaded, _ScenePath);
+                        }
+                        else
+                        {
+                            SceneLog._.D("Scene:{0} unloading, Status: {1} -> {2}, {3} ", SceneId, ESceneStatus.Loaded, ESceneStatus.Unloading, _ScenePath);
+                            _Status = ESceneStatus.Unloading;
+                            _UnloadingAsyncOperation.completed += _OnSceneUnloaded;
+                        }
+                    }
+                    break;
+
+                case ESceneStatus.Unloading:
+                case ESceneStatus.Loading2Unloading:
+                case ESceneStatus.Unloaded:
+                    //Do nothing
+                    break;
+
+                case ESceneStatus.Failed:
+                    _Status = ESceneStatus.Unloaded;
+                    SceneLog._.D("Scene:{0} unload, Status: {1} -> {2}", SceneId, ESceneStatus.Failed, ESceneStatus.Unloaded);
+                    break;
+
+                default:
+                    SceneLog._.Assert(false, "unkown status {0}", _Status);
+                    break;
             }
         }
 
         private void _OnSceneUnloaded(AsyncOperation asyncOperation)
         {
             if (asyncOperation != _UnloadingAsyncOperation)
+            {
+                SceneLog._.E("Scene:{0} on scene unloaded,{1}, has error", SceneId, _ScenePath);
                 return;
+            }
+            _PlaceHolderItem.CheckForActive();
+            SceneLog._.D("Scene:{0} on scene unloaded,{1}", SceneId, _ScenePath);
             _UnloadingAsyncOperation = null;
 
             switch (_Status)
@@ -183,7 +247,8 @@ namespace FH.SceneManagement
                 case ESceneStatus.Loading2Unloading:
                 case ESceneStatus.Unloaded:
                 case ESceneStatus.Failed:
-                    //Error
+                default:
+                    SceneLog._.E("Scene:{0} on scene unloaded,{1}, Error status: {2}", SceneId, _ScenePath, _Status);
                     break;
 
                 case ESceneStatus.Unloading:
@@ -195,53 +260,64 @@ namespace FH.SceneManagement
         private void _OnSceneLoaded(AsyncOperation asyncOperation)
         {
             if (asyncOperation != _LoadingAsyncOperation)
+            {
+                SceneLog._.E("Scene:{0} on scene loaded,{1}, has error", SceneId, _ScenePath);
                 return;
+            }
             _LoadingAsyncOperation = null;
 
             switch (_Status)
             {
-                case ESceneStatus.None:
-                    //Error
-                    break;
-
                 case ESceneStatus.Loading:
                     {
                         int scene_count = SceneManager.sceneCount;
-                        _Scene = SceneManager.GetSceneAt(scene_count - 1);
+                        UnityScene = SceneManager.GetSceneAt(scene_count - 1);
                         _Status = ESceneStatus.Loaded;
+                        SceneLog._.D("Scene:{0} on scene loaded,{1}, {2} -> {3}", SceneId, _ScenePath, ESceneStatus.Loading, ESceneStatus.Loaded);
+
+                        SceneLog._.Assert(UnityScene.IsValid() && UnityScene.path == _ScenePath, "Scene:{0}, loaded has error, Valid:{1}, {2} : {3}", UnityScene.IsValid(), UnityScene.path, _ScenePath);
+                        _PlaceHolderItem.CheckForActive();
                     }
-
-                    break;
-
-                case ESceneStatus.Loaded:
-                    //Error
-                    break;
-
-                case ESceneStatus.Unloading:
-                    //Error
                     break;
 
                 case ESceneStatus.Loading2Unloading:
                     {
                         int scene_count = SceneManager.sceneCount;
-                        _Scene = SceneManager.GetSceneAt(scene_count - 1);
-                        _UnloadingAsyncOperation = UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(_Scene);
-                        if (_UnloadingAsyncOperation == null)
-                            _Status = ESceneStatus.Unloaded;
+                        UnityScene = SceneManager.GetSceneAt(scene_count - 1);
+
+                        SceneLog._.Assert(UnityScene.IsValid() && UnityScene.path == _ScenePath, "Scene:{0}, loaded has error, Valid:{1}, {2} : {3}", UnityScene.IsValid(), UnityScene.path, _ScenePath);
+
+                        if (UnityScene.IsValid())
+                        {
+                            _PlaceHolderItem.CreateForUnload();
+                            SceneLog._.D("Scene:{0},Status: {1}, begin unload {2}", SceneId, _Status, _ScenePath);
+                            _UnloadingAsyncOperation = SceneManager.UnloadSceneAsync(UnityScene);
+                            if (_UnloadingAsyncOperation == null)
+                            {
+                                _Status = ESceneStatus.Unloaded;
+                                SceneLog._.E("Scene:{0} unload failed, Status: {1} -> {2}, {3} ", SceneId, ESceneStatus.Loading2Unloading, ESceneStatus.Unloaded, _ScenePath);
+                            }
+                            else
+                            {
+                                SceneLog._.E("Scene:{0} begin unloading, Status: {1} -> {2},{3} ", SceneId, ESceneStatus.Loading2Unloading, ESceneStatus.Unloading, _ScenePath);
+                                _Status = ESceneStatus.Unloading;
+                                _UnloadingAsyncOperation.completed += _OnSceneUnloaded;
+                            }
+                        }
                         else
                         {
-                            _Status = ESceneStatus.Unloading;
-                            _UnloadingAsyncOperation.completed += _OnSceneUnloaded;
+                            _Status = ESceneStatus.Unloaded;
                         }
                     }
                     break;
 
+                case ESceneStatus.None:
+                case ESceneStatus.Loaded:
+                case ESceneStatus.Unloading:
                 case ESceneStatus.Unloaded:
-                    //Error
-                    break;
-
                 case ESceneStatus.Failed:
-                    //Error
+                default:
+                    SceneLog._.E("Scene:{0} on scene loaded,{1}, Error status: {2}", SceneId, _ScenePath, _Status);
                     break;
             }
         }
@@ -251,9 +327,10 @@ namespace FH.SceneManagement
             _SceneRef.Destroy();
             _LoadingAsyncOperation = null;
             _UnloadingAsyncOperation = null;
-            _Scene = default;
+            UnityScene = default;
             _Status = ESceneStatus.None;
-            _Id = SceneID.Empty;
+            SceneId = 0;
+            _PlaceHolderItem = null;
         }
     }
 }

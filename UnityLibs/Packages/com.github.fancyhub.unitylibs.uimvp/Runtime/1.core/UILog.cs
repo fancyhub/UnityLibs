@@ -14,6 +14,6 @@ namespace FH.UI
 {
     internal static class UILog  
     {
-        public static TagLog _ = TagLog.Create("UI", ELogLvl.Debug);
+        public static TagLog _ = TagLog.Create("UI", ELogLvl.Info);
     }
 }

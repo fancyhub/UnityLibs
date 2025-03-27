@@ -16,7 +16,7 @@ namespace FH
     public struct ResSnapShotItem
     {
         public string Path;
-        public bool Sprite;
+        public BitEnum32<EResPathType> PathType;
         public ResId Id;
         public int UserCount;
         public List<object> Users; //Editor 模式下才有内容
@@ -42,8 +42,8 @@ namespace FH
         public EAssetStatus GetAssetStatus(string path);
 
         #region Res
-        public EResError Load(string path, bool sprite, bool sync_load_enable, out ResRef res_ref);
-        public EResError AsyncLoad(string path, bool sprite, int priority, ResEvent cb, out int job_id);
+        public EResError Load(string path, EResPathType pathType, bool sync_load_enable, out ResRef res_ref);
+        public EResError AsyncLoad(string path, EResPathType pathType, int priority, ResEvent cb, out int job_id);
         public void ResSnapshot(ref List<ResSnapShotItem> out_snapshot);
         #endregion
 
@@ -56,11 +56,7 @@ namespace FH
         #region 预实例化
         public EResError ReqPreInst(string path, int count, out int req_id);
         public EResError CancelPreInst(int req_id);
-        #endregion;
-
-        #region Empty
-        public EResError CreateEmpty(System.Object user, out ResRef res_ref);
-        #endregion
+        #endregion  
 
         public void CancelJob(int job_id);
 
@@ -141,6 +137,7 @@ namespace FH
         }
 
         #region Res
+        #region Sprite
         public static ResRef TryLoadExistSprite(string path)
         {
             IResMgr inst = _.Val;
@@ -150,7 +147,7 @@ namespace FH
                 return default;
             }
 
-            var err = inst.Load(path, true, false, out var res_ref);
+            var err = inst.Load(path, EResPathType.Sprite, false, out var res_ref);
             return res_ref;
         }
 
@@ -163,12 +160,14 @@ namespace FH
                 return default;
             }
 
-            var err = inst.Load(path, true, sync_load_enable, out var res_ref);
+            var err = inst.Load(path, EResPathType.Sprite, sync_load_enable, out var res_ref);
             ResManagement.ResLog._.ErrCode(err, path);
             return res_ref;
         }
+        #endregion
 
-        public static ResRef TryLoadExist(string path)
+        #region Default
+        public static ResRef TryLoadExist(string path, EResPathType pathType = EResPathType.Default)
         {
             IResMgr inst = _.Val;
             if (inst == null)
@@ -177,11 +176,11 @@ namespace FH
                 return default;
             }
 
-            var err = inst.Load(path, true, false, out var res_ref);
+            var err = inst.Load(path, pathType, false, out var res_ref);
             return res_ref;
         }
 
-        public static ResRef Load(string path, bool sync_load_enable = true)
+        public static ResRef Load(string path, EResPathType pathType = EResPathType.Default, bool sync_load_enable = true)
         {
             IResMgr inst = _.Val;
             if (inst == null)
@@ -190,12 +189,14 @@ namespace FH
                 return default;
             }
 
-            var err = inst.Load(path, false, sync_load_enable, out var res_ref);
+            var err = inst.Load(path, pathType, sync_load_enable, out var res_ref);
             ResManagement.ResLog._.ErrCode(err, path);
             return res_ref;
         }
+        #endregion
 
-        public static bool AsyncLoad(string path, bool sprite, int priority, ResEvent cb, out int job_id)
+
+        public static bool AsyncLoad(string path, EResPathType pathType, int priority, ResEvent cb, out int job_id)
         {
             IResMgr inst = _.Val;
             if (inst == null)
@@ -205,7 +206,7 @@ namespace FH
                 return false;
             }
 
-            var err = inst.AsyncLoad(path, sprite, priority, cb, out job_id);
+            var err = inst.AsyncLoad(path, pathType, priority, cb, out job_id);
             ResManagement.ResLog._.ErrCode(err, path);
             return err == EResError.OK;
         }
@@ -290,22 +291,7 @@ namespace FH
             ResManagement.ResLog._.ErrCode(err);
             return err == EResError.OK;
         }
-        #endregion;
-
-        #region Empty
-        public static ResRef CreateEmpty(System.Object user)
-        {
-            IResMgr inst = _.Val;
-            if (inst == null)
-            {
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
-                return default;
-            }
-            var err = inst.CreateEmpty(user, out var res_ref);
-            ResManagement.ResLog._.ErrCode(err);
-            return res_ref;
-        }
-        #endregion
+        #endregion;        
 
         public static void CancelJob(int job_id)
         {
