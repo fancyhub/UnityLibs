@@ -23,7 +23,7 @@ namespace FH.SampleExternalLoader
         {
             public AsyncOperation _AsyncOperation;
             public string _SceneName;
-            public AsyncOperation LoadScene(LoadSceneParameters load_param)
+            public AsyncOperation Load(LoadSceneParameters load_param)
             {
                 if (_AsyncOperation != null)
                 {
@@ -51,7 +51,7 @@ namespace FH.SampleExternalLoader
         {
         }
 
-        public ISceneMgr.IExternalRef Load(string scene)
+        public ISceneMgr.IExternalRef CreateSceneRef(string scene)
         {
             return SceneRef.Create(scene);
         }

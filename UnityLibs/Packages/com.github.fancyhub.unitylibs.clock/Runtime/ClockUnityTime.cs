@@ -12,7 +12,7 @@ namespace FH
     /// <summary>
     /// 只能在主线程里面运行
     /// </summary>
-    public struct ClockUnityTime : IClock
+    public sealed class ClockUnityTime : IClock
     {
         public const long C_SEC_2_MS = 1000;
         private long _StartTime;

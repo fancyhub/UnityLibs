@@ -16,6 +16,7 @@ namespace Game
 		public UnityEngine.RectTransform _MainPanel;
 		public UIButtonView _BtnTestUIGroupDialog;
 		public UIButtonView _BtnTestLoadScene;
+		public UIButtonView _BtnTestPageAsync;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -30,6 +31,7 @@ namespace Game
 			_MainPanel = refs.GetComp<UnityEngine.RectTransform>("_MainPanel");
 			_BtnTestUIGroupDialog = _CreateSub<UIButtonView>(refs.GetObj("_BtnTestUIGroupDialog"));
 			_BtnTestLoadScene = _CreateSub<UIButtonView>(refs.GetObj("_BtnTestLoadScene"));
+			_BtnTestPageAsync = _CreateSub<UIButtonView>(refs.GetObj("_BtnTestPageAsync"));
 
         }
 
@@ -39,6 +41,7 @@ namespace Game
 
 			_BtnTestUIGroupDialog.Destroy();
 			_BtnTestLoadScene.Destroy();
+			_BtnTestPageAsync.Destroy();
 
         }
 

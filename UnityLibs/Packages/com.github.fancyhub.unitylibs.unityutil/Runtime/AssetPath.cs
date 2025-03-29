@@ -50,4 +50,18 @@ namespace FH
         }
 #endif
     }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
+    public sealed class AssetPathAttribute : UnityEngine.PropertyAttribute
+    {
+        public readonly bool FullAssetPath;
+        public readonly System.Type UnityType;
+        public AssetPathAttribute(System.Type unityType, bool full_asset_path = false)
+        {
+            FullAssetPath = full_asset_path;
+            UnityType = unityType;
+        }
+    }
+
+
 }

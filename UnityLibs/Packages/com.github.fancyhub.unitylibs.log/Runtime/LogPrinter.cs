@@ -29,7 +29,7 @@ namespace FH
     {
         private const bool C_Need_File_Info = false;
         private const int C_Buffer_Size = 2048;
-        private const string C_Timer_Formater = "[{0:yy_MM_dd HH:mm:ss:fff} {1}]";
+        private const string C_Timer_Formater = "[{0:yy_MM_dd HH:mm:ss:fff} F:{1} T:{2}]";
         private const int C_Stack_Start_Index = 3;
         private static int[] C_Stack_Depth = new int[]
         {
@@ -228,7 +228,7 @@ namespace FH
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void _AppendTime(ref ValueStringBuilder sb)
         {
-            sb.Append(ZString.Format(C_Timer_Formater, System.DateTime.Now, LogTimeUpdater.FrameCount));
+            sb.Append(ZString.Format(C_Timer_Formater, System.DateTime.Now, LogTimeUpdater.FrameCount,System.Threading.Thread.CurrentThread.ManagedThreadId));
         }
 
         private static void _AppendTrace(ref ValueStringBuilder sb, int max_step, bool need_file_info)

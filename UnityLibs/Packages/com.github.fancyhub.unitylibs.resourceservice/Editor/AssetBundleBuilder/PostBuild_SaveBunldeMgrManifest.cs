@@ -10,7 +10,7 @@ using FH.AssetBundleBuilder.Ed;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
 
-namespace FH.ResManagement.Ed
+namespace FH.Ed.AssetBundleBuilder
 {
     /// <summary>
     /// 后处理, 创建 bundle manifest, 不是unity自带的格式

@@ -12,7 +12,7 @@ using UnityEngine;
 using FH.Ed;
 using FH.FileManagement.Ed;
 
-namespace FH.ResManagement.Ed
+namespace FH.Ed.ResManagement
 {
     /// <summary>
     /// 从已经生成好的 assetbundle list 生成 file info list

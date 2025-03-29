@@ -159,7 +159,7 @@ namespace FH.SampleExternalLoader
                 return EAssetStatus.NotDownloaded;
         }
 
-        public IResMgr.IExternalRef Load(string path, EResPathType resPathType)
+        public IResMgr.IExternalRef Load(string path, Type unityAssetType)
         {
             IBundleMgr bundleMgr = _BundleMgr.Val;
             if (bundleMgr == null)
@@ -170,27 +170,7 @@ namespace FH.SampleExternalLoader
             if (bundle == null)
                 return null;
 
-            UnityEngine.Object asset = null;
-            switch (resPathType)
-            {
-                default:
-                    Log.E("unkown type {0}", resPathType);
-                    asset = bundle.LoadAsset<UnityEngine.Object>(path);
-                    break;
-
-                case EResPathType.Default:
-                    asset = bundle.LoadAsset<UnityEngine.Object>(path);
-                    break;
-
-                case EResPathType.Sprite:
-                    asset = bundle.LoadAsset<Sprite>(path);
-                    break;
-
-                case EResPathType.AnimClip:
-                    asset = bundle.LoadAsset<AnimationClip>(path);
-                    break;
-            }
-
+            UnityEngine.Object asset = bundle.LoadAsset(path, unityAssetType);
 
             AssetRef ret = AssetRef.Create(_ResRefDB, bundle, asset);
 
@@ -198,7 +178,7 @@ namespace FH.SampleExternalLoader
             return ret;
         }
 
-        public IResMgr.IExternalRef LoadAsync(string path, EResPathType resPathType)
+        public IResMgr.IExternalRef LoadAsync(string path, Type unityAssetType)
         {
             IBundleMgr bundleMgr = _BundleMgr.Val;
             if (bundleMgr == null)
@@ -208,27 +188,7 @@ namespace FH.SampleExternalLoader
             if (bundle == null)
                 return null;
 
-            UnityEngine.AssetBundleRequest req = null;
-            switch (resPathType)
-            {
-                default:
-                    Log.E("unkown type {0}", resPathType);
-                    req = bundle.LoadAssetAsync<UnityEngine.Object>(path);
-                    break;
-
-                case EResPathType.Default:
-                    req = bundle.LoadAssetAsync<UnityEngine.Object>(path);
-                    break;
-
-                case EResPathType.Sprite:
-                    req = bundle.LoadAssetAsync<Sprite>(path);
-                    break;
-
-                case EResPathType.AnimClip:
-                    req = bundle.LoadAssetAsync<AnimationClip>(path);
-                    break;
-            }
-
+            UnityEngine.AssetBundleRequest req = bundle.LoadAssetAsync(path, unityAssetType);
             AssetRef ret = AssetRef.Create(_ResRefDB, bundle, req);
 
             bundle.DecRefCount();

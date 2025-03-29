@@ -60,7 +60,7 @@ namespace FH.ResManagement
         {
 
             //2. 如果任务取消了，就从db里面移除            
-            if (job.IsCanceled)
+            if (job.IsCancelled)
             {
                 _msg_queue.SendJobNext(job);
                 return;
@@ -200,7 +200,7 @@ namespace FH.ResManagement
                 }
 
                 //3. 任务 已经取消了
-                if (job.IsCanceled)
+                if (job.IsCancelled)
                 {
                     job_list_expire.Add(job);
                     continue;

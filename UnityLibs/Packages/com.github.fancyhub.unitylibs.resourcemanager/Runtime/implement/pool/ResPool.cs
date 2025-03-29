@@ -64,12 +64,11 @@ namespace FH.ResManagement
 
         public ResPath GetPath()
         {
-            if (PathTypeMask[EResPathType.Default])
-                return ResPath.Create(Path, EResPathType.Default);
-            if (PathTypeMask[EResPathType.Sprite])
-                return ResPath.Create(Path, EResPathType.Sprite);
-            if (PathTypeMask[EResPathType.AnimClip])
-                return ResPath.Create(Path, EResPathType.AnimClip);
+            for (var i = EResPathType.Default; i < EResPathType.Max; i++)
+            {
+                if (PathTypeMask[i])
+                    return ResPath.Create(Path, i);
+            }
             ResLog._.E("严重错误");
             return ResPath.Empty;
         }
@@ -165,8 +164,8 @@ namespace FH.ResManagement
             }
 
             bool succ = _path_2_index_dict.TryGetValue(path, out resId);
-            if (succ)            
-                return EResError.OK;            
+            if (succ)
+                return EResError.OK;
             return EResError.ResPool_res_not_exist_5;
         }
 
@@ -184,15 +183,10 @@ namespace FH.ResManagement
                 return EResError.ResPool_res_null;
             }
 
-            if (path.PathType == EResPathType.Sprite && !(asset_ref.Asset is Sprite))
+            if (path.PathType != EResPathType.Default && asset_ref.Asset.GetType() != path.PathType.ExtResPathType2UnityType())
             {
                 id = ResId.Null;
-                return EResError.ResPool_res_is_not_sprite;
-            }
-            else if (path.PathType == EResPathType.AnimClip && !(asset_ref.Asset is AnimationClip))
-            {
-                id = ResId.Null;
-                return EResError.ResPool_res_is_not_anim_clip;
+                return EResError.ResPool_res_is_not_spec_type;
             }
 
             id = new ResId(asset_ref.Asset, EResType.Res);
@@ -266,18 +260,16 @@ namespace FH.ResManagement
             _lru_free_list.Set(id, UnityEngine.Time.frameCount);
             if (path.PathType == EResPathType.Default)
             {
-                if (asset_ref.Asset is Sprite)
+                System.Type assetType = asset_ref.Asset.GetType();
+                for (var i = EResPathType.Default + 1; i < EResPathType.Max; i++)
                 {
-                    var path_2 = ResPath.Create(path.Path, EResPathType.Sprite);
-                    ResLog._.D("{0} add res {1}", id.Id, path_2);
-                    _path_2_index_dict.Add(path_2, id);
-                }
-                else if (asset_ref.Asset is AnimationClip)
-                {
-                    var path_2 = ResPath.Create(path.Path, EResPathType.AnimClip);
-                    ResLog._.D("{0} add res {1}", id.Id, path_2);
-                    _path_2_index_dict.Add(path_2, id);
-                }
+                    if(assetType == i.ExtResPathType2UnityType())
+                    {
+                        var path_2 = ResPath.Create(path.Path, i);
+                        ResLog._.D("{0} add res {1}", id.Id, path_2);
+                        _path_2_index_dict.Add(path_2, id);
+                    }
+                }                 
             }
             return EResError.OK;
         }
@@ -309,13 +301,11 @@ namespace FH.ResManagement
 
             //3. 从lru 以及 index里面删除
             _lru_free_list.Remove(pool_val.ResId, out int _);
-            if (pool_val.GetPath(EResPathType.Default, out var p1))
-                _path_2_index_dict.Remove(p1);
-            if (pool_val.GetPath(EResPathType.Sprite, out var p2))
-                _path_2_index_dict.Remove(p2);
-            if (pool_val.GetPath(EResPathType.AnimClip, out var p3))
-                _path_2_index_dict.Remove(p3);
-
+            for (var i = EResPathType.Default; i < EResPathType.Max; i++)
+            {
+                if (pool_val.GetPath(i, out var p1))
+                    _path_2_index_dict.Remove(p1);
+            }
             pool_val.Destroy();
             return EResError.OK;
         }

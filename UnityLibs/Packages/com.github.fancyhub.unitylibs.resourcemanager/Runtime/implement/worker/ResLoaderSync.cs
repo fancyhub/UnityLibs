@@ -32,7 +32,7 @@ namespace FH.ResManagement
         public void OnMsgProc(ref ResJob job)
         {
             //2. 如果任务取消了，就从db里面移除            
-            if (job.IsCanceled)
+            if (job.IsCancelled)
             {
                 _msg_queue.SendJobNext(job);
                 return;
@@ -56,7 +56,7 @@ namespace FH.ResManagement
             }
 
             //5. 不存在, 加载
-            IResMgr.IExternalRef asset_ref = _external_loader.Load(job.Path.Path, job.Path.PathType);
+            IResMgr.IExternalRef asset_ref = _external_loader.Load(job.Path.Path, job.Path.PathType.ExtResPathType2UnityType());
             if (asset_ref == null)
             {
                 ResLog._.D("load failed res {0}", job.Path);

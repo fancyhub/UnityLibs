@@ -11,7 +11,7 @@ using System.Security.Cryptography;
 using FH.Ed;
 using FH.FileManagement.Ed;
 
-namespace FH.ResManagement.Ed
+namespace FH.Ed.ResManagement
 {
     /// <summary>
     /// 生成自己的zip格式的 vfs, 并返回文件列表

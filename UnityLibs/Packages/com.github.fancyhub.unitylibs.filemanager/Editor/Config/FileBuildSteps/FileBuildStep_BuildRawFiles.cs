@@ -11,7 +11,7 @@ using System.Security.Cryptography;
 using FH.FileManagement.Ed;
 using UnityEngine;
 
-namespace FH.ResManagement.Ed
+namespace FH.Ed.FileManagement
 {
     /// <summary>
     /// 复制原始文件

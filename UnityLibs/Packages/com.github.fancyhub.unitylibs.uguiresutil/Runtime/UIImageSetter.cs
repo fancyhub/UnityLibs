@@ -12,6 +12,30 @@ namespace FH.UI
 {
     public static class UIImageSetterExt
     {
+
+        public static void ExtPreloadSprite(this IResInstHolder holder, string name)
+        {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                return;
+#endif
+
+            if (holder == null)
+            {
+                Log.E("param holder is null, {0}", name);
+                return;
+            }
+
+            var path = UIResMapConfig.FindSprite(name);
+            if (string.IsNullOrEmpty(path))
+            {
+                Log.E("UIResMapConfig 找不到 Sprite: {0}", name);
+                return;
+            }
+
+            holder.PreLoad(path, EResPathType.Sprite);
+        }
+
         public static void ExtSyncSetSprite(this Image img, string name)
         {
             ExtSetSprite(img, name, true);
@@ -133,7 +157,7 @@ namespace FH.UI
                     }
                     else
                     {
-                        bool result = ResMgr.AsyncLoad(_Path,  EResPathType.Sprite, CPriority, _OnAsyncLoaded, out _JobId);
+                        bool result = ResMgr.AsyncLoad(_Path, EResPathType.Sprite,  _OnAsyncLoaded, out _JobId, CPriority);
                         if (!result)
                         {
                             _ResRef.RemoveUser(this);
@@ -157,7 +181,7 @@ namespace FH.UI
             {
                 if (job_id != _JobId)
                     return;
-                _JobId = 0;                
+                _JobId = 0;
 
                 Sprite new_sprite = null;
                 if (res_ref.IsValid())

@@ -72,7 +72,7 @@ namespace FH.ResManagement
                 return true;
 
             return false;
-        }
+        }         
         #endregion
 
         #region Pre Inst

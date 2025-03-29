@@ -19,28 +19,13 @@ namespace FH
         bool Cancel(TimerId timer_id);
     }
 
-    public class TimerDriver : ITimerDriver
+    internal class TimerDriver : ITimerDriver
     {
-        public TimerWheelGroup _time_wheel;
-        public List<TimerWheelItem> _temp_list;
+        internal TimerWheelGroup _time_wheel;
+        internal List<TimerWheelItem> _temp_list;
         public Dictionary<TimerId, Action<TimerId>> _dict;
         public IClock _clock;
-
-        public static TimerDriver CreateNormal(IClock clock)
-        {
-            return new TimerDriver(
-                clock,
-                16, //间隔为16毫秒 
-                new int[]
-                {
-                    64, // 间隔 16毫秒， 64个轮, ，1024毫秒，1秒以内
-                    64, // 间隔 1024 (16 x 64) 毫秒，64个轮，65636毫秒，65秒，1分钟以内
-                    64, // 间隔 65536 ( 1024 x 64) 毫秒，1分钟，64个轮，64分钟，1个小时
-                    64, //  间隔 1个小时 (65536 x 64)，64个轮，64个小时，3天左右
-                    32, // 间隔 3天左右，32个轮,时间跨度90天
-                    // 8,  //间隔半年，16个轮，时间跨度4年
-                });
-        }
+ 
 
         public TimerDriver(IClock clock, int min_interval, int[] wheel_counts)
         {

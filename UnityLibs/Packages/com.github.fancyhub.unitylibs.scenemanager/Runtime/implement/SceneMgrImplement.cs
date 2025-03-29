@@ -41,7 +41,7 @@ namespace FH.SceneManagement
                 return SceneRef.Empty;
             }
 
-            ISceneMgr.IExternalRef scene_ref = scene_loader.Load(scene_path);
+            ISceneMgr.IExternalRef scene_ref = scene_loader.CreateSceneRef(scene_path);
 
             if (scene_ref == null)
             {
@@ -49,14 +49,14 @@ namespace FH.SceneManagement
                 return SceneRef.Empty;
             }
 
-            SceneItem sceneItem = SceneItem.Create(_PlaceHolderScene, scene_ref, scene_path, new LoadSceneParameters(loadMode));         
+            SceneItem sceneItem = SceneItem.Create(_PlaceHolderScene, scene_ref, scene_path, new LoadSceneParameters(loadMode));
 
             SceneLog._.D("Scene:{0} CreateScene, Mode: {1}, Path: {2}", sceneItem.SceneId, loadMode, scene_path);
 
             _Pool.Add(sceneItem);
             _LoadingQueue.Enqueue(sceneItem);
 
-            return new SceneRef(sceneItem.SceneId, _Pool);
+            return new SceneRef(sceneItem.SceneId, sceneItem);
         }
 
         public void Update()
@@ -65,11 +65,14 @@ namespace FH.SceneManagement
             _Pool.Update();
         }
 
+        public void UnloadAll()
+        {
+            _Pool.UnloadAll();
+        }
+
         public void Destroy()
         {
-            _Pool.Destroy();
-            _Pool = null;
-            _LoadingQueue = null;
+            throw new Exception("Can't destroy scene manager");
         }
     }
 }

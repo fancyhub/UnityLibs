@@ -12,7 +12,7 @@ using FH.FileManagement.Ed;
 using UnityEngine;
 using FH.Ed;
 
-namespace FH.ResManagement.Ed
+namespace FH.Ed.ResManagement
 {
     /// <summary>
     /// 调用 AssetBundle的builder, 并返回文件列表

@@ -17,7 +17,7 @@ namespace FH
     /// div_factor: 是为了解决 从 毫秒 -> 秒 的转换 <para/>
     /// mul_factor: 是为了解决 从 秒 -> 毫秒 的转换 <para/>
     /// </summary>
-    public struct ClockDecorator : IClock
+    public sealed class ClockDecorator : IClock
     {
         internal const float CScaleInt2Float = 1.0f / IClock.ScaleOne;
 

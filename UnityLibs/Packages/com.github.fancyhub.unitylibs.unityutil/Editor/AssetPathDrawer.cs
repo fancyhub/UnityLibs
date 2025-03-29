@@ -36,7 +36,7 @@ namespace FH.Ed
             if (label == null)
                 new_obj = EditorGUI.ObjectField(position, cur_obj, tar_type, false);
             else
-                new_obj = EditorGUI.ObjectField(position, label, cur_obj, tar_type, false);          
+                new_obj = EditorGUI.ObjectField(position, label, cur_obj, tar_type, false);
 
             if (new_obj == cur_obj)
                 return;
@@ -80,4 +80,61 @@ namespace FH.Ed
         }
     }
     //*/
+
+
+    [CustomPropertyDrawer(typeof(AssetPathAttribute))]
+    public class AssetPathPropertyDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            Type type_ref = fieldInfo.FieldType;
+            if (type_ref != typeof(string))
+                return;
+
+            var attris = fieldInfo.GetCustomAttributes(typeof(AssetPathAttribute), false);
+            if (attris.Length < 1)
+                return;
+            var assetPathAttri = attris[0] as AssetPathAttribute;
+            if (assetPathAttri == null || assetPathAttri.UnityType == null)
+                return;
+
+
+
+            string now_path = property.stringValue;
+
+            UnityEngine.Object cur_obj = null;
+            if (!string.IsNullOrEmpty(now_path))
+            {
+                if (assetPathAttri.FullAssetPath)
+                    cur_obj = AssetDatabase.LoadAssetAtPath(now_path, assetPathAttri.UnityType);
+                else
+                    cur_obj = Resources.Load(now_path, assetPathAttri.UnityType);
+            }
+
+            UnityEngine.Object new_obj = cur_obj;
+            if (label == null)
+                new_obj = EditorGUI.ObjectField(position, cur_obj, assetPathAttri.UnityType, false);
+            else
+                new_obj = EditorGUI.ObjectField(position, label, cur_obj, assetPathAttri.UnityType, false);
+
+            if (new_obj == cur_obj)
+                return;
+            if (new_obj == null)
+            {
+                property.stringValue = string.Empty;
+
+            }
+            else
+            {
+                string new_path = AssetDatabase.GetAssetPath(new_obj);
+                if (assetPathAttri.FullAssetPath)
+                    property.stringValue = new_path;
+                else
+                {
+                    property.stringValue = FileUtil.FullAssetPath2ResourcePath(new_path,string.Empty);
+                }
+            }
+
+        }
+    }
 }

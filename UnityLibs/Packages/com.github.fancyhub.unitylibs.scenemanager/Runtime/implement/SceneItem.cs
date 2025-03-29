@@ -15,7 +15,7 @@ namespace FH.SceneManagement
         Failed,
     }
 
-    internal class SceneItem : CPoolItemBase
+    internal class SceneItem : CPoolItemBase, IScene
     {
         private static int _SceneIdGen = 1;
         private string _ScenePath;
@@ -26,12 +26,16 @@ namespace FH.SceneManagement
         private CPtr<ISceneMgr.IExternalRef> _SceneRef;
         private ScenePlaceHolderItem _PlaceHolderItem;
 
+        private bool _NeedSceneRoot = false;
         private Transform _SceneRoot;
+        private Vector3 _ScenePos;
+        private bool _SceneVisible;
 
 
         public int SceneId;
-        public Scene UnityScene;
+        public Scene _UnityScene;
 
+        private static System.Collections.Generic.List<GameObject> _STemp = new();
         public static SceneItem Create(ScenePlaceHolderItem placeHolderItem, ISceneMgr.IExternalRef scene_ref, string scene_path, LoadSceneParameters load_param)
         {
             SceneItem ret = new SceneItem();
@@ -41,6 +45,10 @@ namespace FH.SceneManagement
             ret._Status = ESceneStatus.None;
             ret._SceneRef = new CPtr<ISceneMgr.IExternalRef>(scene_ref);
             ret._PlaceHolderItem = placeHolderItem;
+            ret._NeedSceneRoot = false;
+            ret._ScenePos = Vector3.zero;
+            ret._SceneRoot = null;
+            ret._SceneVisible = true;
             return ret;
         }
 
@@ -64,56 +72,106 @@ namespace FH.SceneManagement
             return _LoadParam.loadSceneMode;
         }
 
-        public (bool done, float progress) GetSceneStat()
+        public (bool done, float progress) Stat
         {
-            switch (_Status)
+            get
             {
-                default:
-                    return (false, 0);
-                case ESceneStatus.None:
-                    return (false, 0);
+                switch (_Status)
+                {
+                    default:
+                        return (false, 0);
+                    case ESceneStatus.None:
+                        return (false, 0);
 
-                case ESceneStatus.Loading:
-                    return (false, _LoadingAsyncOperation.progress);
+                    case ESceneStatus.Loading:
+                        return (false, _LoadingAsyncOperation.progress);
 
-                case ESceneStatus.Loaded:
-                    return (true, 1);
+                    case ESceneStatus.Loaded:
+                        return (true, 1);
 
-                case ESceneStatus.Unloading:
-                    return (true, 1);
+                    case ESceneStatus.Unloading:
+                        return (true, 1);
 
-                case ESceneStatus.Loading2Unloading:
-                    return (false, _LoadingAsyncOperation.progress);
+                    case ESceneStatus.Loading2Unloading:
+                        return (false, _LoadingAsyncOperation.progress);
 
-                case ESceneStatus.Unloaded:
-                    return (true, 1);
+                    case ESceneStatus.Unloaded:
+                        return (true, 1);
 
-                case ESceneStatus.Failed:
-                    return (true, 1);
+                    case ESceneStatus.Failed:
+                        return (true, 1);
+                }
             }
+        }
+
+        public Transform SceneRoot => _SceneRoot;
+
+        public Transform CreateSceneRoot()
+        {
+            if (_SceneRoot != null)
+                return _SceneRoot;
+            _NeedSceneRoot = true;
+            if (_Status == ESceneStatus.Loaded)            
+                _CreateSceneRoot();            
+            return _SceneRoot;
         }
 
         public Vector3 ScenePos
         {
             get
             {
-                if (_SceneRoot != null)
-                    return _SceneRoot.position;
-                return Vector3.zero;
+                return _ScenePos;
             }
             set
             {
+                if (_ScenePos.Equals(value))
+                    return;
 
+                _ScenePos = value;
+                _NeedSceneRoot = true;
+
+                if (_SceneRoot != null)
+                {
+                    _SceneRoot.localPosition = value;
+                }
+                else if (_Status == ESceneStatus.Loaded)
+                {
+                    _CreateSceneRoot();
+                }
             }
         }
- 
+
+        public bool SceneVisible
+        {
+            get
+            {
+                return _SceneVisible;
+            }
+
+            set
+            {
+                if (_SceneVisible == value)
+                    return;
+                _SceneVisible = value;
+                _NeedSceneRoot = true;
+
+                if (_SceneRoot != null)
+                {
+                    _SceneRoot.ExtSetGameObjectActive(value);
+                }
+                else if (_Status == ESceneStatus.Loaded)
+                {
+                    _CreateSceneRoot();
+                }
+            }
+        }
 
         public void BeginLoad()
         {
             switch (_Status)
             {
                 case ESceneStatus.None:
-                    _LoadingAsyncOperation = _SceneRef.Val.LoadScene(_LoadParam);
+                    _LoadingAsyncOperation = _SceneRef.Val.Load(_LoadParam);
                     if (_LoadingAsyncOperation == null)
                     {
                         SceneLog._.E("Scene:{0} load failed, Mode: {1}, Path: {2}", SceneId, _LoadParam.loadSceneMode, _ScenePath);
@@ -142,34 +200,38 @@ namespace FH.SceneManagement
             }
         }
 
+        public Scene UnityScene => _UnityScene;
 
-        public bool IsValid()
+        public bool Valid
         {
-            switch (_Status)
+            get
             {
-                default:
-                    return false;
+                switch (_Status)
+                {
+                    default:
+                        return false;
 
-                case ESceneStatus.None:
-                    return true;
+                    case ESceneStatus.None:
+                        return true;
 
-                case ESceneStatus.Loading:
-                    return true;
+                    case ESceneStatus.Loading:
+                        return true;
 
-                case ESceneStatus.Loaded:
-                    return UnityScene.IsValid();
+                    case ESceneStatus.Loaded:
+                        return _UnityScene.IsValid();
 
-                case ESceneStatus.Unloading:
-                    return false;
+                    case ESceneStatus.Unloading:
+                        return false;
 
-                case ESceneStatus.Loading2Unloading:
-                    return false;
+                    case ESceneStatus.Loading2Unloading:
+                        return false;
 
-                case ESceneStatus.Unloaded:
-                    return false;
+                    case ESceneStatus.Unloaded:
+                        return false;
 
-                case ESceneStatus.Failed:
-                    return false;
+                    case ESceneStatus.Failed:
+                        return false;
+                }
             }
         }
 
@@ -187,7 +249,7 @@ namespace FH.SceneManagement
                     break;
 
                 case ESceneStatus.Loaded:
-                    if (!UnityScene.IsValid())
+                    if (!_UnityScene.IsValid())
                     {
                         _Status = ESceneStatus.Unloaded;
                         SceneLog._.D("Scene:{0} unload, scene is invalid, Status: {1} -> {2}", SceneId, ESceneStatus.Loaded, ESceneStatus.Unloaded);
@@ -195,8 +257,8 @@ namespace FH.SceneManagement
                     else
                     {
                         _PlaceHolderItem.CreateForUnload();
-                        SceneLog._.D("Scene:{0} bein unload scene async {1}:{2} ", SceneId, UnityScene.path, _ScenePath);
-                        _UnloadingAsyncOperation = UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(UnityScene);
+                        SceneLog._.D("Scene:{0} bein unload scene async {1}:{2} ", SceneId, _UnityScene.path, _ScenePath);
+                        _UnloadingAsyncOperation = UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(_UnityScene);
                         if (_UnloadingAsyncOperation == null)
                         {
                             _Status = ESceneStatus.Unloaded;
@@ -271,27 +333,29 @@ namespace FH.SceneManagement
                 case ESceneStatus.Loading:
                     {
                         int scene_count = SceneManager.sceneCount;
-                        UnityScene = SceneManager.GetSceneAt(scene_count - 1);
+                        _UnityScene = SceneManager.GetSceneAt(scene_count - 1);
                         _Status = ESceneStatus.Loaded;
                         SceneLog._.D("Scene:{0} on scene loaded,{1}, {2} -> {3}", SceneId, _ScenePath, ESceneStatus.Loading, ESceneStatus.Loaded);
 
-                        SceneLog._.Assert(UnityScene.IsValid() && UnityScene.path == _ScenePath, "Scene:{0}, loaded has error, Valid:{1}, {2} : {3}", UnityScene.IsValid(), UnityScene.path, _ScenePath);
+                        SceneLog._.Assert(_UnityScene.IsValid() && _UnityScene.path == _ScenePath, "Scene:{0}, loaded has error, Valid:{1}, {2} : {3}", _UnityScene.IsValid(), _UnityScene.path, _ScenePath);
                         _PlaceHolderItem.CheckForActive();
+                        if (_NeedSceneRoot)
+                            _CreateSceneRoot();
                     }
                     break;
 
                 case ESceneStatus.Loading2Unloading:
                     {
                         int scene_count = SceneManager.sceneCount;
-                        UnityScene = SceneManager.GetSceneAt(scene_count - 1);
+                        _UnityScene = SceneManager.GetSceneAt(scene_count - 1);
 
-                        SceneLog._.Assert(UnityScene.IsValid() && UnityScene.path == _ScenePath, "Scene:{0}, loaded has error, Valid:{1}, {2} : {3}", UnityScene.IsValid(), UnityScene.path, _ScenePath);
+                        SceneLog._.Assert(_UnityScene.IsValid() && _UnityScene.path == _ScenePath, "Scene:{0}, loaded has error, Valid:{1}, {2} : {3}", _UnityScene.IsValid(), _UnityScene.path, _ScenePath);
 
-                        if (UnityScene.IsValid())
+                        if (_UnityScene.IsValid())
                         {
                             _PlaceHolderItem.CreateForUnload();
                             SceneLog._.D("Scene:{0},Status: {1}, begin unload {2}", SceneId, _Status, _ScenePath);
-                            _UnloadingAsyncOperation = SceneManager.UnloadSceneAsync(UnityScene);
+                            _UnloadingAsyncOperation = SceneManager.UnloadSceneAsync(_UnityScene);
                             if (_UnloadingAsyncOperation == null)
                             {
                                 _Status = ESceneStatus.Unloaded;
@@ -327,10 +391,30 @@ namespace FH.SceneManagement
             _SceneRef.Destroy();
             _LoadingAsyncOperation = null;
             _UnloadingAsyncOperation = null;
-            UnityScene = default;
+            _UnityScene = default;
             _Status = ESceneStatus.None;
             SceneId = 0;
             _PlaceHolderItem = null;
+            _SceneRoot = null;
+        }
+
+
+        private void _CreateSceneRoot()
+        {
+            if (!_UnityScene.IsValid() || _SceneRoot != null)
+                return;
+
+            _STemp.Clear();
+            _UnityScene.GetRootGameObjects(_STemp);
+            GameObject obj = new GameObject("SceneRoot" + SceneId);
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(obj, _UnityScene);
+            _SceneRoot = obj.transform;
+
+            _SceneRoot.localPosition = _ScenePos;
+            _SceneRoot.ExtSetGameObjectActive(_SceneVisible);
+
+            foreach (var p in _STemp)
+                p.transform.SetParent(_SceneRoot, false);
         }
     }
 }

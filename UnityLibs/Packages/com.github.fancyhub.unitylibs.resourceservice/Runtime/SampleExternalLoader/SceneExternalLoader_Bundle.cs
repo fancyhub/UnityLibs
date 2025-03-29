@@ -27,7 +27,7 @@ namespace FH.SampleExternalLoader
 
         }
 
-        public ISceneMgr.IExternalRef Load(string scene)
+        public ISceneMgr.IExternalRef CreateSceneRef(string scene)
         {
             IBundleMgr bundle_mgr = _BundleMgr.Val;
             if (bundle_mgr == null)
@@ -49,7 +49,7 @@ namespace FH.SampleExternalLoader
             public string _SceneName;
             public IBundle _Bundle;
 
-            public AsyncOperation LoadScene(LoadSceneParameters load_param)
+            public AsyncOperation Load(LoadSceneParameters load_param)
             {
                 if (_AsyncOperation != null)
                     return _AsyncOperation;

@@ -11,6 +11,10 @@ namespace Game
         public List<SceneRef> _SceneRefList = new List<SceneRef>();
         public List<UIServerItemPage> _ItemViews = new List<UIServerItemPage>();
 
+        private int _X = 0;
+        private int _Y = 0;
+
+
         public DynamicCoroutineComp _Comp;
         protected override void OnUI2Init()
         {
@@ -52,7 +56,6 @@ namespace Game
             {
                 if (!_SceneRefList[i].IsValid)
                 {
-
                     _SceneRefList.RemoveAt(i);
                     isDirty = true;
                 }
@@ -84,6 +87,7 @@ namespace Game
             return FH.UI.EUIUpdateResult.Continue;
         }
 
+
         private void _OnLoadSingle()
         {
             var scene_a = SceneMgr.LoadScene("Assets/Scenes/a.unity", UnityEngine.SceneManagement.LoadSceneMode.Single);
@@ -91,15 +95,33 @@ namespace Game
 
             _SceneRefList.Add(scene_a);
             _SceneRefList.Add(scene_b);
+            _UpdatePos(scene_a);
+            _UpdatePos(scene_b);
+
+
 
             FH.UI.UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
+        }
+
+        private void _UpdatePos(SceneRef scene)
+        {
+            const float Offset = 50;
+            scene.ScenePos = new Vector3(Offset * _X, 0, Offset * _Y);
+            _X++;
+
+            if(_X >20)
+            {
+                _Y++;
+                _X = 0;
+            }    
         }
 
         private void _OnLoadAdditive()
         {
             var scene_a = SceneMgr.LoadScene("Assets/Scenes/a.unity", UnityEngine.SceneManagement.LoadSceneMode.Additive);
             var scene_b = SceneMgr.LoadScene("Assets/Scenes/b.unity", UnityEngine.SceneManagement.LoadSceneMode.Additive);
-
+            _UpdatePos(scene_a);
+            _UpdatePos(scene_b);
             Log.I("LoadScene {0}", scene_a.SceneId);
             _SceneRefList.Add(scene_a);
             _SceneRefList.Add(scene_b);

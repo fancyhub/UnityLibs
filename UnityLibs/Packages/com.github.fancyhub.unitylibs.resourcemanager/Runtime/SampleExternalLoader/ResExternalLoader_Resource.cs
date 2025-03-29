@@ -124,14 +124,14 @@ namespace FH.SampleExternalLoader
             return EAssetStatus.Exist;
         }
 
-        public IResMgr.IExternalRef Load(string path, EResPathType resPathType)
+        public IResMgr.IExternalRef Load(string path, Type unityAssetType)
         {
-            return AssetRef.Create(_ResRefDB, Resources.Load(path, resPathType.ExtResPathType2UnityType()));
+            return AssetRef.Create(_ResRefDB, Resources.Load(path, unityAssetType));
         }
 
-        public IResMgr.IExternalRef LoadAsync(string path, EResPathType resPathType)
+        public IResMgr.IExternalRef LoadAsync(string path, Type unityAssetType)
         {
-            return AssetRef.Create(_ResRefDB, Resources.LoadAsync(path, resPathType.ExtResPathType2UnityType()));
+            return AssetRef.Create(_ResRefDB, Resources.LoadAsync(path, unityAssetType));
         }
 
         protected override void OnRelease()

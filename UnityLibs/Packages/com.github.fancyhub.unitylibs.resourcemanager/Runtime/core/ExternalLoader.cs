@@ -4,12 +4,12 @@
  * Title   : 
  * Desc    : 
 *************************************************************************************/
+using System;
 
- 
 namespace FH
 {
     public partial interface IResMgr
-    { 
+    {
         public interface IExternalRef : ICPtr
         {
             bool IsDone { get; }
@@ -21,12 +21,12 @@ namespace FH
         /// </summary>
         public interface IExternalLoader : ICPtr
         {
-            IExternalRef Load(string path, EResPathType resPathType);
-            IExternalRef LoadAsync(string path, EResPathType resPathType);
+            IExternalRef Load(string path, Type unityAssetType);
+            IExternalRef LoadAsync(string path, Type unityAssetType);
 
             string AtlasTag2Path(string atlasName);
 
             EAssetStatus GetAssetStatus(string path);
         }
-    }    
+    }
 }

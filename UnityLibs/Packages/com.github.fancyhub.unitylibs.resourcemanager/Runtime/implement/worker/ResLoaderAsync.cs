@@ -104,7 +104,7 @@ namespace FH.ResManagement
         public void OnMsgProc(ref ResJob job)
         {
             //1. 如果任务取消了，就从db里面移除
-            if (job.IsCanceled)
+            if (job.IsCancelled)
             {
                 _msg_queue.SendJobNext(job);
                 return;
@@ -202,7 +202,7 @@ namespace FH.ResManagement
                 }
 
                 //2.3 判断job 是否已经被取消了                
-                if (job.IsCanceled)
+                if (job.IsCancelled)
                 {
                     _job_queue.Pop();
                     _msg_queue.SendJobNext(job);
@@ -237,7 +237,7 @@ namespace FH.ResManagement
                     task_slot.AddLinkJobId(job_id);
                     continue;
                 }
-                IResMgr.IExternalRef asset = _external_loader.LoadAsync(job.Path.Path, job.Path.PathType);
+                IResMgr.IExternalRef asset = _external_loader.LoadAsync(job.Path.Path, job.Path.PathType.ExtResPathType2UnityType());
 
                 if (asset != null)
                 {

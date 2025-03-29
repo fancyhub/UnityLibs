@@ -154,7 +154,7 @@ namespace FH.UI
             }
         }
 
-        protected virtual void OnUI1PrepareRes(IResInstHolder holder) { }
+        protected abstract void OnUI1PrepareRes(IResInstHolder holder);
         protected abstract void OnUI2Init();
         protected abstract void OnUI3Show();
         protected abstract void OnUI4Hide();
@@ -190,7 +190,8 @@ namespace FH.UI
 
         void IHolderCallBack.OnHolderCallBack()
         {
-            if (!_Holder.GetStat().IsAllDone)
+            var stat = _Holder.GetStat();
+            if (!stat.IsAllDone)
                 return;
             _Holder.SetCallBack(null);
 
@@ -553,6 +554,9 @@ namespace FH.UI
     public abstract class UIPageBase<TView> : UIPageBase where TView : UIBaseView, new()
     {
         public TView BaseView;
+
+        protected override void OnUI1PrepareRes(IResInstHolder holder) { }
+
         protected override void OnUI2Init()
         {
             BaseView = CreateView<TView>();

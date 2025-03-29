@@ -11,6 +11,13 @@ using UnityEngine;
 
 namespace FH.ABManagement
 {
+    internal static class BundleDef
+    {
+        public static bool UnloadAllLoadedObjectsDefault = true;
+
+        public static bool UnloadAllLoadedObjectsCurrent = UnloadAllLoadedObjectsDefault;
+    }
+
     internal enum EBundleLoadStatus
     {
         None,
@@ -87,11 +94,11 @@ namespace FH.ABManagement
 
             BundleLog.D("Bundle {0} Unload ", _Config.Name);
             _LoadStatus = EBundleLoadStatus.None;
-            this._AssetBundle.Unload(false);
+            this._AssetBundle.Unload(BundleDef.UnloadAllLoadedObjectsCurrent);
             return _RefCount;
         }
 
-        public T LoadAsset<T>(string path) where T : UnityEngine.Object
+        public UnityEngine.Object LoadAsset(string path, Type unityAssetType)
         {
             if (_LoadStatus != EBundleLoadStatus.Loaded)
             {
@@ -104,10 +111,10 @@ namespace FH.ABManagement
                 return null;
             }
 
-            return _AssetBundle.LoadAsset<T>(path);
+            return _AssetBundle.LoadAsset(path, unityAssetType);
         }
 
-        public AssetBundleRequest LoadAssetAsync<T>(string path) where T : UnityEngine.Object
+        public AssetBundleRequest LoadAssetAsync(string path, Type unityAssetType)
         {
             if (_LoadStatus != EBundleLoadStatus.Loaded)
             {
@@ -120,12 +127,12 @@ namespace FH.ABManagement
                 return null;
             }
 
-            return _AssetBundle.LoadAssetAsync<T>(path);
+            return _AssetBundle.LoadAssetAsync(path, unityAssetType);
         }
 
         internal void Dispose()
         {
-            _AssetBundle?.Unload(false);
+            _AssetBundle?.Unload(BundleDef.UnloadAllLoadedObjectsCurrent);
             _AssetBundle = null;
         }
 
@@ -279,7 +286,7 @@ namespace FH.ABManagement
                 return;
 
             BundleLog.D("Bundle {0} Unload By DepRef", _Config.Name);
-            _AssetBundle?.Unload(false);
+            _AssetBundle?.Unload(BundleDef.UnloadAllLoadedObjectsCurrent);
             _LoadStatus = EBundleLoadStatus.None;
             return;
         }

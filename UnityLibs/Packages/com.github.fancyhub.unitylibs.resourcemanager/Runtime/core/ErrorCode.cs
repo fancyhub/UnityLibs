@@ -18,6 +18,7 @@ namespace FH
         Error = -1,
         PathNull = -2,
         ResMgrNotInit = -3,
+        UserCancelled=-4,
 
         ResPool_start = -1500,
         ResPool_res_null,
@@ -37,8 +38,7 @@ namespace FH
         ResPool_res_not_exist_5,
         ResPool_res_not_exist_6,
         ResPool_user_not_exist,
-        ResPool_res_is_not_sprite,
-        ResPool_res_is_not_anim_clip,
+        ResPool_res_is_not_spec_type,
         ResPool_multi_path_to_one_res,
         ResPool_e3,
         ResPool_e4,

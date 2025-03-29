@@ -10,6 +10,12 @@ using UnityEngine;
 
 namespace FH
 {
+
+    public static class ResDef
+    {
+        public const int PriorityDefault = 0;
+    }
+
     public partial interface IResMgr
     {
         [Serializable]
@@ -46,6 +52,7 @@ namespace FH
                 [Serializable]
                 public struct Item
                 {
+                    [AssetPath(typeof(GameObject),true)]
                     public string Path;
                     public int MaxCount;
                 }

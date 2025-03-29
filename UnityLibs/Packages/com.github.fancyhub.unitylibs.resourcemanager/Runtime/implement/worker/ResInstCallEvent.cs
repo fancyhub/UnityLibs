@@ -31,28 +31,29 @@ namespace FH.ResManagement
 
         public void OnMsgProc(ref ResJob job)
         {
-            if (job.IsCanceled || (job.EventResCallBack == null && job.EventInstCallBack == null))
+            if (!job.EventResCallBack.IsValid && !job.EventInstCallBack.IsValid)
             {
                 _msg_queue.SendJobNext(job);
                 return;
             }
 
-            ResLog._.ErrCode(job.ErrorCode);
+            if (job.ErrorCode == EResError.OK && job.IsCancelled)
+                job.ErrorCode = EResError.UserCancelled;
 
+            ResLog._.ErrCode(job.ErrorCode,job.Path.Path);
             EResWoker job_type = job.GetCurrentWorker();
             if (job_type == EResWoker.call_inst_event)
             {
-                job.EventInstCallBack?.Invoke(job.JobId, job.ErrorCode, job.Path.Path);
+                job.EventInstCallBack.Call(job.JobId, job.ErrorCode, job.Path.Path);
             }
             else if (job_type == EResWoker.call_res_event)
             {
-                job.EventResCallBack?.Invoke(job.JobId, job.ErrorCode, job.ResRef);
+                job.EventResCallBack.Call(job.JobId, job.ErrorCode, job.ResRef);
             }
             else
             {
                 ResLog._.E("");
             }
-
             _msg_queue.SendJobNext(job);
         }
     }

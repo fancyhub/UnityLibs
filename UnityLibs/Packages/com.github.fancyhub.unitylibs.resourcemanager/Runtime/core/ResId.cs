@@ -22,6 +22,7 @@ namespace FH
         Default,
         Sprite,
         AnimClip,
+        Max,
     }
 
     public readonly struct ResId : IEquatable<ResId>, IEqualityComparer<ResId>
@@ -53,23 +54,21 @@ namespace FH
 
     public static class ResPathExt
     {
+        private static readonly System.Type[] _UnityTypes = new Type[]
+        {
+            typeof(UnityEngine.Object), //Default
+            typeof(UnityEngine.Sprite), //Sprite
+            typeof(UnityEngine.AnimationClip), //AnimClip
+        };
+
         public static System.Type ExtResPathType2UnityType(this EResPathType self)
         {
-            switch (self)
+            if (self < 0 || (int)self >= _UnityTypes.Length)
             {
-                default:
-                    ResManagement.ResLog._.E("unkown type {0}", self);
-                    return typeof(UnityEngine.Object);
-
-                case EResPathType.Default:
-                    return typeof(UnityEngine.Object);
-
-                case EResPathType.Sprite:
-                    return typeof(UnityEngine.Sprite);
-
-                case EResPathType.AnimClip:
-                    return typeof(UnityEngine.AnimationClip);
+                ResManagement.ResLog._.E("unkown type {0}", self);
+                return _UnityTypes[0];
             }
+            return _UnityTypes[(int)self];
         }
     }
 }

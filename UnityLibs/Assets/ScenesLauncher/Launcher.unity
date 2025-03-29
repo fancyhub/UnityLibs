@@ -131,6 +131,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: UIRoot
       objectReference: {fileID: 0}
+    - target: {fileID: 62046601810948917, guid: 433194cb6563f9240959a54e7c01ea06, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8894012989249243984, guid: 433194cb6563f9240959a54e7c01ea06, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -318,6 +322,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1811144036}
   - component: {fileID: 1811144037}
+  - component: {fileID: 1811144038}
   m_Layer: 0
   m_Name: ResService
   m_TagString: Untagged
@@ -353,7 +358,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce6d81fca33831c4f9a035f3176f03a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Mode: 0
+  Mode: 1
   AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
   FileMgrConfig:
     LogLvl: 1
@@ -362,6 +367,7 @@ MonoBehaviour:
     AndroidExtractTag: android
   BundleMgrConfig:
     LogLvl: 0
+    UnloadAllLoadedObjects: 1
   ResMgrConfig:
     LogLevel: 0
     MaxAsyncResLoaderSlot: 5
@@ -369,7 +375,9 @@ MonoBehaviour:
     PreInst:
       Priority: -1000
       DefaultMaxCount: 5
-      Items: []
+      Items:
+      - Path: Assets/Res/UI/Prefab/TestUIRes.prefab
+        MaxCount: 30
     GC:
       MaxResCountProcess: 20
       ResWaitFrameCount: 329
@@ -387,6 +395,25 @@ MonoBehaviour:
     MaxRetryCount: 3
   TableLogLvl: 1
   LocLogLvl: 1
+--- !u!114 &1811144038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1811144034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 592e8b0b0274ea141b2893fb8624ff9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SpritePath: 
+  ResWithSprite: {fileID: 0}
+  ResWithDefault: {fileID: 0}
+  SameAssetPath1: Assets/Resources/GameObject.prefab
+  SameAssetPath2: GameObject
+  SameAsset1: {fileID: 0}
+  SameAsset2: {fileID: 0}
 --- !u!1 &2098590053
 GameObject:
   m_ObjectHideFlags: 0

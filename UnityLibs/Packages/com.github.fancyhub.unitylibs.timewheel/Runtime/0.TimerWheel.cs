@@ -77,7 +77,7 @@ namespace FH
     }
 
     //Time Id, 里面含有id 和过期时间
-    public struct TimerWheelItem 
+    internal struct TimerWheelItem 
     {
         public readonly TimerId Id;
         public readonly long Time;
@@ -91,7 +91,7 @@ namespace FH
     //一个时间轮，里面包含了一组 Slots，添加的time 有上限和下限
     // TimeStamp => idx 的计算方法 idx = (TimeStamp >>_interval_shift) + _idx_offset
     // idx => slot_idx 的计算方法 slot_idx = idx & _slot_idx_mask
-    public class TimerWheel 
+    internal class TimerWheel 
     {
         public long _cur_idx;
         public long _slot_idx_mask;
@@ -195,7 +195,7 @@ namespace FH
     }
 
     //时间轮组, time_stamp 可以是秒，也可以是毫秒
-    public class TimerWheelGroup 
+    internal class TimerWheelGroup 
     {
         public static LinkedList<TimerWheelItem > _temp = new LinkedList<TimerWheelItem >();    //临时list，用来从一组slot 复制到另外一组slot的
         public long _time;

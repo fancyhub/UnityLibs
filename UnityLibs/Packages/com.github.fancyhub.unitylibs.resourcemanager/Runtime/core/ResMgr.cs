@@ -7,11 +7,21 @@
 using FH.ResManagement;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading;
 
 namespace FH
 {
     public delegate void ResEvent(int job_id, EResError error, ResRef res_ref);
     public delegate void InstEvent(int job_id, EResError error, string path);
+    public interface IResDoneCallBack : ICPtr
+    {
+        public void OnResDoneCallback(int job_id, EResError error, ResRef res_ref);
+    }
+
+    public interface IInstDoneCallBack : ICPtr
+    {
+        public void OnResDoneCallback(int job_id, EResError error, string path);
+    }
 
     public struct ResSnapShotItem
     {
@@ -19,7 +29,7 @@ namespace FH
         public BitEnum32<EResPathType> PathType;
         public ResId Id;
         public int UserCount;
-        public List<object> Users; //Editor 模式下才有内容
+        public List<System.Object> Users; //Editor 模式下才有内容
     }
 
     public enum EAssetStatus
@@ -29,11 +39,6 @@ namespace FH
         NotDownloaded,
     }
 
-    public struct ResJobId
-    {
-        public readonly int JobId;
-        public ResJobId(int job_id) { JobId = job_id; }
-    }
 
     public partial interface IResMgr : ICPtr
     {
@@ -42,14 +47,19 @@ namespace FH
         public EAssetStatus GetAssetStatus(string path);
 
         #region Res
-        public EResError Load(string path, EResPathType pathType, bool sync_load_enable, out ResRef res_ref);
+        public EResError Load(string path, EResPathType pathType, bool enable_sync_load, out ResRef res_ref);
         public EResError AsyncLoad(string path, EResPathType pathType, int priority, ResEvent cb, out int job_id);
+        public EResError AsyncLoad(string path, EResPathType pathType, int priority, IResDoneCallBack cb, out int job_id);
+        public EResError AsyncLoad(string path, EResPathType pathType, int priority, AwaitableCompletionSource<(EResError error, ResRef res_ref)> source, CancellationToken cancelToken);
         public void ResSnapshot(ref List<ResSnapShotItem> out_snapshot);
         #endregion
 
         #region GameObject Inst
-        public EResError Create(string path, System.Object user, bool sync_load_enable, out ResRef res_ref);
+        public EResError Create(string path, System.Object user, bool enable_sync_load, out ResRef res_ref);
         public EResError AsyncCreate(string path, int priority, InstEvent cb, out int job_id);
+        public EResError AsyncCreate(string path, int priority, IInstDoneCallBack cb, out int job_id);
+        public EResError AsyncCreate(string path, int priority, AwaitableCompletionSource<EResError> source, CancellationToken cancelToken);
+
         public EResError TryCreate(string path, System.Object user, out ResRef res_ref);
         #endregion
 
@@ -193,10 +203,8 @@ namespace FH
             ResManagement.ResLog._.ErrCode(err, path);
             return res_ref;
         }
-        #endregion
 
-
-        public static bool AsyncLoad(string path, EResPathType pathType, int priority, ResEvent cb, out int job_id)
+        public static bool AsyncLoad(string path, EResPathType pathType, ResEvent cb, out int job_id, int priority = ResDef.PriorityDefault)
         {
             IResMgr inst = _.Val;
             if (inst == null)
@@ -211,6 +219,41 @@ namespace FH
             return err == EResError.OK;
         }
 
+        public static bool AsyncLoad(string path, EResPathType pathType, IResDoneCallBack cb, out int job_id, int priority = ResDef.PriorityDefault)
+        {
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                job_id = default;
+                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return false;
+            }
+
+            var err = inst.AsyncLoad(path, pathType, priority, cb, out job_id);
+            ResManagement.ResLog._.ErrCode(err, path);
+            return err == EResError.OK;
+        }
+
+        public static async Awaitable<ResRef> AsyncLoad(string path, EResPathType pathType, CancellationToken cancelToken, int priority = ResDef.PriorityDefault)
+        {
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return default(ResRef);
+            }
+
+            AwaitableCompletionSource<(EResError error, ResRef res_ref)> source = new AwaitableCompletionSource<(EResError error, ResRef res_ref)>();
+
+            var err = inst.AsyncLoad(path, pathType, priority, source, cancelToken);
+            ResManagement.ResLog._.ErrCode(err, path);
+            if (err != EResError.OK)
+                return default(ResRef);
+            var (err1, res_ref) = await source.Awaitable;
+            ResManagement.ResLog._.ErrCode(err1, path);
+            return res_ref;
+        }
+
         public static void ResSnapshot(ref List<ResSnapShotItem> out_snapshot)
         {
             var inst = _.Val;
@@ -222,6 +265,7 @@ namespace FH
 
             inst.ResSnapshot(ref out_snapshot);
         }
+        #endregion
         #endregion
 
         #region GameObject Inst
@@ -237,7 +281,7 @@ namespace FH
             ResManagement.ResLog._.ErrCode(err, path);
             return res_ref;
         }
-        public static bool AsyncCreate(string path, int priority, InstEvent cb, out int job_id)
+        public static bool AsyncCreate(string path, InstEvent cb, out int job_id, int priority = ResDef.PriorityDefault)
         {
             IResMgr inst = _.Val;
             if (inst == null)
@@ -249,6 +293,54 @@ namespace FH
             var err = inst.AsyncCreate(path, priority, cb, out job_id);
             ResManagement.ResLog._.ErrCode(err, path);
             return err == EResError.OK;
+        }
+
+        public static bool AsyncCreate(string path, IInstDoneCallBack cb, out int job_id, int priority = ResDef.PriorityDefault)
+        {
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                job_id = default;
+                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return false;
+            }
+            var err = inst.AsyncCreate(path, priority, cb, out job_id);
+            ResManagement.ResLog._.ErrCode(err, path);
+            return err == EResError.OK;
+        }
+
+        public static async Awaitable<ResRef> AsyncCreate(string path, System.Object user, CancellationToken cancelToken = default, int priority = ResDef.PriorityDefault)
+        {
+            IResMgr inst = _.Val;
+            if (inst == null)
+            {
+                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                return default(ResRef);
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                AwaitableCompletionSource<EResError> source = new AwaitableCompletionSource<EResError>();
+                var err = inst.AsyncCreate(path, priority, source, cancelToken);
+                ResManagement.ResLog._.ErrCode(err, path);
+                if (err != EResError.OK)
+                    return default(ResRef);
+
+                err = await source.Awaitable;
+                if (err != EResError.OK)
+                {
+                    ResManagement.ResLog._.ErrCode(err, path);
+                    return default(ResRef);
+                }
+
+                err = inst.TryCreate(path, user, out var res_ref);
+                ResManagement.ResLog._.ErrCode(err, path);
+                if (err == EResError.OK)
+                    return res_ref;
+            }
+
+            ResLog._.E("create failed ,retry max count, {0}", path);
+            return default(ResRef);
         }
 
         public static ResRef TryCreate(string path, System.Object user)

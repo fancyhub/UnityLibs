@@ -17,6 +17,18 @@ namespace FH
             _CreateDir(Path.GetFullPath(folder_path));
         }
 
+        public static string FullAssetPath2ResourcePath(string full_asset_path, string defaultValue = null)
+        {
+            int index = full_asset_path.LastIndexOf("/Resources/");
+            if (index < 0)
+                return defaultValue;
+
+            index = index + "/Resources/".Length;
+            var ext = System.IO.Path.GetExtension(full_asset_path);
+            int endIndex = full_asset_path.Length - ext.Length;
+            return full_asset_path.Substring(index, endIndex - index);
+        }
+
         private static void _CreateDir(string folder_path)
         {
             if (Directory.Exists(folder_path))

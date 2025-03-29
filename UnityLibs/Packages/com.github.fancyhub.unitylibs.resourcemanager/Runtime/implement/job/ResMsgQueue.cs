@@ -45,11 +45,11 @@ namespace FH.ResManagement
 
             //2. 判断是否已经取消了            
             int job_id = job.JobId;
-            if (job.IsCanceled)
+            if (job.IsCancelled)
             {
-                _job_db.Remove(job_id);
-                Log.E("End");
-                return;
+                //_job_db.Remove(job_id);
+                //Log.E("End");
+                //return;
             }
 
             //3. 移动job到下一步

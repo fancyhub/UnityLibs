@@ -66,9 +66,19 @@ namespace FH
                 return _Bundle.LoadAsset<T>(name);
             }
 
+            public UnityEngine.Object LoadAsset(string name, Type unityAssetType)
+            {
+                return _Bundle.LoadAsset(name, unityAssetType);
+            }
+
             public AssetBundleRequest LoadAssetAsync<T>(string name) where T : UnityEngine.Object
             {
                 return _Bundle.LoadAssetAsync<T>(name);
+            }
+
+            public AssetBundleRequest LoadAssetAsync(string name, Type unityAssetType)
+            {
+                return _Bundle.LoadAssetAsync(name, unityAssetType);
             }
 
             public void Unload(bool unloadAllLoadedObjects)
@@ -116,8 +126,8 @@ namespace FH
         public int DecRefCount();
         public int RefCount { get; }
 
-        public T LoadAsset<T>(string path) where T : UnityEngine.Object;
-        public AssetBundleRequest LoadAssetAsync<T>(string path) where T : UnityEngine.Object;
+        public UnityEngine.Object LoadAsset(string path, Type unityAssetType);
+        public AssetBundleRequest LoadAssetAsync(string path, Type unityAssetType);
     }
 
     public partial interface IBundleMgr : ICPtr
@@ -170,6 +180,9 @@ namespace FH
                 BundleLog.E("bundle manifest is Null");
                 return false;
             }
+
+            BundleDef.UnloadAllLoadedObjectsDefault = config.UnloadAllLoadedObjects;
+            BundleDef.UnloadAllLoadedObjectsCurrent = config.UnloadAllLoadedObjects;
 
             ABManagement.BundleMgrImplement mgr = new ABManagement.BundleMgrImplement();
             mgr.Init(external_loader, manifest);

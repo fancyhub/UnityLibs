@@ -11,21 +11,26 @@ using UnityEngine;
 
 namespace FH
 {
-    internal interface IScenePool : ICPtr
+    internal interface IScene : ICPtr
     {
-        void UnloadScene(int sceneId);
-        (bool done, float progress) GetSceneStat(int sceneId);
-        bool IsValid(int sceneId);
-        UnityEngine.SceneManagement.Scene GetUnityScene(int sceneId);
-    }
+        public void Unload();
 
+        (bool done, float progress) Stat { get; }
+        UnityEngine.SceneManagement.Scene UnityScene { get; }
+        bool Valid { get; }
+        Vector3 ScenePos { get; set; }
+        bool SceneVisible { get; set; }
+
+        Transform SceneRoot { get; }
+        Transform CreateSceneRoot();
+    }
 
     public struct SceneRef
     {
         public static SceneRef Empty = new SceneRef();
 
         public readonly int SceneId;
-        private CPtr<IScenePool> _ScenePool;
+        private CPtr<IScene> _Scene;
         public void Unload()
         {
             if (SceneId == 0)
@@ -34,22 +39,22 @@ namespace FH
                 return;
             }
 
-            if (_ScenePool.Val == null)
+            if (_Scene.Val == null)
             {
-                SceneManagement.SceneLog._.Assert(false, "can't unload scene {0}, scene pool is null", SceneId);
+                SceneManagement.SceneLog._.Assert(false, "can't unload scene {0}, scene ref is null", SceneId);
                 return;
             }
-            _ScenePool.Val?.UnloadScene(SceneId);
+            _Scene.Val?.Unload();
         }
 
         public bool IsDone
         {
             get
             {
-                IScenePool pool = _ScenePool.Val;
-                if (pool == null)
+                IScene scene = _Scene.Val;
+                if (scene == null)
                     return true;
-                return pool.GetSceneStat(SceneId).done;
+                return scene.Stat.done;
             }
         }
 
@@ -57,10 +62,10 @@ namespace FH
         {
             get
             {
-                IScenePool pool = _ScenePool.Val;
-                if (pool == null)
+                IScene scene = _Scene.Val;
+                if (scene == null)
                     return 1;
-                return pool.GetSceneStat(SceneId).progress;
+                return scene.Stat.progress;
             }
         }
 
@@ -68,10 +73,10 @@ namespace FH
         {
             get
             {
-                IScenePool pool = _ScenePool.Val;
-                if (pool == null)
+                IScene scene = _Scene.Val;
+                if (scene == null)
                     return false;
-                return pool.IsValid(SceneId);
+                return scene.Valid;
             }
         }
 
@@ -79,22 +84,74 @@ namespace FH
         {
             get
             {
-                IScenePool pool = _ScenePool.Val;
-                if (pool == null)
+                IScene scene = _Scene.Val;
+                if (scene == null)
                     return default;
-                return pool.GetUnityScene(SceneId);
+                return scene.UnityScene;
             }
         }
 
-
-        
-
-        internal SceneRef(int sceneId, IScenePool scene_pool)
+        public Transform SceneRoot
         {
-            this.SceneId = sceneId;
-            _ScenePool = new CPtr<IScenePool>(scene_pool);
+            get
+            {
+                IScene scene = _Scene.Val;
+                if (scene == null)
+                    return default;
+                return scene.SceneRoot;
+            }
         }
 
+        public Transform CreateSceneRoot()
+        {
+            IScene scene = _Scene.Val;
+            if (scene == null)
+                return default;
+            return scene.CreateSceneRoot();
+        }
 
+        public Vector3 ScenePos
+        {
+            get
+            {
+                IScene scene = _Scene.Val;
+                if (scene == null)
+                    return default;
+                return scene.ScenePos;
+            }
+
+            set
+            {
+                IScene scene = _Scene.Val;
+                if (scene == null)
+                    return;
+                scene.ScenePos = value;
+            }
+        }
+
+        public bool SceneVisible
+        {
+            get
+            {
+                IScene scene = _Scene.Val;
+                if (scene == null)
+                    return true;
+                return scene.SceneVisible;
+            }
+
+            set
+            {
+                IScene scene = _Scene.Val;
+                if (scene == null)
+                    return;
+                scene.SceneVisible = value;
+            }
+        }
+
+        internal SceneRef(int sceneId, IScene scene)
+        {
+            this.SceneId = sceneId;
+            _Scene = new CPtr<IScene>(scene);
+        }
     }
 }

@@ -72,7 +72,7 @@ namespace FH.UI
             GameObject obj = res_holder.Create(path);
             if (null == obj)
             {
-                Log.E("Create {0} Faield, 可能资源不存在 {1}", typeof(T), path);
+                Log.E("Create {0} Faield, {1}", typeof(T), path);
                 return null;
             }
 

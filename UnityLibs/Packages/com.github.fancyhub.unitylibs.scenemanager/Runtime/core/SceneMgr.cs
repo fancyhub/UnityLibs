@@ -15,6 +15,8 @@ namespace FH
         public SceneRef LoadScene(string scene_path, UnityEngine.SceneManagement.LoadSceneMode loadMode);
         public void Update();
         public void GetAllScenes(List<SceneRef> out_list);
+
+        public void UnloadAll();
     }
 
     public static class SceneMgr

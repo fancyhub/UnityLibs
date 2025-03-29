@@ -41,14 +41,14 @@ namespace FH.SampleExternalLoader
         private sealed class EditorResRequest
         {
             private string _resPath;
-            private EResPathType _resPathType;
+            private Type _unityAssetType;
             public bool isDone;
             public UnityEngine.Object asset;
 
             private IEnumerator _LoadAsync()
             {
                 yield return null;
-                asset = AssetDatabase.LoadAssetAtPath(_resPath, _resPathType.ExtResPathType2UnityType());
+                asset = AssetDatabase.LoadAssetAtPath(_resPath, _unityAssetType);
                 isDone = true;
                 if (asset != null)
                 {
@@ -62,11 +62,11 @@ namespace FH.SampleExternalLoader
                 yield return null;
             }
 
-            public static EditorResRequest LoadAsync(string path, EResPathType resPathType)
+            public static EditorResRequest LoadAsync(string path, Type unityAssetType)
             {
                 EditorResRequest req = new EditorResRequest();
                 req._resPath = path;
-                req._resPathType = resPathType;
+                req._unityAssetType = unityAssetType;
                 EditorResRequestComp.StartReq(req._LoadAsync());
 
                 return req;
@@ -228,7 +228,7 @@ namespace FH.SampleExternalLoader
             return EAssetStatus.Exist;
         }
 
-        public IResMgr.IExternalRef Load(string path, EResPathType resPathType)
+        public IResMgr.IExternalRef Load(string path, Type unityAssetType)
         {
             if (_AssetDict != null)
             {
@@ -238,7 +238,7 @@ namespace FH.SampleExternalLoader
                 path = new_path;
             }
 
-            UnityEngine.Object asset = AssetDatabase.LoadAssetAtPath(path, resPathType.ExtResPathType2UnityType());
+            UnityEngine.Object asset = AssetDatabase.LoadAssetAtPath(path, unityAssetType);
 
             if (_AssetDict == null && asset != null)
             {
@@ -253,7 +253,7 @@ namespace FH.SampleExternalLoader
             return AssetRef.Create(_ResRefDB, asset);
         }
 
-        public IResMgr.IExternalRef LoadAsync(string path, EResPathType resPathType)
+        public IResMgr.IExternalRef LoadAsync(string path, Type unityAssetType)
         {
             if (_AssetDict != null)
             {
@@ -265,10 +265,10 @@ namespace FH.SampleExternalLoader
 
             if (!Application.isPlaying)
             {
-                return Load(path, resPathType);
+                return Load(path, unityAssetType);
             }
 
-            return AssetRef.Create(_ResRefDB, EditorResRequest.LoadAsync(path, resPathType));
+            return AssetRef.Create(_ResRefDB, EditorResRequest.LoadAsync(path, unityAssetType));
         }
 
         protected override void OnRelease()

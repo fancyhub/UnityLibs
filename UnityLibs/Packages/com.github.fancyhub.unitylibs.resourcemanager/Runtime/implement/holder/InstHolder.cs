@@ -34,6 +34,11 @@ namespace FH.ResManagement
             return ret;
         }
 
+        public bool IsSharedMode()
+        {
+            return _Share;
+        }
+
         public GameObject Create(string path)
         {
             //1. 检查
@@ -69,7 +74,19 @@ namespace FH.ResManagement
 
             //3. 从ResMgr里面获取
             EResError err = res_mgr.Create(path, this, _AsyncLoadEnable, out ResRef res_ref);
-            ResLog._.ErrCode(err, $"创建实例失败 {path}");
+
+            if (err != EResError.OK)
+            {
+                if (_AsyncLoadEnable)
+                {
+                    ResLog._.ErrCode(err, $"创建实例失败,资源不存在 {path}");
+                }
+                else 
+                {
+                    ResLog._.ErrCode(err, $"创建实例失败,因为只能从缓存里面创建, 可能资源未提前加载 {path}");
+                }
+            }
+
             if (err != EResError.OK)
                 return null;
             ResLog._.D("{0}", res_ref);
@@ -86,7 +103,7 @@ namespace FH.ResManagement
             _Dict.Add(obj.GetInstanceID(), res_ref);
             return obj;
         }
-         
+
 
         public void PreCreate(string path, int count, int priority = 0)
         {
@@ -96,7 +113,6 @@ namespace FH.ResManagement
             if (count <= 0)
                 return;
 
-            _Stat.Total += count;
             IResMgr res_mgr = _ResMgr.Val;
             if (res_mgr == null)
             {
@@ -104,6 +120,7 @@ namespace FH.ResManagement
                 return;
             }
 
+            _Stat.Total += count;
             for (int i = 0; i < count; i++)
             {
                 EResError err = res_mgr.AsyncCreate(path, priority, _OnInstCB, out int job_id);
@@ -179,7 +196,7 @@ namespace FH.ResManagement
                 return true;
             }
 
-            if (_Share )
+            if (_Share)
                 res_ref.RemoveUser(this);
             else
             {

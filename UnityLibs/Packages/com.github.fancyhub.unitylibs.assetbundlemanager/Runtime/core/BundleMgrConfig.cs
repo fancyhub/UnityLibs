@@ -16,6 +16,7 @@ namespace FH
         public class Config
         {
             public ELogLvl LogLvl = ELogLvl.Info;
+            public bool UnloadAllLoadedObjects = true;
         }
     }    
 }
