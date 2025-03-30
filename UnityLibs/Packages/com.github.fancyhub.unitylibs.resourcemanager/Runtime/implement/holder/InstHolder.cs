@@ -73,8 +73,7 @@ namespace FH.ResManagement
             }
 
             //3. 从ResMgr里面获取
-            EResError err = res_mgr.Create(path, this, _OnlyFromCache, out ResRef res_ref);
-
+            EResError err = res_mgr.Create(path, _OnlyFromCache, out ResRef res_ref);
             if (err != EResError.OK)
             {
                 if (_OnlyFromCache)
@@ -85,13 +84,13 @@ namespace FH.ResManagement
                 {
                     ResLog._.ErrCode(err, $"创建实例失败,资源不存在 {path}");
                 }
-            }
-
-            if (err != EResError.OK)
                 return null;
+            }
+             
             ResLog._.D("{0}", res_ref);
 
             //4. 获取对象
+            res_ref.AddUser(this);
             GameObject obj = res_ref.Get<GameObject>();
             if (obj == null)
             {

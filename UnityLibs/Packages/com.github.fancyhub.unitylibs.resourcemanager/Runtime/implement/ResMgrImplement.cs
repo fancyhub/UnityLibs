@@ -119,7 +119,7 @@ namespace FH.ResManagement
             _worker_go_async.Update();
             _gc.Update();
             _worker_go_pre_inst.Update();
-            
+
         }
 
         public void Destroy()
@@ -383,10 +383,10 @@ namespace FH.ResManagement
         public EResError GetInstPath(ResId inst_id, out string path)
         {
             return _gobj_pool.GetInstPath(inst_id, out path);
-        }         
+        }
 
         //优先查找是否有空余的
-        public EResError Create(string path, System.Object user, bool only_from_cache, out ResRef res_ref)
+        public EResError Create(string path, bool only_from_cache, out ResRef res_ref)
         {
             //1. check
             if (string.IsNullOrEmpty(path))
@@ -395,24 +395,14 @@ namespace FH.ResManagement
                 res_ref = default;
                 return (EResError)EResError.ResMgrImplement_path_null_5;
             }
-            if (user == null)
-            {
-                ResLog._.Assert(false, "user 为空");
-                res_ref = default;
-                return (EResError)EResError.ResMgrImplement_user_null_1;
-            }
+
 
             //2. 判断是否有空余的
             EResError err = _gobj_pool.PopInst(path, out var inst_id);
             if (err == EResError.OK)
             {
-                err = _gobj_pool.AddUser(inst_id, user);
-                ResLog._.ErrCode(err);
-                if(err== EResError.OK)
-                {
-                    res_ref = new ResRef(inst_id, path, _gobj_pool);
-                    return err;
-                }              
+                res_ref = new ResRef(inst_id, path, _gobj_pool);
+                return err;
             }
 
             //3. 加载
@@ -434,27 +424,19 @@ namespace FH.ResManagement
             job.AddWorker(EResWoker.sync_obj_inst);
             _msg_queue.BeginJob(job, true);
 
-
             //4. 再次检查
             err = job.ErrorCode;
             inst_id = job.InstId;
             job.Destroy();
-            if (err != EResError.OK)           
+            if (err != EResError.OK)
             {
                 res_ref = default;
                 return err;
             }
-            err = _gobj_pool.AddUser(inst_id, user);
-            ResLog._.ErrCode(err);
-            if (err == EResError.OK)
-            {
-                res_ref = new ResRef(inst_id, path, _gobj_pool);
-                return err;
-            }
-            res_ref = default;
+            res_ref = new ResRef(inst_id, path, _gobj_pool);             
             return err;
         }
-         
+
         public EResError CreateAsync(string path, int priority, IInstDoneCallBack cb, out int job_id)
         {
             return CreateAsync(path, priority, InstDoneEvent.Create(cb), out job_id);
@@ -467,7 +449,7 @@ namespace FH.ResManagement
 
         public EResError CreateAsync(string path, int priority, ResAwaitSource source, CancellationToken cancelToken)
         {
-            var ret= CreateAsync(path, priority, InstDoneEvent.Create(source,cancelToken), out var job_id);
+            var ret = CreateAsync(path, priority, InstDoneEvent.Create(source, cancelToken), out var job_id);
             //CancelJob(job_id); 
             return ret;
         }

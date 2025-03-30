@@ -17,6 +17,7 @@ namespace Game
 		public UIButtonView _BtnClose;
 		public UnityEngine.UI.Image _Img1;
 		public UnityEngine.UI.Image _Img2;
+		public UIButtonView _BtnLoad;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -32,6 +33,7 @@ namespace Game
 			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
 			_Img1 = refs.GetComp<UnityEngine.UI.Image>("_Img1");
 			_Img2 = refs.GetComp<UnityEngine.UI.Image>("_Img2");
+			_BtnLoad = _CreateSub<UIButtonView>(refs.GetObj("_BtnLoad"));
 
         }
 
@@ -40,6 +42,7 @@ namespace Game
             base._AutoDestroy();
 
 			_BtnClose.Destroy();
+			_BtnLoad.Destroy();
 
         }
 

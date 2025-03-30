@@ -134,7 +134,7 @@ namespace FH.UI
                     _ResRef = default;
                     _Image.overrideSprite = null;
 
-                    _ResRef = ResMgr.LoadSprite(path, true);
+                    _ResRef = ResMgr.Load(path, EResPathType.Sprite);
                     _Image.overrideSprite = _ResRef.Get<Sprite>();
                     if (_Image.overrideSprite != null)
                         _ResRef.AddUser(this);
@@ -144,7 +144,7 @@ namespace FH.UI
                 else //异步加载
                 {
                     //先同步加载
-                    ResRef new_res_ref = ResMgr.TryLoadExistSprite(path);
+                    ResRef new_res_ref = ResMgr.TryLoadExist(path, EResPathType.Sprite);
                     Sprite new_sprite = new_res_ref.Get<Sprite>();
                     if (new_sprite != null)
                     {
@@ -157,7 +157,7 @@ namespace FH.UI
                     }
                     else
                     {
-                        bool result = ResMgr.AsyncLoad(_Path, EResPathType.Sprite,  _OnAsyncLoaded, out _JobId, CPriority);
+                        bool result = ResMgr.AsyncLoad(_Path, EResPathType.Sprite, _OnAsyncLoaded, out _JobId, CPriority);
                         if (!result)
                         {
                             _ResRef.RemoveUser(this);

@@ -21,16 +21,23 @@ namespace Game
         protected override void OnUI1PrepareRes(IResInstHolder holder)
         {
             holder.PreCreate(UITestUIResView.CPath, 20);
-            foreach (var p in spriteNames)
-                holder.ExtPreloadSprite(p);
+            for(int i=1;i<spriteNames.Length;i++)
+                holder.ExtPreloadSprite(spriteNames[i]);
         }
 
         protected override void OnUI2Init()
         {
             base.OnUI2Init();
             BaseView._BtnClose.OnClick = this.UIClose;
+            BaseView._BtnLoad.OnClick = _OnBtnLoadClick;          
+            
+        }
+
+        private void _OnBtnLoadClick()
+        {
             BaseView._Img1.ExtAsyncSetSprite(spriteNames[0]);
             BaseView._Img2.ExtAsyncSetSprite(spriteNames[1]);
+
             _TestAync();
         }
 

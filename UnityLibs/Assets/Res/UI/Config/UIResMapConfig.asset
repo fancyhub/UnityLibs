@@ -56,6 +56,9 @@ MonoBehaviour:
     - name: RedDotCommon
       dir: Common
       ext: .prefab
+    - name: ExtractAsset
+      dir: 
+      ext: .prefab
     - name: MainPanel
       dir: 
       ext: .prefab
@@ -72,8 +75,5 @@ MonoBehaviour:
       dir: 
       ext: .prefab
     - name: TestUIRes
-      dir: 
-      ext: .prefab
-    - name: Upgrader
       dir: 
       ext: .prefab

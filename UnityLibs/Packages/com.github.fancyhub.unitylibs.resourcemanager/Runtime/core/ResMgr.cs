@@ -56,7 +56,7 @@ namespace FH
         #endregion
 
         #region GameObject Inst
-        public EResError Create(string path, System.Object user, bool only_from_cache, out ResRef res_ref);
+        public EResError Create(string path, bool only_from_cache, out ResRef res_ref);
         public EResError CreateAsync(string path, int priority, InstEvent cb, out int job_id);
         public EResError CreateAsync(string path, int priority, IInstDoneCallBack cb, out int job_id);
         public EResError CreateAsync(string path, int priority, ResAwaitSource source, CancellationToken cancelToken);
@@ -145,37 +145,7 @@ namespace FH
             return ret;
         }
 
-        #region Res
-        #region Sprite
-        public static ResRef TryLoadExistSprite(string path)
-        {
-            IResMgr inst = _.Val;
-            if (inst == null)
-            {
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
-                return default;
-            }
-
-            var err = inst.Load(path, EResPathType.Sprite, false, out var res_ref);
-            return res_ref;
-        }
-
-        public static ResRef LoadSprite(string path, bool only_from_cache = false)
-        {
-            IResMgr inst = _.Val;
-            if (inst == null)
-            {
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
-                return default;
-            }
-
-            var err = inst.Load(path, EResPathType.Sprite, only_from_cache, out var res_ref);
-            ResManagement.ResLog._.ErrCode(err, path);
-            return res_ref;
-        }
-        #endregion
-
-        #region Default
+        #region Res      
         public static ResRef TryLoadExist(string path, EResPathType pathType = EResPathType.Default)
         {
             IResMgr inst = _.Val;
@@ -184,7 +154,6 @@ namespace FH
                 ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return default;
             }
-
             var err = inst.Load(path, pathType, false, out var res_ref);
             return res_ref;
         }
@@ -265,7 +234,6 @@ namespace FH
             inst.ResSnapshot(ref out_snapshot);
         }
         #endregion
-        #endregion
 
         #region GameObject Inst
         public static ResRef Create(string path, System.Object user, bool only_from_cache)
@@ -276,9 +244,21 @@ namespace FH
                 ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return default;
             }
-            var err = inst.Create(path, user, only_from_cache, out var res_ref);
+            if (user == null)
+            {
+                ResLog._.Assert(false, "user 为空");
+                return default;
+            }
+
+            var err = inst.Create(path, only_from_cache, out var res_ref);
             ResManagement.ResLog._.ErrCode(err, path);
-            return res_ref;
+            if (err != EResError.OK)
+                return default;
+            if (res_ref.AddUser(user))
+                return res_ref;
+
+            ResLog._.E("Add user error,{0} ", path);
+            return default;
         }
         public static bool AsyncCreate(string path, InstEvent cb, out int job_id, int priority = ResDef.PriorityDefault)
         {
