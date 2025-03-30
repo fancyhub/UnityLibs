@@ -182,6 +182,7 @@ namespace FH.ResManagement
                 if (delta_count > 0)
                 {
                     ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), _Priority);
+                    job.PreInstJob = true;
                     job.AddWorker(EResWoker.async_load_res);
                     for (int k = 0; k < delta_count; ++k)
                         job.AddWorker(EResWoker.async_obj_inst);

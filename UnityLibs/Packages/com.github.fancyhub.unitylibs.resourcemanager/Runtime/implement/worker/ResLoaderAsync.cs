@@ -65,7 +65,6 @@ namespace FH.ResManagement
         public ResJobDB _job_db;
         public ResMsgQueue _msg_queue;
 
-        public IResPool _res_pool_interface;
         #endregion
 
 
@@ -123,8 +122,6 @@ namespace FH.ResManagement
             EResError err = _res_pool.GetIdByPath(job.Path, out job.ResId);
             if (err == EResError.OK)
             {
-                job.ResRef = new ResRef(job.ResId, job.Path.Path, _res_pool_interface);
-
                 //刷新一下, 不要被回收了
                 _res_pool.RefreshLru(job.ResId);
 
@@ -175,7 +172,6 @@ namespace FH.ResManagement
                 {
                     _job_db.Find(job_id, out ResJob job);
                     job.ResId = res_id;
-                    job.ResRef = new ResRef(job.ResId, job.Path.Path, _res_pool_interface);
                     job.ErrorCode = error_code;
                     _msg_queue.SendJobNext(job);
                 }
@@ -213,8 +209,6 @@ namespace FH.ResManagement
                 EResError err = _res_pool.GetIdByPath(job.Path, out job.ResId);
                 if (err == EResError.OK)
                 {
-                    job.ResRef = new ResRef(job.ResId, job.Path.Path, _res_pool_interface);
-
                     //刷新一下
                     _res_pool.RefreshLru(job.ResId);
                     _job_queue.Pop();

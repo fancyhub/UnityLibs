@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace Game
 {
 
-    public partial class UIUpgraderView // : FH.UI.UIBaseView 
+    public partial class UIExtractAssetView // : FH.UI.UIBaseView 
     {
         //public override void OnCreate()
         //{

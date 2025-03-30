@@ -183,7 +183,7 @@ namespace FH.UI
         #region UIResPage
         protected virtual IResInstHolder CreateHolder()
         {
-            var ret = ResMgr.CreateHolder(true, true);
+            var ret = ResMgr.CreateHolder(false, true);
             PtrList += ret;
             return ret;
         }

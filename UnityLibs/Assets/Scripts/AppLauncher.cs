@@ -11,11 +11,15 @@ namespace Game
         void Start()
         {
             new MyUISceneMgr().Init();
-            FH.UI.UISceneMgr.ChangeScene<UISceneUpgrader>();
+            FH.UI.UISceneMgr.ChangeScene<UISceneExtractAsset>();
+
             FH.TaskQueue.Init(10);
+
             FH.UI.UIRedDotMgr.Init(FH.ELogLvl.Info);
             FH.UI.UISceneMgr.AddUpdate(() => { FH.UI.UIRedDotMgr.Update(); return FH.UI.EUIUpdateResult.Continue; });
 
+            FH.TimerMgr.Init();
+            FH.UI.UISceneMgr.AddUpdate(() => { FH.TimerMgr.Update(); return FH.UI.EUIUpdateResult.Continue; });
         }
     }
 
@@ -26,8 +30,8 @@ namespace Game
         {
             var sceneType = typeof(T);
 
-            if (sceneType == typeof(UISceneUpgrader))
-                return new UISceneUpgrader();
+            if (sceneType == typeof(UISceneExtractAsset))
+                return new UISceneExtractAsset();
             else if (sceneType == typeof(UISceneMain))
                 return new UISceneMain();
 
@@ -35,12 +39,12 @@ namespace Game
         }
     }
 
-    public class UISceneUpgrader : FH.UI.UISceneBase
+    public class UISceneExtractAsset : FH.UI.UISceneBase
     {
 
         public override void OnSceneEnter(FH.UI.IUIScene lastScene)
         {
-            this.OpenUI<UIUpgraderPage>();
+            this.OpenUI<UIExtractAssetPage>();
         }
 
         public override void OnUpdate()

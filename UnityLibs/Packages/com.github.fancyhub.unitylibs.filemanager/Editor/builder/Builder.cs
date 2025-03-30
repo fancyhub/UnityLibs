@@ -73,6 +73,8 @@ namespace FH.FileManagement.Ed
                 string dst_file = FileSetting.StreamingAssetsDir + FileManifest.CDefaultFileName;
                 System.IO.File.Copy(file_manifest_path, dst_file, true);
             }
+
+            UnityEngine.Debug.Log("File Build Finish============================");
         }
 
         private static FileManifest _CopyFiles(Dictionary<string, BuildFileInfo> src_files, string dst_dir, bool gen_gz_file, string default_ext)

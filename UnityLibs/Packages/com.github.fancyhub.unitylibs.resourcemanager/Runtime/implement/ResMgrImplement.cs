@@ -12,7 +12,10 @@ using UnityEngine;
 
 namespace FH.ResManagement
 {
-    internal class ResMgrImplement : IResMgr, IResPool, ICPtr
+    using ResAwaitSource = AwaitableCompletionSource<(EResError error, ResRef res_ref)>;
+
+
+    internal class ResMgrImplement : IResMgr, ICPtr
     {
         private int ___ptr_ver = 0;
         int ICPtr.PtrVer => ___ptr_ver;
@@ -80,7 +83,6 @@ namespace FH.ResManagement
             _worker_res_async._external_loader = external_loader;
             _worker_res_async._job_db = _job_db;
             _worker_res_async._msg_queue = _msg_queue;
-            _worker_res_async._res_pool_interface = this;
             _worker_res_async.Init();
 
             _worker_res_sync = new ResLoaderSync();
@@ -91,6 +93,8 @@ namespace FH.ResManagement
 
             _worker_res_cb = new ResInstCallEvent();
             _worker_res_cb._msg_queue = _msg_queue;
+            _worker_res_cb._res_pool = _res_pool;
+            _worker_res_cb._inst_pool = _gobj_pool;
             _worker_res_cb.Init();
 
             _worker_go_pre_inst = new GameObjectPreInst(conf.PreInst.Priority);
@@ -109,11 +113,13 @@ namespace FH.ResManagement
 
         public void Update()
         {
+            _gobj_pool.Update();
             _msg_queue.ProcessMsgs(int.MaxValue);
             _worker_res_async.Update();
             _worker_go_async.Update();
             _gc.Update();
             _worker_go_pre_inst.Update();
+            
         }
 
         public void Destroy()
@@ -158,7 +164,7 @@ namespace FH.ResManagement
                     ResId res_id = new ResId(inst_id, EResType.Inst);
                     if (_gobj_pool.GetInstPath(res_id, out var path) == EResError.OK)
                     {
-                        return new ResRef(res_id, path, this);
+                        return new ResRef(res_id, path, _gobj_pool);
                     }
                 }
 
@@ -166,7 +172,7 @@ namespace FH.ResManagement
                     if (_res_pool.GetPathById(inst_id, out var path) == EResError.OK)
                     {
                         ResId res_id = new ResId(inst_id, EResType.Res);
-                        return new ResRef(res_id, path.Path, this);
+                        return new ResRef(res_id, path.Path, _res_pool);
                     }
                 }
             }
@@ -176,41 +182,41 @@ namespace FH.ResManagement
                     if (_res_pool.GetPathById(inst_id, out var path) == EResError.OK)
                     {
                         ResId res_id = new ResId(inst_id, EResType.Res);
-                        return new ResRef(res_id, path.Path, this);
+                        return new ResRef(res_id, path.Path, _res_pool);
                     }
                 }
                 {
                     ResId res_id = new ResId(inst_id, EResType.Inst);
                     if (_gobj_pool.GetInstPath(res_id, out var path) == EResError.OK)
                     {
-                        return new ResRef(res_id, path, this);
+                        return new ResRef(res_id, path, _gobj_pool);
                     }
                 }
             }
             return default;
         }
 
-        public EResError AddUser(ResId res_id, System.Object user)
+        public EResError AddUser(ResId id, System.Object user)
         {
             //0.check
-            if (!res_id.IsValid())
+            if (!id.IsValid())
             {
                 ResLog._.I("add user，id_ref null");
                 return EResError.OK;
             }
 
-            switch (res_id.ResType)
+            switch (id.ResType)
             {
                 case EResType.Res:
                     {
-                        EResError err2 = _res_pool.AddUser(res_id.Id, user);
-                        ResLog._.ErrCode(err2, "add user ，{0} 类型的资源", res_id.ResType);
+                        EResError err2 = _res_pool.AddUser(id, user);
+                        ResLog._.ErrCode(err2, "add user ，{0} 类型的资源", id.ResType);
                         return err2;
                     }
 
                 case EResType.Inst:
                     {
-                        EResError err3 = _gobj_pool.AddUsage(res_id, user);
+                        EResError err3 = _gobj_pool.AddUser(id, user);
                         ResLog._.ErrCode(err3, "add user ，实例类型的资源");
                         return err3;
                     }
@@ -219,27 +225,27 @@ namespace FH.ResManagement
             }
         }
 
-        public EResError RemoveUser(ResId res_id, System.Object user)
+        public EResError RemoveUser(ResId id, System.Object user)
         {
             //0.check
-            if (!res_id.IsValid())
+            if (!id.IsValid())
             {
                 ResLog._.Assert(false, "remove user，id_ref null");
                 return EResError.OK;
             }
 
-            switch (res_id.ResType)
+            switch (id.ResType)
             {
                 case EResType.Res:
                     {
-                        EResError err2 = _res_pool.RemoveUser(res_id.Id, user);
-                        ResLog._.ErrCode(err2, "remove user ，{0} 类型的资源, {1}", res_id.ResType, res_id.Id);
+                        EResError err2 = _res_pool.RemoveUser(id, user);
+                        ResLog._.ErrCode(err2, "remove user ，{0} 类型的资源, {1}", id.ResType, id.Id);
                         return err2;
                     }
 
                 case EResType.Inst:
                     {
-                        EResError err3 = _gobj_pool.RemoveUser(res_id, user);
+                        EResError err3 = _gobj_pool.RemoveUser(id, user);
                         ResLog._.ErrCode(err3, "remove user ，实例类型的资源");
                         return err3;
                     }
@@ -248,31 +254,31 @@ namespace FH.ResManagement
             }
         }
 
-        public UnityEngine.Object Get(ResId res_id)
+        public UnityEngine.Object Get(ResId id)
         {
             //0.check
-            if (!res_id.IsValid())
+            if (!id.IsValid())
             {
                 ResLog._.E("Null ResId");
                 return null;
             }
 
-            switch (res_id.ResType)
+            switch (id.ResType)
             {
                 default:
                     return null;
 
                 case EResType.Res:
-                    return _res_pool.GetRes(res_id.Id);
+                    return _res_pool.Get(id);
 
                 case EResType.Inst:
-                    return _gobj_pool.GetInst(res_id, true);
+                    return _gobj_pool.GetInst(id, true);
             }
         }
 
-        public T Get<T>(ResId res_id) where T : UnityEngine.Object
+        public T Get<T>(ResId id) where T : UnityEngine.Object
         {
-            UnityEngine.Object obj = Get(res_id);
+            UnityEngine.Object obj = Get(id);
             if (obj == null)
                 return null;
 
@@ -282,7 +288,7 @@ namespace FH.ResManagement
         }
 
         #region Res
-        public EResError Load(string path, EResPathType pathType, bool aync_load_enable, out ResRef res_ref)
+        public EResError Load(string path, EResPathType pathType, bool only_from_cache, out ResRef res_ref)
         {
             //1. check
             if (string.IsNullOrEmpty(path))
@@ -297,10 +303,10 @@ namespace FH.ResManagement
             EResError err = _res_pool.GetIdByPath(res_path, out var res_id);
             if (err == EResError.OK) //如果找到了，直接返回
             {
-                res_ref = new ResRef(res_id, path, this);
+                res_ref = new ResRef(res_id, path, _res_pool);
                 return EResError.OK;
             }
-            if (!aync_load_enable)
+            if (only_from_cache)
             {
                 res_ref = default;
                 return err;
@@ -310,29 +316,30 @@ namespace FH.ResManagement
             ResJob job = _job_db.CreateJob(res_path, 0);
             job.AddWorker(EResWoker.sync_load_res);
             _msg_queue.BeginJob(job, true);
+            res_id = job.ResId;
+            err = job.ErrorCode;
+            job.Destroy();
 
             //4. 再次找到该资源
-            err = _res_pool.GetIdByPath(res_path, out res_id);
-            //ResLog._.ErrCode(err, "找不到资源,可能不存在 {0}", path);
             if (err == EResError.OK)
-                res_ref = new ResRef(res_id, path, this);
+                res_ref = new ResRef(res_id, path, _res_pool);
             else
                 res_ref = default;
             return err;
         }
-        public EResError AsyncLoad(string path, EResPathType pathType, int priority, IResDoneCallBack cb, out int job_id)
+        public EResError LoadAsync(string path, EResPathType pathType, int priority, IResDoneCallBack cb, out int job_id)
         {
-            return AsyncLoad(path, pathType, priority, ResDoneEvent.Create(cb), out job_id);
+            return LoadAsync(path, pathType, priority, ResDoneEvent.Create(cb), out job_id);
         }
-        public EResError AsyncLoad(string path, EResPathType pathType, int priority, ResEvent cb, out int job_id)
+        public EResError LoadAsync(string path, EResPathType pathType, int priority, ResEvent cb, out int job_id)
         {
-            return AsyncLoad(path, pathType, priority, ResDoneEvent.Create(cb), out job_id);
+            return LoadAsync(path, pathType, priority, ResDoneEvent.Create(cb), out job_id);
         }
-        public EResError AsyncLoad(string path, EResPathType pathType, int priority, AwaitableCompletionSource<(EResError error, ResRef res_ref)> source, CancellationToken cancelToken)
+        public EResError LoadAsync(string path, EResPathType pathType, int priority, AwaitableCompletionSource<(EResError error, ResRef res_ref)> source, CancellationToken cancelToken)
         {
-            return AsyncLoad(path, pathType, priority, ResDoneEvent.Create(source, cancelToken), out _);
+            return LoadAsync(path, pathType, priority, ResDoneEvent.Create(source, cancelToken), out _);
         }
-        public EResError AsyncLoad(string path, EResPathType pathType, int priority, ResDoneEvent resEvent, out int job_id)
+        public EResError LoadAsync(string path, EResPathType pathType, int priority, ResDoneEvent resEvent, out int job_id)
         {
             //1. check
             if (string.IsNullOrEmpty(path))
@@ -376,36 +383,10 @@ namespace FH.ResManagement
         public EResError GetInstPath(ResId inst_id, out string path)
         {
             return _gobj_pool.GetInstPath(inst_id, out path);
-        }
-
-        //释放使用权之后， 当使用者为0时候，立即释放
-        public EResError TryDestroyInst(ResId inst_id)
-        {
-            //1. 获取资源的信息
-            bool suc1 = _gobj_pool.GetInstResUser(
-                  inst_id
-                  , out string path
-                  , out UnityEngine.GameObject inst
-                  , out int inst_user_count
-                  , out System.Object res_user);
-
-            if (!suc1)
-                return EResError.OK;
-            if (inst_user_count > 0)
-                return EResError.OK;
-
-
-            //2. 移除对资源的依赖
-            EResError err = _res_pool.RemoveUser(ResPath.CreateRes(path), res_user, out ResId _);
-
-            //3. 移除
-            bool suc2 = _gobj_pool.RemoveInst(inst_id, out string _);
-            GoUtil.Destroy(inst);
-            return EResError.OK;
-        }
+        }         
 
         //优先查找是否有空余的
-        public EResError Create(string path, System.Object user, bool aync_load_enable, out ResRef res_ref)
+        public EResError Create(string path, System.Object user, bool only_from_cache, out ResRef res_ref)
         {
             //1. check
             if (string.IsNullOrEmpty(path))
@@ -422,16 +403,21 @@ namespace FH.ResManagement
             }
 
             //2. 判断是否有空余的
-            EResError err = _gobj_pool.PopInst(path, user, out var inst_id);
+            EResError err = _gobj_pool.PopInst(path, out var inst_id);
             if (err == EResError.OK)
             {
-                res_ref = new ResRef(inst_id, path, this);
-                return err;
+                err = _gobj_pool.AddUser(inst_id, user);
+                ResLog._.ErrCode(err);
+                if(err== EResError.OK)
+                {
+                    res_ref = new ResRef(inst_id, path, _gobj_pool);
+                    return err;
+                }              
             }
 
             //3. 加载
             ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), 0);
-            if (!aync_load_enable) //不允许同步加载
+            if (only_from_cache) //不允许同步加载
             {
                 err = _res_pool.GetIdByPath(ResPath.CreateRes(path), out job.ResId);
                 if (err != EResError.OK) //资源不存在, 没有加载
@@ -448,67 +434,45 @@ namespace FH.ResManagement
             job.AddWorker(EResWoker.sync_obj_inst);
             _msg_queue.BeginJob(job, true);
 
+
             //4. 再次检查
-            err = _gobj_pool.PopInst(path, user, out inst_id);
+            err = job.ErrorCode;
+            inst_id = job.InstId;
+            job.Destroy();
+            if (err != EResError.OK)           
+            {
+                res_ref = default;
+                return err;
+            }
+            err = _gobj_pool.AddUser(inst_id, user);
+            ResLog._.ErrCode(err);
             if (err == EResError.OK)
             {
-                res_ref = new ResRef(inst_id, path, this);
+                res_ref = new ResRef(inst_id, path, _gobj_pool);
                 return err;
             }
-            else
-            {
-                res_ref = default;
-                return err;
-            }
+            res_ref = default;
+            return err;
+        }
+         
+        public EResError CreateAsync(string path, int priority, IInstDoneCallBack cb, out int job_id)
+        {
+            return CreateAsync(path, priority, InstDoneEvent.Create(cb), out job_id);
         }
 
-        public EResError TryCreate(string path, System.Object user, out ResRef res_ref)
+        public EResError CreateAsync(string path, int priority, InstEvent cb, out int job_id)
         {
-            //1. check
-            if (string.IsNullOrEmpty(path))
-            {
-                ResLog._.Assert(false, "路径为空");
-                res_ref = default;
-                return (EResError)EResError.ResMgrImplement_path_null_5;
-            }
-            if (user == null)
-            {
-                ResLog._.Assert(false, "user 为空");
-                res_ref = default;
-                return (EResError)EResError.ResMgrImplement_user_null_1;
-            }
-
-            //2. 判断是否有空余的
-            EResError err = _gobj_pool.PopInst(path, user, out var inst_id);
-            if (err == EResError.OK)
-            {
-                res_ref = new ResRef(inst_id, path, this);
-                return err;
-            }
-            else
-            {
-                res_ref = default;
-                return err;
-            }
-        }
-        public EResError AsyncCreate(string path, int priority, IInstDoneCallBack cb, out int job_id)
-        {
-            return AsyncCreate(path, priority, InstDoneEvent.Create(cb), out job_id);
+            return CreateAsync(path, priority, InstDoneEvent.Create(cb), out job_id);
         }
 
-        public EResError AsyncCreate(string path, int priority, InstEvent cb, out int job_id)
+        public EResError CreateAsync(string path, int priority, ResAwaitSource source, CancellationToken cancelToken)
         {
-            return AsyncCreate(path, priority, InstDoneEvent.Create(cb), out job_id);
-        }
-
-        public EResError AsyncCreate(string path, int priority, AwaitableCompletionSource<EResError> source, CancellationToken cancelToken)
-        {
-            var ret= AsyncCreate(path, priority, InstDoneEvent.Create(source,cancelToken), out var job_id);
+            var ret= CreateAsync(path, priority, InstDoneEvent.Create(source,cancelToken), out var job_id);
             //CancelJob(job_id); 
             return ret;
         }
 
-        public EResError AsyncCreate(string path, int priority, InstDoneEvent instDoneEvent, out int job_id)
+        public EResError CreateAsync(string path, int priority, InstDoneEvent instDoneEvent, out int job_id)
         {
             //1. check
             if (string.IsNullOrEmpty(path))

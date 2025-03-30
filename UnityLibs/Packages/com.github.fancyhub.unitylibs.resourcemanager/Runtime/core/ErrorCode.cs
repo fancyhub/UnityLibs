@@ -88,9 +88,10 @@ namespace FH
         GameObjectInstPool_pool_val_not_found_1,
         GameObjectInstPool_pool_val_not_found_2,
         GameObjectInstPool_pool_val_not_found_3,
-        GameObjectInstPool_user_count_zero,
-        GameObjectInstPool_user_already_exist,
+        GameObjectInstPool_canot_add_user_2_nowait_inst,
+        GameObjectInstPool_add_user_err,
         GameObjectInstPool_user_remove_twice,
+        GameObjectInstPool_user_remove_not_same_user,
         GameObjectInstPool_path_null_1,
         GameObjectInstPool_no_free_inst,
 

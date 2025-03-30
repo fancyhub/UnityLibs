@@ -55,14 +55,14 @@ namespace FH.ResManagement
 
 
             var action = cb._call_back;
-            EResError error_code = _res_pool.GetIdByPath(job.Path, out ResId id);
+            EResError error_code = _res_pool.GetIdByPath(job.Path, out ResId res_id);
 
             ResLog._.ErrCode(error_code, "加载 失败 {0}", job.Path.Path);
-            if (!id.IsValid())
+            if (!res_id.IsValid())
                 return;
 
 
-            SpriteAtlas atlas = _res_pool.GetRes(id.Id) as SpriteAtlas;
+            SpriteAtlas atlas = _res_pool.Get<SpriteAtlas>(res_id);
             if (atlas == null)
             {
                 ResLog._.Assert(false, "加载Atlas 失败{0}", job.Path.Path);

@@ -58,15 +58,14 @@ namespace FH.ResManagement
 
         public void OnMsgProc(ref ResJob job)
         {
-
-            //2. 如果任务取消了，就从db里面移除            
+            //1. 如果任务取消了，就从db里面移除            
             if (job.IsCancelled)
             {
                 _msg_queue.SendJobNext(job);
                 return;
             }
 
-            //3.判断一定是自己
+            //2.判断一定是自己
             EResWoker job_type = job.GetCurrentWorker();
             if (job_type != EResWoker.async_obj_inst)
             {
@@ -75,15 +74,15 @@ namespace FH.ResManagement
                 return;
             }
 
-            //4. 判断是否有错误
+            //3. 判断是否有错误
             if (job.ErrorCode != EResError.OK)
             {
                 _msg_queue.SendJobNext(job);
                 return;
             }
 
-            //5.要特殊处理，先添加引用
-            EResError err = _res_pool.AddUser(job.Path, job, out ResId res_id);
+            //4.要特殊处理，先添加引用
+            EResError err = _res_pool.AddUser(job.ResId, job);
             if (err != EResError.OK)
             {
                 //直接发到下一个
@@ -92,7 +91,7 @@ namespace FH.ResManagement
                 return;
             }
 
-            //6.把任务 压到队列里面
+            //5.把任务 压到队列里面
             _job_queue.Add(job.JobId, job.Priority);
         }
 
@@ -128,20 +127,31 @@ namespace FH.ResManagement
                     if (!succ)
                         return;
 
-                    //需要判断 当前pool是否有空余的吗？ 还是不需要了
-                    // 原因： 如果要判断，必然导致 同时需要 2个实例的时候，会发超过2次的请求，不友好
-                    //int free_count = _go_pool.GetFreeCount(res._res_id);
+                    //4. 如果不是preinst的job, 需要判断 当前pool是否有空余的
+                    if(!_current_job.PreInstJob)
+                    {
+                        var err = _gobj_pool.PopInst(_current_job.Path.Path, out _current_job.InstId);
+                        if (err == EResError.OK)
+                        {
+                            _res_pool.RemoveUser(_current_job.Path, _current_job, out _);
+                            _msg_queue.SendJobNext(_current_job);
+                            _current_job = null;
+                            continue;
+                        }
+                    }
+                   
 
-                    //4. 真正的实例化第一步
+                    //5. 真正的实例化第一步
                     _obj_inst = GameObjectPoolUtil.InstNew(_current_job.Path.Path, prefab);
-                    if (null != _obj_inst)
-                        continue;
-                    _current_job.ErrorCode = (EResError)EResError.GameObjectCreatorAsync_inst_error_unkown;
-                    ResLog._.Assert(false, "实例化的时候， 未知错误 {0}", _current_job.Path.Path);
+                    if (null == _obj_inst)
+                    {
+                        _current_job.ErrorCode = (EResError)EResError.GameObjectCreatorAsync_inst_error_unkown;
+                        ResLog._.Assert(false, "实例化的时候， 未知错误 {0}", _current_job.Path.Path);
 
-                    _res_pool.RemoveUser(_current_job.Path, _current_job, out ResId res_id);
-                    _msg_queue.SendJobNext(_current_job);
-                    _current_job = null;
+                        _res_pool.RemoveUser(_current_job.Path, _current_job, out ResId res_id);
+                        _msg_queue.SendJobNext(_current_job);
+                        _current_job = null;
+                    }
                     continue;
                 }
 
@@ -157,15 +167,15 @@ namespace FH.ResManagement
                     GameObjectPoolUtil.InstActive(inst);
 
                     //3. 添加到pool
-                    bool succ = _gobj_pool.AddInst(job.Path.Path, inst, out System.Object res_user, out var inst_id);
+                    bool succ = _gobj_pool.AddInst(job.Path.Path, job.ResId, inst, out System.Object res_user_for_inst, out job.InstId);
                     ResLog._.Assert(succ, "添加go inst 到 pool 失败 {0}", job.Path.Path);
                     //ResLog._.assert(ResConst.GetIdType(inst_id) == E_RES_TYPE.inst);
                     if (succ)
-                        _res_pool.AddUser(job.ResId.Id, res_user);
+                        _res_pool.AddUser(job.ResId, res_user_for_inst);
 
 
                     //4. 把当前任务发送给下一个
-                    _res_pool.RemoveUser(job.ResId.Id, job);
+                    _res_pool.RemoveUser(job.ResId, job);
                     _msg_queue.SendJobNext(job);
                 }
             }
@@ -207,7 +217,7 @@ namespace FH.ResManagement
                 }
 
                 //4. 找到资源，并检查资源                
-                UnityEngine.Object res = res_pool.GetRes(job.ResId.Id);
+                UnityEngine.Object res = res_pool.Get(job.ResId);
                 if (res == null)
                 {
                     ResLog._.Assert(false, "严重错误， 资源没有，不能实例化 {0}", job.Path.Path);

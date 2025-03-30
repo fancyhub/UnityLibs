@@ -45,6 +45,7 @@ namespace FH
             FH.TableMgr.Destroy();
             FH.ResMgr.Destroy();
             FH.VfsMgr.Destroy();
+            FH.BundleMgr.Destroy();
         }
 
         private string _AtlasTag2Path(string tag)

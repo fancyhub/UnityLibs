@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace FH
 {
-    public interface IResPool : ICPtr
+    public interface IResInstPool : ICPtr
     {
         EResError AddUser(ResId id, System.Object user);
         EResError RemoveUser(ResId id, System.Object user);
@@ -26,24 +26,38 @@ namespace FH
 
         public readonly ResId Id;
         public readonly string Path;
-        private readonly CPtr<IResPool> ResPool;
+        private readonly CPtr<IResInstPool> ResInstPool;
 
-        internal ResRef(ResId id, string path, IResPool pool) { this.Id = id; this.Path = path; this.ResPool = new CPtr<IResPool>(pool); }
+        internal ResRef(ResId id, string path, IResInstPool pool) { this.Id = id; this.Path = path; this.ResInstPool = new CPtr<IResInstPool>(pool); }
 
         /// <summary>
         /// 只是判断自己是否合法, 不判断 后面的 资源是否已经被释放
         /// </summary>
         public bool IsValid()
         {
-            if (ResPool.Null)
+            if (ResInstPool.Null)
                 return false;
             return Id.IsValid();
         }
 
-        public UnityEngine.Object Get() { return ResPool.Val?.Get(Id); }
-        public T Get<T>() where T : UnityEngine.Object { return ResPool.Val?.Get<T>(Id); }
-        public void AddUser(System.Object user) { if (Id.IsValid()) ResPool.Val?.AddUser(Id, user); }
-        public void RemoveUser(System.Object user) { if (Id.IsValid()) ResPool.Val?.RemoveUser(Id, user); }
+        public UnityEngine.Object Get() { return ResInstPool.Val?.Get(Id); }
+        public T Get<T>() where T : UnityEngine.Object { return ResInstPool.Val?.Get<T>(Id); }
+        public bool AddUser(System.Object user)
+        { 
+            if (ResInstPool.Val==null || !Id.IsValid()) 
+                return false;
+            if (ResInstPool.Val.AddUser(Id, user) == EResError.OK)
+                return true;
+            return false;
+        }
+        public bool RemoveUser(System.Object user) 
+        {
+            if (ResInstPool.Val == null || !Id.IsValid())
+                return false;
+            if (ResInstPool.Val.RemoveUser(Id, user) == EResError.OK)
+                return true;
+            return false;
+        }
 
         public override string ToString()
         {

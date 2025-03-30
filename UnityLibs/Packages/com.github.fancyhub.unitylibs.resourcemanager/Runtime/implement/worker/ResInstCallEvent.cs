@@ -14,6 +14,8 @@ namespace FH.ResManagement
     {
         #region  传入的    
         public ResMsgQueue _msg_queue;
+        public ResPool _res_pool;
+        public GameObjectInstPool _inst_pool;
         #endregion
 
         public void Init()
@@ -43,12 +45,12 @@ namespace FH.ResManagement
             ResLog._.ErrCode(job.ErrorCode,job.Path.Path);
             EResWoker job_type = job.GetCurrentWorker();
             if (job_type == EResWoker.call_inst_event)
-            {
-                job.EventInstCallBack.Call(job.JobId, job.ErrorCode, job.Path.Path);
+            {                
+                job.EventInstCallBack.Call(job.JobId, job.ErrorCode, new ResRef(job.InstId, job.Path.Path, _inst_pool));
             }
             else if (job_type == EResWoker.call_res_event)
             {
-                job.EventResCallBack.Call(job.JobId, job.ErrorCode, job.ResRef);
+                job.EventResCallBack.Call(job.JobId, job.ErrorCode, new ResRef(job.ResId, job.Path.Path, _res_pool));
             }
             else
             {

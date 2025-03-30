@@ -50,7 +50,7 @@ namespace FH.ResManagement
             }
 
             //5. 获取资源
-            UnityEngine.Object res = _res_pool.GetRes(job.ResId.Id);
+            UnityEngine.Object res = _res_pool.Get(job.ResId);
             if (null == res)
             {
                 ResLog._.Assert(false, "实例化的时候，资源不正常的销毁了 {0}", job.Path);
@@ -70,11 +70,10 @@ namespace FH.ResManagement
             }
 
             //6. 找一个free 的对象
-            EResError err = _gobj_pool.PopInst(job.Path.Path, this, out var inst_id);
+            EResError err = _gobj_pool.PopInst(job.Path.Path, out job.InstId);
             if (err == EResError.OK)
             {
                 //说明找到了
-                _gobj_pool.RemoveUser(inst_id, this);
                 _msg_queue.SendJobNext(job);
                 return;
             }
@@ -88,9 +87,9 @@ namespace FH.ResManagement
                 return;
             }
             GameObjectPoolUtil.InstActive(inst);
-            bool succ = _gobj_pool.AddInst(job.Path.Path, inst, out object user, out inst_id);
+            bool succ = _gobj_pool.AddInst(job.Path.Path, job.ResId, inst, out object inner_res_user, out job.InstId);
             ResLog._.Assert(succ, "严重错误 {0}", job.Path);
-            _res_pool.AddUser(job.ResId.Id, user);
+            _res_pool.AddUser(job.ResId, inner_res_user);
 
             _msg_queue.SendJobNext(job);
         }

@@ -34,7 +34,7 @@ namespace FH.ResManagement
 
         private HashSet<ResRef> _AllRes;
         public HolderStat _Stat = new HolderStat();
-        public bool _SyncLoadEnable;
+        public bool _OnlyFromCache;
         private IHolderCallBack _HolderCb;
         public CPtr<IResMgr> _ResMgr;
 
@@ -43,11 +43,11 @@ namespace FH.ResManagement
             _AllRes = new HashSet<ResRef>(MyEqualityComparer<ResRef>.Default);
         }
 
-        internal static ResHolder Create(IResMgr res_mgr, bool sync_load_enable)
+        internal static ResHolder Create(IResMgr res_mgr, bool only_from_cache)
         {
             var ret = GPool.New<ResHolder>();
             ret._ResMgr = new CPtr<IResMgr>(res_mgr);
-            ret._SyncLoadEnable = sync_load_enable;
+            ret._OnlyFromCache = only_from_cache;
             return ret;
         }
 
@@ -60,7 +60,7 @@ namespace FH.ResManagement
             ResPath res_path = ResPath.Create(path, pathType);
 
             //1. 同步加载
-            EResError err = mgr.Load(path, pathType, _SyncLoadEnable, out var res_ref);
+            EResError err = mgr.Load(path, pathType, _OnlyFromCache, out var res_ref);
             ResLog._.ErrCode(err, path);
             if (err != EResError.OK)
                 return null;
@@ -96,7 +96,7 @@ namespace FH.ResManagement
 
             //3. 预加载
             _Stat.Total++;
-            EResError err = mgr.AsyncLoad(path, pathType, priority, _OnResLoaded, out int job_id);
+            EResError err = mgr.LoadAsync(path, pathType, priority, _OnResLoaded, out int job_id);
             ResLog._.ErrCode(err);
             if (err == EResError.OK)
             {

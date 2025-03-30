@@ -38,7 +38,6 @@ namespace FH.ResManagement
             ret.JobId = NextJobId;
             ret.Path = path;
             ret.Priority = priority;
-            ret.ResRef = new ResRef(ResId.Null, path.Path, null);
 
             _dict_job.Add(ret.JobId, ret);
             return ret;
@@ -70,7 +69,10 @@ namespace FH.ResManagement
             _dict_job.TryGetValue(job_id, out job);
             bool ret = _dict_job.Remove(job_id);
             if (ret)
-                job.Destroy();
+            {
+                if(!job.Immediately)
+                    job.Destroy();
+            }
             return ret;
         }
 

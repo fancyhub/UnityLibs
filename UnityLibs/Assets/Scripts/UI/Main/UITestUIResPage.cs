@@ -38,11 +38,17 @@ namespace Game
         private async Awaitable _TestAync()
         {
             System.Threading.CancellationTokenSource c = new System.Threading.CancellationTokenSource();
-            var a = ResMgr.AsyncCreate(UIButtonView.CPath, this, c.Token);
+            var a = ResMgr.AsyncCreate(UIButtonView.CPath,  c.Token);
             //c.Cancel();
             var p = await a;
             Debug.LogError("Done");
+            p.AddUser(this);
             p.Get<GameObject>().transform.SetParent(BaseView.SelfRoot.transform, false);
+
+
+            await TimerMgr.Wait(1000 * 5);
+
+            p.RemoveUser(this);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace FH.ResManagement
 {
     internal sealed class InstHolder : CPoolItemBase, IInstHolder
     {
-        private bool _AsyncLoadEnable;
+        private bool _OnlyFromCache;
         private bool _Share;
 
         private CPtr<IResMgr> _ResMgr;
@@ -25,10 +25,10 @@ namespace FH.ResManagement
         /// <summary>
         /// Share 描述的是, 实例对象被还回来之后, 是否放回到大池子里面, 还是留在 Holder里面, 也就是多个InstHolder在存续期间, 实例对象是否共享
         /// </summary>
-        internal static InstHolder Create(IResMgr res_mgr, bool sync_load_enable, bool share)
+        internal static InstHolder Create(IResMgr res_mgr, bool only_from_cache, bool share)
         {
             var ret = GPool.New<InstHolder>();
-            ret._AsyncLoadEnable = sync_load_enable;
+            ret._OnlyFromCache = only_from_cache;
             ret._ResMgr = new CPtr<IResMgr>(res_mgr);
             ret._Share = share;
             return ret;
@@ -73,17 +73,17 @@ namespace FH.ResManagement
             }
 
             //3. 从ResMgr里面获取
-            EResError err = res_mgr.Create(path, this, _AsyncLoadEnable, out ResRef res_ref);
+            EResError err = res_mgr.Create(path, this, _OnlyFromCache, out ResRef res_ref);
 
             if (err != EResError.OK)
             {
-                if (_AsyncLoadEnable)
+                if (_OnlyFromCache)
                 {
-                    ResLog._.ErrCode(err, $"创建实例失败,资源不存在 {path}");
+                    ResLog._.ErrCode(err, $"创建实例失败,因为只能从缓存里面创建, 可能资源未提前加载 {path}");
                 }
                 else 
                 {
-                    ResLog._.ErrCode(err, $"创建实例失败,因为只能从缓存里面创建, 可能资源未提前加载 {path}");
+                    ResLog._.ErrCode(err, $"创建实例失败,资源不存在 {path}");
                 }
             }
 
@@ -123,7 +123,7 @@ namespace FH.ResManagement
             _Stat.Total += count;
             for (int i = 0; i < count; i++)
             {
-                EResError err = res_mgr.AsyncCreate(path, priority, _OnInstCB, out int job_id);
+                EResError err = res_mgr.CreateAsync(path, priority, _OnInstCB, out int job_id);
                 ResLog._.ErrCode(err);
                 if (err == EResError.OK)
                 {
@@ -136,7 +136,7 @@ namespace FH.ResManagement
             }
         }
 
-        private void _OnInstCB(int job_id, EResError error, string path)
+        private void _OnInstCB(int job_id, EResError error, ResRef res_ref)
         {
             if (!_PreCreateDict.Remove(job_id, out int priority))
                 return;
@@ -155,25 +155,16 @@ namespace FH.ResManagement
                 _HolderCb?.OnHolderCallBack();
                 return;
             }
-
-            var err = res_mgr.TryCreate(path, this, out var res_ref);
-            if (err == EResError.OK)
+            
+            if(!res_ref.AddUser(this))
             {
-                _Stat.Succ++;
-                _FreeDict.Add(res_ref.Id.Id, res_ref);
+                _Stat.Fail++;
                 _HolderCb?.OnHolderCallBack();
                 return;
             }
 
-            err = res_mgr.AsyncCreate(path, priority, _OnInstCB, out job_id);
-            ResLog._.ErrCode(err);
-            if (err == EResError.OK)
-            {
-                _PreCreateDict.Add(job_id, priority);
-                return;
-            }
-
-            _Stat.Fail++;
+            _Stat.Succ++;
+            _FreeDict.Add(res_ref.Id.Id, res_ref);
             _HolderCb?.OnHolderCallBack();
         }
 

@@ -23,26 +23,28 @@ namespace FH.ResManagement
             _dict = new Dictionary<string, int>(C_CAP);
         }
 
-        public void AddOne(string path)
+        public int AddOne(string path)
         {
             int count = 0;
             _dict.TryGetValue(path, out count);
             count = count + 1;
             _dict[path] = count;
+            return count;
         }
 
-        public void RemoveOne(string path)
+        public int RemoveOne(string path)
         {
             int count = 0;
             bool succ = _dict.TryGetValue(path, out count);
             if (!succ)
-                return;
+                return 0;
 
             count--;
             if (count == 0)
                 _dict.Remove(path);
             else
                 _dict[path] = count;
+            return count;
         }
 
         public int GetCount(string path)

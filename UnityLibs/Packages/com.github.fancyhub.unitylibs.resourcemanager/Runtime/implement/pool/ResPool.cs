@@ -82,9 +82,13 @@ namespace FH.ResManagement
         }
     }
 
-    internal class ResPool
+    internal class ResPool : IResInstPool
     {
+
         public const int C_POOL_CAP = 1000;
+
+        private int ___ptr_ver = 0;
+        int ICPtr.PtrVer => ___ptr_ver;
 
         //Key: Inst Id 
         public Dictionary<int, ResPoolItem> _pool;
@@ -104,6 +108,7 @@ namespace FH.ResManagement
 
         public void Destroy()
         {
+            ___ptr_ver++;
             _pool.ExtFreeMembers();
             _lru_free_list.Clear();
             _path_2_index_dict.Clear();
@@ -168,7 +173,8 @@ namespace FH.ResManagement
                 return EResError.OK;
             return EResError.ResPool_res_not_exist_5;
         }
-
+       
+       
         public EResError AddRes(ResPath path, IResMgr.IExternalRef asset_ref, out ResId id)
         {
             //1. 检查
@@ -263,13 +269,13 @@ namespace FH.ResManagement
                 System.Type assetType = asset_ref.Asset.GetType();
                 for (var i = EResPathType.Default + 1; i < EResPathType.Max; i++)
                 {
-                    if(assetType == i.ExtResPathType2UnityType())
+                    if (assetType == i.ExtResPathType2UnityType())
                     {
                         var path_2 = ResPath.Create(path.Path, i);
                         ResLog._.D("{0} add res {1}", id.Id, path_2);
                         _path_2_index_dict.Add(path_2, id);
                     }
-                }                 
+                }
             }
             return EResError.OK;
         }
@@ -306,20 +312,31 @@ namespace FH.ResManagement
                 if (pool_val.GetPath(i, out var p1))
                     _path_2_index_dict.Remove(p1);
             }
+            ResLog._.D("{0} remove res, {1}", pool_val.ResId.Id, pool_val.Path);
             pool_val.Destroy();
             return EResError.OK;
         }
 
-        public UnityEngine.Object GetRes(int inst_id)
+        public UnityEngine.Object Get(ResId res_id)
         {
-            bool suc = _pool.TryGetValue(inst_id, out ResPoolItem pool_val);
+            bool suc = _pool.TryGetValue(res_id.Id, out ResPoolItem pool_val);
             if (!suc)
             {
-                ResLog._.Assert(false, "找不到资源 {0}", inst_id);
+                ResLog._.Assert(false, "找不到资源 {0}", res_id);
                 return null;
             }
-            ResLog._.Assert(pool_val.Asset != null, "资源为空 {0}", inst_id);
+            ResLog._.Assert(pool_val.Asset != null, "资源为空 {0}", res_id);
             return pool_val.Asset;
+        }
+
+        public T Get<T>(ResId id) where T : UnityEngine.Object
+        {
+            var obj = Get(id);
+            if (obj == null)
+                return null;
+            T ret = obj as T;
+            ResLog._.Assert(ret != null, "类型不对，当前类型 {0}, 你要的 {1}", obj.GetType(), typeof(T));
+            return ret;
         }
 
         public void GetLruFreeList(List<KeyValuePair<ResId, int>> out_list, bool asc, int max_count)
@@ -335,10 +352,10 @@ namespace FH.ResManagement
             if (err != EResError.OK)
                 return err;
 
-            return AddUser(out_res_id.Id, user);
+            return AddUser(out_res_id, user);
         }
 
-        public EResError AddUser(int inst_id, System.Object user)
+        public EResError AddUser(ResId res_id, System.Object user)
         {
             //1. 检查
             if (user == null)
@@ -347,7 +364,7 @@ namespace FH.ResManagement
             }
 
             //2. 根据id 找到poolval            
-            bool suc = _pool.TryGetValue(inst_id, out ResPoolItem pool_val);
+            bool suc = _pool.TryGetValue(res_id.Id, out ResPoolItem pool_val);
             if (!suc)
                 return EResError.ResPool_res_not_exist_3;
 
@@ -358,29 +375,29 @@ namespace FH.ResManagement
                 return EResError.ResPool_addusage_user_exist;
             }
             int user_count = pool_val.GetUserCount();
-            ResLog._.D("{0} IncResUseCount: {1} -> {2} {3}", inst_id, user_count - 1, user_count, pool_val.Path);
+            ResLog._.D("{0} IncResUseCount: {1} -> {2} {3}", res_id, user_count - 1, user_count, pool_val.Path);
             //4. 刷新lru，从里面删除
             _lru_free_list.Remove(pool_val.ResId, out int _);
             return EResError.OK;
         }
 
-        public EResError RemoveUser(ResPath path, System.Object user, out ResId out_res_id)
+        public EResError RemoveUser(ResPath path, System.Object user, out ResId res_id)
         {
             if (user == null)
             {
                 ResLog._.Assert(false, "RemoveUser User is null {0}", path);
-                out_res_id = ResId.Null;
+                res_id = ResId.Null;
                 return EResError.ResPool_user_null_1;
             }
 
-            EResError err = GetIdByPath(path, out out_res_id);
+            EResError err = GetIdByPath(path, out res_id);
             if (err != 0)
                 return EResError.ResPool_res_not_exist;
 
-            return RemoveUser(out_res_id.Id, user);
+            return RemoveUser(res_id, user);
         }
 
-        public EResError RemoveUser(int inst_id, System.Object user)
+        public EResError RemoveUser(ResId res_id, System.Object user)
         {
             //1. 检查
             if (user == null)
@@ -390,7 +407,7 @@ namespace FH.ResManagement
             }
 
             //2. 根据id 找到poolval            
-            bool suc = _pool.TryGetValue(inst_id, out ResPoolItem pool_val);
+            bool suc = _pool.TryGetValue(res_id.Id, out ResPoolItem pool_val);
             if (!suc)
             {
                 ResLog._.Assert(false, "严重错误，该对象找不到，可能被释放了");
@@ -405,7 +422,7 @@ namespace FH.ResManagement
 
             int user_count = pool_val.GetUserCount();
 
-            ResLog._.D("{0} DecResUseCount: {1} -> {2} {3}", inst_id, user_count + 1, user_count, pool_val.Path);
+            ResLog._.D("{0} DecResUseCount: {1} -> {2} {3}", res_id, user_count + 1, user_count, pool_val.Path);
 
             //4. 更新lru
             if (user_count == 0)

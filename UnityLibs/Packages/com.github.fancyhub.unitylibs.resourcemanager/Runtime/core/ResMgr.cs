@@ -8,11 +8,12 @@ using FH.ResManagement;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading;
-
 namespace FH
 {
+    using ResAwaitSource = AwaitableCompletionSource<(EResError error, ResRef res_ref)>;
+
     public delegate void ResEvent(int job_id, EResError error, ResRef res_ref);
-    public delegate void InstEvent(int job_id, EResError error, string path);
+    public delegate void InstEvent(int job_id, EResError error, ResRef res_ref);
     public interface IResDoneCallBack : ICPtr
     {
         public void OnResDoneCallback(int job_id, EResError error, ResRef res_ref);
@@ -20,7 +21,7 @@ namespace FH
 
     public interface IInstDoneCallBack : ICPtr
     {
-        public void OnResDoneCallback(int job_id, EResError error, string path);
+        public void OnResDoneCallback(int job_id, EResError error, ResRef res_ref);
     }
 
     public struct ResSnapShotItem
@@ -47,20 +48,18 @@ namespace FH
         public EAssetStatus GetAssetStatus(string path);
 
         #region Res
-        public EResError Load(string path, EResPathType pathType, bool enable_sync_load, out ResRef res_ref);
-        public EResError AsyncLoad(string path, EResPathType pathType, int priority, ResEvent cb, out int job_id);
-        public EResError AsyncLoad(string path, EResPathType pathType, int priority, IResDoneCallBack cb, out int job_id);
-        public EResError AsyncLoad(string path, EResPathType pathType, int priority, AwaitableCompletionSource<(EResError error, ResRef res_ref)> source, CancellationToken cancelToken);
+        public EResError Load(string path, EResPathType pathType, bool only_from_cache, out ResRef res_ref);
+        public EResError LoadAsync(string path, EResPathType pathType, int priority, ResEvent cb, out int job_id);
+        public EResError LoadAsync(string path, EResPathType pathType, int priority, IResDoneCallBack cb, out int job_id);
+        public EResError LoadAsync(string path, EResPathType pathType, int priority, ResAwaitSource source, CancellationToken cancelToken);
         public void ResSnapshot(ref List<ResSnapShotItem> out_snapshot);
         #endregion
 
         #region GameObject Inst
-        public EResError Create(string path, System.Object user, bool enable_sync_load, out ResRef res_ref);
-        public EResError AsyncCreate(string path, int priority, InstEvent cb, out int job_id);
-        public EResError AsyncCreate(string path, int priority, IInstDoneCallBack cb, out int job_id);
-        public EResError AsyncCreate(string path, int priority, AwaitableCompletionSource<EResError> source, CancellationToken cancelToken);
-
-        public EResError TryCreate(string path, System.Object user, out ResRef res_ref);
+        public EResError Create(string path, System.Object user, bool only_from_cache, out ResRef res_ref);
+        public EResError CreateAsync(string path, int priority, InstEvent cb, out int job_id);
+        public EResError CreateAsync(string path, int priority, IInstDoneCallBack cb, out int job_id);
+        public EResError CreateAsync(string path, int priority, ResAwaitSource source, CancellationToken cancelToken);
         #endregion
 
         #region 预实例化
@@ -127,10 +126,10 @@ namespace FH
         /// <summary>
         /// 创建一个Holder
         /// </summary>
-        /// <param name="sync_load_enable">是否允许同步加载</param>
+        /// <param name="only_from_cache">是否只从缓存里面加载</param>
         /// <param name="share_inst">实例对象是否在多个Holder之间共享</param>
         /// <returns></returns>
-        public static IResInstHolder CreateHolder(bool sync_load_enable, bool share_inst)
+        public static IResInstHolder CreateHolder(bool only_from_cache, bool share_inst)
         {
             IResMgr inst = _.Val;
             if (inst == null)
@@ -140,8 +139,8 @@ namespace FH
             }
 
             ResManagement.ResInstHolder ret = GPool.New<ResManagement.ResInstHolder>();
-            ret._res_holder = ResManagement.ResHolder.Create(inst, sync_load_enable);
-            ret._inst_holder = ResManagement.InstHolder.Create(inst, sync_load_enable, share_inst);
+            ret._res_holder = ResManagement.ResHolder.Create(inst, only_from_cache);
+            ret._inst_holder = ResManagement.InstHolder.Create(inst, only_from_cache, share_inst);
             ret._pre_inst_holder = ResManagement.PreInstHolder.Create(inst);
             return ret;
         }
@@ -161,7 +160,7 @@ namespace FH
             return res_ref;
         }
 
-        public static ResRef LoadSprite(string path, bool sync_load_enable = true)
+        public static ResRef LoadSprite(string path, bool only_from_cache = false)
         {
             IResMgr inst = _.Val;
             if (inst == null)
@@ -170,7 +169,7 @@ namespace FH
                 return default;
             }
 
-            var err = inst.Load(path, EResPathType.Sprite, sync_load_enable, out var res_ref);
+            var err = inst.Load(path, EResPathType.Sprite, only_from_cache, out var res_ref);
             ResManagement.ResLog._.ErrCode(err, path);
             return res_ref;
         }
@@ -190,7 +189,7 @@ namespace FH
             return res_ref;
         }
 
-        public static ResRef Load(string path, EResPathType pathType = EResPathType.Default, bool sync_load_enable = true)
+        public static ResRef Load(string path, EResPathType pathType = EResPathType.Default, bool only_from_cache = false)
         {
             IResMgr inst = _.Val;
             if (inst == null)
@@ -199,7 +198,7 @@ namespace FH
                 return default;
             }
 
-            var err = inst.Load(path, pathType, sync_load_enable, out var res_ref);
+            var err = inst.Load(path, pathType, only_from_cache, out var res_ref);
             ResManagement.ResLog._.ErrCode(err, path);
             return res_ref;
         }
@@ -214,7 +213,7 @@ namespace FH
                 return false;
             }
 
-            var err = inst.AsyncLoad(path, pathType, priority, cb, out job_id);
+            var err = inst.LoadAsync(path, pathType, priority, cb, out job_id);
             ResManagement.ResLog._.ErrCode(err, path);
             return err == EResError.OK;
         }
@@ -229,7 +228,7 @@ namespace FH
                 return false;
             }
 
-            var err = inst.AsyncLoad(path, pathType, priority, cb, out job_id);
+            var err = inst.LoadAsync(path, pathType, priority, cb, out job_id);
             ResManagement.ResLog._.ErrCode(err, path);
             return err == EResError.OK;
         }
@@ -245,7 +244,7 @@ namespace FH
 
             AwaitableCompletionSource<(EResError error, ResRef res_ref)> source = new AwaitableCompletionSource<(EResError error, ResRef res_ref)>();
 
-            var err = inst.AsyncLoad(path, pathType, priority, source, cancelToken);
+            var err = inst.LoadAsync(path, pathType, priority, source, cancelToken);
             ResManagement.ResLog._.ErrCode(err, path);
             if (err != EResError.OK)
                 return default(ResRef);
@@ -269,7 +268,7 @@ namespace FH
         #endregion
 
         #region GameObject Inst
-        public static ResRef Create(string path, System.Object user, bool sync_load_enable)
+        public static ResRef Create(string path, System.Object user, bool only_from_cache)
         {
             IResMgr inst = _.Val;
             if (inst == null)
@@ -277,7 +276,7 @@ namespace FH
                 ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return default;
             }
-            var err = inst.Create(path, user, sync_load_enable, out var res_ref);
+            var err = inst.Create(path, user, only_from_cache, out var res_ref);
             ResManagement.ResLog._.ErrCode(err, path);
             return res_ref;
         }
@@ -290,7 +289,7 @@ namespace FH
                 ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return false;
             }
-            var err = inst.AsyncCreate(path, priority, cb, out job_id);
+            var err = inst.CreateAsync(path, priority, cb, out job_id);
             ResManagement.ResLog._.ErrCode(err, path);
             return err == EResError.OK;
         }
@@ -304,12 +303,12 @@ namespace FH
                 ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return false;
             }
-            var err = inst.AsyncCreate(path, priority, cb, out job_id);
+            var err = inst.CreateAsync(path, priority, cb, out job_id);
             ResManagement.ResLog._.ErrCode(err, path);
             return err == EResError.OK;
         }
 
-        public static async Awaitable<ResRef> AsyncCreate(string path, System.Object user, CancellationToken cancelToken = default, int priority = ResDef.PriorityDefault)
+        public static async Awaitable<ResRef> AsyncCreate(string path, CancellationToken cancelToken = default, int priority = ResDef.PriorityDefault)
         {
             IResMgr inst = _.Val;
             if (inst == null)
@@ -318,41 +317,16 @@ namespace FH
                 return default(ResRef);
             }
 
-            for (int i = 0; i < 5; i++)
-            {
-                AwaitableCompletionSource<EResError> source = new AwaitableCompletionSource<EResError>();
-                var err = inst.AsyncCreate(path, priority, source, cancelToken);
-                ResManagement.ResLog._.ErrCode(err, path);
-                if (err != EResError.OK)
-                    return default(ResRef);
+            ResAwaitSource source = new ResAwaitSource();
+            var err = inst.CreateAsync(path, priority, source, cancelToken);
+            ResManagement.ResLog._.ErrCode(err, path);
+            if (err != EResError.OK)
+                return default(ResRef);
 
-                err = await source.Awaitable;
-                if (err != EResError.OK)
-                {
-                    ResManagement.ResLog._.ErrCode(err, path);
-                    return default(ResRef);
-                }
-
-                err = inst.TryCreate(path, user, out var res_ref);
-                ResManagement.ResLog._.ErrCode(err, path);
-                if (err == EResError.OK)
-                    return res_ref;
-            }
-
-            ResLog._.E("create failed ,retry max count, {0}", path);
-            return default(ResRef);
-        }
-
-        public static ResRef TryCreate(string path, System.Object user)
-        {
-            IResMgr inst = _.Val;
-            if (inst == null)
-            {
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
-                return default;
-            }
-            var err = inst.TryCreate(path, user, out var res_ref);
-            //Res.ResLog._.ErrCode(err, path);
+            var (err1, res_ref) = await source.Awaitable;
+            ResManagement.ResLog._.ErrCode(err, path);
+            if (err1 != EResError.OK)
+                return default(ResRef);
             return res_ref;
         }
         #endregion

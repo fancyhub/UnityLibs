@@ -94,7 +94,8 @@ namespace FH.ABManagement
 
             BundleLog.D("Bundle {0} Unload ", _Config.Name);
             _LoadStatus = EBundleLoadStatus.None;
-            this._AssetBundle.Unload(BundleDef.UnloadAllLoadedObjectsCurrent);
+            _AssetBundle.Unload(BundleDef.UnloadAllLoadedObjectsCurrent);
+            _AssetBundle = null;
             return _RefCount;
         }
 
@@ -288,6 +289,7 @@ namespace FH.ABManagement
             BundleLog.D("Bundle {0} Unload By DepRef", _Config.Name);
             _AssetBundle?.Unload(BundleDef.UnloadAllLoadedObjectsCurrent);
             _LoadStatus = EBundleLoadStatus.None;
+            _AssetBundle = null;
             return;
         }
     }

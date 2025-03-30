@@ -8,16 +8,14 @@ using UnityEngine.UI;
 namespace Game
 {
 
-    //PrefabPath:"Assets/Res/UI/Prefab/Upgrader.prefab", ParentPrefabPath:"", CsClassName:"UIUpgraderView", ParentCsClassName:"FH.UI.UIBaseView"
-    public partial class UIUpgraderView : FH.UI.UIBaseView
+    //PrefabPath:"Assets/Res/UI/Prefab/ExtractAsset.prefab", ParentPrefabPath:"", CsClassName:"UIExtractAssetView", ParentCsClassName:"FH.UI.UIBaseView"
+    public partial class UIExtractAssetView : FH.UI.UIBaseView
     {
-        public  const string CPath = "Assets/Res/UI/Prefab/Upgrader.prefab";
+        public  const string CPath = "Assets/Res/UI/Prefab/ExtractAsset.prefab";
 
-		public UnityEngine.RectTransform _Upgrader;
+		public UnityEngine.RectTransform _ExtractAsset;
 		public UnityEngine.UI.Text _LblDesc;
 		public UnityEngine.UI.Slider _progress;
-		public UIButtonView _BtnUpgrade;
-		public UIButtonView _BtnNext;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -25,15 +23,13 @@ namespace Game
         protected override void _AutoInit()
         {
             base._AutoInit();
-            var refs = _FindViewReference("Upgrader");
+            var refs = _FindViewReference("ExtractAsset");
             if (refs == null)
                 return;
 
-			_Upgrader = refs.GetComp<UnityEngine.RectTransform>("_Upgrader");
+			_ExtractAsset = refs.GetComp<UnityEngine.RectTransform>("_ExtractAsset");
 			_LblDesc = refs.GetComp<UnityEngine.UI.Text>("_LblDesc");
 			_progress = refs.GetComp<UnityEngine.UI.Slider>("_progress");
-			_BtnUpgrade = _CreateSub<UIButtonView>(refs.GetObj("_BtnUpgrade"));
-			_BtnNext = _CreateSub<UIButtonView>(refs.GetObj("_BtnNext"));
 
         }
 
@@ -41,8 +37,6 @@ namespace Game
         {
             base._AutoDestroy();
 
-			_BtnUpgrade.Destroy();
-			_BtnNext.Destroy();
 
         }
 

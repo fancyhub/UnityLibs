@@ -10,93 +10,308 @@ using System.Collections.Generic;
 
 namespace FH.ResManagement
 {
-    internal sealed class GameObjectInstItem : UserRefCounter, IPoolItem, IDestroyable
+    internal struct GameObjInstUser
     {
-        public static IPool<GameObjectInstItem> S_Pool = GPool.CreatePool<GameObjectInstItem>();
+#if UNITY_EDITOR
+        public System.Object _user;
+#endif
+        public bool _in_use;
 
-        private IPool ___pool = null;
-        private bool ___in_pool = false;
-        IPool IPoolItem.Pool { get => ___pool; set => ___pool = value; }
-        bool IPoolItem.InPool { get => ___in_pool; set => ___in_pool = value; }
+        public bool AddUser(System.Object user)
+        {
+            if (user == null)
+                return false;
+            if (_in_use)
+                return false;
+            _in_use = true;
+
+#if UNITY_EDITOR
+            _user = user;
+#endif
+            return true;
+        }
+
+        public bool RemoveUser(System.Object user)
+        {
+            if (user == null)
+                return false;
+            if (!_in_use)
+                return false;
+#if UNITY_EDITOR
+            if (_user != user)
+            {
+                ResLog._.Assert(false, "移除的user和当前user 不相等");
+                return false;
+            }
+#endif
+            _in_use = false;
+            return true;
+        }
+    }
+
+    internal enum EGameObjInstStatus
+    {
+        Free,
+        InUse,
+        WaitForUse,
+    }
+
+    internal sealed class GameObjectInstItem : CPoolItemBase
+    {
+        public const int C_WAIT_FOR_USE_FRAME = 2;
 
         public string _path;
-        public UnityEngine.GameObject _inst;
+        public ResId _res_id;
+        public ResId _inst_id;
+        public UnityEngine.GameObject _unity_inst;
+        public GameObjInstUser _user;
+        public bool _wait_for_use;
+        public int _wait_for_use_frame_expire;
 
         public GameObjectInstItem()
         {
         }
         public static GameObjectInstItem Create(
             string path,
+            ResId res_id,
             UnityEngine.GameObject inst)
         {
-            var ret = S_Pool.New();
+            var ret = GPool.New<GameObjectInstItem>();
             ret._path = path;
-            ret._inst = inst;
+            ret._res_id = res_id;
+            ret._unity_inst = inst;
+            ret._user = default;
+            ret._inst_id = new ResId(inst, EResType.Inst);
+            ret._wait_for_use_frame_expire = UnityEngine.Time.frameCount + C_WAIT_FOR_USE_FRAME;
+            ret._wait_for_use = true;
             return ret;
         }
 
-
-        public override void Destroy()
+        public bool MoveWait2Free()
         {
-            base.Destroy();
+            var old_status = Status;
+            if (old_status != EGameObjInstStatus.WaitForUse)
+            {
+                ResLog._.E("{0},当前不是Wait状态,{1}", _inst_id.Id, _path);
+                return false;
+            }
+
+            this._wait_for_use = false;
+            this._wait_for_use_frame_expire = int.MaxValue;
+            this._user = default;
+
+            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _path);
+            return true;
+        }
+
+        public bool MoveWait2Use(System.Object user)
+        {
+            var old_status = Status;
+            if (old_status != EGameObjInstStatus.WaitForUse)
+            {
+                ResLog._.E("{0},当前不是Wait状态,{1}, {2}", _inst_id.Id, old_status, _path);
+                return false;
+            }
+
+            if (!this._user.AddUser(user))
+            {
+                ResLog._.E("{0}, add user failed, {1},{2}", _inst_id.Id, old_status, _path);
+                return false;
+            }
+
+            this._wait_for_use = false;
+            this._wait_for_use_frame_expire = int.MaxValue;
+
+
+            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _path);
+            return true;
+        }
+
+        public bool MoveUse2Free(System.Object user)
+        {
+            var old_status = Status;
+            if (old_status != EGameObjInstStatus.InUse)
+            {
+                ResLog._.E("{0},当前不是Use状态,{1}, {2}", _inst_id.Id, old_status, _path);
+                return false;
+            }
+
+            if (!this._user.RemoveUser(user))
+            {
+                ResLog._.E("{0},remove user failed, {1},{2}", _inst_id.Id, old_status, _path);
+                return false;
+            }
+
+            this._wait_for_use = false;
+            this._wait_for_use_frame_expire = int.MaxValue;
+
+            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _path);
+            return true;
+        }
+
+        public bool MoveFree2Wait()
+        {
+            var old_status = Status;
+            if (old_status != EGameObjInstStatus.Free)
+            {
+                ResLog._.E("{0},当前不是free 状态,{1}, {2}", _inst_id.Id, old_status, _path);
+                return false;
+            }
+
+            this._wait_for_use = true;
+            this._wait_for_use_frame_expire = UnityEngine.Time.frameCount + C_WAIT_FOR_USE_FRAME;
+
+            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _path);
+            return true;
+        }
+
+        public bool IsInUse => _user._in_use;
+        public EGameObjInstStatus Status
+        {
+            get
+            {
+                if (_user._in_use)
+                    return EGameObjInstStatus.InUse;
+                if (_wait_for_use)
+                    return EGameObjInstStatus.WaitForUse;
+                return EGameObjInstStatus.Free;
+            }
+        }
+
+        protected override void OnPoolRelease()
+        {
             _path = null;
-            GoUtil.Destroy(ref _inst);
-            S_Pool.Del(this);
+            _user = default;
+            _wait_for_use = false;
+            _inst_id = default;
+
+            GoUtil.Destroy(ref _unity_inst);
         }
     }
 
-    internal class GameObjectInstPool
+    internal class GameObjectInstPool : IResInstPool
     {
         public const int C_POOL_CAP = 1000;
+        private int ___ptr_ver = 0;
+        int ICPtr.PtrVer => ___ptr_ver;
 
-        public Dictionary<ResId, GameObjectInstItem> _pool;
+
+        public Dictionary<int, GameObjectInstItem> _all;
+        public LinkedList<CPtr<GameObjectInstItem>> _wait_for_use;
         public LruList<ResId, int> _lru_free_list;
         public One2MultiMap<string, ResId> _index_by_path; //free pool
         public GameObjectStat _stat;
 
         public GameObjectInstPool(GameObjectStat stat)
         {
-            _pool = new Dictionary<ResId, GameObjectInstItem>(C_POOL_CAP, new ResId());
+            _all = new Dictionary<int, GameObjectInstItem>(C_POOL_CAP);
+            _wait_for_use = new();
             _lru_free_list = new LruList<ResId, int>();
             _index_by_path = new One2MultiMap<string, ResId>();
             _stat = stat;
         }
 
-        public bool AddInst(string path, UnityEngine.GameObject obj, out System.Object res_user, out ResId id)
+        public bool AddInst(string path, ResId res_id, UnityEngine.GameObject obj, out System.Object res_user, out ResId inst_id)
         {
             //1. 检查
             if (string.IsNullOrEmpty(path) || obj == null)
             {
                 ResLog._.Assert(!string.IsNullOrEmpty(path), "path is null {0}", path);
                 ResLog._.Assert(obj != null, "实例不能为空 {0}", path);
-                id = ResId.Null;
+                inst_id = ResId.Null;
                 res_user = null;
                 return false;
             }
 
-            id = new ResId(obj, EResType.Inst);
+            inst_id = new ResId(obj, EResType.Inst);
 
             //3. 创建poolval
 
-            GameObjectInstItem pool_val = GameObjectInstItem.Create(path, obj);
+            GameObjectInstItem pool_val = GameObjectInstItem.Create(path, res_id, obj);
 
             //4. 向各个pool里面添加
-            _stat.AddOne(path);
-            _pool.Add(id, pool_val);
-            _index_by_path.Add(path, id);
-            _lru_free_list.Set(id, UnityEngine.Time.frameCount);
+            int count = _stat.AddOne(path);
+            _all.Add(inst_id.Id, pool_val);
+            _wait_for_use.ExtAddLast(pool_val);
             res_user = pool_val;
-            ResLog._.D("{0} add inst {1}", id.Id, path);
+            ResLog._.D("{0} InstCreate {1},Count:{2} {3}", inst_id.Id, pool_val.Status, count, path);
+            return true;
+        }
+
+        public void Update()
+        {
+            var now = UnityEngine.Time.frameCount;
+            var node = _wait_for_use.First;
+            for (; ; )
+            {
+                if (node == null)
+                    break;
+                var cur_node = node;
+                node = node.Next;
+
+                var item = cur_node.Value.Val;
+                if (item == null || item.Status != EGameObjInstStatus.WaitForUse)
+                {
+                    cur_node.ExtRemoveFromList();
+                    continue;
+                }
+
+                if (now <= item._wait_for_use_frame_expire)
+                    break;
+
+                if (item.MoveWait2Free())
+                {
+                    _index_by_path.Add(item._path, item._inst_id);
+                    _lru_free_list.Set(item._inst_id, now);
+                    cur_node.ExtRemoveFromList();
+                }
+            }
+        }
+
+        public bool RemoveInst(ResId inst_id, out string path)
+        {
+            //1. 先移除            
+            bool succ = _all.ExtRemove(inst_id.Id, out GameObjectInstItem pool_val);
+            if (!succ)
+            {
+                ResLog._.Assert(false, "移除实例失败 ");
+                path = null;
+                return false;
+            }
+
+            //2. 检查user            
+            path = pool_val._path;
+            var status = pool_val.Status;
+            if (status != EGameObjInstStatus.Free)
+            {
+                _all.Add(inst_id.Id, pool_val);
+                path = null;
+                ResLog._.Assert(false, "有人正在使用，不能移除 {0} {1}", inst_id.Id, path);
+                return false;
+            }
+
+
+            //3. 从 lru里面移除           
+            succ = _lru_free_list.Remove(inst_id, out int _);
+            ResLog._.Assert(succ, "从lru list 移除失败 {0} {1}", inst_id.Id, path);
+            succ = _index_by_path.RemoveVal(inst_id);
+            ResLog._.Assert(succ, "从 index_by_path 移除失败 {0} {1}", inst_id.Id, path);
+
+            //4. 获取参数
+            pool_val.Destroy();
+            int count = _stat.RemoveOne(path);
+            ResLog._.D("{0} InstDestroy, {1},Count:{2} {3}", inst_id.Id, status, count, path);
             return true;
         }
 
         public void Destroy()
         {
-            _pool.ExtFreeMembers();
+            ___ptr_ver++;
+            _all.ExtFreeMembers();
             _lru_free_list.Clear();
             _index_by_path.Clear();
 
-            _pool = null;
+            _all = null;
             _lru_free_list = null;
             _index_by_path = null;
         }
@@ -106,9 +321,9 @@ namespace FH.ResManagement
             return _index_by_path.GetCount(path);
         }
 
-        public EResError GetInstPath(ResId id, out string path)
+        public EResError GetInstPath(ResId inst_id, out string path)
         {
-            bool succ = _pool.TryGetValue(id, out GameObjectInstItem pool_val);
+            bool succ = _all.TryGetValue(inst_id.Id, out GameObjectInstItem pool_val);
             if (!succ)
             {
                 path = null;
@@ -122,100 +337,76 @@ namespace FH.ResManagement
             ResId inst_id
             , out string path
             , out UnityEngine.GameObject inst
-            , out int ref_count
-            , out System.Object user)
+            , out EGameObjInstStatus status
+            , out System.Object res_user_for_inst)
         {
-            bool succ = _pool.TryGetValue(inst_id, out GameObjectInstItem pool_val);
+            bool succ = _all.TryGetValue(inst_id.Id, out GameObjectInstItem pool_val);
             if (!succ)
             {
-                user = null;
+                res_user_for_inst = null;
                 path = null;
                 inst = null;
-                ref_count = 0;
+                status = EGameObjInstStatus.Free;
                 return false;
             }
 
-            user = pool_val;
-            inst = pool_val._inst;
+            res_user_for_inst = pool_val;
+            inst = pool_val._unity_inst;
             path = pool_val._path;
-            ref_count = pool_val.GetUserCount();
+            status = pool_val.Status;
             return true;
         }
 
-        public bool RemoveInst(ResId id, out string path)
+        public UnityEngine.Object Get(ResId inst_id)
         {
-            //1. 先移除            
-            bool succ = _pool.ExtRemove(id, out GameObjectInstItem pool_val);
-            if (!succ)
-            {
-                ResLog._.Assert(false, "移除实例失败 ");
-                path = null;
-                return false;
-            }
-
-            //2. 检查user            
-            path = pool_val._path;
-            if (pool_val.GetUserCount() > 0)
-            {
-                _pool.Add(id, pool_val);
-                path = null;
-                ResLog._.Assert(false, "有人正在使用，不能移除 {0} {1}", id.Id, path);
-                return false;
-            }
-
-            //3. 从 lru里面移除
-            succ = _lru_free_list.Remove(id, out int _);
-            ResLog._.Assert(succ, "从lru list 移除失败 {0} {1}", id.Id, path);
-            succ = _index_by_path.RemoveVal(id);
-            ResLog._.Assert(succ, "从 index_by_path 移除失败 {0} {1}", id.Id, path);
-
-            //4. 获取参数
-            pool_val.Destroy();
-            _stat.RemoveOne(path);
-            return true;
+            return GetInst(inst_id, true);
         }
 
-        public UnityEngine.GameObject GetInst(ResId id, bool check_user)
+        public T Get<T>(ResId inst_id) where T : UnityEngine.Object
         {
-            bool suc = _pool.TryGetValue(id, out GameObjectInstItem pool_val);
+            var obj = GetInst(inst_id, true);
+            if (obj == null)
+                return null;
+            T ret = obj as T;
+            ResLog._.Assert(ret != null, "类型不对，当前类型 {0}, 你要的 {1}", obj.GetType(), typeof(T));
+            return ret;
+        }
+
+        public UnityEngine.GameObject GetInst(ResId inst_id, bool check_user)
+        {
+            bool suc = _all.TryGetValue(inst_id.Id, out GameObjectInstItem pool_val);
             if (!suc)
             {
-                ResLog._.Assert(false, "该对象已经被释放了，需要外面持有引用 {0}", id.Id);
+                ResLog._.Assert(false, "该对象已经被释放了，需要外面持有引用 {0}", inst_id.Id);
                 return null;
             }
 
             if (check_user)
             {
-                if (pool_val.GetUserCount() == 0)
+                if (pool_val.Status != EGameObjInstStatus.InUse)
                 {
-                    ResLog._.Assert(false, "该对象已经回收了，需要外面持有引用 {0} {1}", id.Id, pool_val._path);
+                    ResLog._.Assert(false, "该对象没有user，需要外面持有引用 {0} {1} {2}", inst_id.Id, pool_val.Status, pool_val._path);
                     return null;
                 }
             }
 
-            return pool_val._inst;
+            return pool_val._unity_inst;
         }
 
-        public EResError PopInst(string path, System.Object user, out ResId id)
+        public EResError PopInst(string path, out ResId inst_id)
         {
             //1. 检查参数
             if (string.IsNullOrEmpty(path))
             {
                 ResLog._.Assert(!string.IsNullOrEmpty(path), "路径不能为空");
-                id = ResId.Null;
+                inst_id = ResId.Null;
                 return (EResError)EResError.GameObjectInstPool_path_null_1;
-            }
-            if (user == null)
-            {
-                ResLog._.Assert(user != null, "user 不能为空 {0}", path);
-                id = ResId.Null;
-                return (EResError)EResError.GameObjectInstPool_user_null_2;
             }
 
             for (; ; )
             {
                 //2. 从free的pool里面弹出一个
-                bool suc = _index_by_path.ExtPop(path, out id);
+                bool suc = _index_by_path.ExtPop(path, out inst_id);
                 if (!suc)
                 {
                     //不报错误了，因为是可能的
@@ -223,30 +414,29 @@ namespace FH.ResManagement
                 }
 
                 //3. 设置user                
-                suc = _pool.TryGetValue(id, out GameObjectInstItem pool_val);
+                suc = _all.TryGetValue(inst_id.Id, out GameObjectInstItem pool_val);
                 ResLog._.Assert(suc, "获取失败 {0}", path);
-                ResLog._.Assert(pool_val.GetUserCount() == 0, "错误，有对象的使用情况不一致 {0}", path);
-                if (pool_val._inst == null)
+                ResLog._.Assert(pool_val.Status == EGameObjInstStatus.Free, "错误，有对象的使用情况不一致 {0},{1}", path, pool_val.Status);
+                if (pool_val._unity_inst == null)
                 {
                     //等待GC 来销毁
-                    ResLog._.Assert(false, "有对象不正常的被销毁了 {0} {1}", id.Id, path);
+                    ResLog._.Assert(false, "有对象不正常的被销毁了 {0} {1}", inst_id.Id, path);
                     continue;
                 }
-                pool_val._inst.transform.SetLocalPositionAndRotation(UnityEngine.Vector3.zero, UnityEngine.Quaternion.identity);
-                pool_val._inst.transform.localScale = UnityEngine.Vector3.one;
 
-                pool_val.AddUser(user);
-                int user_count = pool_val.GetUserCount();
-                ResLog._.D("{0} PopInst: {1} -> {2} {3}", id.Id, user_count - 1, user_count, path);
+                if (!pool_val.MoveFree2Wait())
+                    continue;
 
                 //4. 从lru里面移除
-                _lru_free_list.Remove(id, out int _);
+                _wait_for_use.ExtAddLast(pool_val);
+                _lru_free_list.Remove(inst_id, out int _);
+
                 break;
             }
             return EResError.OK;
         }
 
-        public EResError AddUsage(ResId id, System.Object user)
+        public EResError AddUser(ResId inst_id, System.Object user)
         {
             //1. 检查参数
             if (user == null)
@@ -256,7 +446,7 @@ namespace FH.ResManagement
             }
 
             //2. 找到            
-            bool suc = _pool.TryGetValue(id, out GameObjectInstItem pool_val);
+            bool suc = _all.TryGetValue(inst_id.Id, out GameObjectInstItem pool_val);
             if (!suc)
             {
                 ResLog._.Assert(false, "找不到对应的实例");
@@ -264,25 +454,19 @@ namespace FH.ResManagement
             }
 
             //3. 判断user list 是否合法
-            string path = pool_val._path;
-            if (pool_val.GetUserCount() == 0)
+            if (!pool_val.MoveWait2Use(user))
             {
-                ResLog._.Assert(false, "不能对未pop的对象使用 add inst usage {0}", path);
-                return (EResError)EResError.GameObjectInstPool_user_count_zero;
+                return (EResError)EResError.GameObjectInstPool_canot_add_user_2_nowait_inst;
             }
 
-            if (!pool_val.AddUser(user))
-            {
-                ResLog._.Assert(false, "add inst usage 不能 添加相同的user 两次{0}", path);
-                return (EResError)EResError.GameObjectInstPool_user_already_exist;
-            }
 
-            int user_count = pool_val.GetUserCount();
-            ResLog._.D("{0} IncInstUseCount: {1} -> {2} {3}", id.Id, user_count - 1, user_count, path);
+            pool_val._unity_inst.transform.SetLocalPositionAndRotation(UnityEngine.Vector3.zero, UnityEngine.Quaternion.identity);
+            pool_val._unity_inst.transform.localScale = UnityEngine.Vector3.one;
+
             return EResError.OK;
         }
 
-        public EResError RemoveUser(ResId id, System.Object user)
+        public EResError RemoveUser(ResId inst_id, System.Object user)
         {
             //1. 检查参数
             if (user == null)
@@ -292,35 +476,21 @@ namespace FH.ResManagement
             }
 
             //2. 找到            
-            bool suc = _pool.TryGetValue(id, out GameObjectInstItem pool_val);
+            bool suc = _all.TryGetValue(inst_id.Id, out GameObjectInstItem pool_val);
             if (!suc)
             {
                 ResLog._.Assert(false, "找不到对应的实例");
                 return (EResError)EResError.GameObjectInstPool_pool_val_not_found_2;
             }
 
-            //3. 判断user 是否相同            
-            string path = pool_val._path;
-            if (!pool_val.RemoveUser(user))
+            //3.  移到free
+            if (!pool_val.MoveUse2Free(user))
             {
-                if (pool_val.GetUserCount() == 0)
-                    ResLog._.Assert(false, "该对象已经被回收了，不能回收两次 {0}", path);
-                else
-                    ResLog._.Assert(false, "使用者不一样 {0}", path);
                 return (EResError)EResError.GameObjectInstPool_user_remove_twice;
             }
-
-            int user_count = pool_val.GetUserCount();
-            ResLog._.D("{0} DecInstUseCount: {1} -> {2} {3}", id.Id, user_count + 1, user_count, path);
-
-            //4. 如果不是最后一个使用者
-            if (user_count > 0)
-                return EResError.OK;
-
-            //5. 移除
-            GameObjectPoolUtil.Push2Pool(pool_val._inst);
-            _index_by_path.Add(path, id);
-            _lru_free_list.Set(id, UnityEngine.Time.frameCount);
+            GameObjectPoolUtil.Push2Pool(pool_val._unity_inst);
+            _index_by_path.Add(pool_val._path, inst_id);
+            _lru_free_list.Set(inst_id, UnityEngine.Time.frameCount);
             return EResError.OK;
         }
 

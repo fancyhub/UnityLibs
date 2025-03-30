@@ -81,7 +81,7 @@ namespace FH.ResManagement
                     res_id
                     , out string path
                     , out UnityEngine.GameObject inst
-                    , out int user_count
+                    , out _
                     , out System.Object user);
                 if (!suc1)
                 {

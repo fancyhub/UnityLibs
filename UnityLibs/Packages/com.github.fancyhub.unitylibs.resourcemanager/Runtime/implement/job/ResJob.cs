@@ -110,7 +110,7 @@ namespace FH.ResManagement
         public int Type;
         public InstEvent Action;
         public CPtr<IInstDoneCallBack> Target;
-        public AwaitableCompletionSource<EResError> AwaitSource;
+        public AwaitableCompletionSource<(EResError error, ResRef res_ref)> AwaitSource;
         public CancellationToken CancelToken;
 
         public bool IsValid => Type != 0;
@@ -146,7 +146,7 @@ namespace FH.ResManagement
             return ret;
         }
 
-        public static InstDoneEvent Create(AwaitableCompletionSource<EResError> source, CancellationToken token)
+        public static InstDoneEvent Create(AwaitableCompletionSource<(EResError error, ResRef res_ref)> source, CancellationToken token)
         {
             if (source == null)
                 return default;
@@ -161,20 +161,20 @@ namespace FH.ResManagement
             return ret;
         }
 
-        public void Call(int job_id, EResError error, string path)
+        public void Call(int job_id, EResError error, ResRef res_ref)
         {
             try
             {
                 switch (Type)
                 {
                     case 1:
-                        Action(job_id, error, path);
+                        Action(job_id, error, res_ref);
                         break;
                     case 2:
-                        Target.Val?.OnResDoneCallback(job_id, error, path);
+                        Target.Val?.OnResDoneCallback(job_id, error, res_ref);
                         break;
                     case 3:
-                        this.AwaitSource.TrySetResult(error);
+                        this.AwaitSource.TrySetResult((error,res_ref));
                         break;
                 }
             }
@@ -193,9 +193,11 @@ namespace FH.ResManagement
         public int Priority;
         public EResError ErrorCode;
         public bool Immediately = false;
+        public bool PreInstJob = false;
 
         public ResId ResId;
-        public ResRef ResRef;
+        public ResId InstId;
+
 
 
         public ResDoneEvent EventResCallBack;
@@ -269,14 +271,16 @@ namespace FH.ResManagement
             _done_workers.ExtClear();
 
             ResId = ResId.Null;
+            InstId = ResId.Null;
+
             EventResCallBack = default;
             EventInstCallBack = default;
 
+            PreInstJob = false;
             JobId = 0;
             Priority = 0;
             _IsCancelled = false;
-            ErrorCode = EResError.OK;
-            ResRef = default;
+            ErrorCode = EResError.OK;            
         }
     }
 }
