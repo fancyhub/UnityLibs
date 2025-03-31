@@ -10,6 +10,36 @@ using System.Collections.Generic;
 
 namespace FH
 {
+    public sealed class SceneMgrUpgradeOperation : UnityEngine.YieldInstruction
+    {
+        private int _total_count;
+        internal System.Func<(int remain_count, bool all_done)> FuncGetStat;
+        public SceneMgrUpgradeOperation(int total_count)
+        {
+            _total_count = total_count;
+        }
+
+        public bool IsDone
+        {
+            get
+            {
+                return FuncGetStat().all_done;
+            }
+        }
+        public float Progress
+        {
+            get
+            {
+                var (remain_count, all_done) = FuncGetStat();
+                if (all_done)
+                    return 1.0f;
+                if (_total_count <= 0)
+                    return 0.9f;
+                return System.Math.Clamp((float)((_total_count - remain_count) / (double)_total_count), 0, 0.99f);
+            }
+        }
+    }
+
     public partial interface ISceneMgr : ICPtr
     {
         public SceneRef LoadScene(string scene_path, UnityEngine.SceneManagement.LoadSceneMode loadMode);
@@ -17,11 +47,19 @@ namespace FH
         public void GetAllScenes(List<SceneRef> out_list);
 
         public void UnloadAll();
+
+
+        /// <summary>
+        /// 会阻止新的加载, 返回的operation 指示是否所有的异步加载都结束了
+        /// </summary>
+        public SceneMgrUpgradeOperation BeginUpgrade();
+        public void EndUpgrade(bool result);
     }
 
     public static class SceneMgr
     {
-        private static CPtr<ISceneMgr> _Inst;
+        private static CPtr<ISceneMgr> _;
+        public static ISceneMgr Inst => _.Val;
 
         public static void InitMgr(ISceneMgr.Config config, ISceneMgr.IExternalLoader external_loader)
         {
@@ -31,7 +69,7 @@ namespace FH
                 return;
             }
 
-            if (!_Inst.Null)
+            if (!_.Null)
             {
                 SceneLog._.E("SceneMgr 已经创建了");
                 return;
@@ -44,12 +82,12 @@ namespace FH
 
             SceneLog._ = TagLog.Create(SceneLog._.Tag, config.LogLvl);
             SceneMgrImplement mgr = new SceneMgrImplement(external_loader);
-            _Inst = new CPtr<ISceneMgr>(mgr);
+            _ = new CPtr<ISceneMgr>(mgr);
         }
 
         public static SceneRef LoadScene(string scene_path, UnityEngine.SceneManagement.LoadSceneMode loadMode)
         {
-            ISceneMgr mgr = _Inst.Val;
+            ISceneMgr mgr = _.Val;
             if (mgr == null)
             {
                 SceneLog._.E("SceneMgr is Null");
@@ -60,7 +98,7 @@ namespace FH
 
         public static void GetAllScenes(List<SceneRef> out_list)
         {
-            ISceneMgr mgr = _Inst.Val;
+            ISceneMgr mgr = _.Val;
             if (mgr == null)
             {
                 SceneLog._.E("SceneMgr is Null");
@@ -77,13 +115,13 @@ namespace FH
 
         public static void Update()
         {
-            ISceneMgr mgr = _Inst.Val;
+            ISceneMgr mgr = _.Val;
             mgr?.Update();
         }
 
         public static void Destroy()
         {
-            _Inst.Destroy();
+            _.Destroy();
         }
     }
 }

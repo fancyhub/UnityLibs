@@ -4,6 +4,7 @@ using System;
 
 namespace FH
 {
+
     public partial class ResService : MonoBehaviour
     {
         public enum EMode
@@ -12,21 +13,28 @@ namespace FH
             Bundle,
         }
 
-        public EMode Mode = EMode.AssetDatabase;
-        public string AtlasPathFormater = "Assets/Res/UI/Atlas/{0}.spriteatlasv2";
-        public FH.IFileMgr.Config FileMgrConfig;
-        public FH.IBundleMgr.Config BundleMgrConfig;
-        public FH.IResMgr.Config ResMgrConfig;
-        public FH.ISceneMgr.Config SceneMgrConfig;
-        public FH.IVfsMgr.Config VfsMgrConfig;
-        public FH.VFSManagement.Builder.BuilderConfig VfsBuilderConfig;
-        public FH.IFileDownloadMgr.Config FileDownloadMgrConfig;
-        public ELogLvl TableLogLvl = ELogLvl.Info;
-        public ELogLvl LocLogLvl = ELogLvl.Info;
+        [Serializable]
+        public class ResServiceConfig
+        {
+            public EMode Mode = EMode.AssetDatabase;
+            public string AtlasPathFormater = "Assets/Res/UI/Atlas/{0}.spriteatlasv2";
+            public FH.IFileMgr.Config FileMgrConfig;
+            public FH.IBundleMgr.Config BundleMgrConfig;
+            public FH.IResMgr.Config ResMgrConfig;
+            public FH.ISceneMgr.Config SceneMgrConfig;
+            public FH.IVfsMgr.Config VfsMgrConfig;
+            public FH.VFSManagement.Builder.BuilderConfig VfsBuilderConfig;
+            public FH.IFileDownloadMgr.Config FileDownloadMgrConfig;
+            public ELogLvl TableLogLvl = ELogLvl.Info;
+            public ELogLvl LocLogLvl = ELogLvl.Info;
+        }
 
+        public ResServiceConfig Config;
+        private static ResServiceConfig GConfig;
 
         protected virtual void Awake()
         {
+            GConfig = Config;
             GameObject.DontDestroyOnLoad(gameObject);
             UnityEngine.Application.targetFrameRate = 30;
             StartCoroutine(_Init());
@@ -50,12 +58,12 @@ namespace FH
 
         private string _AtlasTag2Path(string tag)
         {
-            return string.Format(AtlasPathFormater, tag);
+            return string.Format(Config.AtlasPathFormater, tag);
         }
 
         private System.Collections.IEnumerator _Init()
         {
-            var mode = Mode;
+            var mode = Config.Mode;
             if (!Application.isEditor)
                 mode = EMode.Bundle;
 
@@ -67,19 +75,19 @@ namespace FH
             if (!extraOP.IsDone)
                 yield return extraOP;
 
-            _MountVfs(mode, VfsBuilderConfig);
-            TableMgr.Init(TableLogLvl, new VfsTableReaderBinCreator("Table/"));
-            LocMgr.InitLog(LocLogLvl);
+            _MountVfs(mode, Config.VfsBuilderConfig);
+            TableMgr.Init(Config.TableLogLvl, new VfsTableReaderBinCreator("Table/"));
+            LocMgr.InitLog(Config.LocLogLvl);
             LocMgr.FuncLoader = TableMgr.LoadTranslation;
         }
 
         private void _InitBase(EMode mode)
         {
             //FH.SAFileSystem.EdSetObbPath(@"E:\fancyHub\UnityLibs\UnityLibs\Bundle\Player\Android\split.main.obb");
-            FileMgr.InitMgr(FileMgrConfig, mode == EMode.AssetDatabase);
-            BundleMgr.InitMgr(BundleMgrConfig, new SampleExternalLoader.BundleExternalLoader_FileMgr(FileMgr.Inst, BundleManifest.DefaultFileName), mode == EMode.AssetDatabase);
+            FileMgr.InitMgr(Config.FileMgrConfig, mode == EMode.AssetDatabase);
+            BundleMgr.InitMgr(Config.BundleMgrConfig, new SampleExternalLoader.BundleExternalLoader_FileMgr(FileMgr.Inst, BundleManifest.DefaultFileName), mode == EMode.AssetDatabase);
 
-            FileDownloadMgr.Init(FileDownloadMgrConfig);
+            FileDownloadMgr.Init(Config.FileDownloadMgrConfig);
             FileDownloadMgr.SetCallBack(_OnFileDonwloaded);
 
             IResMgr.IExternalLoader res_loader = null;
@@ -102,9 +110,9 @@ namespace FH
                 scene_loader = new SampleExternalLoader.SceneExternalLoader_Bundle(BundleMgr.Inst);
             }
 
-            ResMgr.InitMgr(ResMgrConfig, res_loader);
-            SceneMgr.InitMgr(SceneMgrConfig, scene_loader);
-            VfsMgr.InitMgr(VfsMgrConfig);
+            ResMgr.InitMgr(Config.ResMgrConfig, res_loader);
+            SceneMgr.InitMgr(Config.SceneMgrConfig, scene_loader);
+            VfsMgr.InitMgr(Config.VfsMgrConfig);
         }
 
         private static void _MountVfs(EMode mode, VFSManagement.Builder.BuilderConfig config)

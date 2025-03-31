@@ -21,35 +21,7 @@ namespace FH.ABManagement
         public void Init(IBundleMgr.IExternalLoader external_loader, BundleManifest config)
         {
             _ExternalLoader = new CPtr<IBundleMgr.IExternalLoader>(external_loader);
-            _Config = config;
-
-            _BundleList = new List<Bundle>(config.BundleList.Length);
-            _AssetDict = new MyDict<string, Bundle>();
-
-            foreach (var p in config.BundleList)
-            {
-                Bundle b = new Bundle();
-                b._Config = p;
-                b._ExternalLoader = _ExternalLoader;
-                _BundleList.Add(b);
-
-                foreach (var a in p.GetAssets())
-                {
-                    _AssetDict.Add(a, b);
-                }
-            }
-
-            List<int> tempList = new List<int>();
-            for (int i = 0; i < config.BundleList.Length; i++)
-            {
-                config.GetAllDeps(i, tempList);
-
-                _BundleList[i]._AllDeps = new Bundle[tempList.Count];
-                for (int j = 0; j < tempList.Count; j++)
-                {
-                    _BundleList[i]._AllDeps[j] = _BundleList[tempList[j]];
-                }
-            }
+            _CreateBundles(config);
         }
 
 
@@ -86,7 +58,7 @@ namespace FH.ABManagement
 
             return loader.GetBundleFileStatus(bundle.Name);
         }
-         
+
         public void GetAllBundles(List<IBundle> bundles)
         {
             bundles.Clear();
@@ -123,6 +95,54 @@ namespace FH.ABManagement
             }
             _BundleList.Clear();
             _AssetDict.Clear();
+        }
+
+        public void Upgrade()
+        {
+            if (_ExternalLoader.Val == null)
+                return;
+            var new_manifest = _ExternalLoader.Val.LoadManifest();
+            if (new_manifest == null)
+                return;            
+
+            BundleDef.UnloadAllLoadedObjectsCurrent = false;
+            foreach (var p in _BundleList)
+                p.Destroy();
+            BundleDef.UnloadAllLoadedObjectsCurrent = BundleDef.UnloadAllLoadedObjectsDefault;
+
+            _CreateBundles(new_manifest);
+        }
+
+        private void _CreateBundles(BundleManifest config)
+        {
+            _Config = config;
+            _BundleList = new List<Bundle>(config.BundleList.Length);
+            _AssetDict = new MyDict<string, Bundle>();
+
+            foreach (var p in config.BundleList)
+            {
+                Bundle b = new Bundle();
+                b._Config = p;
+                b._ExternalLoader = _ExternalLoader;
+                _BundleList.Add(b);
+
+                foreach (var a in p.GetAssets())
+                {
+                    _AssetDict.Add(a, b);
+                }
+            }
+
+            List<int> tempList = new List<int>();
+            for (int i = 0; i < config.BundleList.Length; i++)
+            {
+                config.GetAllDeps(i, tempList);
+
+                _BundleList[i]._AllDeps = new Bundle[tempList.Count];
+                for (int j = 0; j < tempList.Count; j++)
+                {
+                    _BundleList[i]._AllDeps[j] = _BundleList[tempList[j]];
+                }
+            }
         }
     }
 }

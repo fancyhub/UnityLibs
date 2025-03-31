@@ -38,6 +38,7 @@ namespace FH.ResManagement
         public ResInstCallEvent _worker_res_cb;
         public GameObjectPreInst _worker_go_pre_inst;
         public ResMsgQueue _msg_queue;
+        public bool _in_upgrade = false;
 
         static ResMgrImplement()
         {
@@ -118,8 +119,9 @@ namespace FH.ResManagement
             _worker_res_async.Update();
             _worker_go_async.Update();
             _gc.Update();
-            _worker_go_pre_inst.Update();
 
+            if (!_in_upgrade)
+                _worker_go_pre_inst.Update();
         }
 
         public void Destroy()
@@ -342,6 +344,12 @@ namespace FH.ResManagement
         public EResError LoadAsync(string path, EResPathType pathType, int priority, ResDoneEvent resEvent, out int job_id)
         {
             //1. check
+            if (_in_upgrade)
+            {
+                job_id = 0;
+                ResLog._.Assert(false, "In upgrading");
+                return EResError.InUpgrading;
+            }
             if (string.IsNullOrEmpty(path))
             {
                 job_id = 0;
@@ -433,7 +441,7 @@ namespace FH.ResManagement
                 res_ref = default;
                 return err;
             }
-            res_ref = new ResRef(inst_id, path, _gobj_pool);             
+            res_ref = new ResRef(inst_id, path, _gobj_pool);
             return err;
         }
 
@@ -457,6 +465,12 @@ namespace FH.ResManagement
         public EResError CreateAsync(string path, int priority, InstDoneEvent instDoneEvent, out int job_id)
         {
             //1. check
+            if (_in_upgrade)
+            {
+                job_id = 0;
+                ResLog._.Assert(false, "In upgrading");
+                return EResError.InUpgrading;
+            }
             if (string.IsNullOrEmpty(path))
             {
                 ResLog._.Assert(false, "路径为空");
@@ -516,5 +530,36 @@ namespace FH.ResManagement
         {
             _job_db.CancelJob(job_id);
         }
+
+        #region upgrade
+        public ResMgrUpgradeOperation BeginUpgrade()
+        {
+            _in_upgrade = true;
+            var (total_count, _) = _GetAsyncJobs();
+            ResMgrUpgradeOperation ret = new ResMgrUpgradeOperation(total_count);
+            ret.FuncGetStat = _GetAsyncJobs;
+            return ret;
+        }
+
+        public void EndUpgrade(bool result)
+        {
+            _in_upgrade = false;
+
+            if (!result)
+                return;
+
+            _gobj_pool.OnUpgradeSucc();
+            _res_pool.OnUpgradeSucc();
+        }
+
+        private (int remain_count, bool all_done) _GetAsyncJobs()
+        {
+            int c = _job_db.GetCount();
+            if (c == 0)
+                return (0, true);
+            return (c, false);
+        }
+        #endregion
+
     }
 }

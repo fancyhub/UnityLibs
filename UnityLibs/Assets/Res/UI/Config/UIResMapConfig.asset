@@ -65,6 +65,9 @@ MonoBehaviour:
     - name: SceneItem
       dir: 
       ext: .prefab
+    - name: TestDeviceInfo
+      dir: 
+      ext: .prefab
     - name: TestLocalization
       dir: 
       ext: .prefab

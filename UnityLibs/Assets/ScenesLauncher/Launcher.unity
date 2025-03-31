@@ -354,43 +354,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce6d81fca33831c4f9a035f3176f03a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Mode: 0
-  AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
-  FileMgrConfig:
-    LogLvl: 1
-    BaseTags:
-    - base
-    AndroidExtractTag: android
-  BundleMgrConfig:
-    LogLvl: 0
-    UnloadAllLoadedObjects: 1
-  ResMgrConfig:
-    LogLevel: 0
-    MaxAsyncResLoaderSlot: 5
-    MaxAsyncGameObjectStep: 1
-    PreInst:
-      Priority: -1000
-      DefaultMaxCount: 5
-      Items:
-      - Path: Assets/Res/UI/Prefab/TestUIRes.prefab
-        MaxCount: 10
-    GC:
-      MaxResCountProcess: 20
-      ResWaitFrameCount: 329
-      MaxInstCountProcess: 40
-      InstWaitFrameCount: 10
-  SceneMgrConfig:
-    LogLvl: 0
-  VfsMgrConfig:
-    LogLvl: 1
-  VfsBuilderConfig: {fileID: 11400000, guid: 6391484e906e5344f8de151ba727b78c, type: 2}
-  FileDownloadMgrConfig:
-    LogLvl: 0
-    WorkerCount: 4
-    ServerUrl: http://10.21.76.68:5000/
-    MaxRetryCount: 3
-  TableLogLvl: 0
-  LocLogLvl: 0
+  Config:
+    Mode: 0
+    AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
+    FileMgrConfig:
+      LogLvl: 1
+      BaseTags:
+      - base
+      AndroidExtractTag: android
+    BundleMgrConfig:
+      LogLvl: 0
+      UnloadAllLoadedObjects: 1
+    ResMgrConfig:
+      LogLevel: 0
+      MaxAsyncResLoaderSlot: 5
+      MaxAsyncGameObjectStep: 1
+      PreInst:
+        Priority: -1000
+        DefaultMaxCount: 5
+        Items:
+        - Path: Assets/Res/UI/Prefab/TestUIRes.prefab
+          MaxCount: 10
+      GC:
+        MaxResCountProcess: 20
+        ResWaitFrameCount: 329
+        MaxInstCountProcess: 40
+        InstWaitFrameCount: 10
+    SceneMgrConfig:
+      LogLvl: 1
+    VfsMgrConfig:
+      LogLvl: 1
+    VfsBuilderConfig: {fileID: 11400000, guid: 6391484e906e5344f8de151ba727b78c, type: 2}
+    FileDownloadMgrConfig:
+      LogLvl: 0
+      WorkerCount: 4
+      ServerUrl: http://10.21.76.68:5000/
+      MaxRetryCount: 3
+    TableLogLvl: 0
+    LocLogLvl: 0
 --- !u!114 &1811144038
 MonoBehaviour:
   m_ObjectHideFlags: 0

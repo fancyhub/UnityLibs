@@ -114,7 +114,7 @@ namespace FH
     }
 
 
-    public interface IBundle
+    public interface IBundle : ICPtr
     {
         public string Name { get; }
 
@@ -136,9 +136,11 @@ namespace FH
 
         public IBundle FindBundleByAsset(string asset);
 
-        public IBundleMgr.EBundleFileStatus GetBundleStatus(IBundle bundle);
+        public EBundleFileStatus GetBundleStatus(IBundle bundle);
 
         public void GetAllBundles(List<IBundle> bundles);
+
+        public void Upgrade();
     }
 
     public static class BundleMgr

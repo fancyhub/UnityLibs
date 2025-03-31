@@ -28,6 +28,9 @@ namespace FH.ABManagement
 
     internal class Bundle : IBundle
     {
+        private int ___ptr_ver = 0;
+        int ICPtr.PtrVer => ___ptr_ver;
+
         public CPtr<IBundleMgr.IExternalLoader> _ExternalLoader;
         public BundleManifest.Item _Config;
         public Bundle[] _AllDeps;
@@ -92,10 +95,8 @@ namespace FH.ABManagement
                 return _RefCount;
             }
 
-            BundleLog.D("Bundle {0} Unload ", _Config.Name);
             _LoadStatus = EBundleLoadStatus.None;
-            _AssetBundle.Unload(BundleDef.UnloadAllLoadedObjectsCurrent);
-            _AssetBundle = null;
+            _Unload();
             return _RefCount;
         }
 
@@ -131,9 +132,23 @@ namespace FH.ABManagement
             return _AssetBundle.LoadAssetAsync(path, unityAssetType);
         }
 
+        public void Destroy()
+        {
+            ___ptr_ver++;
+            _Unload();
+        }
+
         internal void Dispose()
         {
-            _AssetBundle?.Unload(BundleDef.UnloadAllLoadedObjectsCurrent);
+            _Unload();
+        }
+
+        private void _Unload()
+        {
+            if (_AssetBundle == null)
+                return;
+            BundleLog.D("Bundle {0} Unload ", _Config.Name);
+            _AssetBundle.Unload(BundleDef.UnloadAllLoadedObjectsCurrent);
             _AssetBundle = null;
         }
 
@@ -287,9 +302,8 @@ namespace FH.ABManagement
                 return;
 
             BundleLog.D("Bundle {0} Unload By DepRef", _Config.Name);
-            _AssetBundle?.Unload(BundleDef.UnloadAllLoadedObjectsCurrent);
             _LoadStatus = EBundleLoadStatus.None;
-            _AssetBundle = null;
+            _Unload();
             return;
         }
     }

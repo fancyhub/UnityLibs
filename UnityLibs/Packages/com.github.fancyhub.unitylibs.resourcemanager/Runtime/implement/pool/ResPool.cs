@@ -465,5 +465,10 @@ namespace FH.ResManagement
             if (_lru_free_list.TryGetVal(res_id, out _))
                 _lru_free_list.Set(res_id, UnityEngine.Time.frameCount);
         }
+
+        public void OnUpgradeSucc()
+        {
+
+        }
     }
 }

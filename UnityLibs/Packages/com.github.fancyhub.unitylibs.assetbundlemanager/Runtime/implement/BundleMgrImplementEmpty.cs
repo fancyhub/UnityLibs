@@ -41,5 +41,9 @@ namespace FH.ABManagement
         protected override void OnRelease()
         {          
         }
+
+        public void Upgrade()
+        {
+        }
     }
 }

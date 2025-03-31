@@ -18,7 +18,8 @@ namespace FH
         Error = -1,
         PathNull = -2,
         ResMgrNotInit = -3,
-        UserCancelled=-4,
+        UserCancelled = -4,
+        InUpgrading = -5,
 
         ResPool_start = -1500,
         ResPool_res_null,

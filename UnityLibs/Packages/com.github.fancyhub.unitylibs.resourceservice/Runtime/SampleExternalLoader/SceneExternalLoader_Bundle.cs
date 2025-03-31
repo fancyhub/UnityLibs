@@ -47,7 +47,7 @@ namespace FH.SampleExternalLoader
         {
             public AsyncOperation _AsyncOperation;
             public string _SceneName;
-            public IBundle _Bundle;
+            public CPtr<IBundle> _Bundle;
 
             public AsyncOperation Load(LoadSceneParameters load_param)
             {
@@ -63,14 +63,14 @@ namespace FH.SampleExternalLoader
                     return null;
 
                 var ret = GPool.New<SceneRef>();
-                ret._Bundle = bundle;
+                ret._Bundle = new CPtr<IBundle>(bundle);
                 ret._SceneName = scene;
                 return ret;
             }
 
             protected override void OnPoolRelease()
             {
-                _Bundle?.DecRefCount();
+                _Bundle.Val?.DecRefCount();
                 _Bundle = null;
                 _AsyncOperation = null;
             }

@@ -40,6 +40,36 @@ namespace FH
         NotDownloaded,
     }
 
+    public sealed class ResMgrUpgradeOperation : UnityEngine.YieldInstruction
+    {
+        private int _total_count;
+        internal System.Func<(int remain_count, bool all_done)> FuncGetStat;
+        public ResMgrUpgradeOperation(int total_count)
+        {
+            _total_count = total_count;
+        }
+
+        public bool IsDone
+        {
+            get
+            {
+                return FuncGetStat().all_done;
+            }
+        }
+        public float Progress
+        {
+            get
+            {
+                var (remain_count, all_done) = FuncGetStat();
+                if (all_done)
+                    return 1.0f;
+                if (_total_count <= 0)
+                    return 0.9f;
+                return System.Math.Clamp((float)((_total_count - remain_count) / (double)_total_count), 0, 0.99f);
+            }
+        }
+    }
+
 
     public partial interface IResMgr : ICPtr
     {
@@ -65,16 +95,26 @@ namespace FH
         #region 预实例化
         public EResError ReqPreInst(string path, int count, out int req_id);
         public EResError CancelPreInst(int req_id);
-        #endregion  
-        
+        #endregion
+
         public void CancelJob(int job_id);
 
         public ResRef GetResRef(UnityEngine.Object res);
+
+        #region Upgrade
+        /// <summary>
+        /// 会阻止新的加载, 返回的operation 指示是否所有的异步加载都结束了
+        /// </summary>
+        public ResMgrUpgradeOperation BeginUpgrade();
+        public void EndUpgrade(bool result);
+        #endregion
     }
 
     public static class ResMgr
     {
         private static CPtr<IResMgr> _;
+
+        public static IResMgr Inst => _.Val;
 
         public static bool InitMgr(IResMgr.Config config, IResMgr.IExternalLoader external_loader)
         {

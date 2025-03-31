@@ -51,7 +51,7 @@ namespace FH.SampleExternalLoader
             public UnityEngine.Object _Asset;
             public AssetBundleRequest _ResRequest;
             public ResRefDB _ResRefDB;
-            public IBundle _Bundle;
+            public CPtr<IBundle> _Bundle;
 
             public bool IsDone
             {
@@ -76,7 +76,7 @@ namespace FH.SampleExternalLoader
                 AssetRef ret = GPool.New<AssetRef>();
                 ret._ResRefDB = res_ref_db;
                 ret._Asset = asset;
-                ret._Bundle = bundle;
+                ret._Bundle = new CPtr<IBundle>(bundle);
 
                 res_ref_db.IncRef(asset);
                 bundle.IncRefCount();
@@ -91,7 +91,7 @@ namespace FH.SampleExternalLoader
                 AssetRef ret = GPool.New<AssetRef>();
                 ret._ResRefDB = res_ref_db;
                 ret._ResRequest = req;
-                ret._Bundle = bundle;
+                ret._Bundle = new CPtr<IBundle>(bundle); 
                 bundle.IncRefCount();
                 return ret;
             }
@@ -103,7 +103,7 @@ namespace FH.SampleExternalLoader
                 _ResRequest = null;
                 if (_Asset == null)
                 {
-                    _Bundle?.DecRefCount();
+                    _Bundle.Val?.DecRefCount();
                     _Bundle = null;
                     _ResRefDB = null;
                     return;
@@ -125,7 +125,7 @@ namespace FH.SampleExternalLoader
                     }
                 }
 
-                bundle?.DecRefCount();
+                bundle.Val?.DecRefCount();
             }
         }
 

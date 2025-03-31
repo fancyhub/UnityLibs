@@ -29,6 +29,13 @@ namespace FH
             t.TableReaderCreator?.CloseReader();
         }
 
+        public static void ReloadAll()
+        {
+            if (_ == null)
+                return;
+            _.LoadAll(_._Lang, true);
+        }
+
         public void LoadAll(string lang = null, bool force_reload = false)
         {
             //先加载多语言

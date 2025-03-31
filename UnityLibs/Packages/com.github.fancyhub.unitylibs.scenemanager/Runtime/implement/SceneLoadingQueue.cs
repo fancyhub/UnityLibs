@@ -25,6 +25,13 @@ namespace FH.SceneManagement
             _LoadingQueue.Enqueue(item.SceneId);
         }
 
+        public int GetCount()
+        {
+            if (_CurrentLoading != 0)
+                return _LoadingQueue.Count + 1;
+            return _LoadingQueue.Count;
+        }
+
         public void Update()
         {
             SceneItem item = _Pool.Get(_CurrentLoading);

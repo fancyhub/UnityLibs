@@ -27,7 +27,7 @@ namespace FH.SceneManagement
             {
                 out_list.Add(new SceneRef(p.Key, p.Value));
             }
-        }
+        }        
 
 
         public void Update()

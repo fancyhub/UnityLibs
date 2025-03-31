@@ -66,6 +66,7 @@ namespace FH.ResManagement
         public GameObjInstUser _user;
         public bool _wait_for_use;
         public int _wait_for_use_frame_expire;
+        public bool _upgrade_flag; //更新之前的标记位
 
         public GameObjectInstItem()
         {
@@ -81,6 +82,7 @@ namespace FH.ResManagement
             ret._inst_id = new ResId(inst, EResType.Inst);
             ret._wait_for_use_frame_expire = UnityEngine.Time.frameCount + C_WAIT_FOR_USE_FRAME;
             ret._wait_for_use = true;
+            ret._upgrade_flag = false;
             return ret;
         }
 
@@ -522,6 +524,14 @@ namespace FH.ResManagement
         {
             if (_lru_free_list.TryGetVal(inst_id, out _))
                 _lru_free_list.Set(inst_id, UnityEngine.Time.frameCount);
+        }
+
+        public void OnUpgradeSucc()
+        {
+            foreach (var p in _all)
+            {
+                p.Value._upgrade_flag = true;
+            }
         }
     }
 }

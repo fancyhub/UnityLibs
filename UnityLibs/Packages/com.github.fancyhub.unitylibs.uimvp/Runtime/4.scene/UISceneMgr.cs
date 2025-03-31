@@ -72,6 +72,7 @@ namespace FH.UI
             _ = this;
             SceneMgrUpdater.CreateUpdater(_Update);
             _UpdaterMgr = new UIUpdaterMgr();
+            FH.UI.UIObjFinder.Show();
         }
 
         public virtual UISceneMgr Init()
