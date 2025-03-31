@@ -15,8 +15,10 @@ namespace Game
 
 		public UnityEngine.RectTransform _MainPanel;
 		public UIButtonView _BtnTestUIGroupDialog;
-		public UIButtonView _BtnTestLoadScene;
 		public UIButtonView _BtnTestPageAsync;
+		public UIButtonView _BtnTestLoadScene;
+		public UIButtonView _BtnTestDeviceInfo;
+		public UIButtonView _BtnLocalization;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -30,8 +32,10 @@ namespace Game
 
 			_MainPanel = refs.GetComp<UnityEngine.RectTransform>("_MainPanel");
 			_BtnTestUIGroupDialog = _CreateSub<UIButtonView>(refs.GetObj("_BtnTestUIGroupDialog"));
-			_BtnTestLoadScene = _CreateSub<UIButtonView>(refs.GetObj("_BtnTestLoadScene"));
 			_BtnTestPageAsync = _CreateSub<UIButtonView>(refs.GetObj("_BtnTestPageAsync"));
+			_BtnTestLoadScene = _CreateSub<UIButtonView>(refs.GetObj("_BtnTestLoadScene"));
+			_BtnTestDeviceInfo = _CreateSub<UIButtonView>(refs.GetObj("_BtnTestDeviceInfo"));
+			_BtnLocalization = _CreateSub<UIButtonView>(refs.GetObj("_BtnLocalization"));
 
         }
 
@@ -40,8 +44,10 @@ namespace Game
             base._AutoDestroy();
 
 			_BtnTestUIGroupDialog.Destroy();
-			_BtnTestLoadScene.Destroy();
 			_BtnTestPageAsync.Destroy();
+			_BtnTestLoadScene.Destroy();
+			_BtnTestDeviceInfo.Destroy();
+			_BtnLocalization.Destroy();
 
         }
 

@@ -15,6 +15,8 @@ namespace FH
     public sealed partial class LocMgr
     {
         public delegate List<(LocId key, string tran)> TranslationLoader(string lang);
+        public static Action EventLangChanged = _SampleNotify;
+
         private static LocMgr _ = new LocMgr();
 
         private Dictionary<LocId, string> _Translation;
@@ -115,6 +117,17 @@ namespace FH
             _Change(lang, trans);
         }
 
+        public static void NotiLangChanged(Canvas rootCanvas)
+        {
+            if (rootCanvas == null)
+                return;
+
+            rootCanvas = rootCanvas.rootCanvas;
+            if (!rootCanvas.ExtIsEnable())
+                return;
+            rootCanvas.BroadcastMessage(nameof(LocComp.DoLocalize), SendMessageOptions.DontRequireReceiver);
+        }
+
         private static void _Change(string lang, List<(LocId key, string tran)> all)
         {
             if (!LocLang.IsValid(lang))
@@ -142,7 +155,11 @@ namespace FH
         {
             if (!Application.isPlaying)
                 return;
+            EventLangChanged?.Invoke();          
+        }
 
+        private static void _SampleNotify()
+        {
             string func_name = nameof(LocComp.DoLocalize);
             for (int i = 0; i < SceneManager.sceneCount; i++)
             {
@@ -159,6 +176,8 @@ namespace FH
                 }
             }
         }
+
+
         #endregion
 
         #region Get

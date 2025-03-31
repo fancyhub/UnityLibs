@@ -48,8 +48,8 @@ public class UIViewTest : MonoBehaviour
 
     public void _DownloadFile()
     {
-        ResServiceUtil.DownloadFilesByAssets(new() { "Assets/Scenes/a.unity" });
-        ResServiceUtil.DownloadAllFiles();
+        ResService.DownloadFilesByAssets(new() { "Assets/Scenes/a.unity" });
+        ResService.DownloadAllFiles();
     }
 
     public void _OnOpenView()

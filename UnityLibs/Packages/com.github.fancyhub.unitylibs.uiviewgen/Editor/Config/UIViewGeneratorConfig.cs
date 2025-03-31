@@ -70,16 +70,17 @@ namespace FH.UI.ViewGenerate.Ed
 
         public List<string> PriorityCompTypeList = new List<string>()
         {
-            "UnityEngine.UI.Button",
+            "UnityEngine.RectTransform",
+            "UnityEngine.UI.Image",
+            "UnityEngine.UI.RawImage",
+            "UnityEngine.UI.Scrollbar",
+            "UnityEngine.UI.Text",
+            "UnityEngine.UI.ScrollRect",
+            "UnityEngine.UI.InputField",
             "UnityEngine.UI.Toggle",
             "UnityEngine.UI.Slider",
-            "UnityEngine.UI.InputField",
-            "UnityEngine.UI.ScrollRect",
-            "UnityEngine.UI.Text",
-            "UnityEngine.UI.Scrollbar",
-            "UnityEngine.UI.RawImage",
-            "UnityEngine.UI.Image",
-            "UnityEngine.RectTransform",
+            "UnityEngine.UI.Button",
+            "UnityEngine.UI.Dropdown",
         };
 
         public bool IsPrefabPathValid(string path)
@@ -138,9 +139,9 @@ namespace FH.UI.ViewGenerate.Ed
 
         public Component GetComponent(Transform target, Transform root)
         {
-            foreach (System.Type t in _PriorityCompTypeList)
+            for(int i=_PriorityCompTypeList.Count-1;i>=0;i--)
             {
-                Component obj = target.GetComponent(t);
+                Component obj = target.GetComponent(_PriorityCompTypeList[i]);
                 if (null != obj)
                     return obj;
             }
@@ -174,7 +175,7 @@ namespace FH.UI.ViewGenerate.Ed
 
 
             UnityEditor.TypeCache.TypeCollection sub_class_list = UnityEditor.TypeCache.GetTypesDerivedFrom<UnityEngine.Component>();
-            foreach (var p in PriorityCompTypeList)
+            foreach(var p in PriorityCompTypeList)
             {
                 bool found = false;
                 foreach (var type in sub_class_list)

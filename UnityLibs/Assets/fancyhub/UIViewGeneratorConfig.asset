@@ -23,14 +23,15 @@ MonoBehaviour:
   ResourcesFolderList:
   - Assets/Res/UI/Prefab
   PriorityCompTypeList:
-  - UnityEngine.UI.ToggleGroup
+  - UnityEngine.RectTransform
+  - UnityEngine.UI.Slider
+  - UnityEngine.UI.Image
+  - UnityEngine.UI.RawImage
+  - UnityEngine.UI.Text
+  - UnityEngine.UI.InputField
+  - UnityEngine.UI.Scrollbar
+  - UnityEngine.UI.ScrollRect
   - UnityEngine.UI.Button
   - UnityEngine.UI.Toggle
-  - UnityEngine.UI.Slider
-  - UnityEngine.UI.InputField
-  - UnityEngine.UI.ScrollRect
-  - UnityEngine.UI.Text
-  - UnityEngine.UI.Scrollbar
-  - UnityEngine.UI.RawImage
-  - UnityEngine.UI.Image
-  - UnityEngine.RectTransform
+  - UnityEngine.UI.ToggleGroup
+  - UnityEngine.UI.Dropdown

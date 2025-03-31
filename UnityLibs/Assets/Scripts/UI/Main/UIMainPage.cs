@@ -21,6 +21,16 @@ public class UIMainPage : FH.UI.UIPageBase<Game.UIMainPanelView>
         {
             FH.UI.UISceneMgr.OpenUI<Game.UITestUIResPage>();
         };
+
+        BaseView._BtnTestDeviceInfo.OnClick = () =>
+        {
+            FH.UI.UISceneMgr.OpenUI<Game.UITestDeviceInfoPage>();
+        };
+
+        BaseView._BtnLocalization.OnClick = () =>
+        {
+            FH.UI.UISceneMgr.OpenUI<Game.UITestLocalizationPage>();            
+        };
     }
 
     protected override void OnUI5Close()

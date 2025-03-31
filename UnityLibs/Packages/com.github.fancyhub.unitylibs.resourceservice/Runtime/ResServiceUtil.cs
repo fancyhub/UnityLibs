@@ -4,7 +4,7 @@ using System;
 
 namespace FH
 {
-    public static class ResServiceUtil
+    public partial class ResService
     {
         private static List<FileManifest.FileItem> _SharedFileItemList = new();
         private static List<IBundle> _SharedBundleList = new();

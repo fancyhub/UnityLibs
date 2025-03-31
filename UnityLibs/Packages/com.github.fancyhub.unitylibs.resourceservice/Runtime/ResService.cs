@@ -4,7 +4,7 @@ using System;
 
 namespace FH
 {
-    public class ResService : MonoBehaviour
+    public partial class ResService : MonoBehaviour
     {
         public enum EMode
         {
