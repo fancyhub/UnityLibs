@@ -13,11 +13,13 @@ namespace FH
 {
     public interface IResInstPool : ICPtr
     {
-        EResError AddUser(ResId id, System.Object user);
-        EResError RemoveUser(ResId id, System.Object user);
+        public EResError AddUser(ResId id, System.Object user);
+        public EResError RemoveUser(ResId id, System.Object user);
 
-        UnityEngine.Object Get(ResId id);
-        T Get<T>(ResId id) where T : UnityEngine.Object;
+        public UnityEngine.Object Get(ResId id);
+        public T Get<T>(ResId id) where T : UnityEngine.Object;
+
+        public EResError TransferUser(ResId id, System.Object old_user, System.Object new_user);
     }
 
     public readonly struct ResRef : IEqualityComparer<ResRef>, IEquatable<ResRef>
@@ -43,14 +45,14 @@ namespace FH
         public UnityEngine.Object Get() { return ResInstPool.Val?.Get(Id); }
         public T Get<T>() where T : UnityEngine.Object { return ResInstPool.Val?.Get<T>(Id); }
         public bool AddUser(System.Object user)
-        { 
-            if (ResInstPool.Val==null || !Id.IsValid()) 
+        {
+            if (ResInstPool.Val == null || !Id.IsValid())
                 return false;
             if (ResInstPool.Val.AddUser(Id, user) == EResError.OK)
                 return true;
             return false;
         }
-        public bool RemoveUser(System.Object user) 
+        public bool RemoveUser(System.Object user)
         {
             if (ResInstPool.Val == null || !Id.IsValid())
                 return false;

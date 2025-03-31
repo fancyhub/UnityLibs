@@ -19,12 +19,12 @@ namespace FH.ResManagement
         public GameObjectStat _gobj_stat;
 
         public IResMgr.Config.GCConfig _config;
-        
+
         public List<KeyValuePair<ResId, int>> _temp_list = new List<KeyValuePair<ResId, int>>();
 
         public ResInstGc(IResMgr.Config.GCConfig config)
         {
-            _config = config;            
+            _config = config;
         }
         public void Update()
         {
@@ -80,9 +80,7 @@ namespace FH.ResManagement
                 bool suc1 = _gobj_pool.GetInstResUser(
                     res_id
                     , out string path
-                    , out UnityEngine.GameObject inst
-                    , out _
-                    , out System.Object user);
+                    , out UnityEngine.GameObject inst);
                 if (!suc1)
                 {
                     ResLog._.Assert(false, "释放资源错误");
@@ -100,11 +98,7 @@ namespace FH.ResManagement
                         _gobj_pool.RefreshLru(res_id);
                         continue;
                     }
-                }
-
-                //2.5 移除对资源的引用
-                EResError err = _res_pool.RemoveUser(ResPath.CreateRes(path), user, out ResId _);
-                ResLog._.ErrCode(err, "释放资源出错 {0}", path);
+                }           
 
                 //2.6 开始释放
                 bool suc2 = _gobj_pool.RemoveInst(res_id, out string _);

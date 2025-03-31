@@ -167,11 +167,9 @@ namespace FH.ResManagement
                     GameObjectPoolUtil.InstActive(inst);
 
                     //3. 添加到pool
-                    bool succ = _gobj_pool.AddInst(job.Path.Path, job.ResId, inst, out System.Object res_user_for_inst, out job.InstId);
+                    bool succ = _gobj_pool.AddInst(new ResRef(job.ResId, job.Path.Path, _res_pool), inst,out job.InstId);
                     ResLog._.Assert(succ, "添加go inst 到 pool 失败 {0}", job.Path.Path);
                     //ResLog._.assert(ResConst.GetIdType(inst_id) == E_RES_TYPE.inst);
-                    if (succ)
-                        _res_pool.AddUser(job.ResId, res_user_for_inst);
 
 
                     //4. 把当前任务发送给下一个

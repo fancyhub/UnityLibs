@@ -87,9 +87,8 @@ namespace FH.ResManagement
                 return;
             }
             GameObjectPoolUtil.InstActive(inst);
-            bool succ = _gobj_pool.AddInst(job.Path.Path, job.ResId, inst, out object inner_res_user, out job.InstId);
+            bool succ = _gobj_pool.AddInst(new ResRef(job.ResId, job.Path.Path, _res_pool), inst, out job.InstId);
             ResLog._.Assert(succ, "严重错误 {0}", job.Path);
-            _res_pool.AddUser(job.ResId, inner_res_user);
 
             _msg_queue.SendJobNext(job);
         }

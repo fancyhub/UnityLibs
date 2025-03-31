@@ -66,7 +66,7 @@ namespace FH
         public EResError ReqPreInst(string path, int count, out int req_id);
         public EResError CancelPreInst(int req_id);
         #endregion  
-
+        
         public void CancelJob(int job_id);
 
         public ResRef GetResRef(UnityEngine.Object res);

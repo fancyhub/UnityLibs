@@ -60,8 +60,7 @@ namespace FH.ResManagement
     {
         public const int C_WAIT_FOR_USE_FRAME = 2;
 
-        public string _path;
-        public ResId _res_id;
+        public ResRef _res_ref;
         public ResId _inst_id;
         public UnityEngine.GameObject _unity_inst;
         public GameObjInstUser _user;
@@ -72,13 +71,11 @@ namespace FH.ResManagement
         {
         }
         public static GameObjectInstItem Create(
-            string path,
-            ResId res_id,
+            ResRef res_ref,
             UnityEngine.GameObject inst)
         {
             var ret = GPool.New<GameObjectInstItem>();
-            ret._path = path;
-            ret._res_id = res_id;
+            ret._res_ref = res_ref;
             ret._unity_inst = inst;
             ret._user = default;
             ret._inst_id = new ResId(inst, EResType.Inst);
@@ -87,12 +84,26 @@ namespace FH.ResManagement
             return ret;
         }
 
+        public bool TransferUser(System.Object old_user, System.Object new_user)
+        {
+            var old_status = Status;
+            if (old_status != EGameObjInstStatus.InUse)
+            {
+                ResLog._.E("{0},当前不是Use状态,{1}", _inst_id.Id, _res_ref.Path);
+                return false;
+            }
+
+            if (this._user.RemoveUser(old_user) && this._user.AddUser(new_user))
+                return true;
+            return false;
+        }
+
         public bool MoveWait2Free()
         {
             var old_status = Status;
             if (old_status != EGameObjInstStatus.WaitForUse)
             {
-                ResLog._.E("{0},当前不是Wait状态,{1}", _inst_id.Id, _path);
+                ResLog._.E("{0},当前不是Wait状态,{1}", _inst_id.Id, _res_ref.Path);
                 return false;
             }
 
@@ -100,7 +111,7 @@ namespace FH.ResManagement
             this._wait_for_use_frame_expire = int.MaxValue;
             this._user = default;
 
-            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _path);
+            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _res_ref.Path);
             return true;
         }
 
@@ -109,13 +120,13 @@ namespace FH.ResManagement
             var old_status = Status;
             if (old_status != EGameObjInstStatus.WaitForUse)
             {
-                ResLog._.E("{0},当前不是Wait状态,{1}, {2}", _inst_id.Id, old_status, _path);
+                ResLog._.E("{0},当前不是Wait状态,{1}, {2}", _inst_id.Id, old_status, _res_ref.Path);
                 return false;
             }
 
             if (!this._user.AddUser(user))
             {
-                ResLog._.E("{0}, add user failed, {1},{2}", _inst_id.Id, old_status, _path);
+                ResLog._.E("{0}, add user failed, {1},{2}", _inst_id.Id, old_status, _res_ref.Path);
                 return false;
             }
 
@@ -123,7 +134,7 @@ namespace FH.ResManagement
             this._wait_for_use_frame_expire = int.MaxValue;
 
 
-            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _path);
+            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _res_ref.Path);
             return true;
         }
 
@@ -132,20 +143,20 @@ namespace FH.ResManagement
             var old_status = Status;
             if (old_status != EGameObjInstStatus.InUse)
             {
-                ResLog._.E("{0},当前不是Use状态,{1}, {2}", _inst_id.Id, old_status, _path);
+                ResLog._.E("{0},当前不是Use状态,{1}, {2}", _inst_id.Id, old_status, _res_ref.Path);
                 return false;
             }
 
             if (!this._user.RemoveUser(user))
             {
-                ResLog._.E("{0},remove user failed, {1},{2}", _inst_id.Id, old_status, _path);
+                ResLog._.E("{0},remove user failed, {1},{2}", _inst_id.Id, old_status, _res_ref.Path);
                 return false;
             }
 
             this._wait_for_use = false;
             this._wait_for_use_frame_expire = int.MaxValue;
 
-            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _path);
+            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _res_ref.Path);
             return true;
         }
 
@@ -154,14 +165,14 @@ namespace FH.ResManagement
             var old_status = Status;
             if (old_status != EGameObjInstStatus.Free)
             {
-                ResLog._.E("{0},当前不是free 状态,{1}, {2}", _inst_id.Id, old_status, _path);
+                ResLog._.E("{0},当前不是free 状态,{1}, {2}", _inst_id.Id, old_status, _res_ref.Path);
                 return false;
             }
 
             this._wait_for_use = true;
             this._wait_for_use_frame_expire = UnityEngine.Time.frameCount + C_WAIT_FOR_USE_FRAME;
 
-            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _path);
+            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _res_ref.Path);
             return true;
         }
 
@@ -180,7 +191,8 @@ namespace FH.ResManagement
 
         protected override void OnPoolRelease()
         {
-            _path = null;
+            _res_ref.RemoveUser(this);
+            _res_ref = default;
             _user = default;
             _wait_for_use = false;
             _inst_id = default;
@@ -211,15 +223,14 @@ namespace FH.ResManagement
             _stat = stat;
         }
 
-        public bool AddInst(string path, ResId res_id, UnityEngine.GameObject obj, out System.Object res_user, out ResId inst_id)
+        public bool AddInst(ResRef res_ref, UnityEngine.GameObject obj, out ResId inst_id)
         {
             //1. 检查
-            if (string.IsNullOrEmpty(path) || obj == null)
+            if (!res_ref.IsValid() || obj == null)
             {
-                ResLog._.Assert(!string.IsNullOrEmpty(path), "path is null {0}", path);
-                ResLog._.Assert(obj != null, "实例不能为空 {0}", path);
+                ResLog._.Assert(res_ref.IsValid(), "res ref is invalid {0}", res_ref);
+                ResLog._.Assert(obj != null, "实例不能为空 {0}", res_ref);
                 inst_id = ResId.Null;
-                res_user = null;
                 return false;
             }
 
@@ -227,14 +238,14 @@ namespace FH.ResManagement
 
             //3. 创建poolval
 
-            GameObjectInstItem pool_val = GameObjectInstItem.Create(path, res_id, obj);
+            GameObjectInstItem pool_val = GameObjectInstItem.Create(res_ref, obj);
 
             //4. 向各个pool里面添加
-            int count = _stat.AddOne(path);
+            int count = _stat.AddOne(res_ref.Path);
             _all.Add(inst_id.Id, pool_val);
             _wait_for_use.ExtAddLast(pool_val);
-            res_user = pool_val;
-            ResLog._.D("{0} InstCreate {1},Count:{2} {3}", inst_id.Id, pool_val.Status, count, path);
+            res_ref.AddUser(pool_val);
+            ResLog._.D("{0} InstCreate {1},Count:{2} {3}", inst_id.Id, pool_val.Status, count, res_ref.Path);
             return true;
         }
 
@@ -261,7 +272,7 @@ namespace FH.ResManagement
 
                 if (item.MoveWait2Free())
                 {
-                    _index_by_path.Add(item._path, item._inst_id);
+                    _index_by_path.Add(item._res_ref.Path, item._inst_id);
                     _lru_free_list.Set(item._inst_id, now);
                     cur_node.ExtRemoveFromList();
                 }
@@ -280,7 +291,7 @@ namespace FH.ResManagement
             }
 
             //2. 检查user            
-            path = pool_val._path;
+            path = pool_val._res_ref.Path;
             var status = pool_val.Status;
             if (status != EGameObjInstStatus.Free)
             {
@@ -302,6 +313,20 @@ namespace FH.ResManagement
             int count = _stat.RemoveOne(path);
             ResLog._.D("{0} InstDestroy, {1},Count:{2} {3}", inst_id.Id, status, count, path);
             return true;
+        }
+
+        public EResError TransferUser(ResId inst_id, System.Object old_user, System.Object new_user)
+        {
+            bool succ = _all.TryGetValue(inst_id.Id, out GameObjectInstItem pool_val);
+            if (!succ)
+                return (EResError)EResError.GameObjectInstPool_pool_val_not_found_4;
+
+            if (old_user == null || new_user == null || old_user == new_user)
+                return EResError.GameObjectInstPool_user_null_4;
+
+            if (!pool_val.TransferUser(old_user, new_user))
+                return EResError.GameObjectInstPool_user_null_5;
+            return EResError.OK;
         }
 
         public void Destroy()
@@ -329,31 +354,25 @@ namespace FH.ResManagement
                 path = null;
                 return (EResError)EResError.GameObjectInstPool_pool_val_not_found_3;
             }
-            path = pool_val._path;
+            path = pool_val._res_ref.Path;
             return EResError.OK;
         }
 
         public bool GetInstResUser(
             ResId inst_id
             , out string path
-            , out UnityEngine.GameObject inst
-            , out EGameObjInstStatus status
-            , out System.Object res_user_for_inst)
+            , out UnityEngine.GameObject inst)
         {
             bool succ = _all.TryGetValue(inst_id.Id, out GameObjectInstItem pool_val);
             if (!succ)
             {
-                res_user_for_inst = null;
                 path = null;
                 inst = null;
-                status = EGameObjInstStatus.Free;
                 return false;
             }
 
-            res_user_for_inst = pool_val;
             inst = pool_val._unity_inst;
-            path = pool_val._path;
-            status = pool_val.Status;
+            path = pool_val._res_ref.Path;
             return true;
         }
 
@@ -385,7 +404,7 @@ namespace FH.ResManagement
             {
                 if (pool_val.Status != EGameObjInstStatus.InUse)
                 {
-                    ResLog._.Assert(false, "该对象没有user，需要外面持有引用 {0} {1} {2}", inst_id.Id, pool_val.Status, pool_val._path);
+                    ResLog._.Assert(false, "该对象没有user，需要外面持有引用 {0} {1} {2}", inst_id.Id, pool_val.Status, pool_val._res_ref.Path);
                     return null;
                 }
             }
@@ -489,7 +508,7 @@ namespace FH.ResManagement
                 return (EResError)EResError.GameObjectInstPool_user_remove_twice;
             }
             GameObjectPoolUtil.Push2Pool(pool_val._unity_inst);
-            _index_by_path.Add(pool_val._path, inst_id);
+            _index_by_path.Add(pool_val._res_ref.Path, inst_id);
             _lru_free_list.Set(inst_id, UnityEngine.Time.frameCount);
             return EResError.OK;
         }

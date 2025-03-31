@@ -173,8 +173,7 @@ namespace FH.ResManagement
                 return EResError.OK;
             return EResError.ResPool_res_not_exist_5;
         }
-       
-       
+
         public EResError AddRes(ResPath path, IResMgr.IExternalRef asset_ref, out ResId id)
         {
             //1. 检查
@@ -427,7 +426,38 @@ namespace FH.ResManagement
             //4. 更新lru
             if (user_count == 0)
                 _lru_free_list.Set(pool_val.ResId, UnityEngine.Time.frameCount);
+
             return EResError.OK;
+        }
+
+        public EResError TransferUser(ResId res_id, System.Object old_user, System.Object new_user)
+        {
+            if (old_user == null || new_user == null || old_user == new_user)
+                return EResError.ResPool_user_null_4;
+
+            bool suc = _pool.TryGetValue(res_id.Id, out ResPoolItem pool_val);
+            if (!suc)
+            {
+                ResLog._.Assert(false, "找不到 该res");
+                return EResError.ResPool_res_not_exist_7;
+            }
+
+            int old_user_count = pool_val.GetUserCount();
+
+            if (pool_val.AddUser(new_user) && pool_val.RemoveUser(old_user))
+            {
+                return EResError.OK;
+            }
+            int user_count = pool_val.GetUserCount();
+
+            if (old_user_count != user_count)
+            {
+                if (user_count == 0)
+                    _lru_free_list.Set(pool_val.ResId, UnityEngine.Time.frameCount);
+                else if (old_user_count == 0)
+                    _lru_free_list.Remove(pool_val.ResId,out _);
+            }
+            return EResError.ResPool_user_not_exist;
         }
 
         public void RefreshLru(ResId res_id)
