@@ -62,9 +62,12 @@ namespace FH
 
             if (log_msg != null)
             {
-                sb = new ValueStringBuilder(stackalloc char[C_Buffer_Size]);
+                sb.Clear();
                 _AppendTrace(ref sb, C_Stack_Depth[(int)log_lvl], C_Need_File_Info);
-                LogRecorderMgr.Record(log_msg, sb.ToString());
+                if (sb.Length == 0)
+                    LogRecorderMgr.Record(log_msg);
+                else
+                    LogRecorderMgr.Record(log_msg, sb.ToString());
             }
             else
             {
@@ -79,7 +82,7 @@ namespace FH
             ELogLvl log_lvl = ELogLvl.Exception;
             ELogMask lvl_mask = _ToMask(log_lvl);
 
-            
+
             if ((unity_mask & lvl_mask) != ELogMask.None)
                 UnityEngine.Debug.LogException(e);
 
@@ -95,7 +98,7 @@ namespace FH
         [HideInCallstack]
         public static void Print1<T0>(ELogLvl log_lvl, string tag, ELogMask trace_mask, ELogMask unity_mask, UnityEngine.Object context, string format, T0 arg0)
         {
-            ELogMask lvl_mask = _ToMask(log_lvl);            
+            ELogMask lvl_mask = _ToMask(log_lvl);
 
 
             ValueStringBuilder sb = new ValueStringBuilder(stackalloc char[C_Buffer_Size]);
@@ -114,9 +117,12 @@ namespace FH
 
             if (log_msg != null)
             {
-                sb = new ValueStringBuilder(stackalloc char[C_Buffer_Size]);
+                sb.Clear();
                 _AppendTrace(ref sb, C_Stack_Depth[(int)log_lvl], C_Need_File_Info);
-                LogRecorderMgr.Record(log_msg, sb.ToString());
+                if (sb.Length == 0)
+                    LogRecorderMgr.Record(log_msg);
+                else
+                    LogRecorderMgr.Record(log_msg, sb.ToString());
             }
             else
             {
@@ -130,7 +136,7 @@ namespace FH
         {
             ELogMask lvl_mask = _ToMask(log_lvl);
 
-            
+
 
             ValueStringBuilder sb = new ValueStringBuilder(stackalloc char[C_Buffer_Size]);
             _AppendTime(ref sb);
@@ -148,9 +154,12 @@ namespace FH
 
             if (log_msg != null)
             {
-                sb = new ValueStringBuilder(stackalloc char[C_Buffer_Size]);
+                sb.Clear();
                 _AppendTrace(ref sb, C_Stack_Depth[(int)log_lvl], C_Need_File_Info);
-                LogRecorderMgr.Record(log_msg, sb.ToString());
+                if (sb.Length == 0)
+                    LogRecorderMgr.Record(log_msg);
+                else
+                    LogRecorderMgr.Record(log_msg, sb.ToString());
             }
             else
             {
@@ -180,9 +189,12 @@ namespace FH
 
             if (log_msg != null)
             {
-                sb = new ValueStringBuilder(stackalloc char[C_Buffer_Size]);
+                sb.Clear();
                 _AppendTrace(ref sb, C_Stack_Depth[(int)log_lvl], C_Need_File_Info);
-                LogRecorderMgr.Record(log_msg, sb.ToString());
+                if (sb.Length == 0)
+                    LogRecorderMgr.Record(log_msg);
+                else
+                    LogRecorderMgr.Record(log_msg, sb.ToString());
             }
             else
             {
@@ -228,7 +240,7 @@ namespace FH
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void _AppendTime(ref ValueStringBuilder sb)
         {
-            sb.Append(ZString.Format(C_Timer_Formater, System.DateTime.Now, LogTimeUpdater.FrameCount,System.Threading.Thread.CurrentThread.ManagedThreadId));
+            sb.Append(ZString.Format(C_Timer_Formater, System.DateTime.Now, LogTimeUpdater.FrameCount, System.Threading.Thread.CurrentThread.ManagedThreadId));
         }
 
         private static void _AppendTrace(ref ValueStringBuilder sb, int max_step, bool need_file_info)

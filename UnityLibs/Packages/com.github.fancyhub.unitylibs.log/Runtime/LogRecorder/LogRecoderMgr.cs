@@ -17,7 +17,7 @@ namespace FH
         public void Record(List<string> messages);
     }
 
-    public sealed class LogRecorderMgr
+    internal sealed class LogRecorderMgr
     {
         private const int C_COUNT_PER_PROCESS = 100;
         private static LogRecorderMgr _;
@@ -33,7 +33,7 @@ namespace FH
 
             LogRecorderMgr mgr = new LogRecorderMgr();
 
-            foreach(var p in log_recorders)
+            foreach (var p in log_recorders)
             {
                 mgr._recorders.Add(p);
             }
@@ -47,7 +47,11 @@ namespace FH
             }
 
             _ = mgr;
-            Record($"================ Start {DateTime.Now:yy_MM_dd HH:mm:ss:fff} ============\n\tIsPlaying:{UnityEngine.Application.isPlaying} \n\tVersion:{UnityEngine.Application.version} \n\tUnityVersion:{UnityEngine.Application.unityVersion}");
+            Record(@$"================ Start {DateTime.Now:yy_MM_dd HH:mm:ss:fff} ============
+    IsPlaying:{UnityEngine.Application.isPlaying} 
+    Version:{UnityEngine.Application.version} 
+    UnityVersion:{UnityEngine.Application.unityVersion}
+");
         }
 
         public static void Record(string msg1, string msg2)
@@ -55,7 +59,7 @@ namespace FH
             if (_ == null)
                 return;
 
-            lock (_)
+            lock (_._msg_queue)
             {
                 _._msg_queue.Enqueue(msg1);
                 _._msg_queue.Enqueue(msg2);
@@ -71,7 +75,7 @@ namespace FH
             if (_ == null)
                 return;
 
-            lock (_)
+            lock (_._msg_queue)
             {
                 _._msg_queue.Enqueue(msg);
 
@@ -85,7 +89,7 @@ namespace FH
         {
             if (_ == null)
                 return;
-            lock (_)
+            lock (_._msg_queue)
             {
                 foreach (var p in msg)
                 {
@@ -117,7 +121,7 @@ namespace FH
                 temp_list.Clear();
 
                 //2. get msg
-                lock (this)
+                lock (_msg_queue)
                 {
                     int count = System.Math.Min(C_COUNT_PER_PROCESS, _msg_queue.Count);
                     for (int i = 0; i < count; i++)

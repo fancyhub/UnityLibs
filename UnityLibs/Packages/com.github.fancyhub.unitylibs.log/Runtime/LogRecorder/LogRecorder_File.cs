@@ -108,10 +108,7 @@ namespace FH
 #if UNITY_EDITOR
             if (_succ)
             {
-                foreach (var p in messages)
-                {
-                    System.IO.File.AppendAllLines(_file_path, messages);
-                }
+                System.IO.File.AppendAllLines(_file_path, messages);                
                 return;
             }
 #endif

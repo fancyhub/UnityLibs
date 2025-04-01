@@ -21,6 +21,13 @@ namespace FH
             _Pos = 0;
         }
 
+        public void Clear()
+        {
+            _Pos = 0;
+        }
+
+        public int Length => _Pos;
+
         public bool Append(string s)
         {
             if (s == null || s.Length == 0)
@@ -99,7 +106,7 @@ namespace FH
 
         public bool Append(ReadOnlySpan<char> value)
         {
-            if(value.Length == 0)
+            if (value.Length == 0)
                 return true;
 
             int copy_count = Math.Min(_Buff.Length - _Pos, value.Length);
@@ -112,8 +119,11 @@ namespace FH
 
         public override string ToString()
         {
+            if (_Pos == 0)
+                return string.Empty;
+
             string s = _Buff.Slice(0, _Pos).ToString();
-            Dispose();
+            _Pos = 0;
             return s;
         }
 

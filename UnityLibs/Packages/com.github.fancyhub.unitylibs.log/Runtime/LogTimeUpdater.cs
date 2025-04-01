@@ -4,7 +4,7 @@ namespace FH
 {
     [UnityEngine.ExecuteAlways]
     [UnityEngine.ExecuteInEditMode]
-    public sealed class LogTimeUpdater : UnityEngine.MonoBehaviour
+    internal sealed class LogTimeUpdater : UnityEngine.MonoBehaviour
     {
         public static int FrameCount;
         public void Start() { FrameCount = UnityEngine.Time.frameCount; }

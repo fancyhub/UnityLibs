@@ -145,20 +145,8 @@ namespace FH
 
             var file_download_mgr = new FileDownloadMgrImplement(config);
             _Inst = new CPtr<IFileDownloadMgr>(file_download_mgr);
-            DefaultServerUrl = config.ServerUrl;
-
-            if (DefaultServerUrl != null)
-            {
-                if (DefaultServerUrl.EndsWith('/') || DefaultServerUrl.EndsWith('\\'))
-                {
-                    DefaultServerUrl += FileSetting.Platform.ToString() + "/";
-                }
-                else
-                {
-                    DefaultServerUrl += "/" + FileSetting.Platform.ToString() + "/";
-                }
-            }
             DefaultSaveDir = FileSetting.LocalDir;
+            SetDefaultSvrUrl(config.ServerUrl);
         }
 
         public static void ClearAll()
@@ -170,7 +158,26 @@ namespace FH
                 return;
             }
             mgr.ClearAll();
-        }         
+        }
+
+        public static void SetDefaultSvrUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+            {
+                FileDownloadLog.E("ServerUrl is Null");
+                return;
+            }
+
+            DefaultServerUrl = url;
+            if (DefaultServerUrl.EndsWith('/') || DefaultServerUrl.EndsWith('\\'))
+            {
+                DefaultServerUrl += FileSetting.Platform.ToString() + "/";
+            }
+            else
+            {
+                DefaultServerUrl += "/" + FileSetting.Platform.ToString() + "/";
+            }
+        }
 
         public static FileDownloadJobInfo AddJob(FileManifest.FileItem file)
         {

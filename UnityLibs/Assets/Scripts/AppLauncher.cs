@@ -10,6 +10,8 @@ namespace Game
         // Start is called before the first frame update
         void Start()
         {
+            FH.Log.AutoInit();
+            
             new MyUISceneMgr().Init();
             FH.UI.UISceneMgr.ChangeScene<UISceneExtractAsset>();
 

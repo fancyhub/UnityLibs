@@ -363,10 +363,10 @@ MonoBehaviour:
       - base
       AndroidExtractTag: android
     BundleMgrConfig:
-      LogLvl: 0
+      LogLvl: 1
       UnloadAllLoadedObjects: 1
     ResMgrConfig:
-      LogLevel: 0
+      LogLevel: 1
       MaxAsyncResLoaderSlot: 5
       MaxAsyncGameObjectStep: 1
       PreInst:
@@ -386,12 +386,12 @@ MonoBehaviour:
       LogLvl: 1
     VfsBuilderConfig: {fileID: 11400000, guid: 6391484e906e5344f8de151ba727b78c, type: 2}
     FileDownloadMgrConfig:
-      LogLvl: 0
+      LogLvl: 1
       WorkerCount: 4
       ServerUrl: ProjTemp/Build/CDN/
       MaxRetryCount: 3
-    TableLogLvl: 0
-    LocLogLvl: 0
+    TableLogLvl: 1
+    LocLogLvl: 1
 --- !u!114 &1811144038
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -411,6 +411,7 @@ MonoBehaviour:
   SameAssetPath2: GameObject
   SameAsset1: {fileID: 0}
   SameAsset2: {fileID: 0}
+  ResSnapShots: []
 --- !u!1 &2098590053
 GameObject:
   m_ObjectHideFlags: 0
