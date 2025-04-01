@@ -7,27 +7,18 @@ namespace FH
     public partial class ResService
     {
         private static List<FileManifest.FileItem> _SharedFileItemList = new();
-        private static List<IBundle> _SharedBundleList = new();
         private static List<string> _SharedStringList = new();
 
         public static List<FileManifest.FileItem> GetNeedDownloadFilesByAssetNames(List<string> asset_list)
         {
             _SharedFileItemList.Clear();
-            _SharedBundleList.Clear();
 
             //1. 获取要下载的BundleList
-            BundleMgr.GetAllNeedDownload(asset_list, _SharedBundleList);
-            if (_SharedFileItemList.Count == 0)
+            BundleMgr.GetAllNeedDownload(asset_list, _SharedStringList);
+            if (_SharedStringList.Count == 0)
                 return _SharedFileItemList;
 
-            //2. 获取要下载的文件名列表
-            _SharedStringList.Clear();
-            foreach (var p in _SharedBundleList)
-            {
-                _SharedStringList.Add(p.Name);
-            }
-
-            //3. 获取要下载的 FileItem
+            //2. 获取要下载的 FileItem
             _SharedFileItemList.Clear();
             FileMgr.IsAllFilesReady(_SharedStringList, _SharedFileItemList);
 
@@ -37,15 +28,7 @@ namespace FH
         public static List<FileManifest.FileItem> GetNeedDownloadFilesByAssetTags(List<string> tags)
         {
             _SharedFileItemList.Clear();
-
-            foreach (var p in _SharedBundleList)
-            {
-                _SharedStringList.Add(p.Name);
-            }
-
-            //3. 获取要下载的 FileItem
-            _SharedFileItemList.Clear();
-            FileMgr.IsAllFilesReady(_SharedStringList, _SharedFileItemList);
+            FileMgr.IsAllFilesReady(tags, _SharedFileItemList);
 
             return _SharedFileItemList;
         }
@@ -56,18 +39,76 @@ namespace FH
             FileDownloadMgr.AddTasks(file_item_list);
         }
 
-        public static void DownloadFilesByTags(List<string> tags)
+        public static List<FileDownloadJobInfo> DownloadFilesByTags(List<string> tags)
         {
             _SharedFileItemList.Clear();
             FileMgr.IsAllTagsReady(tags, _SharedFileItemList);
-            FileDownloadMgr.AddTasks(_SharedFileItemList);
+
+            List<FileDownloadJobInfo> ret = new List<FileDownloadJobInfo>();
+            FileDownloadMgr.AddTasks(_SharedFileItemList, ret);
+            return ret;
         }
 
-        public static void DownloadAllFiles()
+        public static List<FileDownloadJobInfo> DownloadFilesByTags(FileManifest file_manifest, List<string> tags)
+        {
+            _SharedFileItemList.Clear();
+            FileMgr.IsAllTagsReady(file_manifest, tags, _SharedFileItemList);
+
+            List<FileDownloadJobInfo> ret = new List<FileDownloadJobInfo>();
+            FileDownloadMgr.AddTasks(_SharedFileItemList, ret);
+            return ret;
+        }
+
+        public static List<FileDownloadJobInfo> DownloadAllFiles()
         {
             _SharedFileItemList.Clear();
             FileMgr.IsAllTagsReady(null, _SharedFileItemList);
-            FileDownloadMgr.AddTasks(_SharedFileItemList);
+            List<FileDownloadJobInfo> ret = new List<FileDownloadJobInfo>();
+            FileDownloadMgr.AddTasks(_SharedFileItemList, ret);
+            return ret;
+        }
+
+        public static List<FileDownloadJobInfo> DownloadAllFiles(FileManifest file_manifest)
+        {
+            _SharedFileItemList.Clear();
+            FileMgr.IsAllTagsReady(file_manifest, null, _SharedFileItemList);
+            List<FileDownloadJobInfo> ret = new List<FileDownloadJobInfo>();
+            FileDownloadMgr.AddTasks(_SharedFileItemList, ret);
+            return ret;
+        }
+
+        public static async Awaitable<FileManifest> FetchRemoteFileManifest(string version)
+        {
+            string file_name = FileManifest.GetRemoteFileName(version);
+            string dir = GConfig.FileDownloadMgrConfig.ServerUrl;
+            if (!dir.EndsWith("/"))
+                dir += "/";
+            string full_path = dir + FileSetting.Platform.ToString() + "/" + file_name;
+
+            try
+            {
+                if (!full_path.StartsWith("http://") && !full_path.StartsWith("https://"))
+                {
+                    string text = System.IO.File.ReadAllText(full_path);
+                    return FileManifest.ReadFromText(text);
+                }
+                else
+                {
+                    await Awaitable.BackgroundThreadAsync();
+
+                    byte[] content = HttpDownloader.RequestFileContent(full_path);
+                    string text = System.Text.Encoding.UTF8.GetString(content);
+
+                    await Awaitable.MainThreadAsync();
+                    return FileManifest.ReadFromText(text);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.E(e);
+                return null;
+            }
+
         }
 
         public static async Awaitable Switch(FileManifest file_manifest)

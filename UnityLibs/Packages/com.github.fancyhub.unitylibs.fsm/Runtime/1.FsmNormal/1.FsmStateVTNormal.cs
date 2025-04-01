@@ -28,7 +28,7 @@ namespace FH
     // IFsmStateNode  是传统的节点
     public class FsmStateVTNormal<TState, TMsg, TResult> : IFsmStateVTNormal<TState, TMsg, TResult>
     {
-        public int PtrVer { get; private set; }
+        public int ObjVersion { get; private set; }
         private Dictionary<TState, IFsmStateNodeNormal<TMsg, TResult>> _Nodes;
 
         public FsmStateVTNormal(int cap, IEqualityComparer<TState> comparer = null)

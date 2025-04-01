@@ -12,12 +12,12 @@ namespace FH
 {
     public abstract class CPtrBase : ICPtr, IDisposable
     {
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;
 
         public void Destroy()
         {
-            ___ptr_ver++;
+            ___obj_ver++;
             OnRelease();
         }
 

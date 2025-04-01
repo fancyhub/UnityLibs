@@ -28,8 +28,8 @@ namespace FH.ABManagement
 
     internal class Bundle : IBundle
     {
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;
 
         public CPtr<IBundleMgr.IExternalLoader> _ExternalLoader;
         public BundleManifest.Item _Config;
@@ -43,7 +43,7 @@ namespace FH.ABManagement
 
         public string Name { get { return _Config.Name; } }
 
-        public void GetAllDeps(List<IBundle> deps)
+        public void GetAllDeps(List<Bundle> deps)
         {
             deps.AddRange(_AllDeps);
         }
@@ -57,10 +57,10 @@ namespace FH.ABManagement
             if (loader == null)
                 return false;
 
-            return loader.GetBundleFileStatus(_Config.Name) == IBundleMgr.EBundleFileStatus.Ready;
+            return loader.GetBundleFileStatus(_Config.Name) == EBundleFileStatus.Ready;
         }
 
-        public int IncRefCount()
+        public int IncRef()
         {
             if (_LoadStatus != EBundleLoadStatus.Loaded)
             {
@@ -74,7 +74,7 @@ namespace FH.ABManagement
 
         public int RefCount => _RefCount;
 
-        public int DecRefCount()
+        public int DecRef()
         {
             if (_LoadStatus != EBundleLoadStatus.Loaded)
             {
@@ -134,14 +134,9 @@ namespace FH.ABManagement
 
         public void Destroy()
         {
-            ___ptr_ver++;
+            ___obj_ver++;
             _Unload();
-        }
-
-        internal void Dispose()
-        {
-            _Unload();
-        }
+        }         
 
         private void _Unload()
         {
@@ -178,8 +173,8 @@ namespace FH.ABManagement
                         return false;
                     }
 
-                    IBundleMgr.EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
-                    if (bundleStatus != IBundleMgr.EBundleFileStatus.Ready)
+                    EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
+                    if (bundleStatus != EBundleFileStatus.Ready)
                     {
                         BundleLog.Assert(false, "Bundle {0} Is {1}", _Config.Name, bundleStatus);
                         return false;
@@ -256,8 +251,8 @@ namespace FH.ABManagement
                         return false;
                     }
 
-                    IBundleMgr.EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
-                    if (bundleStatus != IBundleMgr.EBundleFileStatus.Ready)
+                    EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
+                    if (bundleStatus != EBundleFileStatus.Ready)
                     {
                         BundleLog.D("Bundle {0} Is {1}", _Config.Name, bundleStatus);
                         return false;
@@ -300,8 +295,7 @@ namespace FH.ABManagement
 
             if (_RefCount > 0)
                 return;
-
-            BundleLog.D("Bundle {0} Unload By DepRef", _Config.Name);
+            
             _LoadStatus = EBundleLoadStatus.None;
             _Unload();
             return;

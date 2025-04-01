@@ -27,6 +27,14 @@ namespace FH
             _dict_val.Clear();
         }
 
+        public int Count
+        {
+            get
+            {
+                return _dict_val.Count;
+            }
+        }
+
         //找到第一个
         public bool FindFirst(TKey key, out TVal val)
         {

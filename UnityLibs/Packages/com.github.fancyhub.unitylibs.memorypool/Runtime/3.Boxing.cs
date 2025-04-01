@@ -16,14 +16,14 @@ namespace FH
         private bool ___in_pool = false;
         IPool IPoolItem.Pool { get => ___pool; set => ___pool = value; }
         bool IPoolItem.InPool { get => ___in_pool; set => ___in_pool = value; }
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;
 
         public void Destroy()
         {
             if (___pool == null || ___pool.Del(this))
             {
-                ___ptr_ver++;
+                ___obj_ver++;
                 return;
             }
         }

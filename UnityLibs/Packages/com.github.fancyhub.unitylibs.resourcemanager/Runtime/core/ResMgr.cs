@@ -12,6 +12,13 @@ namespace FH
 {
     using ResAwaitSource = AwaitableCompletionSource<(EResError error, ResRef res_ref)>;
 
+    public enum EAssetStatus
+    {
+        Exist,
+        NotExist,
+        NotDownloaded,
+    }
+
     public delegate void ResEvent(int job_id, EResError error, ResRef res_ref);
     public delegate void InstEvent(int job_id, EResError error, ResRef res_ref);
     public interface IResDoneCallBack : ICPtr
@@ -24,21 +31,29 @@ namespace FH
         public void OnResDoneCallback(int job_id, EResError error, ResRef res_ref);
     }
 
-    public struct ResSnapShotItem
+    public enum EGameObjInstStatus
     {
-        public string Path;
-        public BitEnum32<EResPathType> PathType;
-        public ResId Id;
-        public int UserCount;
-        public List<System.Object> Users; //Editor 模式下才有内容
+        Free,
+        InUse,
+        WaitForUse,
     }
 
-    public enum EAssetStatus
+    [System.Serializable]
+    public struct ResSnapShotItem
     {
-        Exist,
-        NotExist,
-        NotDownloaded,
+        public int Id;
+        public EResType ResType;
+        public string Path;
+        public bool UpdateFlag;
+
+        //资源部分
+        public BitEnum32<EResPathType> PathTypeMask;
+        public int UserCount;
+        public List<System.Object> Users; //Editor 模式下才有内容
+
+        public EGameObjInstStatus InstStatus;
     }
+
 
     public sealed class ResMgrUpgradeOperation : UnityEngine.YieldInstruction
     {
@@ -82,7 +97,7 @@ namespace FH
         public EResError LoadAsync(string path, EResPathType pathType, int priority, ResEvent cb, out int job_id);
         public EResError LoadAsync(string path, EResPathType pathType, int priority, IResDoneCallBack cb, out int job_id);
         public EResError LoadAsync(string path, EResPathType pathType, int priority, ResAwaitSource source, CancellationToken cancelToken);
-        public void ResSnapshot(ref List<ResSnapShotItem> out_snapshot);
+        public void Snapshot(ref List<ResSnapShotItem> out_snapshot);
         #endregion
 
         #region GameObject Inst
@@ -99,7 +114,7 @@ namespace FH
 
         public void CancelJob(int job_id);
 
-        public ResRef GetResRef(UnityEngine.Object res);
+        //public ResRef GetResRef(UnityEngine.Object res);
 
         #region Upgrade
         /// <summary>
@@ -271,12 +286,12 @@ namespace FH
                 return;
             }
 
-            inst.ResSnapshot(ref out_snapshot);
+            inst.Snapshot(ref out_snapshot);
         }
         #endregion
 
         #region GameObject Inst
-        public static ResRef Create(string path, System.Object user, bool only_from_cache)
+        public static ResRef Create(string path, System.Object user, bool only_from_cache = false)
         {
             IResMgr inst = _.Val;
             if (inst == null)
@@ -390,6 +405,7 @@ namespace FH
             inst.CancelJob(job_id);
         }
 
+        /*
         public static ResRef GetResRef(UnityEngine.Object res)
         {
             var inst = _.Val;
@@ -400,5 +416,6 @@ namespace FH
             }
             return inst.GetResRef(res);
         }
+        //*/
     }
 }

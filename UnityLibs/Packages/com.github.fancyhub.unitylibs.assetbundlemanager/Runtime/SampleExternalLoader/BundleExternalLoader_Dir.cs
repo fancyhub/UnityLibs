@@ -21,13 +21,13 @@ namespace FH.SampleExternalLoader
             _BundleManifestName = bundleManifestName;
         }
 
-        public IBundleMgr.EBundleFileStatus GetBundleFileStatus(string name)
+        public EBundleFileStatus GetBundleFileStatus(string name)
         {
             string path = System.IO.Path.Combine(_Dir, name);
             if (System.IO.File.Exists(path))
-                return IBundleMgr.EBundleFileStatus.Ready;
+                return EBundleFileStatus.Ready;
             else
-                return IBundleMgr.EBundleFileStatus.None;
+                return EBundleFileStatus.None;
         }
         
         public IBundleMgr.ExternalBundle LoadBundleFile(string name)

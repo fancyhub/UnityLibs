@@ -51,7 +51,7 @@ namespace FH
 
         public PtrList PtrList;
 
-        public int PtrVer { get; private set; }
+        public int ObjVersion { get; private set; }
 
         /// <summary>
         /// 是否为异步模式
@@ -86,7 +86,7 @@ namespace FH
             Stop();
             PtrList?.Destroy();
             PtrList = null;
-            PtrVer++;
+            ObjVersion++;
         }
 
         public bool IsRunning()

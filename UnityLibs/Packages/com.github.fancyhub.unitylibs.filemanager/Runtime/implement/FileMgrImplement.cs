@@ -12,8 +12,8 @@ namespace FH.FileManagement
 {
     internal sealed class FileMgrImplement : IFileMgr
     {
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;
 
         private FileManifest _Manifest_Base;
         private FileManifest _Manifest_Local;
@@ -113,7 +113,7 @@ namespace FH.FileManagement
 
         public void Destroy()
         {
-            ___ptr_ver++;
+            ___obj_ver++;
         }
 
         public VersionInfo GetVersionInfo()
@@ -336,7 +336,7 @@ namespace FH.FileManagement
             }
 
             string content = System.Text.Encoding.UTF8.GetString(bytes);
-            FileManifest ret = UnityEngine.JsonUtility.FromJson<FileManifest>(content);
+            FileManifest ret = FileManifest.ReadFromText(content);
             if (ret == null)
             {
                 FileLog._.D("StreamingAssets里面的FileManifest加载失败: {0}", file_path);

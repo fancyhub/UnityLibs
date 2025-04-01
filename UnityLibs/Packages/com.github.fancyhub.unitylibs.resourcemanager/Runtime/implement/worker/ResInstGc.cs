@@ -49,14 +49,13 @@ namespace FH.ResManagement
 
                 //1.3 销毁
                 ResId id = res_list[i].Key;
-                EResError err = _res_pool.RemoveRes(id.Id, out ResPath path, out var asset_ref);
+                EResError err = _res_pool.RemoveRes(id.Id, out ResPath path);
                 if (err != EResError.OK)
                 {
                     ResLog._.Assert(false, "释放资源错误 Code: {0}", err);
                     continue;
                 }
                 ResLog._.D("{0} remove res {1}", id.Id, path);
-                asset_ref.Destroy();
             }
         }
 
@@ -106,8 +105,7 @@ namespace FH.ResManagement
                 {
                     ResLog._.Assert(false, "释放资源错误");
                     continue;
-                }
-                GoUtil.Destroy(inst);
+                }                
                 ResLog._.D("{0} destroy inst {1}", res_id.Id, path);
                 //Do nothing
                 //Resources.UnloadAsset(res);

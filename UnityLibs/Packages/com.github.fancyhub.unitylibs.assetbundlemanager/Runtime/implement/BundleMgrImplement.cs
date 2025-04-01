@@ -13,9 +13,13 @@ namespace FH.ABManagement
 {
     internal class BundleMgrImplement : CPtrBase, IBundleMgr
     {
+        private static Dictionary<string, Bundle> _S_TempDict = new Dictionary<string, Bundle>();
+        private static List<Bundle> _S_TempList = new List<Bundle>();
+
         private CPtr<IBundleMgr.IExternalLoader> _ExternalLoader;
         private List<Bundle> _BundleList;
         private MyDict<string, Bundle> _AssetDict;
+
 
         public BundleManifest _Config;
         public void Init(IBundleMgr.IExternalLoader external_loader, BundleManifest config)
@@ -24,8 +28,47 @@ namespace FH.ABManagement
             _CreateBundles(config);
         }
 
+        public void GetBundleInfoByAssets(List<string> asset_list, List<BundleInfo> out_bundle_stat_list)
+        {
+            out_bundle_stat_list.Clear();
 
-        public IBundle FindBundleByAsset(string asset)
+            _S_TempDict.Clear();
+            foreach (var p in asset_list)
+            {
+                Bundle bundle = _FindBundleByAsset(p);
+                if (bundle == null)
+                    continue;
+                if (_S_TempDict.ContainsKey(bundle.Name))
+                    continue;
+                _S_TempDict.Add(bundle.Name, bundle);
+
+                if (bundle._AllDeps != null && bundle._AllDeps.Length > 0)
+                {
+                    foreach (var p2 in bundle._AllDeps)
+                    {
+                        _S_TempDict[p2.Name] = bundle;
+                    }
+                }
+            }
+
+            foreach (var p in _S_TempDict)
+            {
+                var status = _GetBundleStatus(p.Key);
+                out_bundle_stat_list.Add(new(p.Key, status));
+            }
+        }
+
+        public BundleInfo GetBundleInfoByAsset(string asset)
+        {
+            Bundle b = _FindBundleByAsset(asset);
+            if (b == null)
+                return new BundleInfo(null, EBundleFileStatus.None);
+            var status = _GetBundleStatus(b.Name);
+            return new BundleInfo(b.Name, status);
+        }
+
+
+        public Bundle _FindBundleByAsset(string asset)
         {
             if (string.IsNullOrEmpty(asset))
             {
@@ -41,22 +84,15 @@ namespace FH.ABManagement
             return b;
         }
 
-        public IBundleMgr.EBundleFileStatus GetBundleStatus(IBundle bundle)
+        public EBundleFileStatus _GetBundleStatus(string bundle_name)
         {
-            if (bundle == null)
-            {
-                BundleLog.Assert(false, "param bundle is null");
-                return IBundleMgr.EBundleFileStatus.None;
-            }
-
             var loader = _ExternalLoader.Val;
             if (loader == null)
             {
                 BundleLog.Assert(false, "external loader is null");
-                return IBundleMgr.EBundleFileStatus.None;
+                return EBundleFileStatus.None;
             }
-
-            return loader.GetBundleFileStatus(bundle.Name);
+            return loader.GetBundleFileStatus(bundle_name);
         }
 
         public void GetAllBundles(List<IBundle> bundles)
@@ -83,7 +119,7 @@ namespace FH.ABManagement
                 return null;
             }
 
-            b.IncRefCount();
+            b.IncRef();
             return b;
         }
 
@@ -91,7 +127,7 @@ namespace FH.ABManagement
         {
             foreach (var p in _BundleList)
             {
-                p.Dispose();
+                p.Destroy();
             }
             _BundleList.Clear();
             _AssetDict.Clear();
@@ -103,7 +139,7 @@ namespace FH.ABManagement
                 return;
             var new_manifest = _ExternalLoader.Val.LoadManifest();
             if (new_manifest == null)
-                return;            
+                return;
 
             BundleDef.UnloadAllLoadedObjectsCurrent = false;
             foreach (var p in _BundleList)

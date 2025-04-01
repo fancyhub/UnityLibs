@@ -118,7 +118,7 @@ namespace FH.ResManagement
                     {
                         ResJob job = _temp_list[j];
 
-                        _res_pool.RemoveUser(job.Path, job, out ResId _);
+                        _res_pool.RemoveUser(job.ResId, job);
                         _msg_queue.SendJobNext(job);
                     }
                     _temp_list.Clear();
@@ -128,18 +128,18 @@ namespace FH.ResManagement
                         return;
 
                     //4. 如果不是preinst的job, 需要判断 当前pool是否有空余的
-                    if(!_current_job.PreInstJob)
+                    if (!_current_job.PreInstJob)
                     {
                         var err = _gobj_pool.PopInst(_current_job.Path.Path, out _current_job.InstId);
                         if (err == EResError.OK)
                         {
-                            _res_pool.RemoveUser(_current_job.Path, _current_job, out _);
+                            _res_pool.RemoveUser(_current_job.ResId, _current_job);
                             _msg_queue.SendJobNext(_current_job);
                             _current_job = null;
                             continue;
                         }
                     }
-                   
+
 
                     //5. 真正的实例化第一步
                     _obj_inst = GameObjectPoolUtil.InstNew(_current_job.Path.Path, prefab);
@@ -148,7 +148,7 @@ namespace FH.ResManagement
                         _current_job.ErrorCode = (EResError)EResError.GameObjectCreatorAsync_inst_error_unkown;
                         ResLog._.Assert(false, "实例化的时候， 未知错误 {0}", _current_job.Path.Path);
 
-                        _res_pool.RemoveUser(_current_job.Path, _current_job, out ResId res_id);
+                        _res_pool.RemoveUser(_current_job.ResId, _current_job);
                         _msg_queue.SendJobNext(_current_job);
                         _current_job = null;
                     }
@@ -167,7 +167,7 @@ namespace FH.ResManagement
                     GameObjectPoolUtil.InstActive(inst);
 
                     //3. 添加到pool
-                    bool succ = _gobj_pool.AddInst(new ResRef(job.ResId, job.Path.Path, _res_pool), inst,out job.InstId);
+                    bool succ = _gobj_pool.AddInst(new ResRef(job.ResId, job.Path.Path, _res_pool), inst, out job.InstId);
                     ResLog._.Assert(succ, "添加go inst 到 pool 失败 {0}", job.Path.Path);
                     //ResLog._.assert(ResConst.GetIdType(inst_id) == E_RES_TYPE.inst);
 

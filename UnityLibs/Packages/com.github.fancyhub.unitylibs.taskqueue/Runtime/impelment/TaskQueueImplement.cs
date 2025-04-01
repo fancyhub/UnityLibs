@@ -12,8 +12,8 @@ namespace FH
 {
     internal sealed class TaskQueueImple : ITaskQueue
     {
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;
 
         private const string C_THREAD_NAME_FORMATER = "TaskMgr_{0}";
         private int _max_thread_count = 0;
@@ -76,7 +76,7 @@ namespace FH
 
         public void Destroy()
         {
-            ___ptr_ver++;
+            ___obj_ver++;
             for (int i = 0; i < _thread_pool.Count; ++i)
             {
                 _thread_pool[i].Destroy();

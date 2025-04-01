@@ -18,8 +18,8 @@ namespace FH
         IPool IPoolItem.Pool { get => ___pool; set => ___pool = value; }
         bool IPoolItem.InPool { get => ___in_pool; set => ___in_pool = value; }
 
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;       
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;       
 
         public ETaskStatus _status = ETaskStatus.None;
         public bool _cancel = false;
@@ -55,7 +55,7 @@ namespace FH
 
             if (___pool == null || ___pool.Del(this))
             {
-                ___ptr_ver++;
+                ___obj_ver++;
                 return;
             }
         }

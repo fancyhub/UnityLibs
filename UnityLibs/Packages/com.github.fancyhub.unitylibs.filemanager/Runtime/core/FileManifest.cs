@@ -14,6 +14,23 @@ namespace FH
     public sealed class FileManifest
     {
         public const string CDefaultFileName = "file_manifest.json";
+        private const string CDefaultVersionFileName = "file_manifest_{0}.json";
+        public static string GetRemoteFileName(string version)
+        {
+            return string.Format(CDefaultVersionFileName, version);
+        }
+        public static FileManifest ReadFromText(string content)
+        {
+            try
+            {
+                return  UnityEngine.JsonUtility.FromJson<FileManifest>(content);
+            }
+            catch (Exception e)
+            {
+                Log.E(e);
+                return null;
+            }
+        }
 
         public string Version;
 
@@ -108,19 +125,19 @@ namespace FH
         public void FindFiles(HashSet<string> file_names, List<FileItem> all_file_items)
         {
             _BuildDict();
-            if (file_names == null || file_names.Count==0)
+            if (file_names == null || file_names.Count == 0)
                 return;
 
-            foreach(var p in file_names)
+            foreach (var p in file_names)
             {
                 if (p == null)
                     continue;
                 _FileDict.TryGetValue(p, out FileItem item);
-                if(item!=null)
+                if (item != null)
                 {
                     all_file_items.Add(item);
                 }
-            }            
+            }
         }
 
         public FileItem FindFileByRelativePath(string relative_path)

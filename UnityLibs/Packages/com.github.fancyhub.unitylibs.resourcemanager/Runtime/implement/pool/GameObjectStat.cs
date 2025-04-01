@@ -47,6 +47,11 @@ namespace FH.ResManagement
             return count;
         }
 
+        public void Clear()
+        {
+            _dict.Clear();
+        }
+
         public int GetCount(string path)
         {
             int count = 0;

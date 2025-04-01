@@ -12,14 +12,14 @@ namespace FH.VFSManagement
 {
     internal sealed class VfsMgrImplement : IVfsMgr
     {
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;
 
         public List<IVirtualFileSystem> _file_system_list = new List<IVirtualFileSystem>();
 
         public void Destroy()
         {
-            ___ptr_ver++;
+            ___obj_ver++;
             UnMountAll();
         }
 

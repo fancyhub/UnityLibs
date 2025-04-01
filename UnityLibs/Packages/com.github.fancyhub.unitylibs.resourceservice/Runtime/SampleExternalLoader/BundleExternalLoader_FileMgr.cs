@@ -22,21 +22,21 @@ namespace FH.SampleExternalLoader
             _BundleManifestName = manifest_name;
         }
 
-        public IBundleMgr.EBundleFileStatus GetBundleFileStatus(string name)
+        public EBundleFileStatus GetBundleFileStatus(string name)
         {
             var mgr = _FileMgr.Val;
             if (mgr == null)
-                return IBundleMgr.EBundleFileStatus.None;
+                return EBundleFileStatus.None;
             switch (mgr.FindFile(name, out var _, out var _))
             {
                 case EFileStatus.None:
-                    return IBundleMgr.EBundleFileStatus.None;
+                    return EBundleFileStatus.None;
                 case EFileStatus.Ready:
-                    return IBundleMgr.EBundleFileStatus.Ready;
+                    return EBundleFileStatus.Ready;
                 case EFileStatus.NeedDownload:
-                    return IBundleMgr.EBundleFileStatus.Remote;
+                    return EBundleFileStatus.Remote;
                 default:
-                    return IBundleMgr.EBundleFileStatus.None;
+                    return EBundleFileStatus.None;
             }
         }
 

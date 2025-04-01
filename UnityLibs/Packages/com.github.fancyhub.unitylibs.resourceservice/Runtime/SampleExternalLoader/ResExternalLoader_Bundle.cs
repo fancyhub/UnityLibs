@@ -51,7 +51,7 @@ namespace FH.SampleExternalLoader
             public UnityEngine.Object _Asset;
             public AssetBundleRequest _ResRequest;
             public ResRefDB _ResRefDB;
-            public CPtr<IBundle> _Bundle;
+            public SPtr<IBundle> _Bundle;
 
             public bool IsDone
             {
@@ -76,10 +76,10 @@ namespace FH.SampleExternalLoader
                 AssetRef ret = GPool.New<AssetRef>();
                 ret._ResRefDB = res_ref_db;
                 ret._Asset = asset;
-                ret._Bundle = new CPtr<IBundle>(bundle);
+                ret._Bundle = new SPtr<IBundle>(bundle);
 
                 res_ref_db.IncRef(asset);
-                bundle.IncRefCount();
+                bundle.IncRef();
                 return ret;
             }
 
@@ -91,8 +91,8 @@ namespace FH.SampleExternalLoader
                 AssetRef ret = GPool.New<AssetRef>();
                 ret._ResRefDB = res_ref_db;
                 ret._ResRequest = req;
-                ret._Bundle = new CPtr<IBundle>(bundle); 
-                bundle.IncRefCount();
+                ret._Bundle = new SPtr<IBundle>(bundle);
+                bundle.IncRef();
                 return ret;
             }
 
@@ -103,7 +103,7 @@ namespace FH.SampleExternalLoader
                 _ResRequest = null;
                 if (_Asset == null)
                 {
-                    _Bundle.Val?.DecRefCount();
+                    _Bundle.Val?.DecRef();
                     _Bundle = null;
                     _ResRefDB = null;
                     return;
@@ -125,7 +125,7 @@ namespace FH.SampleExternalLoader
                     }
                 }
 
-                bundle.Val?.DecRefCount();
+                bundle.Val?.DecRef();
             }
         }
 
@@ -150,10 +150,11 @@ namespace FH.SampleExternalLoader
             if (bundleMgr == null)
                 return EAssetStatus.NotExist;
 
-            IBundle bundle = bundleMgr.FindBundleByAsset(path);
-            if (bundle == null)
+
+            var bundle_info = bundleMgr.GetBundleInfoByAsset(path);
+            if (bundle_info.Name == null || bundle_info.Status == EBundleFileStatus.None)
                 return EAssetStatus.NotExist;
-            if (bundle.IsDownloaded())
+            else if (bundle_info.Status == EBundleFileStatus.Ready)
                 return EAssetStatus.Exist;
             else
                 return EAssetStatus.NotDownloaded;
@@ -174,7 +175,7 @@ namespace FH.SampleExternalLoader
 
             AssetRef ret = AssetRef.Create(_ResRefDB, bundle, asset);
 
-            bundle.DecRefCount();
+            bundle.DecRef();
             return ret;
         }
 
@@ -191,7 +192,7 @@ namespace FH.SampleExternalLoader
             UnityEngine.AssetBundleRequest req = bundle.LoadAssetAsync(path, unityAssetType);
             AssetRef ret = AssetRef.Create(_ResRefDB, bundle, req);
 
-            bundle.DecRefCount();
+            bundle.DecRef();
             return ret;
         }
 

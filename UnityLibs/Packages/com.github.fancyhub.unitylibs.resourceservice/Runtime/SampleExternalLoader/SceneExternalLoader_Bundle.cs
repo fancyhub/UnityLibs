@@ -12,8 +12,8 @@ namespace FH.SampleExternalLoader
 {
     public sealed class SceneExternalLoader_Bundle : ISceneMgr.IExternalLoader
     {
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;
 
         private CPtr<IBundleMgr> _BundleMgr;
 
@@ -47,7 +47,7 @@ namespace FH.SampleExternalLoader
         {
             public AsyncOperation _AsyncOperation;
             public string _SceneName;
-            public CPtr<IBundle> _Bundle;
+            public SPtr<IBundle> _Bundle;
 
             public AsyncOperation Load(LoadSceneParameters load_param)
             {
@@ -63,15 +63,14 @@ namespace FH.SampleExternalLoader
                     return null;
 
                 var ret = GPool.New<SceneRef>();
-                ret._Bundle = new CPtr<IBundle>(bundle);
+                ret._Bundle = new SPtr<IBundle>(bundle);
                 ret._SceneName = scene;
                 return ret;
             }
 
             protected override void OnPoolRelease()
             {
-                _Bundle.Val?.DecRefCount();
-                _Bundle = null;
+                _Bundle.Destroy();
                 _AsyncOperation = null;
             }
         }

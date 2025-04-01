@@ -170,7 +170,7 @@ namespace FH
                 return;
             }
             mgr.ClearAll();
-        }
+        }         
 
         public static FileDownloadJobInfo AddJob(FileManifest.FileItem file)
         {
@@ -289,11 +289,11 @@ namespace FH
             {
                 KeyName = item.FullName,
                 RemoteUrl = DefaultServerUrl + item.FullName,
+                DestFilePath = DefaultSaveDir + item.FullName,
                 Crc32 = item.Crc32,
                 TotalSize = item.Size,
                 UseGz = item.UseGz,
                 UserData = item,
-                DestFilePath = DefaultSaveDir + item.FullName,
             };
 
             return ret;
@@ -326,5 +326,5 @@ namespace FH
         {
             _Inst.Val?.Update();
         }
-    }     
+    }
 }

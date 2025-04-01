@@ -52,6 +52,7 @@ namespace FH.Ed.ResManagement
                 }
                 ret.Add(new BuildFileInfo()
                 {
+                    FileName = BundleManifest.DefaultFileName,
                     FilePath = bundle_manifest_path,
                     FileHash = MD5Helper.ComputeFile(bundle_manifest_path),
                     Tags = new List<string>(BundleManifestTags.Split(';', StringSplitOptions.RemoveEmptyEntries)),

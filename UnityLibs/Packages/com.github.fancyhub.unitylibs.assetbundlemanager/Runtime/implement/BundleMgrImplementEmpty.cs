@@ -12,10 +12,10 @@ using UnityEngine;
 namespace FH.ABManagement
 {
     internal class BundleMgrImplementEmpty : CPtrBase, IBundleMgr
-    {      
+    {
         public void Init()
         {
-            
+
         }
 
         public IBundle FindBundleByAsset(string asset)
@@ -23,11 +23,11 @@ namespace FH.ABManagement
             return null;
         }
 
-        public IBundleMgr.EBundleFileStatus GetBundleStatus(IBundle bundle)
+        public EBundleFileStatus GetBundleStatus(IBundle bundle)
         {
-            return IBundleMgr.EBundleFileStatus.None;
+            return EBundleFileStatus.None;
         }
-         
+
         public void GetAllBundles(List<IBundle> bundles)
         {
             bundles?.Clear();
@@ -35,15 +35,25 @@ namespace FH.ABManagement
 
         public IBundle LoadBundleByAsset(string asset)
         {
-            return null; 
+            return null;
         }
 
         protected override void OnRelease()
-        {          
+        {
         }
 
         public void Upgrade()
         {
+        }
+
+        public void GetBundleInfoByAssets(List<string> asset_list, List<BundleInfo> out_bundle_info_list)
+        {
+            out_bundle_info_list.Clear();
+        }
+
+        public BundleInfo GetBundleInfoByAsset(string asset)
+        {
+            return new BundleInfo(null, EBundleFileStatus.None);
         }
     }
 }

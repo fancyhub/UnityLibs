@@ -16,8 +16,8 @@ namespace FH.SampleExternalLoader
 #if UNITY_EDITOR
     public class SceneExternaLoader_Assetdatabase : ISceneMgr.IExternalLoader
     {
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;
 
         private sealed class SceneRef : CPoolItemBase, ISceneMgr.IExternalRef
         {

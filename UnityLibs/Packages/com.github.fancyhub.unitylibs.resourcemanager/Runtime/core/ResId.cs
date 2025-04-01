@@ -25,6 +25,7 @@ namespace FH
         Max,
     }
 
+    [Serializable]
     public readonly struct ResId : IEquatable<ResId>, IEqualityComparer<ResId>
     {
         public readonly static IEqualityComparer<ResId> EqualityComparer = new ResId();

@@ -90,7 +90,7 @@ MonoBehaviour:
   m_Name: FileBuildStep_BuildBundle
   m_EditorClassIdentifier: 
   Name: Build Bundle
-  Enable: 0
+  Enable: 1
   ABBuilderConfig: {fileID: 11400000, guid: afc6bfbe5ee333f45b93dbf1fae4c3ad, type: 2}
   BundleManifestTags: base
 --- !u!114 &5932817073366880787
@@ -106,7 +106,7 @@ MonoBehaviour:
   m_Name: FileBuildStep_FetchBundleInfo
   m_EditorClassIdentifier: 
   Name: Fetch Bundle Asset Graph
-  Enable: 1
+  Enable: 0
   ABBuilderConfig: {fileID: 11400000, guid: afc6bfbe5ee333f45b93dbf1fae4c3ad, type: 2}
   BundleManifestTags: base
 --- !u!114 &6191568943613744893

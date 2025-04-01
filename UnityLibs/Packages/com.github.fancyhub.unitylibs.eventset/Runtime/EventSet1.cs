@@ -234,8 +234,8 @@ namespace FH
         private Dictionary<TKey, ActionList> _key_map;
         private Dictionary<int, LinkedListNode<EventSet1NodeData>> _id_map;
 
-        private int __ptr_ver = 0;
-        int ICPtr.PtrVer { get => __ptr_ver; }
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion { get => ___obj_ver; }
 
         public EventSet1(IEqualityComparer<TKey> equality_comparer = null)
         {
@@ -292,7 +292,7 @@ namespace FH
         public void Destroy()
         {
             Clear();
-            __ptr_ver++;
+            ___obj_ver++;
         }
     }
 

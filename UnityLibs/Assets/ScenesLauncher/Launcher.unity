@@ -355,7 +355,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Config:
-    Mode: 0
+    Mode: 1
     AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
     FileMgrConfig:
       LogLvl: 1
@@ -388,7 +388,7 @@ MonoBehaviour:
     FileDownloadMgrConfig:
       LogLvl: 0
       WorkerCount: 4
-      ServerUrl: http://10.21.76.68:5000/
+      ServerUrl: ProjTemp/Build/CDN/
       MaxRetryCount: 3
     TableLogLvl: 0
     LocLogLvl: 0

@@ -28,9 +28,7 @@ namespace FH
         ResPool_user_count_not_zero,
         ResPool_user_null_1,
         ResPool_user_null_2,
-        ResPool_user_null_3,
-        ResPool_user_null_4,
-        ResPool_user_null_5,
+        ResPool_user_null_3,        
         ResPool_addusage_user_exist,
         ResPool_path_null_1,
         ResPool_path_null_2,
@@ -46,6 +44,8 @@ namespace FH
         ResPool_multi_path_to_one_res,
         ResPool_e3,
         ResPool_e4,
+        ResPool_item_is_old_canot_add_user,
+        ResPool_dont_support_transfer_user,
 
 
         ResLoaderAsync_start = -1100,

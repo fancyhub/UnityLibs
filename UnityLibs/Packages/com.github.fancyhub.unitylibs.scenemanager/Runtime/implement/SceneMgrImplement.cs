@@ -7,8 +7,8 @@ namespace FH.SceneManagement
 {
     internal sealed class SceneMgrImplement : ISceneMgr
     {
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;
 
         private ScenePool _pool;
         private SceneLoadingQueue _loading_queue;

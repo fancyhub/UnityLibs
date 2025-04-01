@@ -24,6 +24,8 @@ namespace FH.ResManagement
         public UnityEngine.Object Asset;
         public CPtr<IResMgr.IExternalRef> AssetRef;
 
+        public bool _update_flag;
+
         public ResPoolItem()
         {
         }
@@ -37,6 +39,7 @@ namespace FH.ResManagement
             ret.AssetRef = new CPtr<IResMgr.IExternalRef>(asset_ref);
             ret.Asset = asset_ref.Asset;
             ret.ResId = new ResId(asset_ref.Asset, EResType.Res);
+            ret._update_flag = false;
 
             return ret;
         }
@@ -77,6 +80,7 @@ namespace FH.ResManagement
         {
             Path = default;
             Asset = null;
+            AssetRef.Destroy();
             base.Destroy();
             S_Pool.Del(this);
         }
@@ -84,11 +88,10 @@ namespace FH.ResManagement
 
     internal class ResPool : IResInstPool
     {
-
         public const int C_POOL_CAP = 1000;
 
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;
 
         //Key: Inst Id 
         public Dictionary<int, ResPoolItem> _pool;
@@ -108,7 +111,7 @@ namespace FH.ResManagement
 
         public void Destroy()
         {
-            ___ptr_ver++;
+            ___obj_ver++;
             _pool.ExtFreeMembers();
             _lru_free_list.Clear();
             _path_2_index_dict.Clear();
@@ -126,11 +129,7 @@ namespace FH.ResManagement
                 ResLog._.E("参数为空");
                 return;
             }
-
-            //2. clear
-            out_snapshot.Clear();
-
-            //3.foreach
+            
             foreach (var p in _pool)
             {
                 //获取数据
@@ -138,15 +137,20 @@ namespace FH.ResManagement
 
                 //填充数据                
                 ResSnapShotItem data = new ResSnapShotItem();
+                data.Id = pool_val.ResId.Id;
+                data.ResType = EResType.Res;
+                data.UpdateFlag = pool_val._update_flag;
                 data.Path = pool_val.Path;
-                data.PathType = pool_val.PathTypeMask;
-                data.Id = pool_val.ResId;
+                data.PathTypeMask = pool_val.PathTypeMask;
+
                 data.UserCount = pool_val._user_count;
                 pool_val.CopyUserList(ref data.Users);
+
                 out_snapshot.Add(data);
             }
         }
 
+        /*
         public EResError GetPathById(int inst_id, out ResPath path)
         {
             bool found = _pool.TryGetValue(inst_id, out ResPoolItem val);
@@ -159,6 +163,7 @@ namespace FH.ResManagement
             path = val.GetPath();
             return EResError.OK;
         }
+        //*/
 
         public EResError GetIdByPath(ResPath path, out ResId resId)
         {
@@ -259,7 +264,7 @@ namespace FH.ResManagement
 
             //6. 都不存在, 就添加
             ResPoolItem pool_val = ResPoolItem.Create(path, asset_ref);
-            ResLog._.D("{0} add res {1}", id.Id, path);
+            ResLog._.D("Res: {0} Res Add {1}", id.Id, path);
             _pool.Add(id.Id, pool_val);
             _path_2_index_dict.Add(path, id);
             _lru_free_list.Set(id, UnityEngine.Time.frameCount);
@@ -279,14 +284,13 @@ namespace FH.ResManagement
             return EResError.OK;
         }
 
-        public EResError RemoveRes(int inst_id, out ResPath path, out IResMgr.IExternalRef asset_ref)
+        public EResError RemoveRes(int inst_id, out ResPath path)
         {
             //1. 先从pool里面移除
             bool succ = _pool.ExtRemove(inst_id, out ResPoolItem pool_val);
             if (!succ)
             {
                 path = default;
-                asset_ref = null;
                 return EResError.ResPool_res_not_exist_2;
             }
 
@@ -296,22 +300,22 @@ namespace FH.ResManagement
             {
                 _pool.Add(inst_id, pool_val);
                 path = default;
-                asset_ref = null;
                 ResLog._.Assert(false, "有人正在使用，不能移除 {0}", pool_val.Path);
                 return EResError.ResPool_user_count_not_zero;
             }
 
-            //4. 获取返回参数
-            asset_ref = pool_val.AssetRef.Val;
-
             //3. 从lru 以及 index里面删除
             _lru_free_list.Remove(pool_val.ResId, out int _);
-            for (var i = EResPathType.Default; i < EResPathType.Max; i++)
+            if (!pool_val._update_flag)
             {
-                if (pool_val.GetPath(i, out var p1))
-                    _path_2_index_dict.Remove(p1);
+                for (var i = EResPathType.Default; i < EResPathType.Max; i++)
+                {
+                    if (pool_val.GetPath(i, out var p1))
+                        _path_2_index_dict.Remove(p1);
+                }
             }
-            ResLog._.D("{0} remove res, {1}", pool_val.ResId.Id, pool_val.Path);
+
+            ResLog._.D("Res: {0} Res Remove, {1}", pool_val.ResId.Id, pool_val.Path);
             pool_val.Destroy();
             return EResError.OK;
         }
@@ -343,17 +347,6 @@ namespace FH.ResManagement
             _lru_free_list.GetSortedList(out_list, asc, max_count);
         }
 
-
-        public EResError AddUser(ResPath path, System.Object user, out ResId out_res_id)
-        {
-            EResError err = GetIdByPath(path, out out_res_id);
-            ResLog._.ErrCode(err, path.Path);
-            if (err != EResError.OK)
-                return err;
-
-            return AddUser(out_res_id, user);
-        }
-
         public EResError AddUser(ResId res_id, System.Object user)
         {
             //1. 检查
@@ -366,7 +359,8 @@ namespace FH.ResManagement
             bool suc = _pool.TryGetValue(res_id.Id, out ResPoolItem pool_val);
             if (!suc)
                 return EResError.ResPool_res_not_exist_3;
-
+            if (pool_val._update_flag)
+                return EResError.ResPool_item_is_old_canot_add_user;
 
             //3. 获取user list并添加
             if (!pool_val.AddUser(user))
@@ -374,26 +368,10 @@ namespace FH.ResManagement
                 return EResError.ResPool_addusage_user_exist;
             }
             int user_count = pool_val.GetUserCount();
-            ResLog._.D("{0} IncResUseCount: {1} -> {2} {3}", res_id, user_count - 1, user_count, pool_val.Path);
+            ResLog._.D("Res: {0} Res UseCount Inc: {1} -> {2} {3}", res_id.Id, user_count - 1, user_count, pool_val.Path);
             //4. 刷新lru，从里面删除
             _lru_free_list.Remove(pool_val.ResId, out int _);
             return EResError.OK;
-        }
-
-        public EResError RemoveUser(ResPath path, System.Object user, out ResId res_id)
-        {
-            if (user == null)
-            {
-                ResLog._.Assert(false, "RemoveUser User is null {0}", path);
-                res_id = ResId.Null;
-                return EResError.ResPool_user_null_1;
-            }
-
-            EResError err = GetIdByPath(path, out res_id);
-            if (err != 0)
-                return EResError.ResPool_res_not_exist;
-
-            return RemoveUser(res_id, user);
         }
 
         public EResError RemoveUser(ResId res_id, System.Object user)
@@ -421,43 +399,23 @@ namespace FH.ResManagement
 
             int user_count = pool_val.GetUserCount();
 
-            ResLog._.D("{0} DecResUseCount: {1} -> {2} {3}", res_id, user_count + 1, user_count, pool_val.Path);
+            ResLog._.D("Res: {0} Res UseCount Dec: {1} -> {2} {3}", res_id.Id, user_count + 1, user_count, pool_val.Path);
 
             //4. 更新lru
             if (user_count == 0)
-                _lru_free_list.Set(pool_val.ResId, UnityEngine.Time.frameCount);
+            {
+                if (pool_val._update_flag) //旧资源, 直接移除
+                    RemoveRes(res_id.Id, out _);
+                else
+                    _lru_free_list.Set(pool_val.ResId, UnityEngine.Time.frameCount);
+            }
 
             return EResError.OK;
         }
 
         public EResError TransferUser(ResId res_id, System.Object old_user, System.Object new_user)
         {
-            if (old_user == null || new_user == null || old_user == new_user)
-                return EResError.ResPool_user_null_4;
-
-            bool suc = _pool.TryGetValue(res_id.Id, out ResPoolItem pool_val);
-            if (!suc)
-            {
-                ResLog._.Assert(false, "找不到 该res");
-                return EResError.ResPool_res_not_exist_7;
-            }
-
-            int old_user_count = pool_val.GetUserCount();
-
-            if (pool_val.AddUser(new_user) && pool_val.RemoveUser(old_user))
-            {
-                return EResError.OK;
-            }
-            int user_count = pool_val.GetUserCount();
-
-            if (old_user_count != user_count)
-            {
-                if (user_count == 0)
-                    _lru_free_list.Set(pool_val.ResId, UnityEngine.Time.frameCount);
-                else if (old_user_count == 0)
-                    _lru_free_list.Remove(pool_val.ResId,out _);
-            }
-            return EResError.ResPool_user_not_exist;
+            return EResError.ResPool_dont_support_transfer_user;
         }
 
         public void RefreshLru(ResId res_id)
@@ -468,7 +426,23 @@ namespace FH.ResManagement
 
         public void OnUpgradeSucc()
         {
+            List<int> temp = new List<int>(_lru_free_list.Count);
 
+            foreach (var p in _pool)
+            {
+                p.Value._update_flag = true;
+                if (p.Value._user_count == 0)
+                    temp.Add(p.Key);
+            }
+
+            foreach (var p in temp)
+            {
+                RemoveRes(p, out _);
+            }
+
+            ResLog._.Assert(_lru_free_list.Count == 0, "res pool count is not 0, {0}", _lru_free_list.Count);
+
+            _path_2_index_dict.Clear();//清除路径对inst的映射
         }
     }
 }

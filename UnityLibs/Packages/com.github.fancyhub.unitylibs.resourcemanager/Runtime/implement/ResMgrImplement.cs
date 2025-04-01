@@ -17,8 +17,8 @@ namespace FH.ResManagement
 
     internal class ResMgrImplement : IResMgr, ICPtr
     {
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;
 
         public IResMgr.IExternalLoader _external_loader;
 
@@ -150,10 +150,11 @@ namespace FH.ResManagement
             _gc = null;
             _msg_queue.ClearMsgQueue();
             _msg_queue = null;
-            ___ptr_ver++;
+            ___obj_ver++;
             ResLog._.D("ResMgrImplement Destroy End");
         }
 
+        /*
         public ResRef GetResRef(UnityEngine.Object res)
         {
             if (res == null)
@@ -197,6 +198,7 @@ namespace FH.ResManagement
             }
             return default;
         }
+        //*/
 
         public EResError AddUser(ResId id, System.Object user)
         {
@@ -381,9 +383,11 @@ namespace FH.ResManagement
         }
 
         // 资源的部分,key: path
-        public void ResSnapshot(ref List<ResSnapShotItem> out_snapshot)
+        public void Snapshot(ref List<ResSnapShotItem> out_snapshot)
         {
+            out_snapshot.Clear();
             _res_pool.Snapshot(ref out_snapshot);
+            _gobj_pool.Snapshot(ref out_snapshot);
         }
         #endregion
 

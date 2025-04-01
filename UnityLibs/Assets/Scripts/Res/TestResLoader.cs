@@ -15,6 +15,8 @@ public class TestResLoader : MonoBehaviour
     public UnityEngine.Object SameAsset1;
     public UnityEngine.Object SameAsset2;
 
+    public List<FH.ResSnapShotItem> ResSnapShots;
+
     [FH.Omi.Button]
     public void Preload()
     {
@@ -49,5 +51,12 @@ public class TestResLoader : MonoBehaviour
     public void LoadSameAsset2()
     {
         SameAsset2 = FH.ResMgr.Load(SameAssetPath2).Get();
+    }
+
+    [FH.Omi.Button]
+    public void ResSnapShot()
+    {
+        ResSnapShots = new List<FH.ResSnapShotItem>();
+        FH.ResMgr.ResSnapshot(ref ResSnapShots);
     }
 }

@@ -17,8 +17,8 @@ namespace FH
         private bool ___in_pool = false;
         IPool IPoolItem.Pool { get => ___pool; set => ___pool = value; }
         bool IPoolItem.InPool { get => ___in_pool; set => ___in_pool = value; }
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;
         #endregion
                 
 
@@ -179,7 +179,7 @@ namespace FH
             _Parent = null;
             Data = default;
 
-            ___ptr_ver++;
+            ___obj_ver++;
             ___pool.Del(this);
         }
     }

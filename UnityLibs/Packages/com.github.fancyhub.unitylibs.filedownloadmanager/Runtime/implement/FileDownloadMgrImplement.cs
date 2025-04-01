@@ -10,8 +10,8 @@ namespace FH.FileDownload
 {
     internal sealed class FileDownloadMgrImplement : IFileDownloadMgr
     {
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;
 
         public JobDB _JobDB;
         public WorkerFsm[] _Workers;
@@ -44,7 +44,7 @@ namespace FH.FileDownload
 
         public void SetCallBack(FileDownloadCallBack callback)
         {
-            _WorkerConfig.CallBack = callback;            
+            _WorkerConfig.CallBack = callback;
         }
 
         public void ClearAll()
@@ -127,7 +127,7 @@ namespace FH.FileDownload
 
         public void Destroy()
         {
-            ___ptr_ver++;
+            ___obj_ver++;
         }
     }
 }

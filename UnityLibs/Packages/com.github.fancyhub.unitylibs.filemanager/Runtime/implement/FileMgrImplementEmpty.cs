@@ -12,8 +12,8 @@ namespace FH.FileManagement
 {
     internal sealed class FileMgrImplementEmpty : IFileMgr
     {
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;
 
         private ExtractStreamingAssetsOperation _ExtractOp = new ExtractStreamingAssetsOperationEditor();
 
@@ -34,7 +34,7 @@ namespace FH.FileManagement
 
         public void Destroy()
         {
-            ___ptr_ver++;
+            ___obj_ver++;
         }
 
         public VersionInfo GetVersionInfo()

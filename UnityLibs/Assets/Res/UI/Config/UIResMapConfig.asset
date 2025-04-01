@@ -80,3 +80,6 @@ MonoBehaviour:
     - name: TestUIRes
       dir: 
       ext: .prefab
+    - name: TestUpgrade
+      dir: 
+      ext: .prefab

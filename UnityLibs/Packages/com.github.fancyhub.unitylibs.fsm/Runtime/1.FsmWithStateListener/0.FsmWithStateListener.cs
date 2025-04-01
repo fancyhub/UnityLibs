@@ -36,7 +36,7 @@ namespace FH
         private EFsmMode _Mode;
         private LinkedList<TMsg> _MsgQueue;
 
-        public int PtrVer { get; set; }
+        public int ObjVersion { get; set; }
 
         public FsmWithStateListener(
             EFsmMode mode = EFsmMode.Sync,
@@ -96,7 +96,7 @@ namespace FH
         public void Destroy()
         {
             Stop();
-            PtrVer++;
+            ObjVersion++;
         }
 
         public bool IsRunning()

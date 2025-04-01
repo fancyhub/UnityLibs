@@ -87,6 +87,7 @@ namespace FH.FileDownload
             _JobDB.Change(job, status);
             job._WorkerIndex = -1;
 
+
             _CurrentJob = null;
             _Config.CallBack?.Invoke(job._JobInfo);
         }

@@ -14,13 +14,18 @@ using UnityEngine;
 
 namespace FH
 {
+    public enum EBundleFileStatus
+    {
+        None, //不存在
+        Ready,
+        Remote,
+    }
+
     public partial interface IBundleMgr
     {
-        public enum EBundleFileStatus
+        public enum EAssetStatus
         {
-            None, //不存在
-            Ready,
-            Remote,
+
         }
 
         public sealed class ExternalBundle
@@ -113,32 +118,33 @@ namespace FH
         }
     }
 
-
-    public interface IBundle : ICPtr
+    public interface IBundle : ISPtr
     {
         public string Name { get; }
 
-        public void GetAllDeps(List<IBundle> deps);
-
-        public bool IsDownloaded();
-
-        public int IncRefCount();
-        public int DecRefCount();
-        public int RefCount { get; }
-
         public UnityEngine.Object LoadAsset(string path, Type unityAssetType);
         public AssetBundleRequest LoadAssetAsync(string path, Type unityAssetType);
+    }
+
+    public struct BundleInfo
+    {
+        public readonly string Name;
+        public readonly EBundleFileStatus Status;
+
+        public BundleInfo(string name, EBundleFileStatus status)
+        {
+            this.Name = name;
+            this.Status = status;
+        }
     }
 
     public partial interface IBundleMgr : ICPtr
     {
         public IBundle LoadBundleByAsset(string asset);
 
-        public IBundle FindBundleByAsset(string asset);
+        public void GetBundleInfoByAssets(List<string> asset_list, List<BundleInfo> out_bundle_info_list);
 
-        public EBundleFileStatus GetBundleStatus(IBundle bundle);
-
-        public void GetAllBundles(List<IBundle> bundles);
+        public BundleInfo GetBundleInfoByAsset(string asset);
 
         public void Upgrade();
     }
@@ -209,14 +215,11 @@ namespace FH
             return mgr.LoadBundleByAsset(asset);
         }
 
-        private static Dictionary<string, IBundle> _S_TempDict = new Dictionary<string, IBundle>();
-        private static List<IBundle> _S_TempList = new List<IBundle>();
-        private static List<IBundle> _S_TempList2 = new List<IBundle>();
+        private static List<BundleInfo> _S_TempList = new List<BundleInfo>();
 
-        public static void GetAllBundles(List<string> asset_list, List<IBundle> out_bundle_list)
+        public static void GetAllNeedDownload(List<string> asset_list, List<string> out_bundle_names_list)
         {
-            out_bundle_list.Clear();
-
+            out_bundle_names_list.Clear();
             var mgr = _.Val;
             if (mgr == null)
             {
@@ -224,58 +227,13 @@ namespace FH
                 return;
             }
 
-            _S_TempDict.Clear();
-            foreach (var p in asset_list)
-            {
-                IBundle bundle = mgr.FindBundleByAsset(p);
-                if (bundle == null)
-                    continue;
-                if (_S_TempDict.ContainsKey(bundle.Name))
-                    continue;
-                _S_TempDict.Add(bundle.Name, bundle);
+            mgr.GetBundleInfoByAssets(asset_list, _S_TempList);
 
-                _S_TempList.Clear();
-                bundle.GetAllDeps(_S_TempList);
-                foreach (var p2 in _S_TempList)
+            foreach (var p in _S_TempList)
+            {
+                if (p.Status == EBundleFileStatus.Remote)
                 {
-                    _S_TempDict[p2.Name] = bundle;
-                }
-            }
-            foreach (var p in _S_TempDict)
-            {
-                out_bundle_list.Add(p.Value);
-            }
-        }
-
-        public static void GetAllNeedDownload(List<string> asset_list, List<IBundle> out_bundle_list)
-        {
-            out_bundle_list.Clear();
-            var mgr = _.Val;
-            if (mgr == null)
-            {
-                BundleLog.E("BundleMgr is null");
-                return;
-            }
-
-            GetAllBundles(asset_list, _S_TempList2);
-
-            foreach (var p in _S_TempList2)
-            {
-                var status = mgr.GetBundleStatus(p);
-
-                switch (status)
-                {
-                    default:
-                    case IBundleMgr.EBundleFileStatus.None:
-                        BundleLog.E("Bundle: {0}, Status: {1}, 有问题", p.Name, status);
-                        break;
-
-                    case IBundleMgr.EBundleFileStatus.Ready:
-                        break;
-
-                    case IBundleMgr.EBundleFileStatus.Remote:
-                        out_bundle_list.Add(p);
-                        break;
+                    out_bundle_names_list.Add(p.Name);
                 }
             }
         }

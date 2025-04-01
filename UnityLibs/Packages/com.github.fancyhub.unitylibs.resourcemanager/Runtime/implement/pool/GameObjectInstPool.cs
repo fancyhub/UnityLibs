@@ -49,12 +49,7 @@ namespace FH.ResManagement
         }
     }
 
-    internal enum EGameObjInstStatus
-    {
-        Free,
-        InUse,
-        WaitForUse,
-    }
+
 
     internal sealed class GameObjectInstItem : CPoolItemBase
     {
@@ -113,7 +108,7 @@ namespace FH.ResManagement
             this._wait_for_use_frame_expire = int.MaxValue;
             this._user = default;
 
-            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _res_ref.Path);
+            ResLog._.D("Inst: {0} Inst StatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _res_ref.Path);
             return true;
         }
 
@@ -136,7 +131,7 @@ namespace FH.ResManagement
             this._wait_for_use_frame_expire = int.MaxValue;
 
 
-            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _res_ref.Path);
+            ResLog._.D("Inst: {0} Inst StatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _res_ref.Path);
             return true;
         }
 
@@ -158,7 +153,7 @@ namespace FH.ResManagement
             this._wait_for_use = false;
             this._wait_for_use_frame_expire = int.MaxValue;
 
-            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _res_ref.Path);
+            ResLog._.D("Inst: {0} Inst StatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _res_ref.Path);
             return true;
         }
 
@@ -174,7 +169,7 @@ namespace FH.ResManagement
             this._wait_for_use = true;
             this._wait_for_use_frame_expire = UnityEngine.Time.frameCount + C_WAIT_FOR_USE_FRAME;
 
-            ResLog._.D("{0} InstStatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _res_ref.Path);
+            ResLog._.D("Inst: {0} Inst StatusChange, {1}->{2}, {3}", _inst_id.Id, old_status, Status, _res_ref.Path);
             return true;
         }
 
@@ -206,14 +201,14 @@ namespace FH.ResManagement
     internal class GameObjectInstPool : IResInstPool
     {
         public const int C_POOL_CAP = 1000;
-        private int ___ptr_ver = 0;
-        int ICPtr.PtrVer => ___ptr_ver;
+        private int ___obj_ver = 0;
+        int IVersionObj.ObjVersion => ___obj_ver;
 
 
         public Dictionary<int, GameObjectInstItem> _all;
         public LinkedList<CPtr<GameObjectInstItem>> _wait_for_use;
         public LruList<ResId, int> _lru_free_list;
-        public One2MultiMap<string, ResId> _index_by_path; //free pool
+        public One2MultiMap<string, ResId> _free_index_by_path; //free pool
         public GameObjectStat _stat;
 
         public GameObjectInstPool(GameObjectStat stat)
@@ -221,7 +216,7 @@ namespace FH.ResManagement
             _all = new Dictionary<int, GameObjectInstItem>(C_POOL_CAP);
             _wait_for_use = new();
             _lru_free_list = new LruList<ResId, int>();
-            _index_by_path = new One2MultiMap<string, ResId>();
+            _free_index_by_path = new One2MultiMap<string, ResId>();
             _stat = stat;
         }
 
@@ -247,7 +242,7 @@ namespace FH.ResManagement
             _all.Add(inst_id.Id, pool_val);
             _wait_for_use.ExtAddLast(pool_val);
             res_ref.AddUser(pool_val);
-            ResLog._.D("{0} InstCreate {1},Count:{2} {3}", inst_id.Id, pool_val.Status, count, res_ref.Path);
+            ResLog._.D("Inst: {0} Inst Create {1},Count:{2} {3}", inst_id.Id, pool_val.Status, count, res_ref.Path);
             return true;
         }
 
@@ -272,11 +267,19 @@ namespace FH.ResManagement
                 if (now <= item._wait_for_use_frame_expire)
                     break;
 
-                if (item.MoveWait2Free())
+                if (!item.MoveWait2Free())
+                    continue;
+
+                _lru_free_list.Set(item._inst_id, now);
+                cur_node.ExtRemoveFromList();
+
+                if (item._upgrade_flag)
                 {
-                    _index_by_path.Add(item._res_ref.Path, item._inst_id);
-                    _lru_free_list.Set(item._inst_id, now);
-                    cur_node.ExtRemoveFromList();
+                    RemoveInst(item._inst_id, out _);
+                }
+                else
+                {
+                    _free_index_by_path.Add(item._res_ref.Path, item._inst_id);
                 }
             }
         }
@@ -292,7 +295,7 @@ namespace FH.ResManagement
                 return false;
             }
 
-            //2. 检查user            
+            //2. 检查user
             path = pool_val._res_ref.Path;
             var status = pool_val.Status;
             if (status != EGameObjInstStatus.Free)
@@ -307,13 +310,13 @@ namespace FH.ResManagement
             //3. 从 lru里面移除           
             succ = _lru_free_list.Remove(inst_id, out int _);
             ResLog._.Assert(succ, "从lru list 移除失败 {0} {1}", inst_id.Id, path);
-            succ = _index_by_path.RemoveVal(inst_id);
+            succ = _free_index_by_path.RemoveVal(inst_id);
             ResLog._.Assert(succ, "从 index_by_path 移除失败 {0} {1}", inst_id.Id, path);
 
             //4. 获取参数
             pool_val.Destroy();
             int count = _stat.RemoveOne(path);
-            ResLog._.D("{0} InstDestroy, {1},Count:{2} {3}", inst_id.Id, status, count, path);
+            ResLog._.D("Inst: {0} Inst Destroy, {1},Count:{2} {3}", inst_id.Id, status, count, path);
             return true;
         }
 
@@ -333,19 +336,19 @@ namespace FH.ResManagement
 
         public void Destroy()
         {
-            ___ptr_ver++;
+            ___obj_ver++;
             _all.ExtFreeMembers();
             _lru_free_list.Clear();
-            _index_by_path.Clear();
+            _free_index_by_path.Clear();
 
             _all = null;
             _lru_free_list = null;
-            _index_by_path = null;
+            _free_index_by_path = null;
         }
 
         public int GetFreeCount(string path)
         {
-            return _index_by_path.GetCount(path);
+            return _free_index_by_path.GetCount(path);
         }
 
         public EResError GetInstPath(ResId inst_id, out string path)
@@ -427,7 +430,7 @@ namespace FH.ResManagement
             for (; ; )
             {
                 //2. 从free的pool里面弹出一个
-                bool suc = _index_by_path.ExtPop(path, out inst_id);
+                bool suc = _free_index_by_path.ExtPop(path, out inst_id);
                 if (!suc)
                 {
                     //不报错误了，因为是可能的
@@ -510,8 +513,11 @@ namespace FH.ResManagement
                 return (EResError)EResError.GameObjectInstPool_user_remove_twice;
             }
             GameObjectPoolUtil.Push2Pool(pool_val._unity_inst);
-            _index_by_path.Add(pool_val._res_ref.Path, inst_id);
+            _free_index_by_path.Add(pool_val._res_ref.Path, inst_id);
             _lru_free_list.Set(inst_id, UnityEngine.Time.frameCount);
+
+            if (pool_val._upgrade_flag) // 资源更新前的对象, 立刻清除
+                RemoveInst(pool_val._inst_id, out var _);
             return EResError.OK;
         }
 
@@ -528,9 +534,40 @@ namespace FH.ResManagement
 
         public void OnUpgradeSucc()
         {
+            List<ResId> list = new List<ResId>(_lru_free_list.Count);
+
             foreach (var p in _all)
             {
                 p.Value._upgrade_flag = true;
+                if (p.Value.Status == EGameObjInstStatus.Free)
+                    list.Add(p.Value._inst_id);
+            }
+
+            foreach (var p in list)
+            {
+                RemoveInst(p, out _);
+            }
+
+            ResLog._.Assert(_lru_free_list.Count == 0, "inst lru list is not 0, {0}", _lru_free_list.Count);
+            ResLog._.Assert(_free_index_by_path.Count == 0, "inst index_by_path is not 0,{0}", _free_index_by_path.Count);
+        }
+
+
+        public void Snapshot(ref List<ResSnapShotItem> out_snapshot)
+        {
+            foreach (var p in _all)
+            {
+                var item = p.Value;
+                ResSnapShotItem data = new ResSnapShotItem();
+                data.Id = item._inst_id.Id;
+                data.ResType = EResType.Inst;
+                data.UpdateFlag = item._upgrade_flag;
+                data.Path = item._res_ref.Path;
+                data.PathTypeMask = new BitEnum32<EResPathType>(EResPathType.Default);
+                data.UserCount = item.Status == EGameObjInstStatus.InUse ? 1 : 0;
+                data.InstStatus = item.Status;
+
+                out_snapshot.Add(data);
             }
         }
     }

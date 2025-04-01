@@ -29,7 +29,7 @@ namespace FH
     /// </summary>
     public class FsmStateVTWithContext<TContext, TState, TMsg, TResult> : IFsmStateVTWithContext<TContext, TState, TMsg, TResult>
     {
-        public int PtrVer { get; private set; }
+        public int ObjVersion { get; private set; }
         private Dictionary<TState, IFsmStateNodeWithContext<TContext, TMsg, TResult>> _Nodes;
 
         public FsmStateVTWithContext(int cap, IEqualityComparer<TState> comparer = null)
