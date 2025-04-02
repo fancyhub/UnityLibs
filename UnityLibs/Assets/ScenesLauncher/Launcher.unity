@@ -363,7 +363,7 @@ MonoBehaviour:
       - base
       AndroidExtractTag: android
     BundleMgrConfig:
-      LogLvl: 1
+      LogLvl: 0
       UnloadAllLoadedObjects: 1
     ResMgrConfig:
       LogLevel: 1

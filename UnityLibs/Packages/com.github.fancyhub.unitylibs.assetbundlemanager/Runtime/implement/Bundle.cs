@@ -22,7 +22,6 @@ namespace FH.ABManagement
     {
         None,
         Loaded,
-        LoadedByDep, //因为依赖的原因
         Error,
     }
 
@@ -31,274 +30,281 @@ namespace FH.ABManagement
         private int ___obj_ver = 0;
         int IVersionObj.ObjVersion => ___obj_ver;
 
-        public CPtr<IBundleMgr.IExternalLoader> _ExternalLoader;
-        public BundleManifest.Item _Config;
-        public Bundle[] _AllDeps;
+        public CPtr<IBundleMgr.IExternalLoader> _external_loader;
+        public BundleManifest.Item _config;
+        public Bundle[] _all_deps;
 
-        private IBundleMgr.ExternalBundle _AssetBundle;
+        private IBundleMgr.ExternalBundle _unity_bundle;
 
-        private EBundleLoadStatus _LoadStatus = EBundleLoadStatus.None;
-        private int _RefCount = 0;
-        private int _DepRefCount = 0;
+        private EBundleLoadStatus _status = EBundleLoadStatus.None;
 
-        public string Name { get { return _Config.Name; } }
+        private bool _loaded_by_external_flag = false;
+        private int _external_ref_count = 0;
 
-        public void GetAllDeps(List<Bundle> deps)
-        {
-            deps.AddRange(_AllDeps);
-        }
+        private bool _loaded_by_dep_flag = false;
+        private int _dep_ref_count = 0;
 
-        public bool IsDownloaded()
-        {
-            if (_LoadStatus != EBundleLoadStatus.None)
-                return true;
+        public string Name { get { return _config.Name; } }
 
-            IBundleMgr.IExternalLoader loader = _ExternalLoader.Val;
-            if (loader == null)
-                return false;
-
-            return loader.GetBundleFileStatus(_Config.Name) == EBundleFileStatus.Ready;
-        }
+        public int RefCount => _external_ref_count + _dep_ref_count;
 
         public int IncRef()
         {
-            if (_LoadStatus != EBundleLoadStatus.Loaded)
+            if (_status != EBundleLoadStatus.Loaded || !_loaded_by_external_flag)
             {
-                BundleLog.E("Bundle {0}:{1} Is Not Load, Can't Inc ref count", _Config.Name, _LoadStatus);
-                return 0;
+                BundleLog.E("Bundle {0}, ({1}, {2}, {3}), is not loaded by external, canot inc ref count", _config.Name, _status, _external_ref_count, _dep_ref_count);
+                return RefCount;
             }
-            _RefCount++;
-            BundleLog.D("Bundle {0} RefCount {1} -> {2}", _Config.Name, _RefCount - 1, _RefCount);
-            return _RefCount;
+            _external_ref_count++;
+            BundleLog.D("Bundle {0}, ({1}, {2}, {3}) Inc -> ({4},{3})", _config.Name, _status, _external_ref_count - 1, _dep_ref_count, _external_ref_count);
+            return RefCount;
         }
-
-        public int RefCount => _RefCount;
 
         public int DecRef()
         {
-            if (_LoadStatus != EBundleLoadStatus.Loaded)
+            if (_status != EBundleLoadStatus.Loaded || !_loaded_by_external_flag)
             {
-                BundleLog.E("Bundle {0}:{1} Is Not Load, Can't Dec ref count", _Config.Name, _LoadStatus);
-                return 0;
+                BundleLog.E("Bundle {0}, ({1}, {2}, {3}), is not loaded by external, canot dec ref count", _config.Name, _status, _external_ref_count, _dep_ref_count);
+                return RefCount;
             }
 
-            BundleLog.D("Bundle {0} RefCount {1} -> {2}", _Config.Name, _RefCount, _RefCount - 1);
-            _RefCount--;
-            if (_RefCount > 0)
-                return _RefCount;
-            _RefCount = 0;
+            _external_ref_count--;
+            BundleLog.D("Bundle {0}, ({1}, {2}, {3}) Dec -> ({4},{3})", _config.Name, _status, _external_ref_count + 1, _dep_ref_count, _external_ref_count);
 
-            if (_DepRefCount > 0)
-            {
-                BundleLog.D("Bundle {0} DepRefCount {1}>0, Don't Need Unload", _Config.Name, _DepRefCount);
-                _LoadStatus = EBundleLoadStatus.LoadedByDep;
-                return _RefCount;
-            }
+            if (_external_ref_count > 0)
+                return RefCount;
+            _external_ref_count = 0;
+            _loaded_by_external_flag = false;
 
-            _LoadStatus = EBundleLoadStatus.None;
-            _Unload();
-            return _RefCount;
+            if (_dep_ref_count > 0)
+                return RefCount;
+
+            _UnloadUnityBundle();
+            return RefCount;
         }
 
         public UnityEngine.Object LoadAsset(string path, Type unityAssetType)
         {
-            if (_LoadStatus != EBundleLoadStatus.Loaded)
+            if (_status != EBundleLoadStatus.Loaded || !_loaded_by_external_flag)
             {
-                BundleLog.E("Bundle {0} Is Not Loaded {1}, Load Asset Fail {2}  ", _Config.Name, _LoadStatus, path);
+                BundleLog.E("Bundle {0}, ({1}, {2}, {3}), is not loaded by external, canot load asset, {4}", _config.Name, _status, _external_ref_count, _dep_ref_count, path);
                 return null;
             }
-            if (_AssetBundle == null)
+            if (_unity_bundle == null)
             {
-                BundleLog.E("Bundle {0} AssetBundle Is Null ", _Config.Name);
+                BundleLog.E("Bundle {0} AssetBundle Is Null ", _config.Name);
                 return null;
             }
 
-            return _AssetBundle.LoadAsset(path, unityAssetType);
+            var ret = _unity_bundle.LoadAsset(path, unityAssetType);
+            BundleLog.D("Bundle {0}, ({1}, {2}, {3}), load asset, {4}, {5} ", _config.Name, _status, _external_ref_count, _dep_ref_count, path, ret == null);
+            return ret;
         }
 
         public AssetBundleRequest LoadAssetAsync(string path, Type unityAssetType)
         {
-            if (_LoadStatus != EBundleLoadStatus.Loaded)
+            if (_status != EBundleLoadStatus.Loaded || !_loaded_by_external_flag)
             {
-                BundleLog.E("Bundle {0} Is Not Loaded {1}, Load Asset Fail {2}  ", _Config.Name, _LoadStatus, path);
+                BundleLog.E("Bundle {0}, ({1}, {2}, {3}), is not loaded by external, canot load asset, {4}", _config.Name, _status, _external_ref_count, _dep_ref_count, path);
                 return null;
             }
-            if (_AssetBundle == null)
+            if (_unity_bundle == null)
             {
-                BundleLog.E("Bundle {0} AssetBundle Is Null ", _Config.Name);
+                BundleLog.E("Bundle {0} AssetBundle Is Null ", _config.Name);
                 return null;
             }
 
-            return _AssetBundle.LoadAssetAsync(path, unityAssetType);
+            var ret = _unity_bundle.LoadAssetAsync(path, unityAssetType);
+            BundleLog.D("Bundle {0}, ({1}, {2}, {3}), load asset async, {4}, {5} ", _config.Name, _status, _external_ref_count, _dep_ref_count, path, ret == null);
+            return ret;
         }
 
-        public void Destroy()
+        public bool LoadByExternal()
         {
-            ___obj_ver++;
-            _Unload();
-        }         
-
-        private void _Unload()
-        {
-            if (_AssetBundle == null)
-                return;
-            BundleLog.D("Bundle {0} Unload ", _Config.Name);
-            _AssetBundle.Unload(BundleDef.UnloadAllLoadedObjectsCurrent);
-            _AssetBundle = null;
-        }
-
-        internal bool Load()
-        {
-            switch (_LoadStatus)
+            switch (_status)
             {
                 default:
                     return false;
 
                 case EBundleLoadStatus.Loaded:
-                    return true;
-
-                case EBundleLoadStatus.LoadedByDep:
-                    _LoadStatus = EBundleLoadStatus.Loaded;
+                    _loaded_by_external_flag = true;
                     return true;
 
                 case EBundleLoadStatus.Error:
                     return false;
 
                 case EBundleLoadStatus.None:
-                    BundleLog.D("Load Bundle {0} Load", _Config.Name);
-                    IBundleMgr.IExternalLoader loader = _ExternalLoader.Val;
+                    BundleLog.D("Load Bundle {0} Load", _config.Name);
+                    IBundleMgr.IExternalLoader loader = _external_loader.Val;
                     if (loader == null)
                     {
                         BundleLog.E("BundleLoader is null");
                         return false;
                     }
 
-                    EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
+                    EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_config.Name);
                     if (bundleStatus != EBundleFileStatus.Ready)
                     {
-                        BundleLog.Assert(false, "Bundle {0} Is {1}", _Config.Name, bundleStatus);
+                        BundleLog.Assert(false, "Bundle {0} canot be loaded, file status: {1}", _config.Name, bundleStatus);
                         return false;
                     }
 
-                    foreach (var p in _AllDeps)
-                    {
-                        switch (p._LoadStatus)
-                        {
-                            case EBundleLoadStatus.Loaded:
-                            case EBundleLoadStatus.LoadedByDep:
-                                continue;
-                            case EBundleLoadStatus.Error:
-                                _LoadStatus = EBundleLoadStatus.Error;
-                                return false;
+                    if (!_LoadAllDeps())
+                        return false;
 
-                            case EBundleLoadStatus.None:
-                                if (!p.IsDownloaded())
-                                {
-                                    BundleLog.Assert(false, "Bundle {0} Dep {1} Is not Downloaded", _Config.Name, p._Config.Name);
-                                    return false;
-                                }
-                                break;
-                        }
-                    }
+                    _unity_bundle = loader.LoadBundleFile(_config.Name);
 
-                    int index = 0;
-                    bool has_error = false;
-                    for (; index < _AllDeps.Length; index++)
+                    if (_unity_bundle == null)
                     {
-                        if (!_AllDeps[index]._LoadDep())
-                        {
-                            has_error = true;
-                            break;
-                        }
-                        _AllDeps[index]._IncDepRef();
-                    }
-
-                    if (has_error)
-                    {
-                        _LoadStatus = EBundleLoadStatus.Error;
-                        for (int i = 0; i < index; i++)
-                            _AllDeps[i]._DecDepRef();
+                        _status = EBundleLoadStatus.Error;
+                        foreach (var p in _all_deps)
+                            p._UnloadByDep(_config.Name);
                         return false;
                     }
-
-                    _AssetBundle = loader.LoadBundleFile(_Config.Name);
-
-                    if (_AssetBundle != null)
+                    else
                     {
-                        BundleLog.D("Bundle {0} Load Succ", _Config.Name);
-                        _LoadStatus = EBundleLoadStatus.Loaded;
+                        BundleLog.D("Bundle {0} Load Succ", _config.Name);
+                        _status = EBundleLoadStatus.Loaded;
+                        _loaded_by_external_flag = true;
                         return true;
                     }
-
-                    _LoadStatus = EBundleLoadStatus.Error;
-                    for (int i = 0; i < index; i++)
-                        _AllDeps[i]._DecDepRef();
-                    return false;
             }
         }
 
-        private bool _LoadDep()
+        public void Destroy()
         {
-            switch (_LoadStatus)
+            ___obj_ver++;
+            _UnloadUnityBundle(true);
+        }
+
+        private bool _LoadAllDeps()
+        {
+            //1. 先检查是否都下载了
+            foreach (var p in _all_deps)
+            {
+                if (!p._IsDownloaded())
+                {
+                    BundleLog.E("Bundle {0}, ({1}, {2}, {3}) 加载失败, 因为有依赖的bundle没有下载 {4}", _config.Name, _status, _external_ref_count, _dep_ref_count, p.Name);
+                    return false;
+                }
+            }
+
+            //2. 加载
+            for (int i = 0; i < _all_deps.Length; i++)
+            {
+                if (_all_deps[i]._LoadByDep(_config.Name))
+                    continue;
+
+                for (int j = i - 1; j >= 0; j--)
+                {
+                    _all_deps[j]._UnloadByDep(_config.Name);
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool _LoadByDep(string parent_bundle_name)
+        {
+            switch (_status)
             {
                 case EBundleLoadStatus.None:
-                    BundleLog.D("Load Dep Bundle {0} Load", _Config.Name);
+                    BundleLog.D("Load Dep Bundle {0} Load", _config.Name);
 
-                    IBundleMgr.IExternalLoader loader = _ExternalLoader.Val;
+                    IBundleMgr.IExternalLoader loader = _external_loader.Val;
                     if (loader == null)
                     {
                         BundleLog.E("BundleLoader is null");
                         return false;
                     }
 
-                    EBundleFileStatus bundleStatus = loader.GetBundleFileStatus(_Config.Name);
-                    if (bundleStatus != EBundleFileStatus.Ready)
+                    _unity_bundle = loader.LoadBundleFile(_config.Name);
+                    if (_unity_bundle == null)
                     {
-                        BundleLog.D("Bundle {0} Is {1}", _Config.Name, bundleStatus);
+                        BundleLog.E("Bundle {0} Load Dep Fail", _config.Name);
+                        _status = EBundleLoadStatus.Error;
                         return false;
                     }
 
-                    _AssetBundle = loader.LoadBundleFile(_Config.Name);
-
-                    if (_AssetBundle == null)
-                    {
-                        BundleLog.E("Bundle {0} Load Dep Fail", _Config.Name);
-                        _LoadStatus = EBundleLoadStatus.Error;
-                        return false;
-                    }
-
-                    BundleLog.D("Bundle {0} Load Dep Succ", _Config.Name);
-                    _LoadStatus = EBundleLoadStatus.LoadedByDep;
+                    BundleLog.D("Bundle {0} Load Dep Succ", _config.Name);
+                    _status = EBundleLoadStatus.Loaded;
+                    _loaded_by_dep_flag = true;
+                    _dep_ref_count = 1;
+                    BundleLog.D("Bundle {0}, ({1}, {2}, {3}) Inc Dep -> ({2},{4})", _config.Name, _status, _external_ref_count, _dep_ref_count - 1, _dep_ref_count);
                     return true;
 
-                case EBundleLoadStatus.LoadedByDep:
                 case EBundleLoadStatus.Loaded:
+                    _loaded_by_dep_flag = true;
+                    _dep_ref_count++;
+                    BundleLog.D("Bundle {0}, ({1}, {2}, {3}) Inc Dep -> ({2},{4})", _config.Name, _status, _external_ref_count, _dep_ref_count - 1, _dep_ref_count);
                     return true;
 
                 case EBundleLoadStatus.Error:
                     return false;
 
-                default: return false;
+                default:
+                    return false;
             }
         }
 
-        private void _IncDepRef()
+        private void _UnloadByDep(string parent_bundle_name)
         {
-            _DepRefCount++;
+            if (_status != EBundleLoadStatus.Loaded || !_loaded_by_dep_flag)
+            {
+                BundleLog.E("Bundle {0}, ({1}, {2}, {3}), is not loaded by dep, canot dec dep ref count", _config.Name, _status, _external_ref_count, _dep_ref_count);
+                return;
+            }
+
+            _dep_ref_count--;
+            BundleLog.D("Bundle {0}, ({1}, {2}, {3}) Dec Dep -> ({2},{4})", _config.Name, _status, _external_ref_count, _dep_ref_count + 1, _dep_ref_count);
+            if (_dep_ref_count > 0)
+                return;
+            _loaded_by_dep_flag = false;
+            if (_external_ref_count > 0)
+                return;
+            _UnloadUnityBundle();
         }
 
-        private void _DecDepRef()
+        private void _UnloadUnityBundle(bool destroyed = false)
         {
-            _DepRefCount--;
-            if (_DepRefCount > 0)
-                return;
+            if (destroyed)
+            {
+                BundleLog.D("Bundle {0}, ({1}, {2}, {3}) unload unity bundle by destroy", _config.Name, _status, _external_ref_count, _dep_ref_count);
+            }
+            else
+            {
+                if (_status != EBundleLoadStatus.Loaded || _unity_bundle == null)
+                    BundleLog.E("Bundle {0}, ({1}, {2}, {3}) unload unity bundle", _config.Name, _status, _external_ref_count, _dep_ref_count);
+                else
+                    BundleLog.D("Bundle {0}, ({1}, {2}, {3}) unload unity bundle", _config.Name, _status, _external_ref_count, _dep_ref_count);
+            }
 
-            if (_RefCount > 0)
-                return;
-            
-            _LoadStatus = EBundleLoadStatus.None;
-            _Unload();
-            return;
+            _status = EBundleLoadStatus.None;
+            _external_ref_count = 0;
+            _dep_ref_count = 0;
+            _loaded_by_dep_flag = false;
+            _loaded_by_external_flag = false;
+
+            if (_unity_bundle != null)
+            {
+                var t = _unity_bundle;
+                _unity_bundle = null;
+                t.Unload(BundleDef.UnloadAllLoadedObjectsCurrent);
+            }
+        }
+
+        private bool _IsDownloaded()
+        {
+            if (_status != EBundleLoadStatus.None)
+                return true;
+
+            IBundleMgr.IExternalLoader loader = _external_loader.Val;
+            if (loader == null)
+                return false;
+
+            return loader.GetBundleFileStatus(_config.Name) == EBundleFileStatus.Ready;
         }
     }
 }

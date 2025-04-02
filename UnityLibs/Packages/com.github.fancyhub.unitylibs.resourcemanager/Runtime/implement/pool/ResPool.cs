@@ -78,11 +78,18 @@ namespace FH.ResManagement
 
         public override void Destroy()
         {
+            var asset = Asset;
             Path = default;
             Asset = null;
             AssetRef.Destroy();
             base.Destroy();
+
             S_Pool.Del(this);
+
+            if (!(asset is GameObject))
+            {
+                Resources.UnloadAsset(asset);
+            }
         }
     }
 
@@ -129,7 +136,7 @@ namespace FH.ResManagement
                 ResLog._.E("参数为空");
                 return;
             }
-            
+
             foreach (var p in _pool)
             {
                 //获取数据

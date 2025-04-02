@@ -33,7 +33,7 @@ namespace FH.ABManagement
             bundles?.Clear();
         }
 
-        public IBundle LoadBundleByAsset(string asset)
+        public ICSPtr<IBundle> LoadBundleByAsset(string asset)
         {
             return null;
         }

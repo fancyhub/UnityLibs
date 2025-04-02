@@ -140,7 +140,7 @@ namespace FH
 
     public partial interface IBundleMgr : ICPtr
     {
-        public IBundle LoadBundleByAsset(string asset);
+        public ICSPtr<IBundle> LoadBundleByAsset(string asset);
 
         public void GetBundleInfoByAssets(List<string> asset_list, List<BundleInfo> out_bundle_info_list);
 
@@ -203,7 +203,7 @@ namespace FH
             _.Destroy();
         }
 
-        public static IBundle LoadBundleByAsset(string asset)
+        public static ICSPtr<IBundle> LoadBundleByAsset(string asset)
         {
             var mgr = _.Val;
             if (mgr == null)

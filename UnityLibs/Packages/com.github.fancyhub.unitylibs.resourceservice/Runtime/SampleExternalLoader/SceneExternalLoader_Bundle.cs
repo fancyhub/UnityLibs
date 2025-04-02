@@ -36,7 +36,7 @@ namespace FH.SampleExternalLoader
                 return null;
             }
 
-            IBundle bundle = bundle_mgr.LoadBundleByAsset(scene);
+            ICSPtr<IBundle> bundle = bundle_mgr.LoadBundleByAsset(scene);
             if (bundle == null)
                 return null;
 
@@ -57,7 +57,7 @@ namespace FH.SampleExternalLoader
                 return _AsyncOperation;
             }
 
-            public static SceneRef Create(IBundle bundle, string scene)
+            public static SceneRef Create(ICSPtr<IBundle> bundle, string scene)
             {
                 if (bundle == null)
                     return null;

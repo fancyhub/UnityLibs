@@ -16,16 +16,31 @@ namespace FH.ABManagement
         private static Dictionary<string, Bundle> _S_TempDict = new Dictionary<string, Bundle>();
         private static List<Bundle> _S_TempList = new List<Bundle>();
 
-        private CPtr<IBundleMgr.IExternalLoader> _ExternalLoader;
-        private List<Bundle> _BundleList;
-        private MyDict<string, Bundle> _AssetDict;
+        public BundleManifest _config;
 
+        public CPtr<IBundleMgr.IExternalLoader> _external_loader;
+        public List<Bundle> _bundle_list;
+        public MyDict<string, Bundle> _asset_2_bundle_map;
 
-        public BundleManifest _Config;
         public void Init(IBundleMgr.IExternalLoader external_loader, BundleManifest config)
         {
-            _ExternalLoader = new CPtr<IBundleMgr.IExternalLoader>(external_loader);
+            _external_loader = new CPtr<IBundleMgr.IExternalLoader>(external_loader);
             _CreateBundles(config);
+        }
+
+        public ICSPtr<IBundle> LoadBundleByAsset(string asset)
+        {
+            Bundle bundle = _FindBundleByAsset(asset);
+            if (bundle == null)
+                return null;
+
+            if (!bundle.LoadByExternal())
+            {
+                BundleLog.E("加载失败 Asset:{0}, 对应的Bundle: {1}", asset, bundle.Name);
+                return null;
+            }
+
+            return bundle.ExtCreateCSPtr<IBundle>();
         }
 
         public void GetBundleInfoByAssets(List<string> asset_list, List<BundleInfo> out_bundle_stat_list)
@@ -42,9 +57,9 @@ namespace FH.ABManagement
                     continue;
                 _S_TempDict.Add(bundle.Name, bundle);
 
-                if (bundle._AllDeps != null && bundle._AllDeps.Length > 0)
+                if (bundle._all_deps != null && bundle._all_deps.Length > 0)
                 {
-                    foreach (var p2 in bundle._AllDeps)
+                    foreach (var p2 in bundle._all_deps)
                     {
                         _S_TempDict[p2.Name] = bundle;
                     }
@@ -67,6 +82,31 @@ namespace FH.ABManagement
             return new BundleInfo(b.Name, status);
         }
 
+        public void Upgrade()
+        {
+            if (_external_loader.Val == null)
+                return;
+            var new_manifest = _external_loader.Val.LoadManifest();
+            if (new_manifest == null)
+                return;
+
+            BundleDef.UnloadAllLoadedObjectsCurrent = false;
+            foreach (var p in _bundle_list)
+                p.Destroy();
+            BundleDef.UnloadAllLoadedObjectsCurrent = BundleDef.UnloadAllLoadedObjectsDefault;
+
+            _CreateBundles(new_manifest);
+        }
+
+        protected override void OnRelease()
+        {
+            foreach (var p in _bundle_list)
+            {
+                p.Destroy();
+            }
+            _bundle_list.Clear();
+            _asset_2_bundle_map.Clear();
+        }
 
         public Bundle _FindBundleByAsset(string asset)
         {
@@ -76,17 +116,17 @@ namespace FH.ABManagement
                 return null;
             }
 
-            _AssetDict.TryGetValue(asset, out Bundle b);
-            if (b == null)
+            _asset_2_bundle_map.TryGetValue(asset, out Bundle ret);
+            if (ret == null)
             {
                 BundleLog.E("找不到 {0} 对应的bundle", asset);
             }
-            return b;
+            return ret;
         }
 
         public EBundleFileStatus _GetBundleStatus(string bundle_name)
         {
-            var loader = _ExternalLoader.Val;
+            var loader = _external_loader.Val;
             if (loader == null)
             {
                 BundleLog.Assert(false, "external loader is null");
@@ -95,76 +135,22 @@ namespace FH.ABManagement
             return loader.GetBundleFileStatus(bundle_name);
         }
 
-        public void GetAllBundles(List<IBundle> bundles)
-        {
-            bundles.Clear();
-            bundles.AddRange(_BundleList);
-        }
-
-        public IBundle LoadBundleByAsset(string asset)
-        {
-            if (string.IsNullOrEmpty(asset))
-                return null;
-
-            _AssetDict.TryGetValue(asset, out Bundle b);
-            if (b == null)
-            {
-                BundleLog.E("找不到 {0} 对应的bundle", asset);
-                return null;
-            }
-
-            if (!b.Load())
-            {
-                BundleLog.E("加载失败 Asset:{0}, 对应的Bundle: {1}", asset, b.Name);
-                return null;
-            }
-
-            b.IncRef();
-            return b;
-        }
-
-        protected override void OnRelease()
-        {
-            foreach (var p in _BundleList)
-            {
-                p.Destroy();
-            }
-            _BundleList.Clear();
-            _AssetDict.Clear();
-        }
-
-        public void Upgrade()
-        {
-            if (_ExternalLoader.Val == null)
-                return;
-            var new_manifest = _ExternalLoader.Val.LoadManifest();
-            if (new_manifest == null)
-                return;
-
-            BundleDef.UnloadAllLoadedObjectsCurrent = false;
-            foreach (var p in _BundleList)
-                p.Destroy();
-            BundleDef.UnloadAllLoadedObjectsCurrent = BundleDef.UnloadAllLoadedObjectsDefault;
-
-            _CreateBundles(new_manifest);
-        }
-
         private void _CreateBundles(BundleManifest config)
         {
-            _Config = config;
-            _BundleList = new List<Bundle>(config.BundleList.Length);
-            _AssetDict = new MyDict<string, Bundle>();
+            _config = config;
+            _bundle_list = new List<Bundle>(config.BundleList.Length);
+            _asset_2_bundle_map = new MyDict<string, Bundle>();
 
             foreach (var p in config.BundleList)
             {
                 Bundle b = new Bundle();
-                b._Config = p;
-                b._ExternalLoader = _ExternalLoader;
-                _BundleList.Add(b);
+                b._config = p;
+                b._external_loader = _external_loader;
+                _bundle_list.Add(b);
 
                 foreach (var a in p.GetAssets())
                 {
-                    _AssetDict.Add(a, b);
+                    _asset_2_bundle_map.Add(a, b);
                 }
             }
 
@@ -173,10 +159,10 @@ namespace FH.ABManagement
             {
                 config.GetAllDeps(i, tempList);
 
-                _BundleList[i]._AllDeps = new Bundle[tempList.Count];
+                _bundle_list[i]._all_deps = new Bundle[tempList.Count];
                 for (int j = 0; j < tempList.Count; j++)
                 {
-                    _BundleList[i]._AllDeps[j] = _BundleList[tempList[j]];
+                    _bundle_list[i]._all_deps[j] = _bundle_list[tempList[j]];
                 }
             }
         }

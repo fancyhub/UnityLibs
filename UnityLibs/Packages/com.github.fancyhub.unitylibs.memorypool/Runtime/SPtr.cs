@@ -64,9 +64,15 @@ namespace FH
             if (target == null)
                 _target = default;
             else
-            {
                 _target = new CPtr<ICSPtr<T>>(CSPtr<T>.Create(target));
-            }
+        }
+
+        public SPtr(ICSPtr<T> target)
+        {
+            if (target == null)
+                _target = default;
+            else
+                _target = new CPtr<ICSPtr<T>>(target);
         }
 
         public void Destroy()
@@ -82,7 +88,8 @@ namespace FH
     public static partial class PtrExt
     {
         public static SPtr<T> SPtr<T>(this T self) where T : class, ISPtr { return new SPtr<T>(self); }
-        public static ICSPtr<T> ExtCreateCSPtr<T>(this T self) where T:class ,ISPtr
+
+        public static ICSPtr<T> ExtCreateCSPtr<T>(this T self) where T : class, ISPtr
         {
             return CSPtr<T>.Create(self);
         }
