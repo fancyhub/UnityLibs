@@ -97,7 +97,7 @@ namespace FH.ABManagement
             }
 
             var ret = _unity_bundle.LoadAsset(path, unityAssetType);
-            BundleLog.D("Bundle {0}, ({1}, {2}, {3}), load asset, {4}, {5} ", _config.Name, _status, _external_ref_count, _dep_ref_count, path, ret == null);
+            BundleLog.D("Bundle {0}, ({1}, {2}, {3}), load asset, {4}, {5} ", _config.Name, _status, _external_ref_count, _dep_ref_count, path, ret != null);
             return ret;
         }
 
@@ -115,7 +115,7 @@ namespace FH.ABManagement
             }
 
             var ret = _unity_bundle.LoadAssetAsync(path, unityAssetType);
-            BundleLog.D("Bundle {0}, ({1}, {2}, {3}), load asset async, {4}, {5} ", _config.Name, _status, _external_ref_count, _dep_ref_count, path, ret == null);
+            BundleLog.D("Bundle {0}, ({1}, {2}, {3}), load asset async, {4}, {5} ", _config.Name, _status, _external_ref_count, _dep_ref_count, path, ret != null);
             return ret;
         }
 

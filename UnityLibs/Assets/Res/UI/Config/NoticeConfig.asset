@@ -16,26 +16,16 @@ MonoBehaviour:
   Channels:
   - ChannelType: 1
     Dummy:
-      LayerName: 
+      LayerName: Top
       PosX: 0.5
       PosY: 0.3
-    Channel:
-      Visible:
-        VisiblePattern: 0
-        VisibleFlag: 0
-        InvisibleFlag: 0
-        ClearSignal: 0
-      TimeScale:
-        PendingCountMin: 5
-        PendingCount: 10
-        TimeScale: 2
     Container:
       ContainerType: 1
+      Immediate: 0
       Multi:
         MaxShowCount: 3
         StepMoveDuration: 0.3
         DirUp: 1
-        Immediate: 0
       Time:
         ShowUpDuration: 0.3
         HideOutDuration: 0.3
@@ -46,3 +36,16 @@ MonoBehaviour:
         HideOut:
         - EffectType: 2
           MoveDistance: 0
+    Channel:
+      Visible:
+        VisiblePattern: 0
+        WhiteList:
+          Value: 0
+        BlackList:
+          Value: 0
+        ClearSignal:
+          Value: 0
+      TimeScale:
+        PendingCountMin: 5
+        PendingCountMax: 10
+        TimeScaleMax: 2

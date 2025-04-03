@@ -56,6 +56,22 @@ namespace FH.VFSManagement
             return true;
         }
 
+        public void RemountAll()
+        {
+            foreach (var p in _file_system_list)
+            {
+                try
+                {
+                    p.Remount();
+
+                }
+                catch (Exception e)
+                {
+                    VfsLog._.E(e);
+                }
+            }
+        }
+
         public bool UnMount(string file_system_name)
         {
             int index = _IndexOf(file_system_name);
@@ -134,6 +150,6 @@ namespace FH.VFSManagement
             return -1;
         }
 
-        
+
     }
 }

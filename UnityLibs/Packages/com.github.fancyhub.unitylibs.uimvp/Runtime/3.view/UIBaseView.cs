@@ -7,6 +7,7 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace FH.UI
 {
@@ -57,13 +58,15 @@ namespace FH.UI
         public Action EventDestroy;
 
         private IResInstHolder _res_holder;
-        protected GameObject _self_root;
+        private GameObject _self_root;
+        private RectTransform _self_rect_tran;
         private UICanvasOrder _canvas_order;
         protected EUIBaseViewCreateMode _view_create_mode;
         protected EUIBaseViewLifeState _view_life_state;
 
         public IResInstHolder ResHolder => _res_holder;
         public GameObject SelfRoot => _self_root;
+        public RectTransform SelfRootTran => _self_rect_tran;
         public UICanvasOrder CanvasOrder => _canvas_order;
 
 
@@ -154,6 +157,7 @@ namespace FH.UI
                 this._canvas_order = UICanvasOrder.Get(obj_self);
             _res_holder = res_holder;
             _self_root = obj_self;
+            _self_rect_tran = _self_root.transform as RectTransform;
             _view_life_state = EUIBaseViewLifeState.Inited;
             _view_create_mode = create_mode;
 

@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Items:
   - Name: client_config
-    Format: 2
-    Tags: base;android
+    Format: 0
+    Tags: base
     Dirs:
     - Name: config
       RootDir: ../ClientData
@@ -33,10 +33,10 @@ MonoBehaviour:
       SearchPatterns: '*.lua'
   - Name: table
     Format: 0
-    Tags: base;android
+    Tags: base
     Dirs:
     - Name: table
       RootDir: ../ClientData
       SpecSubDir: Table
       IncludeSub: 1
-      SearchPatterns: '*.bin'
+      SearchPatterns: '*.csv'

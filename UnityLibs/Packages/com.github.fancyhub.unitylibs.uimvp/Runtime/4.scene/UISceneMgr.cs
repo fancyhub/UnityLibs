@@ -180,6 +180,20 @@ namespace FH.UI
             return _._UpdaterMgr.AddUpdate(action);
         }
 
+        public static int AddUpdateForever(Action action)
+        {
+            if (_ == null)
+                return 0;
+            if (action == null)
+                return 0;
+
+            return _._UpdaterMgr.AddUpdate(() =>
+            {
+                action();
+                return EUIUpdateResult.Continue;
+            });
+        }
+
         public static bool RemoveUpdate(int id)
         {
             if (_ == null)

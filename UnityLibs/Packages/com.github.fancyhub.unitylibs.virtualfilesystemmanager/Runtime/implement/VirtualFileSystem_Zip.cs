@@ -17,58 +17,63 @@ namespace FH
     {
         private const int CMaxStackBuffSize = 4096;
 
-        public string _Name;
-        public ZipArchive _ZipArchive;
-        public VirtualFileSystem_Zip(string name, ZipArchive zipArchive)
+        public Func<string, ZipArchive> _loader_func;
+        public string _name;
+        public ZipArchive _zip_archive;
+        public VirtualFileSystem_Zip(string name, Func<string, ZipArchive> loader_func)
         {
-            _Name = name;
-            _ZipArchive = zipArchive;
-        }
+            _name = name;
+            _loader_func = loader_func;
 
-        public static VirtualFileSystem_Zip CreateFromFile(string name, string file_path)
-        {
-            if (!System.IO.File.Exists(file_path))
+            _zip_archive = loader_func(name);
+            if (_zip_archive == null)
             {
-                VfsLog._.E("File Not Exist {0}:{1}", name, file_path);
-                return null;
-            }
-
-            try
-            {
-                ZipArchive zipArchive = ZipFile.OpenRead(file_path);
-                if (zipArchive == null)
-                {
-                    VfsLog._.E("加载失败 {0}:{1}", name, file_path);
-                    return null;
-                }
-
-                return new VirtualFileSystem_Zip(name, zipArchive);
-            }
-            catch (Exception e)
-            {
-                VfsLog._.E(e);
-                return null;
+                VFSManagement.VfsLog._.E("zip file is null, {0}", _name);
             }
         }
 
-        public string Name => _Name;
+        public void Remount()
+        {
+            _CloseZipFile();
+            _zip_archive = _loader_func(_name);
+            if (_zip_archive == null)
+            {
+                VFSManagement.VfsLog._.E("zip file is null, {0}", _name);
+            }
+        }         
+
+        public string Name => _name;
 
         public void Destroy()
         {
-            _ZipArchive.Dispose();
+            _CloseZipFile();            
+        }
+
+        private void _CloseZipFile()
+        {
+            if (_zip_archive != null)
+            {
+                var t = _zip_archive;
+                _zip_archive = null;
+                t.Dispose();
+            }
         }
 
         public bool Exist(string file_path)
         {
-            return _ZipArchive.GetEntry(file_path) != null;
+            if (_zip_archive == null)
+                return false;
+            return _zip_archive.GetEntry(file_path) != null;
         }
 
         public Stream OpenRead(string file_path)
         {
-            ZipArchiveEntry entry = _ZipArchive.GetEntry(file_path);
+            if (_zip_archive == null)
+                return null;
+            ZipArchiveEntry entry = _zip_archive.GetEntry(file_path);
             if (entry == null)
             {
-                VfsLog._.D("{0}: Can't find {1}", _Name, file_path);
+                VfsLog._.D("{0}: Can't find {1}", _name, file_path);
                 return null;
             }
 
@@ -78,10 +83,13 @@ namespace FH
 
         public byte[] ReadAllBytes(string file_path)
         {
-            ZipArchiveEntry entry = _ZipArchive.GetEntry(file_path);
+            if (_zip_archive == null)
+                return null;
+
+            ZipArchiveEntry entry = _zip_archive.GetEntry(file_path);
             if (entry == null)
             {
-                VfsLog._.D("{0}: Can't find {1}", _Name, file_path);
+                VfsLog._.D("{0}: Can't find {1}", _name, file_path);
                 return null;
             }
 
@@ -92,7 +100,7 @@ namespace FH
 
             if (count != entry.Length)
             {
-                VfsLog._.E("{0} 读取文件出错,长度不一致,{1}", _Name, file_path);
+                VfsLog._.E("{0} 读取文件出错,长度不一致,{1}", _name, file_path);
                 return null;
             }
             return ret;
@@ -100,10 +108,13 @@ namespace FH
 
         public string ReadAllText(string file_path)
         {
-            ZipArchiveEntry entry = _ZipArchive.GetEntry(file_path);
+            if (_zip_archive == null)
+                return null;
+
+            ZipArchiveEntry entry = _zip_archive.GetEntry(file_path);
             if (entry == null)
             {
-                VfsLog._.D("{0}: Can't find {1}", _Name, file_path);
+                VfsLog._.D("{0}: Can't find {1}", _name, file_path);
                 return null;
             }
 
@@ -117,7 +128,7 @@ namespace FH
 
                 if (count != entry.Length)
                 {
-                    VfsLog._.E("{0} 读取文件出错,长度不一致,{1}", _Name, file_path);
+                    VfsLog._.E("{0} 读取文件出错,长度不一致,{1}", _name, file_path);
                     return null;
                 }
 
@@ -133,7 +144,7 @@ namespace FH
 
                 if (count != entry.Length)
                 {
-                    VfsLog._.E("{0} 读取文件出错,长度不一致,{1}", _Name, file_path);
+                    VfsLog._.E("{0} 读取文件出错,长度不一致,{1}", _name, file_path);
                     return null;
                 }
                 return System.Text.Encoding.UTF8.GetString(buff);

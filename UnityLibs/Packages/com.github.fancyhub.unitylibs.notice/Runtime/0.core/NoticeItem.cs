@@ -14,15 +14,15 @@ namespace FH
     public struct NoticeItemDummy
     {
         public readonly Transform Dummy;
-        public readonly INoticeChannelRoot ChannelRoot;
+        internal readonly INoticeChannelRoot ChannelRoot;
 
-        public NoticeItemDummy(Transform dummy, INoticeChannelRoot channel_root)
+        internal NoticeItemDummy(Transform dummy, INoticeChannelRoot channel_root)
         {
             Dummy = dummy;
             ChannelRoot = channel_root;
         }
 
-        public NoticeItemDummy(GameObject dummy, INoticeChannelRoot channel_root)
+        internal NoticeItemDummy(GameObject dummy, INoticeChannelRoot channel_root)
         {
             Dummy = dummy.transform;
             ChannelRoot = channel_root;

@@ -23,6 +23,8 @@ namespace FH
         public Stream OpenRead(string file_path);
 
         public bool Exist(string file_path);
+
+        public void Remount();
     }
 
     public partial interface IVfsMgr : ICPtr
@@ -34,6 +36,8 @@ namespace FH
 
         public bool UnMount(string file_system_name);
         public void UnMountAll();
+
+        public void RemountAll();
 
         public List<IVirtualFileSystem> GetAll();
 
@@ -164,6 +168,18 @@ namespace FH
             }
 
             return mgr.OpenRead(file_path);
+        }
+
+        public static void RemountAll()
+        {
+            IVfsMgr mgr = _.Val;
+            if (mgr == null)
+            {
+                VfsLog._.E("VfsMgr Is Null");
+                return;
+            }
+
+            mgr.RemountAll();
         }
     }
 }

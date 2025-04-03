@@ -193,8 +193,8 @@ namespace FH
         public static bool TryGet(LocKey key, out string tran, UnityEngine.Object obj = null)
         {
             var int_key = key.ToLocId();
-            if (_._Translation.TryGetValue(int_key, out tran))
-                return true;
+            if (_._Translation.TryGetValue(int_key, out tran))            
+                return true;            
 
             LocLog._.E(obj, "Can't find \"{0}\"", key.Key);
             return false;

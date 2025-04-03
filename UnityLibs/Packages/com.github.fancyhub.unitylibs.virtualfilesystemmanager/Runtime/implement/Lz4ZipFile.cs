@@ -115,8 +115,17 @@ namespace FH
         /// </summary>
         public static unsafe Lz4ZipFile LoadFromStream(Stream stream_in)
         {
-            if (stream_in == null) return null;
-            if (!stream_in.CanRead) return null;
+            if (stream_in == null)
+            {
+                VfsLog._.E("Lz4ZipFile load failed, stream is null");
+                return null;
+            }
+            if (!stream_in.CanRead)
+            {
+                VfsLog._.E("Lz4ZipFile load failed, stream can't seek");
+                stream_in.Close();
+                return null;
+            }
             System.IO.Stream file_stream = stream_in;
 
             Span<byte> temp_buff = stackalloc byte[CMaxFileNameLen + 128];
@@ -126,7 +135,7 @@ namespace FH
                 int read_size = file_stream.Read(temp_buff.Slice(0, 8));
                 if (read_size < 8)
                 {
-                    VfsLog._.E("Gzip load failed {0}", 0);
+                    VfsLog._.E("Lz4ZipFile load failed {0}", 0);
                     file_stream.Close();
                     return null;
                 }
@@ -134,14 +143,14 @@ namespace FH
                 uint file_sign = BitConverter.ToUInt32(temp_buff.Slice(0, 4));
                 if (file_sign != CFileSign)
                 {
-                    VfsLog._.E("Gzip load failed {0}", 1);
+                    VfsLog._.E("Lz4ZipFile load failed {0}", 1);
                     file_stream.Close();
                     return null;
                 }
                 uint file_version = BitConverter.ToUInt32(temp_buff.Slice(4, 4));
                 if (file_version != CFileVersion)
                 {
-                    VfsLog._.E("Gzip load failed {0}", 2);
+                    VfsLog._.E("Lz4ZipFile load failed {0}", 2);
                     file_stream.Close();
                     return null;
                 }

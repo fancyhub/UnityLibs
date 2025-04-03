@@ -40,6 +40,11 @@ namespace FH
             _name = name;
         }
 
+        public void Remount()
+        {
+            //Do nothing
+        }
+
         public bool AddDir(string root_dir, string sub_dir_name)
         {
             if (string.IsNullOrEmpty(root_dir))

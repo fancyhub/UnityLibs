@@ -11,7 +11,7 @@ namespace Game
         void Start()
         {
             FH.Log.AutoInit();
-            
+
             new MyUISceneMgr().Init();
             FH.UI.UISceneMgr.ChangeScene<UISceneExtractAsset>();
 
@@ -58,6 +58,7 @@ namespace Game
     {
         public override void OnSceneEnter(FH.UI.IUIScene lastScene)
         {
+            NoticeApi.Init();
             this.OpenUI<UIMainPage>(Tag: FH.UI.EUITagIndex.BG);
 
         }

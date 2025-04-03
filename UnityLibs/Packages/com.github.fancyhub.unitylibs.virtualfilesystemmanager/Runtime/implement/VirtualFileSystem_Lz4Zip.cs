@@ -12,31 +12,44 @@ namespace FH
 {
     public class VirtualFileSystem_Lz4Zip : IVirtualFileSystem
     {
-        public Lz4ZipFile _ZipFile;
+        public Func<string, Lz4ZipFile> _loader_func;
+        public Lz4ZipFile _zip_file;
         public string _name;
 
-        public VirtualFileSystem_Lz4Zip(string name, Lz4ZipFile zip_file)
+        public VirtualFileSystem_Lz4Zip(string name, Func<string, Lz4ZipFile> loader_func)
         {
             _name = name;
-            _ZipFile = zip_file;
+            _loader_func = loader_func;
+
+
+            _zip_file = _loader_func(_name);
+            if (_zip_file == null)
+            {
+                VFSManagement.VfsLog._.E("lz4zip file is null, {0}", _name);
+            }
         }
 
-        public static VirtualFileSystem_Lz4Zip CreateFromFile(string name, string path)
+        public void Remount()
         {
-            Lz4ZipFile zip_file = Lz4ZipFile.LoadFromFile(path);
-            if (zip_file == null)
-                return null;
-            return new VirtualFileSystem_Lz4Zip(name, zip_file);
+            _CloseZipFile();
+            _zip_file = _loader_func(_name);
+            if (_zip_file == null)
+            {
+                VFSManagement.VfsLog._.E("lz4zip file is null, {0}", _name);
+            }
         }
 
         public void Destroy()
         {
-            _ZipFile.Close();
+            _CloseZipFile();
         }
 
+   
         public bool Exist(string file_path)
         {
-            return _ZipFile.FileExists(file_path);
+            if (_zip_file == null)
+                return false;
+            return _zip_file.FileExists(file_path);
         }
 
         public string Name => _name;
@@ -47,17 +60,34 @@ namespace FH
         /// </summary>
         public Stream OpenRead(string file_path)
         {
-            return _ZipFile.OpenRead(file_path);
+            if (_zip_file == null)
+                return null;
+            return _zip_file.OpenRead(file_path);
         }
 
         public byte[] ReadAllBytes(string file_path)
         {
-            return _ZipFile.ReadFileAllBytes(file_path);
+            if (_zip_file == null)
+                return null;
+            return _zip_file.ReadFileAllBytes(file_path);
         }
 
         public string ReadAllText(string file_path)
         {
-            return _ZipFile.ReadAllText(file_path);
+            if (_zip_file == null)
+                return null;
+            return _zip_file.ReadAllText(file_path);
         }
+
+        private void _CloseZipFile()
+        {
+            if (_zip_file != null)
+            {
+                var t = _zip_file;
+                _zip_file = null;
+                t.Close();
+            }
+        }
+
     }
 }

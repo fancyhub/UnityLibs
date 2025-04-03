@@ -39,13 +39,14 @@ namespace Game
         }
 
         private async Awaitable _UpgradeWrapper(string version)
-        {
+        {            
             ResRef old_res = ResMgr.Load(UIButtonView.CPath);
             old_res.AddUser(this);
 
             ResRef old_inst = ResMgr.Create(UIButtonView.CPath, this, true);
 
             await _Upgrade(version);
+            NoticeApi.ShowCommon("upgrade done");
             _is_inprogress = false;
 
             ResRef new_res = ResMgr.Load(UIButtonView.CPath);
@@ -86,8 +87,8 @@ namespace Game
             BaseView._Progress.value = 1.0f;
             Log.I("all files download");
 
-            await ResService.Switch(file_manifest);
-            Log.I("switch done");
+            await ResService.Upgrade(file_manifest);
+            Log.I("upgrade done");
             BaseView._CurVersion.text = "Current Version: " + FileMgr.GetVersionInfo();
         }
     }

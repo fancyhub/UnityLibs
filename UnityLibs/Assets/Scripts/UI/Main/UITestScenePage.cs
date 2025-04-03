@@ -43,7 +43,7 @@ namespace Game
             _SceneRefList.Clear();
 
 
-            FH.UI.UIRedDotMgr.Set("root.test.scene", 1);
+            FH.UI.UIRedDotMgr.Set("root.test.scene", 0);
         }
 
         private FH.UI.EUIUpdateResult _Update()
@@ -109,11 +109,11 @@ namespace Game
             scene.ScenePos = new Vector3(Offset * _X, 0, Offset * _Y);
             _X++;
 
-            if(_X >20)
+            if (_X > 20)
             {
                 _Y++;
                 _X = 0;
-            }    
+            }
         }
 
         private void _OnLoadAdditive()

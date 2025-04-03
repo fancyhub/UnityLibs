@@ -484,8 +484,7 @@ namespace FH.ResManagement
             }
 
 
-            pool_val._unity_inst.transform.SetLocalPositionAndRotation(UnityEngine.Vector3.zero, UnityEngine.Quaternion.identity);
-            pool_val._unity_inst.transform.localScale = UnityEngine.Vector3.one;
+            pool_val._unity_inst.ExtResetTran();
 
             return EResError.OK;
         }

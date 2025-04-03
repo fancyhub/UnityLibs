@@ -76,7 +76,8 @@ namespace FH
                 yield return extraOP;
 
             _MountVfs(mode, Config.VfsBuilderConfig);
-            TableMgr.Init(Config.TableLogLvl, new VfsTableReaderBinCreator("Table/"));
+            //TableMgr.Init(Config.TableLogLvl, new VfsTableReaderBinCreator("Table/"));
+            TableMgr.Init(Config.TableLogLvl, new VfsTableReaderCsvCreator("Table/"));
             LocMgr.InitLog(Config.LocLogLvl);
             LocMgr.FuncLoader = TableMgr.LoadTranslation;
         }
@@ -135,19 +136,42 @@ namespace FH
 
             foreach (var p in config.Items)
             {
-                FileMgr.FindFile(p.Name, out var full_path, out var _);
-                if (full_path == null)
-                {
-                    Log.E("找不到文件 {0}", p.Name);
-                    continue;
-                }
-
                 switch (p.Format)
                 {
                     case VFSManagement.Builder.BuilderConfig.EFormat.ZipStore:
                     case VFSManagement.Builder.BuilderConfig.EFormat.ZipCompress:
                         {
-                            VirtualFileSystem_Zip fs_zip = VirtualFileSystem_Zip.CreateFromFile(p.Name, full_path);
+                            VirtualFileSystem_Zip fs_zip = new VirtualFileSystem_Zip(p.Name, (name) =>
+                            {
+                                FileMgr.FindFile(name, out var file_path, out var _);
+                                if (file_path == null)
+                                {
+                                    Log.E("找不到文件 {0}", name);
+                                    return null;
+                                }
+
+                                if (!System.IO.File.Exists(file_path))
+                                {
+                                    Log.E("File Not Exist {0}:{1}", name, file_path);
+                                    return null;
+                                }
+
+                                try
+                                {
+                                    System.IO.Compression.ZipArchive zipArchive = System.IO.Compression.ZipFile.OpenRead(file_path);
+                                    if (zipArchive == null)
+                                    {
+                                        Log.E("加载失败 {0}:{1}", name, file_path);
+                                        return null;
+                                    }
+                                    return zipArchive;
+                                }
+                                catch (Exception e)
+                                {
+                                    Log.E(e);
+                                    return null;
+                                }
+                            });
                             VfsMgr.Mount(fs_zip);
                         }
                         break;
@@ -155,7 +179,29 @@ namespace FH
                     case VFSManagement.Builder.BuilderConfig.EFormat.Lz4ZipStore:
                     case VFSManagement.Builder.BuilderConfig.EFormat.Lz4ZipCompress:
                         {
-                            VirtualFileSystem_Lz4Zip fs_zip = VirtualFileSystem_Lz4Zip.CreateFromFile(p.Name, full_path);
+                            VirtualFileSystem_Lz4Zip fs_zip = new VirtualFileSystem_Lz4Zip(p.Name, (name) =>
+                            {
+                                FileMgr.FindFile(name, out var full_path, out var _);
+                                if (full_path == null)
+                                {
+                                    Log.E("找不到文件 {0}", name);
+                                    return null;
+                                }
+
+                                Lz4ZipFile ret = null;
+                                if (full_path.StartsWith(Application.streamingAssetsPath))
+                                {
+                                    ret = Lz4ZipFile.LoadFromStream(SAFileSystem.OpenRead(full_path));
+                                }
+                                else
+                                {
+                                    ret = Lz4ZipFile.LoadFromFile(full_path);
+                                }
+
+                                if (ret == null)                                
+                                    Log.E("Load Lz4Zip failed, {0}",full_path);
+                                return ret;
+                            });
                             VfsMgr.Mount(fs_zip);
                         }
                         break;

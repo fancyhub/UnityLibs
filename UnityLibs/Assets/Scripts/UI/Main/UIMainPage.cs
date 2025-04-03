@@ -44,6 +44,7 @@ namespace Game
             {
                 FH.UI.UISceneMgr.ChangeScene<UISceneMain>();
             };
+            
         }
 
         protected override void OnUI5Close()

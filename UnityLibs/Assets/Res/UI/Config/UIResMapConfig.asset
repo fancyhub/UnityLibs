@@ -62,6 +62,15 @@ MonoBehaviour:
     - name: MainPanel
       dir: 
       ext: .prefab
+    - name: notice_marquee
+      dir: notice
+      ext: .prefab
+    - name: notice_message_box
+      dir: notice
+      ext: .prefab
+    - name: notice_text
+      dir: notice
+      ext: .prefab
     - name: SceneItem
       dir: 
       ext: .prefab
