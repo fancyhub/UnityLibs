@@ -14,16 +14,17 @@ namespace FH
     public sealed class FileManifest
     {
         public const string CDefaultFileName = "file_manifest.json";
-        private const string CDefaultVersionFileName = "file_manifest_{0}.json";
+        private const string CRemoteFileName = "file_manifest_{0}.json";
         public static string GetRemoteFileName(string version)
         {
-            return string.Format(CDefaultVersionFileName, version);
+            return string.Format(CRemoteFileName, version.Trim());
         }
+
         public static FileManifest ReadFromText(string content)
         {
             try
             {
-                return  UnityEngine.JsonUtility.FromJson<FileManifest>(content);
+                return UnityEngine.JsonUtility.FromJson<FileManifest>(content);
             }
             catch (Exception e)
             {

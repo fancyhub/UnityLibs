@@ -5,8 +5,7 @@
  * Desc    : 
 *************************************************************************************/
 
-//#if UNITY_ANDROID && !UNITY_EDITOR
-#if UNITY_ANDROID 
+#if UNITY_ANDROID || UNIY_EDITOR
 using System;
 using System.IO;
 using System.Collections.Generic;

@@ -75,8 +75,6 @@ namespace FH
         {
             get
             {
-
-
                 if (_ == null)
                 {
 #if UNITY_ANDROID && !UNITY_EDITOR

@@ -54,6 +54,8 @@ namespace FH
 
         public System.IO.Stream OpenRead(string name);
         public byte[] ReadAllBytes(string name);
+
+        public List<(string file_path, bool can_delete)> GetAllFiles(FileManifest new_manifest = null);
     }
 
     public static class FileMgr
@@ -302,6 +304,46 @@ namespace FH
                 return null;
             }
             return mgr.GetCurrentManifest();
+        }
+
+        public static List<(string file_path, bool can_delete)> GetAllFiles(FileManifest new_manifest = null)
+        {
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                FileLog._.E("FileMgr Is Null");
+                return null;
+            }
+            return mgr.GetAllFiles(new_manifest);
+        }
+
+        public static void DeleteUnusedFiles(FileManifest new_manifest = null)
+        {
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                FileLog._.E("FileMgr Is Null");
+                return;
+            }
+            var list = mgr.GetAllFiles(new_manifest);
+
+            foreach (var p in list)
+            {
+                if (p.can_delete)
+                {
+                    try
+                    {
+                        FileLog._.D("Delete file, {0}", p.file_path);
+                        System.IO.File.Delete(p.file_path);
+                    }
+                    catch (System.Exception e)
+                    {
+                        FileLog._.E("Delete file failed, {0}", p.file_path);
+                        FileLog._.E(e);
+                    }
+                }
+            }
+            mgr.RefreshFileList();
         }
 
         public static void Destroy()

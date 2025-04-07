@@ -22,7 +22,7 @@ namespace FH.FileManagement
         private FileCollection _FileCollection;
 
         private HashSet<string> _Tags = new HashSet<string>() { };
-
+        private string _AndroidExtractTag;
         private AndroidExtractStreamingAssetsOp _ExtractOp;
 
         public FileMgrImplement(IFileMgr.Config config)
@@ -34,6 +34,7 @@ namespace FH.FileManagement
             }
 
             _FileCollection = new FileCollection();
+            _AndroidExtractTag = config.AndroidExtractTag;
             _ExtractOp = new AndroidExtractStreamingAssetsOp(_FileCollection, config.AndroidExtractTag);
         }
 
@@ -87,28 +88,72 @@ namespace FH.FileManagement
             return _Manifest_Current;
         }
 
+        public List<(string file_path, bool can_delete)> GetAllFiles(FileManifest new_manifest = null)
+        {
+            //1. 获取所有的文件
+            Dictionary<string, bool> all_file_dict = null;
+            {
+                string[] all_files = System.IO.Directory.GetFiles(FileSetting.LocalDir, "*.*", SearchOption.AllDirectories);
+                all_file_dict = new Dictionary<string, bool>(all_files.Length);
+                if (System.IO.Path.DirectorySeparatorChar == '\\')
+                {
+                    foreach (var p in all_files)
+                    {
+                        string full_path = p.Replace('\\', '/');
+                        all_file_dict.Add(full_path, true);
+                    }
+                }
+                else
+                {
+                    foreach (var p in all_files)
+                    {
+                        all_file_dict.Add(p, true);
+                    }
+                }
+            }
+
+            //2. 基础
+            _SetFileUsed(all_file_dict, FileSetting.LocalDir + FileManifest.CDefaultFileName);
+            _SetFileUsed(all_file_dict, FileSetting.LocalDir + FileSetting.CBaseResVersionFileName);
+
+            if (_Manifest_Base != null)
+            {
+                var ext_files = _Manifest_Base.GetFilesWithTag(_AndroidExtractTag);
+
+                foreach (var p in ext_files)
+                    _SetFileUsed(all_file_dict, p);
+            }
+
+
+            //3. 正在使用的
+            if (_Manifest_Current != null)
+            {
+                foreach (var p in _Manifest_Current.Files)
+                    _SetFileUsed(all_file_dict, p);
+            }
+
+
+            //4. 新的
+            if (new_manifest != null)
+            {
+                foreach (var p in new_manifest.Files)                
+                    _SetFileUsed(all_file_dict, p);                
+            }
+
+            //返回
+            {
+                List<(string file_path, bool can_delete)> ret = new List<(string file_path, bool can_delete)>(all_file_dict.Count);
+                foreach (var p in all_file_dict)
+                {
+                    ret.Add((p.Key, p.Value));
+                }
+                return ret;
+            }
+        }
+
         public ExtractStreamingAssetsOperation GetExtractOperation()
         {
             return _ExtractOp;
-        }
-
-        public bool CopyFromStreamingAsset2CacheDir(string name)
-        {
-            if (_Manifest_Current == null)
-            {
-                FileLog._.D("Current FileManifest Is Null");
-                return false;
-            }
-
-            var item = _Manifest_Current.FindFile(name);
-            if (item == null)
-            {
-                FileLog._.D("找不到文件 {0}", name);
-                return false;
-            }
-
-            _FileCollection.CollectLocalDir();
-            return true;
         }
 
         public void Destroy()
@@ -406,6 +451,24 @@ namespace FH.FileManagement
                 }
                 return out_not_ready_list.Count == 0;
             }
+        }
+
+        private static void _SetFileUsed(Dictionary<string, bool> all_file_dict, FileManifest.FileItem file)
+        {
+            _SetFileUsed(all_file_dict, FileSetting.LocalDir + file.FullName);
+            if (string.IsNullOrEmpty(file.RelativePath))
+                return;
+
+            string full_path = FileSetting.LocalRelativeFileDir + file.RelativePath;
+            _SetFileUsed(all_file_dict, full_path);
+            _SetFileUsed(all_file_dict, full_path + FileSetting.CRelativeFileFullNameExt);
+        }
+
+        private static void _SetFileUsed(Dictionary<string, bool> all_file_dict, string path)
+        {
+            if (!all_file_dict.ContainsKey(path))
+                return;
+            all_file_dict[path] = false;
         }
     }
 }

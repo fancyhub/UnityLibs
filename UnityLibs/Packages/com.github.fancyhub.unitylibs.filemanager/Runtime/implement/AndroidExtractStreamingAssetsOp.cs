@@ -12,8 +12,6 @@ namespace FH.FileManagement
 {
     internal sealed class AndroidExtractStreamingAssetsOp : ExtractStreamingAssetsOperation
     {
-        private const string CVERSION_FILE_NAME = "base_res_version";
-
         private List<FileManifest.FileItem> _FileList = new List<FileManifest.FileItem>();
         private FileCollection _FileCollection;
         private string _Tag;
@@ -52,7 +50,7 @@ namespace FH.FileManagement
 
             _TotalCount = 0;
             _DoneCount = 0;
-            string path = FileSetting.LocalDir + CVERSION_FILE_NAME;
+            string path = FileSetting.LocalDir + FileSetting.CBaseResVersionFileName;
             _Version = manifest.Version;
             if (_Version == null)
                 _Version = "";
@@ -96,7 +94,7 @@ namespace FH.FileManagement
             {
                 yield return operation;
 
-                string path = FileSetting.LocalDir + CVERSION_FILE_NAME;
+                string path = FileSetting.LocalDir + FileSetting.CBaseResVersionFileName;
                 if (System.IO.File.Exists(path))
                     System.IO.File.Delete(path);
                 System.IO.File.WriteAllText(path, version);

@@ -194,6 +194,9 @@ namespace FH
                 //TableMgr            
 
                 LocMgr.Reload();
+
+
+                FileMgr.DeleteUnusedFiles(file_manifest);
             }
             catch (Exception e)
             {

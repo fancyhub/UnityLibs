@@ -22,7 +22,7 @@ namespace FH
     public static class FileSetting
     {
         public const string CRelativeFileFullNameExt = "._fullname";
-      
+        internal const string CBaseResVersionFileName = "base_res_version";
 
         #region Platform
         private static EFilePlatform _Platform = EFilePlatform.None;
