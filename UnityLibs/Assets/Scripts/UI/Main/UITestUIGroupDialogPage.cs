@@ -5,11 +5,11 @@ namespace Game
 {
     public class UITestUIGroupDialogPage : FH.UI.UIPageBase<UITestUIGroupDialogView>
     {
-        protected override void OnUI2Init()
+        protected override void OnUI2Open()
         {
-            base.OnUI2Init();
+            base.OnUI2Open();
             BaseView._BtnClose.OnClick = this.UIClose;
-            BaseView._Title.text = $"{GroupPageInfo.GroupChannel}_{Id}";
+            BaseView._Title.text = $"{GroupPageInfo.GroupChannel}_{UIElementId}";
 
             BaseView._BtnOpenFree.OnClick = () =>
                 {

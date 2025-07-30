@@ -16,9 +16,9 @@ namespace Game
 
 
         public DynamicCoroutineComp _Comp;
-        protected override void OnUI2Init()
+        protected override void OnUI2Open()
         {
-            base.OnUI2Init();
+            base.OnUI2Open();
 
             BaseView._BtnClose.OnClick = this.UIClose;
             BaseView._BtnLoadSceneSingle.OnClick = _OnLoadSingle;
@@ -48,7 +48,7 @@ namespace Game
 
         private FH.UI.EUIUpdateResult _Update()
         {
-            if (!IsVisible || IsDestroyed())
+            if (!IsPageVisible || IsDestroyed())
                 return FH.UI.EUIUpdateResult.Stop;
 
             bool isDirty = false;
@@ -138,9 +138,9 @@ namespace Game
         {
         }
 
-        protected override void OnUI2Init()
+        protected override void OnUI2Open()
         {
-            base.OnUI2Init();
+            base.OnUI2Open();
 
             BaseView._Unload.OnClick = () =>
                 {

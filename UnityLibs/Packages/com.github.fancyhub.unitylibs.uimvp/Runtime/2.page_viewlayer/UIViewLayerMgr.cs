@@ -144,7 +144,7 @@ namespace FH.UI
             if (!AddView(view, layer_index))
                 return false;
 
-            return SetBgClick(view.Id, handler, click_mode);
+            return SetBgClick(view.UIElementId, handler, click_mode);
         }
 
         public bool AddView(IUILayerView view, int layer_index)
@@ -170,7 +170,7 @@ namespace FH.UI
             data._bg_mask = false;
             data._click_handler = null;
 
-            int new_idx = _layer_list.AddView(view.Id, layer_index, data, _temp_list);
+            int new_idx = _layer_list.AddView(view.UIElementId, layer_index, data, _temp_list);
             foreach (var p in _temp_list)
             {
                 p._extra_data.SetOrder(UIViewLayerConst.CalcOrder(p._node_idx));

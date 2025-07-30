@@ -11,29 +11,32 @@ using System.Collections.Generic;
 
 namespace FH
 {
-    public interface ITimerDriver
-    {
-        IClock Clock { get; }
-        TimerId AddTimer(Action<TimerId> cb, long delay_ms);
-        void Update();
-        bool Cancel(TimerId timer_id);
-    }
 
-    internal class TimerDriver : ITimerDriver
-    {
-        internal TimerWheelGroup _time_wheel;
-        internal List<TimerWheelItem> _temp_list;
-        public Dictionary<TimerId, Action<TimerId>> _dict;
-        public IClock _clock;
- 
 
-        public TimerDriver(IClock clock, int min_interval, int[] wheel_counts)
+    internal class TimerDriver : CPtrBase, ITimerDriver
+    {
+        private TimerWheelGroup<Action<TimerId>> _time_wheel;
+        private List<TimerWheelItem<Action<TimerId>>> _temp_list;
+        private IClock _clock;
+
+
+        public TimerDriver(IClock clock, int min_interval, int[] wheel_slots)
         {
             _clock = clock;
-            _temp_list = new List<TimerWheelItem>();
-            _dict = new Dictionary<TimerId, Action<TimerId>>(TimerId.EqualityComparer);
+            _temp_list = new List<TimerWheelItem<Action<TimerId>>>();
 
-            _time_wheel = TimerWheelGroup.Create(_clock.Time, min_interval, wheel_counts);
+            _time_wheel = TimerWheelGroup.Create<Action<TimerId>>(_clock.Time, min_interval, wheel_slots);
+        }
+
+        public TimerDriver(IClock clock, int min_interval, int slots_per_wheel, int wheel_count)
+        {
+            _clock = clock;
+            _temp_list = new List<TimerWheelItem<Action<TimerId>>>();
+
+            int[] wheel_slots = new int[wheel_count];
+            for (int i = 0; i < wheel_count; i++)
+                wheel_slots[i] = slots_per_wheel;
+            _time_wheel = TimerWheelGroup.Create<Action<TimerId>>(_clock.Time, min_interval, wheel_slots);
         }
 
         public IClock Clock { get => _clock; }
@@ -41,49 +44,39 @@ namespace FH
         public TimerId AddTimer(Action<TimerId> cb, long delay_ms)
         {
             if (delay_ms < 0)
-                return TimerId.InvalidId;
+                return TimerId.InvalidTimerId;
 
             long time_exipire = _clock.Time + delay_ms;
 
-            TimerId timer_id = _time_wheel.AddTimer(time_exipire);
-
-            if (timer_id != TimerId.InvalidId)
-                _dict.Add(timer_id, cb);
-
-            return timer_id;
+            int timer_id = _time_wheel.AddTimer(time_exipire, cb);
+            return new TimerId(timer_id);
         }
 
         public bool Cancel(ref TimerId timer_id)
         {
             bool ret = Cancel(timer_id);
-            timer_id = TimerId.InvalidId;
+            timer_id = TimerId.InvalidTimerId;
             return ret;
         }
 
         public bool Cancel(TimerId timer_id)
         {
-            if (timer_id == TimerId.InvalidId)
+            if (!timer_id.IsValid())
                 return false;
-
-            bool ret1 = _time_wheel.CancelTimer(timer_id);
-            bool ret2 = _dict.Remove(timer_id);
-            return ret1 && ret2;
+            return _time_wheel.CancelTimer(timer_id.Id);
         }
 
         public void Update()
         {
+            _temp_list.Clear();
             _time_wheel.Tick(_clock.Time, _temp_list);
-            for (int i = 0; i < _temp_list.Count; ++i)
-            {
-                TimerId timer_id = _temp_list[i].Id;
+            foreach (var p in _temp_list)
+                p.UserData(new TimerId(p.Id));
+            _temp_list.Clear();
+        }
 
-                _dict.TryGetValue(timer_id, out Action<TimerId> cb);
-                _dict.Remove(timer_id);
-                if (cb == null)
-                    continue;
-
-                cb(timer_id);
-            }
+        protected override void OnRelease()
+        {
         }
     }
 }

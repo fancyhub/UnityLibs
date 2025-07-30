@@ -97,7 +97,7 @@ namespace FH.AssetBundleBuilder.Ed
                         Index = index,
                         Path = p.FilePath,
                         Export = p.NeedExport,
-                        Address = p.AddressName
+                        Address = p.AddressName                        
                     };
                     index++;
                     asset_dict.Add(asset.Path, asset);
@@ -163,6 +163,7 @@ namespace FH.AssetBundleBuilder.Ed
                         temp_assets.Add(asset.Index);
                     }
                     bundle.Assets = temp_assets.ToArray();
+                    bundle.FileHash = p.FileHash;
                 }
             }
 

@@ -126,9 +126,7 @@ namespace FH.AssetBundleBuilder.Ed
     {
         public BuildTarget Target;
         public AssetBundleBuilderConfig Config;
-        public AssetGraph AssetGraph;
-        public AssetBundleManifest Manifest;
-        public AssetBundleBuild[] BundleBuildArray;
+        public AssetGraph AssetGraph;        
     }
     /// <summary>
     /// 6/6 ab打包后, 后处理, 主要是处理manifest

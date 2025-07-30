@@ -10,7 +10,9 @@ using UnityEngine;
 using System.Threading;
 namespace FH
 {
+#if UNITY_2023_2_OR_NEWER
     using ResAwaitSource = AwaitableCompletionSource<(EResError error, ResRef res_ref)>;
+#endif
 
     public enum EAssetStatus
     {
@@ -96,7 +98,9 @@ namespace FH
         public EResError Load(string path, EResPathType pathType, bool only_from_cache, out ResRef res_ref);
         public EResError LoadAsync(string path, EResPathType pathType, int priority, ResEvent cb, out int job_id);
         public EResError LoadAsync(string path, EResPathType pathType, int priority, IResDoneCallBack cb, out int job_id);
+#if UNITY_2023_2_OR_NEWER
         public EResError LoadAsync(string path, EResPathType pathType, int priority, ResAwaitSource source, CancellationToken cancelToken);
+#endif
         public void Snapshot(ref List<ResSnapShotItem> out_snapshot);
         #endregion
 
@@ -104,7 +108,9 @@ namespace FH
         public EResError Create(string path, bool only_from_cache, out ResRef res_ref);
         public EResError CreateAsync(string path, int priority, InstEvent cb, out int job_id);
         public EResError CreateAsync(string path, int priority, IInstDoneCallBack cb, out int job_id);
+#if UNITY_2023_2_OR_NEWER
         public EResError CreateAsync(string path, int priority, ResAwaitSource source, CancellationToken cancelToken);
+#endif
         #endregion
 
         #region 预实例化
@@ -256,7 +262,7 @@ namespace FH
             ResManagement.ResLog._.ErrCode(err, path);
             return err == EResError.OK;
         }
-
+#if UNITY_2023_2_OR_NEWER
         public static async Awaitable<ResRef> AsyncLoad(string path, EResPathType pathType, CancellationToken cancelToken, int priority = ResDef.PriorityDefault)
         {
             IResMgr inst = _.Val;
@@ -276,7 +282,7 @@ namespace FH
             ResManagement.ResLog._.ErrCode(err1, path);
             return res_ref;
         }
-
+#endif
         public static void ResSnapshot(ref List<ResSnapShotItem> out_snapshot)
         {
             var inst = _.Val;
@@ -342,7 +348,7 @@ namespace FH
             ResManagement.ResLog._.ErrCode(err, path);
             return err == EResError.OK;
         }
-
+#if UNITY_2023_2_OR_NEWER
         public static async Awaitable<ResRef> AsyncCreate(string path, CancellationToken cancelToken = default, int priority = ResDef.PriorityDefault)
         {
             IResMgr inst = _.Val;
@@ -364,6 +370,7 @@ namespace FH
                 return default(ResRef);
             return res_ref;
         }
+#endif
         #endregion
 
         #region 预实例化

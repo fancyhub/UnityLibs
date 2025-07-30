@@ -93,10 +93,10 @@ namespace FH.UI
                 return false;
             }
 
-            int id = updater.Id;
+            int id = updater.UIElementId;
             if (_Dict.ContainsKey(id))
             {
-                UILog._.W("updater is alread in update list, {0}:{1}", updater.Id, updater.GetType());
+                UILog._.W("updater is alread in update list, {0}:{1}", updater.UIElementId, updater.GetType());
                 return true;
             }
 

@@ -96,7 +96,7 @@ namespace FH.UI
                 {
                     _list.ExtRemove(node);
                 }
-                else if (page.Id == pageId)
+                else if (page.UIElementId == pageId)
                 {
                     return node;
                 }

@@ -49,13 +49,13 @@ namespace FH.UI
                 return false;
             }
 
-            if (_dict_tag.ContainsKey(page.Id))
+            if (_dict_tag.ContainsKey(page.UIElementId))
             {
-                UILog._.Assert(false, "id {0} 对应的tag {1} 重复添加", page.Id, page_tag);
+                UILog._.Assert(false, "id {0} 对应的tag {1} 重复添加", page.UIElementId, page_tag);
                 return false;
             }
 
-            _dict_tag.Add(page.Id, (page_tag, new CPtr<IUITagPage>(page)));
+            _dict_tag.Add(page.UIElementId, (page_tag, new CPtr<IUITagPage>(page)));
             page.SetPageTagVisible(!_hide_mask[page_tag]);
             return true;
         }

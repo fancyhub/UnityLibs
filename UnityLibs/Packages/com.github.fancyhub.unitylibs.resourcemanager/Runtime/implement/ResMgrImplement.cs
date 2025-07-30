@@ -12,8 +12,9 @@ using UnityEngine;
 
 namespace FH.ResManagement
 {
+#if UNITY_2023_2_OR_NEWER
     using ResAwaitSource = AwaitableCompletionSource<(EResError error, ResRef res_ref)>;
-
+#endif
 
     internal class ResMgrImplement : IResMgr, ICPtr
     {
@@ -339,10 +340,12 @@ namespace FH.ResManagement
         {
             return LoadAsync(path, pathType, priority, ResDoneEvent.Create(cb), out job_id);
         }
+#if UNITY_2023_2_OR_NEWER
         public EResError LoadAsync(string path, EResPathType pathType, int priority, AwaitableCompletionSource<(EResError error, ResRef res_ref)> source, CancellationToken cancelToken)
         {
             return LoadAsync(path, pathType, priority, ResDoneEvent.Create(source, cancelToken), out _);
         }
+#endif
         public EResError LoadAsync(string path, EResPathType pathType, int priority, ResDoneEvent resEvent, out int job_id)
         {
             //1. check
@@ -459,13 +462,14 @@ namespace FH.ResManagement
             return CreateAsync(path, priority, InstDoneEvent.Create(cb), out job_id);
         }
 
+#if UNITY_2023_2_OR_NEWER
         public EResError CreateAsync(string path, int priority, ResAwaitSource source, CancellationToken cancelToken)
         {
             var ret = CreateAsync(path, priority, InstDoneEvent.Create(source, cancelToken), out var job_id);
             //CancelJob(job_id); 
             return ret;
         }
-
+#endif
         public EResError CreateAsync(string path, int priority, InstDoneEvent instDoneEvent, out int job_id)
         {
             //1. check

@@ -15,9 +15,9 @@ namespace Game
             ("zh-Hans","中文"),
         };
 
-        protected override void OnUI2Init()
+        protected override void OnUI2Open()
         {
-            base.OnUI2Init();
+            base.OnUI2Open();
 
             LocMgr.EventLangChanged = () =>
             {

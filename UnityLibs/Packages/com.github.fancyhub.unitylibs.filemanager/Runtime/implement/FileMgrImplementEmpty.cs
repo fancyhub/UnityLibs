@@ -89,6 +89,11 @@ namespace FH.FileManagement
             return null;
         }
 
+        public List<(string file_path, bool can_delete)> GetAllFiles(FileManifest new_manifest = null)
+        {
+            return new List<(string file_path, bool can_delete)>();
+        }
+
         private sealed class ExtractStreamingAssetsOperationEditor : ExtractStreamingAssetsOperation
         {
             public override bool IsDone => true;

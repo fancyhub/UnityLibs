@@ -70,13 +70,13 @@ namespace FH.UI
                 return false;
 
             //已经添加了
-            if (_dict.TryGetValue(page.Id, out var info))
+            if (_dict.TryGetValue(page.UIElementId, out var info))
             {
-                UILog._.W("Page:{0},{1}, add page to group duplicate", page.Id, page.GetType());
+                UILog._.W("Page:{0},{1}, add page to group duplicate", page.UIElementId, page.GetType());
                 return false;
             }
 
-            _dict.Add(page.Id, new PageInfo()
+            _dict.Add(page.UIElementId, new PageInfo()
             {
                 Page = new CPtr<IUIGroupPage>(page),
                 GroupType = group.GroupType,
@@ -84,7 +84,7 @@ namespace FH.UI
             });
             page.SetGroupPageInfo(new UIGroupPageInfo(this, channel));
             group.AddPage(page);
-            UILog._.D("Page:{0},{1},add page to group succ", page.Id, page.GetType(), group);
+            UILog._.D("Page:{0},{1},add page to group succ", page.UIElementId, page.GetType(), group);
             return true;
         }
 

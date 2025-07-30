@@ -76,7 +76,7 @@ namespace FH
             FileDownloadMgr.AddTasks(_SharedFileItemList, ret);
             return ret;
         }
-
+#if UNITY_2023_2_OR_NEWER
         public static async Awaitable<FileManifest> FetchRemoteFileManifest(string version)
         {
             string file_name = FileManifest.GetRemoteFileName(version);
@@ -203,5 +203,6 @@ namespace FH
                 Log.E(e);
             }
         }
+#endif
     }
 }

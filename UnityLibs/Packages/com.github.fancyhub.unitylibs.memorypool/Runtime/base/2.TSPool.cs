@@ -14,7 +14,13 @@ namespace FH
     //http://adammil.net/blog/v111_Creating_High-Performance_Locks_and_Lock-free_Code_for_NET_.html
     public sealed class CasCriticalSection
     {
+        private readonly bool _Sleep;
         private long _Value = 0;
+
+        public CasCriticalSection(bool sleep = true)
+        {
+            _Sleep = sleep;
+        }
 
         public bool Enter(long locker_id)
         {
@@ -24,6 +30,8 @@ namespace FH
 
             while (Interlocked.CompareExchange(ref _Value, locker_id, 0) != 0)
             {
+                if(!_Sleep)
+                    return false; 
                 _SpinWait(spinCount++);
             }
             return true;

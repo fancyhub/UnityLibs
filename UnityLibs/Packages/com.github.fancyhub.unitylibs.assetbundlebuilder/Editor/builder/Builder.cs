@@ -10,11 +10,10 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.Build.Content;
 
 namespace FH.AssetBundleBuilder.Ed
 {
-    public static class Builder
+    public static partial class Builder
     {
         [MenuItem("Tools/AssetBundle/Build")]
         public static void Build()
@@ -49,7 +48,6 @@ namespace FH.AssetBundleBuilder.Ed
                 IAssetCollector assetCollection = config.GetAssetCollector();
                 fileList = assetCollection.GetAllAssets();
             }
-
 
             //3. 添加到 AssetObjMap, 建立依赖关系
             AssetObjMap assetMap = new AssetObjMap();
@@ -87,25 +85,23 @@ namespace FH.AssetBundleBuilder.Ed
             }
 
             //6. 生成
-            AssetBundleBuild[] buildInfoList = null;
-            AssetBundleManifest unityManifest = null;
             FileUtil.CreateDir(outputDir);
+            AssetBundleManifest unityManifest = null;
+            AssetBundleBuild[] buildInfoList = null;
             using (new BuilderTimer($"{cur_step++}/{total_steps}. Build Bundles"))
             {
-                buildInfoList = bundleMap.GenAssetBundleBuildList();
-                unityManifest = UnityEditor.BuildPipeline.BuildAssetBundles(outputDir, buildInfoList, param.BuildOptions, target);
-            }
 
+                if (config.UseSBP)
+                    (unityManifest, buildInfoList) = _BuildABSBP(target, param, outputDir, bundleMap);
+                else
+                    (unityManifest, buildInfoList) = _BuildABNormal(target, param, outputDir, bundleMap);
+            }
 
             //7. 生成 Graph
             AssetGraph graph = null;
             using (new BuilderTimer($"{cur_step++}/{total_steps}. Gen Graph"))
             {
                 graph = AssetGraph.CreateFromBundleNodeMap(bundleMap);
-                foreach (var p in graph.Bundles)
-                {
-                    p.FileHash = unityManifest.GetAssetBundleHash(p.Name).ToString();
-                }
             }
 
             //8. tags
@@ -123,8 +119,6 @@ namespace FH.AssetBundleBuilder.Ed
                     Target = target,
                     Config = config,
                     AssetGraph = graph,
-                    Manifest = unityManifest,
-                    BundleBuildArray = buildInfoList,
                 };
 
                 foreach (var p in config.PostBuild)
@@ -136,6 +130,18 @@ namespace FH.AssetBundleBuilder.Ed
                 }
                 return context;
             }
+        }
+
+        private static (AssetBundleManifest unityManifest, AssetBundleBuild[] buildInfoList) _BuildABNormal(BuildTarget target, BuilderParam param, string outputDir, BundleNodeMap bundleMap)
+        {
+            var buildInfoList = bundleMap.GenAssetBundleBuildList();
+            var unityManifest = UnityEditor.BuildPipeline.BuildAssetBundles(outputDir, buildInfoList, param.BuildOptions, target);
+
+            foreach (var p in bundleMap.GetAllNodes())
+            {
+                p.FileHash = unityManifest.GetAssetBundleHash(p.GetNodeName()).ToString();
+            }
+            return (unityManifest, buildInfoList);
         }
 
         private static void _BuildTags(AssetGraph graph, ITagRuler tag_rule)

@@ -21,16 +21,16 @@ namespace Game
         protected override void OnUI1PrepareRes(IResInstHolder holder)
         {
             holder.PreCreate(UITestUIResView.CPath, 20);
-            for(int i=1;i<spriteNames.Length;i++)
+            for (int i = 1; i < spriteNames.Length; i++)
                 holder.ExtPreloadSprite(spriteNames[i]);
         }
 
-        protected override void OnUI2Init()
+        protected override void OnUI2Open()
         {
-            base.OnUI2Init();
+            base.OnUI2Open();
             BaseView._BtnClose.OnClick = this.UIClose;
-            BaseView._BtnLoad.OnClick = _OnBtnLoadClick;          
-            
+            BaseView._BtnLoad.OnClick = _OnBtnLoadClick;
+
         }
 
         private void _OnBtnLoadClick()
@@ -38,10 +38,12 @@ namespace Game
             BaseView._Img1.ExtAsyncSetSprite(spriteNames[0]);
             BaseView._Img2.ExtAsyncSetSprite(spriteNames[1]);
 
+#if UNITY_2023_2_OR_NEWER
             _TestAync();
+#endif
         }
 
-
+#if UNITY_2023_2_OR_NEWER
         private async Awaitable _TestAync()
         {
             System.Threading.CancellationTokenSource c = new System.Threading.CancellationTokenSource();
@@ -57,5 +59,6 @@ namespace Game
 
             p.RemoveUser(this);
         }
+#endif
     }
 }

@@ -81,11 +81,11 @@ namespace FH.UI
 
             if (_PageTagMatrix.AddTag(page, (byte)item.Tag))
             {
-                UILog._.D("Page:{0}, add tag to page succ", page.Id);
+                UILog._.D("Page:{0}, add tag to page succ", page.UIElementId);
             }
             else
             {
-                UILog._.D("Page:{0}, add tag to page failed, tag {1} is not supported", page.Id, item.Tag);
+                UILog._.D("Page:{0}, add tag to page failed, tag {1} is not supported", page.UIElementId, item.Tag);
             }
         }
 
@@ -109,13 +109,13 @@ namespace FH.UI
             if (item.HideMask.Value == 0)
                 return;
 
-            if (_PageTagMatrix.AddMask(page.Id, item.HideMask.Value))
+            if (_PageTagMatrix.AddMask(page.UIElementId, item.HideMask.Value))
             {
-                UILog._.D("Page:{0}, add mask to page succ", page.Id);
+                UILog._.D("Page:{0}, add mask to page succ", page.UIElementId);
             }
             else
             {
-                UILog._.D("Page:{0}, add mask to page succ, failed", page.Id);
+                UILog._.D("Page:{0}, add mask to page succ, failed", page.UIElementId);
             }
 
         }

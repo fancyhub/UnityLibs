@@ -33,7 +33,9 @@ namespace FH.ResManagement
         public int Type;
         public ResEvent Action;
         public CPtr<IResDoneCallBack> Target;
+#if UNITY_2023_2_OR_NEWER
         public AwaitableCompletionSource<(EResError error, ResRef res_ref)> AwaitSource;
+#endif
         public CancellationToken CancelToken;
 
         public bool IsValid => Type != 0;
@@ -65,7 +67,7 @@ namespace FH.ResManagement
             };
             return ret;
         }
-
+#if UNITY_2023_2_OR_NEWER
         public static ResDoneEvent Create(AwaitableCompletionSource<(EResError error, ResRef res_ref)> source, CancellationToken token)
         {
             if (source == null)
@@ -80,6 +82,7 @@ namespace FH.ResManagement
             };
             return ret;
         }
+#endif
 
         public void Call(int job_id, EResError error, ResRef res_ref)
         {
@@ -93,9 +96,11 @@ namespace FH.ResManagement
                     case 2:
                         Target.Val?.OnResDoneCallback(job_id, error, res_ref);
                         break;
+#if UNITY_2023_2_OR_NEWER
                     case 3:
                         this.AwaitSource.TrySetResult((error, res_ref));
                         break;
+#endif
                 }
             }
             catch (Exception e)
@@ -110,7 +115,9 @@ namespace FH.ResManagement
         public int Type;
         public InstEvent Action;
         public CPtr<IInstDoneCallBack> Target;
+#if UNITY_2023_2_OR_NEWER
         public AwaitableCompletionSource<(EResError error, ResRef res_ref)> AwaitSource;
+#endif
         public CancellationToken CancelToken;
 
         public bool IsValid => Type != 0;
@@ -125,7 +132,9 @@ namespace FH.ResManagement
                 Type = 1,
                 Action = action,
                 Target = null,
+#if UNITY_2023_2_OR_NEWER
                 AwaitSource = null,
+#endif
                 CancelToken = default,
             };
             return ret;
@@ -140,12 +149,14 @@ namespace FH.ResManagement
                 Type = 2,
                 Action = null,
                 Target = new CPtr<IInstDoneCallBack>(target),
+#if UNITY_2023_2_OR_NEWER
                 AwaitSource = null,
+#endif
                 CancelToken = default,
             };
             return ret;
         }
-
+#if UNITY_2023_2_OR_NEWER
         public static InstDoneEvent Create(AwaitableCompletionSource<(EResError error, ResRef res_ref)> source, CancellationToken token)
         {
             if (source == null)
@@ -160,6 +171,7 @@ namespace FH.ResManagement
             };
             return ret;
         }
+#endif
 
         public void Call(int job_id, EResError error, ResRef res_ref)
         {
@@ -173,9 +185,11 @@ namespace FH.ResManagement
                     case 2:
                         Target.Val?.OnResDoneCallback(job_id, error, res_ref);
                         break;
+#if UNITY_2023_2_OR_NEWER
                     case 3:
-                        this.AwaitSource.TrySetResult((error,res_ref));
+                        this.AwaitSource.TrySetResult((error, res_ref));
                         break;
+#endif
                 }
             }
             catch (Exception e)
@@ -280,7 +294,7 @@ namespace FH.ResManagement
             JobId = 0;
             Priority = 0;
             _IsCancelled = false;
-            ErrorCode = EResError.OK;            
+            ErrorCode = EResError.OK;
         }
     }
 }

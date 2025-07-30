@@ -8,9 +8,9 @@ namespace Game
 {
     public class UITestDeviceInfoPage : UIPageBase<UITestDeviceInfoView>
     { 
-        protected override void OnUI2Init()
+        protected override void OnUI2Open()
         {
-            base.OnUI2Init();
+            base.OnUI2Open();
             BaseView._BtnClose.OnClick = this.UIClose;            
         }
          

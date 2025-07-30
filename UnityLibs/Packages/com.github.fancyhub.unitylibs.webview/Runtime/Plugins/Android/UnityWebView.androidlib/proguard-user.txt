@@ -1,0 +1,3 @@
+-keep class com.garena.unity.webview.WebViewManager { *; }
+-keep class com.garena.unity.webview.CustomTabsManager { *; }
+

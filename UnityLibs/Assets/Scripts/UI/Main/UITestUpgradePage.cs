@@ -9,9 +9,9 @@ namespace Game
     public class UITestUpgradePage : UIPageBase<UITestUpgradeView>
     {
         private bool _is_inprogress = false;
-        protected override void OnUI2Init()
+        protected override void OnUI2Open()
         {
-            base.OnUI2Init();
+            base.OnUI2Open();
             this.ResHolder.PreInst(UIButtonView.CPath, 2);
             BaseView._BtnClose.OnClick = _OnBtnCloseClick;
             BaseView._BtnUpgrade.OnClick = _OnBtnUpgradeClick;
@@ -35,9 +35,11 @@ namespace Game
                 return;
 
             _is_inprogress = true;
+#if UNITY_2023_2_OR_NEWER
             _UpgradeWrapper(version);
+#endif
         }
-
+#if UNITY_2023_2_OR_NEWER
         private async Awaitable _UpgradeWrapper(string version)
         {            
             ResRef old_res = ResMgr.Load(UIButtonView.CPath);
@@ -91,5 +93,6 @@ namespace Game
             Log.I("upgrade done");
             BaseView._CurVersion.text = "Current Version: " + FileMgr.GetVersionInfo();
         }
+#endif
     }
 }

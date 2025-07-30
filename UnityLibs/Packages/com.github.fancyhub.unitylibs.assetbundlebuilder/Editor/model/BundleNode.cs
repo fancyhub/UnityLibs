@@ -11,7 +11,7 @@ using System.Collections.Generic;
 namespace FH.AssetBundleBuilder.Ed
 {
     //最终要给mapnode 对应一个asset_bundle
-    public class BundleNode : IEnumerable<AssetObj>
+    public partial class BundleNode : IEnumerable<AssetObj>
     {
         public const string CIgnoreAddressName = " ";
         private static int S_NODE_ID_GEN = 0;
@@ -29,6 +29,8 @@ namespace FH.AssetBundleBuilder.Ed
 
         //运行时候需要处理的
         private bool _SortDirty = true;
+
+        public string FileHash { get; set; }
 
         public bool FlagNeedProcess { get; set; } = true;
 
@@ -239,7 +241,7 @@ namespace FH.AssetBundleBuilder.Ed
         {
             List<KeyValuePair<string, string>> ret = new List<KeyValuePair<string, string>>();
             foreach (var a in _main_objs)
-            {                
+            {
                 foreach (var b in a.GetDepObjs())
                 {
                     if (node2._main_objs.Contains(b))

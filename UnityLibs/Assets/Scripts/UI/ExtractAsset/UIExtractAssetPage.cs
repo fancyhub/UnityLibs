@@ -8,9 +8,9 @@ namespace Game
     {
         private List<FileDownloadJobInfo> _AllDownloadJobs = new List<FileDownloadJobInfo>();
         private FH.ExtractStreamingAssetsOperation _Op;
-        protected override void OnUI2Init()
+        protected override void OnUI2Open()
         {
-            base.OnUI2Init();
+            base.OnUI2Open();
             _Op = FileMgr.GetExtractOperation();
             UISceneMgr.AddUpdate(this);
         }

@@ -153,14 +153,47 @@ MonoBehaviour:
   m_Name: AssetBundleBuilderConfig
   m_EditorClassIdentifier: 
   _OutputDir: ProjTemp/Build/Output/{Target}
+  UseSBP: 0
   Android:
     BuildOptions: 13056
+    SBPParam:
+      Compression: 2
+      BuildFlags: 0
+      ScriptOptions: 0
+      UseCache: 0
+      CacheServerHost: 
+      CacheServerPort: 8126
+      WriteLinkXML: 1
   IOS:
     BuildOptions: 768
+    SBPParam:
+      Compression: 3
+      BuildFlags: 0
+      ScriptOptions: 0
+      UseCache: 1
+      CacheServerHost: 
+      CacheServerPort: 8126
+      WriteLinkXML: 0
   Windows:
     BuildOptions: 13056
+    SBPParam:
+      Compression: 3
+      BuildFlags: 0
+      ScriptOptions: 0
+      UseCache: 1
+      CacheServerHost: 
+      CacheServerPort: 8126
+      WriteLinkXML: 0
   OSX:
     BuildOptions: 768
+    SBPParam:
+      Compression: 3
+      BuildFlags: 0
+      ScriptOptions: 0
+      UseCache: 1
+      CacheServerHost: 
+      CacheServerPort: 8126
+      WriteLinkXML: 0
   AssetCollector:
   - {fileID: 2025067351490501056}
   - {fileID: 8874996120352380956}

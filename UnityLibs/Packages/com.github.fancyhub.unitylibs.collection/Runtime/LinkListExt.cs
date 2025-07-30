@@ -172,13 +172,15 @@ namespace FH
         public static bool ExtRemoveFromList<T>(this LinkedListNode<T> node)
         {
             if (node == null) return false;
-            if (node.List == null) return false;
-
             node.Value = default(T);
-            node.List.Remove(node);
+
+            if (node.List != null)
+                node.List.Remove(node);
+
             LinkedListCache<T>._cache.AddLast(node);
             return true;
         }
+
 
         public static bool ExtRemove<T>(this LinkedList<T> list, LinkedListNode<T> node)
         {
@@ -241,7 +243,7 @@ namespace FH
             LinkedListCache<T>._cache.AddLast(node);
             return true;
         }
-
+ 
         public static bool ExtPopFirstNode<T>(this LinkedList<T> list, out LinkedListNode<T> node)
         {
             if (list == null)

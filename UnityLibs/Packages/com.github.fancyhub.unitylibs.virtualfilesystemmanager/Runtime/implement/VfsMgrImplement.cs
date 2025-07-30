@@ -24,7 +24,7 @@ namespace FH.VFSManagement
         }
 
         public List<IVirtualFileSystem> GetAll()
-        {
+        {            
             return _file_system_list;
         }
 

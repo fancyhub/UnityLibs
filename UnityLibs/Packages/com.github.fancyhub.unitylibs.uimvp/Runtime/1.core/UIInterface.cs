@@ -19,7 +19,7 @@ namespace FH.UI
 
     public interface IUIElement : IDestroyable, ICPtr
     {
-        int Id { get; }
+        int UIElementId { get; }
         bool IsDestroyed();
     }
 

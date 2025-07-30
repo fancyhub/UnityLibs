@@ -22,6 +22,7 @@ namespace FH.AssetBundleBuilder.Ed
         [SerializeField]
         private string _OutputDir = "ProjTemp/Build/Output/{Target}";
 
+        public bool UseSBP = false;
         public BuilderParam Android;
         public BuilderParam IOS;
         public BuilderParam Windows;
@@ -160,10 +161,24 @@ namespace FH.AssetBundleBuilder.Ed
     }
 
     [Serializable]
-    public class BuilderParam
+    public partial class BuilderParam
     {
         public BuildAssetBundleOptions BuildOptions = //BuildAssetBundleOptions.UncompressedAssetBundle
                                             BuildAssetBundleOptions.ChunkBasedCompression
                                            | BuildAssetBundleOptions.StrictMode;
+
+        [Serializable]
+        public partial class SBPParamConfig
+        {
+            public UnityEngine.CompressionType Compression = UnityEngine.CompressionType.Lz4HC;
+            public UnityEditor.Build.Content.ContentBuildFlags BuildFlags;
+            public UnityEditor.Build.Player.ScriptCompilationOptions ScriptOptions;
+            public bool UseCache = true;
+            public string CacheServerHost;
+            public int CacheServerPort = 8126;
+            public bool WriteLinkXML; 
+        }
+
+        public SBPParamConfig SBPParam = new SBPParamConfig();
     }
 }

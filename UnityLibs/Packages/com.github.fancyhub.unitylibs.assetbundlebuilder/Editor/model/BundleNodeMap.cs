@@ -10,8 +10,8 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace FH.AssetBundleBuilder.Ed
-{
-    public class BundleNodeMap
+{ 
+    public partial class BundleNodeMap
     {
         private HashSet<BundleNode> _nodes_map = new HashSet<BundleNode>();
         private BundleNodeMapAdd _node_add;
@@ -125,6 +125,8 @@ namespace FH.AssetBundleBuilder.Ed
             {
                 _BundleSet = bundle_set;
             }
+
+            public int AssetCount => _Asset2BundleMap.Count;
 
             public BundleNode Add(AssetObj assset, string ab_name)
             {

@@ -7,9 +7,9 @@ namespace Game
 
     public class UIMainPage : FH.UI.UIPageBase<Game.UIMainPanelView>
     {
-        protected override void OnUI2Init()
+        protected override void OnUI2Open()
         {
-            base.OnUI2Init();
+            base.OnUI2Open();
             BaseView._BtnTestUIGroupDialog.OnClick = () =>
             {
                 FH.UI.UISceneMgr.OpenUI<Game.UITestUIGroupDialogPage>();

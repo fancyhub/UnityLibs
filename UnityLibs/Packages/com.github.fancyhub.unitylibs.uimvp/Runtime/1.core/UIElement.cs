@@ -19,7 +19,7 @@ namespace FH.UI
         private int __element_id;
         int IVersionObj.ObjVersion { get => ___obj_ver; }
 
-        public int Id => __element_id;
+        public int UIElementId => __element_id;
 
         public UIElement()
         {
@@ -34,7 +34,7 @@ namespace FH.UI
 
         public virtual void Destroy()
         {
-            Log.Assert(!__destroyed, "不能destroy 两次");
+            Log.Assert(!__destroyed, "can't destroy twice, {0}, {1}", __element_id, GetType());
             __destroyed = true;
             ___obj_ver++;
         }

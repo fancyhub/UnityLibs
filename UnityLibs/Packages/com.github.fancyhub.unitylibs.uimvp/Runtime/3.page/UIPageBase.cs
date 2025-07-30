@@ -17,14 +17,221 @@ namespace FH.UI
     /// </summary>
     public abstract class UIPageBase : UIElement, IUIPage, IUIGroupPage, IUITagPage, IUILayerViewPage, IUIScenePage, IUIResPage
     {
-        internal enum EResState
+        public UIPageBase() { }
+
+        #region Public Method
+        public virtual void UIOpen()
+        {
+            _ProcessStateMsg(EMsg.Open);
+        }
+
+        public virtual void UIShow()
+        {
+            if (_PageStatusData.PageVisible)
+                return;
+            _PageStatusData.PageVisible = true;
+            UILog._.D("Page:{0},{1},  UIVisible true", UIElementId, GetType());
+            _ProcessStateMsg(EMsg.UpdateVisible);
+        }
+
+        public virtual void UIHide()
+        {
+            if (!_PageStatusData.PageVisible)
+                return;
+
+            _PageStatusData.PageVisible = false;
+            UILog._.D("Page:{0},{1},  UIVisible false", UIElementId, GetType());
+            _ProcessStateMsg(EMsg.UpdateVisible);
+        }
+
+        public virtual void UIClose()
+        {
+            Destroy();
+        }
+
+        public override void Destroy()
+        {
+            if (IsDestroyed())
+            {
+                UILog._.E("Duplicate Destroy {0}", GetType());
+                return;
+            }
+            UILog._.D("Destroy, pageId: {0}, pageType: {1}", UIElementId, GetType());
+            base.Destroy();
+
+            _ProcessStateMsg(EMsg.Close);
+
+            PtrList?.Destroy();
+            PtrList = null;
+            _ChildPages?.Clear();
+
+            _GroupPageInfo.Mgr?.RemovePage(UIElementId);
+            _UITagPageInfo.Mgr?.RemoveTag(UIElementId);
+        }
+
+        public bool IsPageVisible { get { return _PageState == EPageState.Show; } }
+
+        #endregion
+
+        protected virtual T CreateView<T>(Transform parent = null) where T : UIBaseView, new()
+        {
+            if (parent == null)
+            {
+                parent = LayerViewPageInfo.GetParent();
+                if (parent == null)
+                    parent = UIRoot.Root2D;
+            }
+
+            T ret = UIBaseView.CreateView<T>(parent, ResHolder);
+            PtrList += ret;
+            return ret;
+        }
+
+        protected abstract void OnUI1PrepareRes(IResInstHolder holder);
+        protected abstract void OnUI2Open();
+        protected abstract void OnUI3Show();
+        protected abstract void OnUI4Hide();
+        protected abstract void OnUI5Close();
+
+
+        #region Child Page
+        private List<CPtr<UIPageBase>> _ChildPages;
+        public T OpenChildPage<T>(PageOpenInfo pageOpenInfo) where T : UIPageBase, new()
+        {
+            T ret = new T();
+
+            GroupPageInfo.Mgr?.AddPage(ret, pageOpenInfo.GroupChannel);
+            TagPageInfo.Mgr?.AddTag(ret, pageOpenInfo.Tag);
+            UIScenePageInfo.Mgr?.AddPage(ret, pageOpenInfo.AddToScene);
+            LayerViewPageInfo.Mgr?.AddPage(ret, pageOpenInfo.ViewLayer, pageOpenInfo.ViewParent);
+            ((IUIResPage)ret).SetResHolder(_Holder.Val);
+
+            PtrList += ret;
+            if (_ChildPages == null)
+                _ChildPages = new List<CPtr<UIPageBase>>();
+            _ChildPages.Add(ret);
+
+            ret.OnParentPageVisible(this.IsPageVisible);
+            ret.UIOpen();
+            return ret;
+        }
+
+        private void OnParentPageVisible(bool visible)
+        {
+            if (_PageStatusData.ParentPageVisible == visible)
+                return;
+            _PageStatusData.ParentPageVisible = visible;
+            UILog._.D("Page:{0},{1},  OnParentPageVisible {2}", UIElementId, GetType(), visible);
+            _ProcessStateMsg(EMsg.UpdateVisible);
+        }
+
+        #endregion
+
+        #region UIResPage
+        private CPtr<IResInstHolder> _Holder;
+        public IResInstHolder ResHolder
+        {
+            get
+            {
+                var ret = _Holder.Val;
+                if (ret == null)
+                {
+                    _Holder = new CPtr<IResInstHolder>(CreateHolder());
+                    ret = _Holder.Val;
+                    PtrList += ret;
+                }
+                return ret;
+            }
+        }
+        protected virtual IResInstHolder CreateHolder()
+        {
+            return ResMgr.CreateHolder(false, true);
+        }
+
+        void IHolderCallBack.OnHolderCallBack()
+        {
+            var holder = _Holder.Val;
+            var stat = holder.GetStat();
+            if (!stat.IsAllDone)
+                return;
+            holder.SetCallBack(null);
+
+            if (_PageStatusData.ResState != EResState.Preparing)//严重错误
+            {
+                UILog._.E("Error");
+                return;
+            }
+            _ProcessStateMsg(EMsg.ResDone);
+        }
+
+        void IUIResPage.SetResHolder(IResInstHolder resHolder)
+        {
+            if (_PageStatusData.ResState != EResState.None)
+            {
+                UILog._.E("cant set res holder, because res state is {0}", _PageStatusData.ResState);
+                return;
+            }
+            if (resHolder == null || !_Holder.Null)
+                return;
+
+            _Holder = new CPtr<IResInstHolder>(resHolder);
+            _PageStatusData.ResState = EResState.Done;
+        }
+        #endregion
+
+        #region IUITagPage
+        private UITagPageInfo _UITagPageInfo;
+        public UITagPageInfo TagPageInfo { get => _UITagPageInfo; }
+        void IUITagPage.SetTagPageInfo(UITagPageInfo info) { _UITagPageInfo = info; }
+        void IUITagPage.SetPageTagVisible(bool visible)
+        {
+            if (_PageStatusData.PageTagVisible == visible)
+                return;
+            _PageStatusData.PageTagVisible = visible;
+            UILog._.D("Page:{0},{1},  SetPageTagVisible {2}", UIElementId, GetType(), visible);
+            _ProcessStateMsg(EMsg.UpdateVisible);
+        }
+
+        #endregion
+
+        #region IUIGroupPage
+        private UIGroupPageInfo _GroupPageInfo;
+        public UIGroupPageInfo GroupPageInfo { get => _GroupPageInfo; }
+        void IUIGroupPage.SetGroupPageInfo(UIGroupPageInfo info) { _GroupPageInfo = info; }
+
+        void IUIGroupPage.SetPageGroupVisible(bool visible)
+        {
+            if (_PageStatusData.PageGroupVisible == visible)
+                return;
+            _PageStatusData.PageGroupVisible = visible;
+            UILog._.D("Page:{0},{1},  SetPageGroupVisible {2}", UIElementId, GetType(), visible);
+            _ProcessStateMsg(EMsg.UpdateVisible);
+        }
+        #endregion
+
+        #region IUILayerViewPage
+        private UILayerViewPageInfo _UILayerViewPageInfo;
+        public UILayerViewPageInfo LayerViewPageInfo { get => _UILayerViewPageInfo; }
+        void IUILayerViewPage.SetLayerViewPageInfo(UILayerViewPageInfo info) { _UILayerViewPageInfo = info; }
+        #endregion
+
+        #region IUIScenePage
+        private UIScenePageInfo _UIScenePageInfo;
+        public UIScenePageInfo UIScenePageInfo => _UIScenePageInfo;
+        void IUIScenePage.SetUIScenePageInfo(UIScenePageInfo info) { _UIScenePageInfo = info; }
+        #endregion
+
+        #region Status
+
+        #region status data
+        private enum EResState
         {
             None,
             Preparing,
             Done,
         }
 
-        internal enum EPageState
+        private enum EPageState
         {
             None,
             PreparingRes,
@@ -34,7 +241,7 @@ namespace FH.UI
             Closed,
         }
 
-        internal enum EMsg
+        private enum EMsg
         {
             None,
             Open,
@@ -43,10 +250,10 @@ namespace FH.UI
             Close,
         }
 
-        public IResInstHolder _Holder;
+
         private EPageState _PageState = EPageState.None;
 
-        internal struct PageStatusData
+        private struct PageStatusData
         {
             public static PageStatusData Default = new PageStatusData()
             {
@@ -70,240 +277,38 @@ namespace FH.UI
 
         private PageStatusData _PageStatusData = PageStatusData.Default;
 
-        public PtrList PtrList;
-        private List<CPtr<UIPageBase>> _ChildPages;
-
-        public UIPageBase() { }
-
-        public T OpenChildPage<T>(PageOpenInfo pageOpenInfo) where T : UIPageBase, new()
-        {
-            T ret = new T();
-
-            GroupPageInfo.Mgr?.AddPage(ret, pageOpenInfo.GroupChannel);
-            TagPageInfo.Mgr?.AddTag(ret, pageOpenInfo.Tag);
-            UIScenePageInfo.Mgr?.AddPage(ret, pageOpenInfo.AddToScene);
-            LayerViewPageInfo.Mgr?.AddPage(ret, pageOpenInfo.ViewLayer, pageOpenInfo.ViewParent);
-            ((IUIResPage)ret).SetResHolder(_Holder);
-
-            PtrList += ret;
-            if (_ChildPages == null)
-                _ChildPages = new List<CPtr<UIPageBase>>();
-            _ChildPages.Add(ret);
-
-            ret.UIOpen();
-            return ret;
-        }
-
-        public virtual void UIOpen()
-        {
-            _ProcessStateMsg(EMsg.Open);
-        }
-
-        public virtual void UIShow()
-        {
-            if (_PageStatusData.PageVisible)
-                return;
-            _PageStatusData.PageVisible = true;
-            UILog._.D("Page:{0},{1},  UIVisible true", Id, GetType());
-            _ProcessStateMsg(EMsg.UpdateVisible);
-        }
-
-        public virtual void UIHide()
-        {
-            if (!_PageStatusData.PageVisible)
-                return;
-
-            _PageStatusData.PageVisible = false;
-            UILog._.D("Page:{0},{1},  UIVisible false", Id, GetType());
-            _ProcessStateMsg(EMsg.UpdateVisible);
-        }
-
-        public virtual void UIClose()
-        {
-            Destroy();
-        }
-
-        protected virtual void OnParentPageVisible(bool visible)
-        {
-            if (_PageStatusData.ParentPageVisible == visible)
-                return;
-            _PageStatusData.ParentPageVisible = visible;
-            UILog._.D("Page:{0},{1},  OnParentPageVisible {2}", Id, GetType(), visible);
-            _ProcessStateMsg(EMsg.UpdateVisible);
-        }
-
-        public virtual T CreateView<T>(Transform parent = null) where T : UIBaseView, new()
-        {
-            if (parent == null)
-            {
-                parent = LayerViewPageInfo.GetParent();
-                if (parent == null)
-                    parent = UIRoot.Root2D;
-            }
-
-            T ret = UIBaseView.CreateView<T>(parent, _Holder);
-            PtrList += ret;
-            return ret;
-        }
-
-        public bool IsVisible
-        {
-            get
-            {
-                return _PageState == EPageState.Show;
-            }
-        }
-
-        protected abstract void OnUI1PrepareRes(IResInstHolder holder);
-        protected abstract void OnUI2Init();
-        protected abstract void OnUI3Show();
-        protected abstract void OnUI4Hide();
-        protected abstract void OnUI5Close();
-
-        public override void Destroy()
-        {
-            if (IsDestroyed())
-            {
-                UILog._.E("Duplicate Destroy {0}", GetType());
-                return;
-            }
-            UILog._.D("Destroy, pageId: {0}, pageType: {1}", Id, GetType());
-            base.Destroy();
-
-            _ProcessStateMsg(EMsg.Close);
-
-            PtrList?.Destroy();
-            PtrList = null;
-            _ChildPages?.Clear();
-
-            _GroupPageInfo.Mgr?.RemovePage(Id);
-            _UITagPageInfo.Mgr?.RemoveTag(Id);
-        }
-
-        #region UIResPage
-        protected virtual IResInstHolder CreateHolder()
-        {
-            var ret = ResMgr.CreateHolder(false, true);
-            PtrList += ret;
-            return ret;
-        }
-
-        void IHolderCallBack.OnHolderCallBack()
-        {
-            var stat = _Holder.GetStat();
-            if (!stat.IsAllDone)
-                return;
-            _Holder.SetCallBack(null);
-
-            if (_PageStatusData.ResState != EResState.Preparing)//严重错误
-            {
-                UILog._.E("Error");
-                return;
-            }
-            _ProcessStateMsg(EMsg.ResDone);
-        }
-
-        void IUIResPage.SetResHolder(IResInstHolder resHolder)
-        {
-            if (_PageStatusData.ResState != EResState.None)
-            {
-                UILog._.E("cant set res holder, because res state is {0}", _PageStatusData.ResState);
-                return;
-            }
-
-            if (resHolder == null)
-                return;
-
-            _Holder = resHolder;
-            _PageStatusData.ResState = EResState.Done;
-        }
-
-        public IResInstHolder ResHolder => _Holder;
+        protected PtrList PtrList;
         #endregion
 
-        #region IUITagPage
-        private UITagPageInfo _UITagPageInfo;
-        public UITagPageInfo TagPageInfo { get => _UITagPageInfo; }
-        void IUITagPage.SetTagPageInfo(UITagPageInfo info) { _UITagPageInfo = info; }
-        void IUITagPage.SetPageTagVisible(bool visible)
+        private static Action<UIPageBase, EMsg>[] _StateActions = new Action<UIPageBase, EMsg>[]
         {
-            if (_PageStatusData.PageTagVisible == visible)
-                return;
-            _PageStatusData.PageTagVisible = visible;
-            UILog._.D("Page:{0},{1},  SetPageTagVisible {2}", Id, GetType(), visible);
-            _ProcessStateMsg(EMsg.UpdateVisible);
-        }
+            _ProcessStateNone,
+            _ProcessStatePreparingRes,
+            _ProcessStateResDone,
+            _ProcessStateShow,
+            _ProcessStateHide,
+            _ProcessStateClosed,
+        };
 
-        #endregion
-
-        #region IUIGroupPage
-        private UIGroupPageInfo _GroupPageInfo;
-        public UIGroupPageInfo GroupPageInfo { get => _GroupPageInfo; }
-        void IUIGroupPage.SetGroupPageInfo(UIGroupPageInfo info) { _GroupPageInfo = info; }
-
-        void IUIGroupPage.SetPageGroupVisible(bool visible)
-        {
-            if (_PageStatusData.PageGroupVisible == visible)
-                return;
-            _PageStatusData.PageGroupVisible = visible;
-            UILog._.D("Page:{0},{1},  SetPageGroupVisible {2}", Id, GetType(), visible);
-            _ProcessStateMsg(EMsg.UpdateVisible);
-        }
-        #endregion
-
-        #region IUILayerViewPage
-        private UILayerViewPageInfo _UILayerViewPageInfo;
-        public UILayerViewPageInfo LayerViewPageInfo { get => _UILayerViewPageInfo; }
-        void IUILayerViewPage.SetLayerViewPageInfo(UILayerViewPageInfo info) { _UILayerViewPageInfo = info; }
-        #endregion
-
-        #region IUIScenePage
-        private UIScenePageInfo _UIScenePageInfo;
-        public UIScenePageInfo UIScenePageInfo => _UIScenePageInfo;
-        void IUIScenePage.SetUIScenePageInfo(UIScenePageInfo info) { _UIScenePageInfo = info; }
-        #endregion
-
-        #region Status
         private void _ProcessStateMsg(EMsg msg)
         {
-            switch (_PageState)
+            if (_PageState < 0 || (int)_PageState >= _StateActions.Length)
             {
-                default:
-                    UILog._.E("unkown state {0}", _PageState);
-                    break;
-
-                case EPageState.None:
-                    _ProcessStateNone(msg);
-                    break;
-
-                case EPageState.PreparingRes:
-                    _ProcessStatePreparingRes(msg);
-                    break;
-
-                case EPageState.ResDone:
-                    _ProcessStateResDone(msg);
-                    break;
-
-                case EPageState.Show:
-                    _ProcessStateShow(msg);
-                    break;
-
-                case EPageState.Hide:
-                    _ProcessStateHide(msg);
-                    break;
-
-                case EPageState.Closed:
-                    UILog._.E("Page:{0} is closed", Id);
-                    break;
+                UILog._.E("unkown state {0}", _PageState);
+                return;
             }
+
+            var action = _StateActions[(int)_PageState];
+            action(this, msg);
         }
 
-        private void _ProcessStateNone(EMsg msg)
+        #region sub status process
+        private static void _ProcessStateNone(UIPageBase page, EMsg msg)
         {
             switch (msg)
             {
                 default:
-                    UILog._.E("未处理消息 {0} in state {1}", msg, _PageState);
+                    UILog._.E("未处理消息 {0} in state {1}", msg, page._PageState);
                     break;
 
                 case EMsg.UpdateVisible:
@@ -311,43 +316,43 @@ namespace FH.UI
                     return;
 
                 case EMsg.Close:
-                    _PageState = EPageState.Closed;
+                    page._PageState = EPageState.Closed;
                     break;
 
                 case EMsg.Open:
-                    switch (_PageStatusData.ResState)
+                    switch (page._PageStatusData.ResState)
                     {
                         default:
-                            UILog._.E("未处理资源状态 {0} in state {1} with msg {2}", _PageStatusData.ResState, _PageState, msg);
+                            UILog._.E("未处理资源状态 {0} in state {1} with msg {2}", page._PageStatusData.ResState, page._PageState, msg);
                             break;
 
                         case EResState.None:
-                            _PageState = EPageState.PreparingRes;
-                            _PageStatusData.ResState = EResState.Preparing;
-                            if (_CallOnPrepareRes())
+                            page._PageState = EPageState.PreparingRes;
+                            page._PageStatusData.ResState = EResState.Preparing;
+                            if (_CallOnPrepareRes(page))
                                 break;
 
-                            _PageStatusData.ResState = EResState.Done;
-                            _PageState = EPageState.ResDone;
+                            page._PageStatusData.ResState = EResState.Done;
+                            page._PageState = EPageState.ResDone;
 
-                            if (_PageStatusData.CalcVisible())
+                            if (page._PageStatusData.CalcVisible())
                             {
-                                _PageState = EPageState.Show;
-                                _CallOnInit();
-                                _CallOnShow();
+                                page._PageState = EPageState.Show;
+                                _CallOnOpen(page);
+                                _CallOnShow(page);
                             }
 
                             break;
 
                         case EResState.Done:
-                            _PageStatusData.ResState = EResState.Done;
-                            _PageState = EPageState.ResDone;
+                            page._PageStatusData.ResState = EResState.Done;
+                            page._PageState = EPageState.ResDone;
 
-                            if (_PageStatusData.CalcVisible())
+                            if (page._PageStatusData.CalcVisible())
                             {
-                                _PageState = EPageState.Show;
-                                _CallOnInit();
-                                _CallOnShow();
+                                page._PageState = EPageState.Show;
+                                _CallOnOpen(page);
+                                _CallOnShow(page);
                             }
                             break;
                     }
@@ -355,12 +360,12 @@ namespace FH.UI
             }
         }
 
-        private void _ProcessStatePreparingRes(EMsg msg)
+        private static void _ProcessStatePreparingRes(UIPageBase page, EMsg msg)
         {
             switch (msg)
             {
                 default:
-                    UILog._.E("未处理消息 {0} in state {1}", msg, _PageState);
+                    UILog._.E("未处理消息 {0} in state {1}", msg, page._PageState);
                     break;
 
                 case EMsg.UpdateVisible:
@@ -368,26 +373,26 @@ namespace FH.UI
                     return;
 
                 case EMsg.Close:
-                    _PageState = EPageState.Closed;
+                    page._PageState = EPageState.Closed;
                     break;
 
                 case EMsg.ResDone:
 
-                    switch (_PageStatusData.ResState)
+                    switch (page._PageStatusData.ResState)
                     {
                         default:
-                            UILog._.E("未处理资源状态 {0} in state {1} with msg {2}", _PageStatusData.ResState, _PageState, msg);
+                            UILog._.E("未处理资源状态 {0} in state {1} with msg {2}", page._PageStatusData.ResState, page._PageState, msg);
                             break;
 
                         case EResState.Preparing:
-                            _PageState = EPageState.ResDone;
-                            _PageStatusData.ResState = EResState.Done;
+                            page._PageState = EPageState.ResDone;
+                            page._PageStatusData.ResState = EResState.Done;
 
-                            if (_PageStatusData.CalcVisible())
+                            if (page._PageStatusData.CalcVisible())
                             {
-                                _PageState = EPageState.Show;
-                                _CallOnInit();
-                                _CallOnShow();
+                                page._PageState = EPageState.Show;
+                                _CallOnOpen(page);
+                                _CallOnShow(page);
                             }
                             break;
                     }
@@ -395,102 +400,116 @@ namespace FH.UI
             }
         }
 
-        private void _ProcessStateResDone(EMsg msg)
+        private static void _ProcessStateResDone(UIPageBase page, EMsg msg)
         {
             switch (msg)
             {
                 default:
-                    UILog._.E("未处理消息 {0} in state {1}", msg, _PageState);
+                    UILog._.E("未处理消息 {0} in state {1}", msg, page._PageState);
                     break;
 
                 case EMsg.Close:
-                    _PageState = EPageState.Closed;
+                    page._PageState = EPageState.Closed;
                     break;
 
                 case EMsg.UpdateVisible:
-                    if (_PageStatusData.CalcVisible())
+                    if (page._PageStatusData.CalcVisible())
                     {
-                        _PageState = EPageState.Show;
-                        _CallOnInit();
-                        _CallOnShow();
+                        page._PageState = EPageState.Show;
+                        _CallOnOpen(page);
+                        _CallOnShow(page);
                     }
                     break;
             }
         }
 
-        private void _ProcessStateShow(EMsg msg)
+        private static void _ProcessStateShow(UIPageBase page, EMsg msg)
         {
             switch (msg)
             {
                 default:
-                    UILog._.E("未处理消息 {0} in state {1}", msg, _PageState);
+                    UILog._.E("未处理消息 {0} in state {1}", msg, page._PageState);
                     break;
 
 
                 case EMsg.Close:
                     {
-                        _PageState = EPageState.Closed;
-                        _CallOnHide();
-                        _CallOnClose();
+                        page._PageState = EPageState.Closed;
+                        _CallOnHide(page);
+                        _CallOnClose(page);
                     }
                     break;
 
                 case EMsg.UpdateVisible:
-                    if (!_PageStatusData.CalcVisible())
+                    if (!page._PageStatusData.CalcVisible())
                     {
-                        _PageState = EPageState.Hide;
-                        _CallOnHide();
+                        page._PageState = EPageState.Hide;
+                        _CallOnHide(page);
                     }
                     break;
             }
         }
 
-        private void _ProcessStateHide(EMsg msg)
+        private static void _ProcessStateHide(UIPageBase page, EMsg msg)
         {
             switch (msg)
             {
                 default:
-                    UILog._.E("未处理消息 {0} in state {1}", msg, _PageState);
+                    UILog._.E("未处理消息 {0} in state {1}", msg, page._PageState);
                     break;
 
                 case EMsg.Close:
                     {
-                        _PageState = EPageState.Closed;
-                        _CallOnClose();
+                        page._PageState = EPageState.Closed;
+                        _CallOnClose(page);
                     }
                     break;
 
                 case EMsg.UpdateVisible:
-                    if (_PageStatusData.CalcVisible())
+                    if (page._PageStatusData.CalcVisible())
                     {
-                        _PageState = EPageState.Show;
-                        _CallOnShow();
+                        page._PageState = EPageState.Show;
+                        _CallOnShow(page);
                     }
                     break;
             }
         }
 
-        private bool _CallOnPrepareRes()
+        private static void _ProcessStateClosed(UIPageBase page, EMsg msg)
         {
-            UILog._.D("Page:{0},{1} , OnUIPrepareRes", Id, GetType());
-            _Holder = CreateHolder();
-            OnUI1PrepareRes(_Holder);
-
-
-            if (!_Holder.GetStat().IsAllDone) //如果没有需要的,直接实例化
-            {
-                _Holder.SetCallBack(this);
-                return true;
-            }
-            return false;
+            UILog._.E("Page:{0},{1} is closed", page.UIElementId, page.GetType());
         }
+        #endregion
 
-        private void _CallOnInit()
+        #region call on callback
+        private static bool _CallOnPrepareRes(UIPageBase page)
         {
             try
             {
-                UILog._.D("Page:{0},{1} , OnUIInit", Id, GetType());
-                OnUI2Init();
+                UILog._.D("Page:{0},{1} , OnUIPrepareRes", page.UIElementId, page.GetType());
+                var holder = page.ResHolder;
+                page.OnUI1PrepareRes(holder);
+
+                if (!holder.GetStat().IsAllDone) //如果没有需要的,直接实例化
+                {
+                    holder.SetCallBack(page);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                UILog._.E(ex);
+                return false;
+            }
+        }
+
+        private static void _CallOnOpen(UIPageBase page)
+        {
+            try
+            {
+                UILog._.D("Page:{0},{1} , OnUIOpen", page.UIElementId, page.GetType());
+                page.OnUI2Open();
             }
             catch (Exception ex)
             {
@@ -498,16 +517,16 @@ namespace FH.UI
             }
         }
 
-        private void _CallOnShow()
+        private static void _CallOnShow(UIPageBase page)
         {
             try
             {
-                UILog._.D("Page:{0},{1} , OnUIShow", Id, GetType());
-                OnUI3Show();
-                TagPageInfo.Mgr?.ApplyMask(this, TagPageInfo.TagIndex);
+                UILog._.D("Page:{0},{1} , OnUIShow", page.UIElementId, page.GetType());
+                page.OnUI3Show();
+                page.TagPageInfo.Mgr?.ApplyMask(page, page.TagPageInfo.TagIndex);
 
-                if (_ChildPages != null)
-                    foreach (var p in _ChildPages)
+                if (page._ChildPages != null)
+                    foreach (var p in page._ChildPages)
                         p.Val?.OnParentPageVisible(true);
 
             }
@@ -517,16 +536,16 @@ namespace FH.UI
             }
         }
 
-        private void _CallOnHide()
+        private static void _CallOnHide(UIPageBase page)
         {
             try
             {
-                UILog._.D("Page:{0},{1} , OnUIHide", Id, GetType());
-                TagPageInfo.Mgr?.WithdrawMask(Id);
-                OnUI4Hide();
+                UILog._.D("Page:{0},{1} , OnUIHide", page.UIElementId, page.GetType());
+                page.TagPageInfo.Mgr?.WithdrawMask(page.UIElementId);
+                page.OnUI4Hide();
 
-                if (_ChildPages != null)
-                    foreach (var p in _ChildPages)
+                if (page._ChildPages != null)
+                    foreach (var p in page._ChildPages)
                         p.Val?.OnParentPageVisible(false);
             }
             catch (Exception ex)
@@ -535,18 +554,19 @@ namespace FH.UI
             }
         }
 
-        private void _CallOnClose()
+        private static void _CallOnClose(UIPageBase page)
         {
             try
             {
-                UILog._.D("Page:{0},{1} , OnUIClose", Id, GetType());
-                OnUI5Close();
+                UILog._.D("Page:{0},{1} , OnUIClose", page.UIElementId, page.GetType());
+                page.OnUI5Close();
             }
             catch (Exception ex)
             {
                 UILog._.E(ex);
             }
         }
+        #endregion
         #endregion
 
     }
@@ -557,7 +577,7 @@ namespace FH.UI
 
         protected override void OnUI1PrepareRes(IResInstHolder holder) { }
 
-        protected override void OnUI2Init()
+        protected override void OnUI2Open()
         {
             BaseView = CreateView<TView>();
         }

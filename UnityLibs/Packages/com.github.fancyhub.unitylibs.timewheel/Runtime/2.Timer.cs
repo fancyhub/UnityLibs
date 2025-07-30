@@ -192,7 +192,7 @@ namespace FH
             if (_driver == null)
                 return;
             _driver.Cancel(_timer_id);
-            _timer_id = TimerId.InvalidId;
+            _timer_id = TimerId.InvalidTimerId;
         }
 
         protected override void OnPoolRelease()
@@ -208,7 +208,7 @@ namespace FH
 
         public void _on_time_out(TimerId timer_id)
         {
-            _timer_id = TimerId.InvalidId;
+            _timer_id = TimerId.InvalidTimerId;
 
             if (_data.Next())
             {
@@ -295,7 +295,7 @@ namespace FH
             if (_driver == null)
                 return;
             _driver.Cancel(_timer_id);
-            _timer_id = TimerId.InvalidId;
+            _timer_id = TimerId.InvalidTimerId;
         }
 
         protected override void OnPoolRelease()
@@ -309,7 +309,7 @@ namespace FH
 
         public void _on_time_out(TimerId timer_id)
         {
-            _timer_id = TimerId.InvalidId;
+            _timer_id = TimerId.InvalidTimerId;
 
             if (_data.Next())
             {
