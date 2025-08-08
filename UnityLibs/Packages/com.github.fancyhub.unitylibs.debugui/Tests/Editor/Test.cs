@@ -22,6 +22,11 @@ namespace FH.DebugUI.EdTests
             Debug.Log($"{a} - {b} = {a - b}");
         }
 
+        [ActionView("Test.Cmd2.Cmd", "Minus")]
+        public static void Minus2(int a, int b)
+        {
+            Debug.Log($"{a} - {b} = {a - b}");
+        }
 
     }
 }

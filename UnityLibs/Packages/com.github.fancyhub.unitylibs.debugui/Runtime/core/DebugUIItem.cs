@@ -83,8 +83,12 @@ namespace FH.DebugUI
 
             foreach (var p in _Children)
                 p.Sort();
-        }       
+        }
 
+        public override string ToString()
+        {
+            return Name;
+        }
 
         //这个不能返回里面有View的节点
         private DebugUIItem _FindOrCreateChildNodeByName(string name)

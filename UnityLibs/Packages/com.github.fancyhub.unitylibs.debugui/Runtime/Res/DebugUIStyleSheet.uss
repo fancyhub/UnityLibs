@@ -11,13 +11,20 @@
 #debug_ui_tree_container{
     width:200px;
 }
+ 
 
-#debug_ui_tree Label {
-    font-size:12px;
+#debug_ui_tree .unity-tree-view__item {
+    height: 40px;    
 }
 
-.unity-tree-view__item {
-    height: 22px;
+#debug_ui_tree Label {
+    align-self: flex-start;
+    unity-text-align: middle-left;
+}
+
+#debug_ui_content_container .unity-scroll-view__content-container{
+    flex-wrap: Wrap;
+    flex-direction: Row;
 }
 
 ActionView {
@@ -33,7 +40,3 @@ CommandView {
 }
 
 
-#debug_ui_content_container .unity-scroll-view__content-container{
-    flex-wrap: Wrap;
-    flex-direction: Row;
-}

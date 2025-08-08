@@ -6,6 +6,7 @@
 *************************************************************************************/
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -17,7 +18,6 @@ namespace FH.DebugUI
         public const string StyleNameRoot = "debug_ui_root";
         public const string StyleNameTreeContainer = "debug_ui_tree_container";
         public const string StyleNameTree = "debug_ui_tree";
-        public const string StyleNameTreeItem = "debug_ui_tree_item";
         public const string StyleNameContentContainer = "debug_ui_content_container";
 
         private VisualElement _TreeContainer;
@@ -38,7 +38,7 @@ namespace FH.DebugUI
             this.name = StyleNameRoot;
 
             // 左侧树状图容器
-            _TreeContainer = new VisualElement();           
+            _TreeContainer = new VisualElement();
             _TreeContainer.name = StyleNameTreeContainer;
             Add(_TreeContainer);
 
@@ -46,23 +46,9 @@ namespace FH.DebugUI
             // 创建树状图
             _TreeView = new TreeView();
             _TreeView.name = StyleNameTree;
-            {
-                _TreeView.makeItem = () =>
-                {
-                    var ret = new Label();
-                    ret.style.alignSelf = Align.FlexStart;
-                    ret.style.unityTextAlign = TextAnchor.MiddleCenter;
-                    ret.name = StyleNameTreeItem;
-                    return ret;
-                };
-                _TreeView.bindItem = (element, index) =>
-                {
-                    var item = _TreeView.GetItemDataForIndex<DebugUIItem>(index);
-                    (element as Label).text = item.Name;
-                };
-                _TreeView.selectionChanged += _OnTreeSelected;
-            }
+            _TreeView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;            
             _TreeView.style.flexGrow = 1;
+            _TreeView.selectionChanged += _OnTreeSelected;
             _TreeContainer.Add(_TreeView);
 
 
