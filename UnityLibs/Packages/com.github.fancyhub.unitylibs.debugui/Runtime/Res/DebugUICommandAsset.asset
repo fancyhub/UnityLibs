@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4924780736539fa4696aa450d69a88fe, type: 3}
+  m_Name: DebugUICommandAsset
+  m_EditorClassIdentifier: 
+  Commands:
+  - Path: Cmd.Test
+    Name: Batch1
+    Params: []
+    Script: "Test.Cmd.Add 1 2\nTest.Cmd.Add 1 \n//Test.Cmd.Add 1 2\n\n\n"
+  - Path: Cmd.Test
+    Name: Batch2
+    Params:
+    - Name: p1
+      Type: 0
+    Script: 'Test.Cmd.Add $p1 2 //comment
+
+      Test.Cmd.Add $p1  //comment
+
+      //Test.Cmd.Add
+      1 2
+
+
+
+'

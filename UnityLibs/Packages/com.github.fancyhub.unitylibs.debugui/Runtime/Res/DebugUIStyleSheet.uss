@@ -1,0 +1,39 @@
+
+#debug_ui_root {
+    background-color: #FFFFFF;    
+    opacity: 0.75;
+    margin-left:40px;
+    margin-right:40px;
+    margin-top:40px;
+    margin-bottom: 40px;
+} 
+
+#debug_ui_tree_container{
+    width:200px;
+}
+
+#debug_ui_tree Label {
+    font-size:12px;
+}
+
+.unity-tree-view__item {
+    height: 22px;
+}
+
+ActionView {
+    background-color: rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+
+CommandView {
+    background-color: rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+
+
+#debug_ui_content_container .unity-scroll-view__content-container{
+    flex-wrap: Wrap;
+    flex-direction: Row;
+}

@@ -27,7 +27,6 @@ namespace FH
 
         public StreamXOR(Stream orig, string xor_keys)
         {
-            System.IO.BufferedStream s;
             _OrigStream = orig;
             if (!string.IsNullOrEmpty(xor_keys))
             {
