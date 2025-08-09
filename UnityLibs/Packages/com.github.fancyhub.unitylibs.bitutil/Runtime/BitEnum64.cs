@@ -35,7 +35,7 @@ namespace FH
             Value = 0;
             for (int i = 0; i < arrays.Length; i++)
             {
-                int idx = BitEnumUtil.ToInt32(arrays[i]);
+                int idx = BitUtil.Struct2Int(arrays[i]);
                 Value |= 1u << idx;
             }
         }
@@ -43,15 +43,30 @@ namespace FH
         public bool SetBit(T idx, bool state)
         {
             //1. check
-            int index = BitEnumUtil.ToInt32(idx);
-            return SetBit(index, state);
+            int index = BitUtil.Struct2Int(idx);
+            if (index < 0 || index >= LENGTH)
+            {
+                Log.Assert(false, "idx:{1},{2} 要在 [0,{0})", LENGTH, idx, index);
+                return false;
+            }
+
+            if (state)
+                Value = (1ul << index) | Value;
+            else
+                Value = ~(1ul << index) & Value;
+            return true;
         }
 
         public bool GetBit(T idx)
         {
             //1. check
-            int index = BitEnumUtil.ToInt32(idx);
-            return GetBit(index);
+             int index = BitUtil.Struct2Int(idx);
+            if (index < 0 || index >= LENGTH)
+            {
+                Log.Assert(false, "idx:{1},{2} 要在 [0,{0})", LENGTH, idx, index);
+                return false;
+            }
+            return ((1ul << index) & Value) != 0;
         }
 
         public void SetValue(BitEnum64<T> mask, BitEnum64<T> v)
@@ -98,13 +113,11 @@ namespace FH
         {
             set
             {
-                int index = BitEnumUtil.ToInt32(idx);
-                SetBit(index, value);
+                SetBit(idx, value);
             }
             get
             {
-                int index = BitEnumUtil.ToInt32(idx);
-                return GetBit(index);
+                return GetBit(idx);
             }
         }
 
@@ -149,7 +162,7 @@ namespace FH
         public static bool operator ==(BitEnum64<T> a, BitEnum64<T> b) { return a.Value == b.Value; }
         public static bool operator !=(BitEnum64<T> a, BitEnum64<T> b) { return a.Value != b.Value; }
 
-        public static implicit operator BitEnum64<T>(T v) { int idx = BitEnumUtil.ToInt32(v); return new BitEnum64<T>(1ul << idx); }
+        public static implicit operator BitEnum64<T>(T v) { int idx = BitUtil.Struct2Int(v); return new BitEnum64<T>(1ul << idx); }
         public static implicit operator BitEnum64<T>(long v) { return new BitEnum64<T>(v); }
         public static implicit operator BitEnum64<T>(ulong v) { return new BitEnum64<T>(v); }
         public static implicit operator ulong(BitEnum64<T> v) { return v.Value; }

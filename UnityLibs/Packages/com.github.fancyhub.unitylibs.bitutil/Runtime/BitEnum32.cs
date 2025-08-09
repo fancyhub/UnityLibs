@@ -17,15 +17,7 @@ using UnityEngine;
 
 namespace FH
 {
-    internal static class BitEnumUtil
-    {
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        internal static int ToInt32<T>(T v) where T : struct, IConvertible
-        {
-            //return v.GetHashCode();
-            return Unity.Collections.LowLevel.Unsafe.UnsafeUtility.EnumToInt(v);
-        }
-    }
+ 
     /// <summary>
     /// 对应的枚举 不要本身就是 Flags类型的
     /// </summary>
@@ -49,7 +41,7 @@ namespace FH
             Value = 0;
             for (int i = 0; i < arrays.Length; i++)
             {
-                int idx = BitEnumUtil.ToInt32(arrays[i]);
+                int idx = BitUtil.Struct2Int(arrays[i]);
                 Value |= 1u << idx;
             }
         }
@@ -57,15 +49,30 @@ namespace FH
         public bool SetBit(T idx, bool state)
         {
             //1. check
-            int index = BitEnumUtil.ToInt32(idx);
-            return SetBit(index, state);
+            int index = BitUtil.Struct2Int(idx);
+            if (index < 0 || index >= LENGTH)
+            {
+                Log.Assert(false, "idx:{1},{2} 要在 [0,{0})", LENGTH, idx, index);
+                return false;
+            }
+
+            if (state)
+                Value = (1u << index) | Value;
+            else
+                Value = ~(1u << index) & Value;
+            return true;
         }
 
         public bool GetBit(T idx)
         {
             //1. check
-            int index = BitEnumUtil.ToInt32(idx);
-            return GetBit(index);
+            int index = BitUtil.Struct2Int(idx);
+            if (index < 0 || index >= LENGTH)
+            {
+                Log.Assert(false, "idx:{1},{2} 要在 [0,{0})", LENGTH, idx, index);
+                return false;
+            }
+            return ((1u << index) & Value) != 0;
         }
 
         public void SetValue(BitEnum32<T> mask, BitEnum32<T> value)
@@ -117,13 +124,11 @@ namespace FH
         {
             set
             {
-                int index = BitEnumUtil.ToInt32(idx);
-                SetBit(index, value);
+                SetBit(idx, value);
             }
             get
             {
-                int index = BitEnumUtil.ToInt32(idx);
-                return GetBit(index);
+                return GetBit(idx);
             }
         }
 
@@ -174,7 +179,7 @@ namespace FH
         public static bool operator ==(BitEnum32<T> a, BitEnum32<T> b) { return a.Value == b.Value; }
         public static bool operator !=(BitEnum32<T> a, BitEnum32<T> b) { return a.Value != b.Value; }
 
-        public static implicit operator BitEnum32<T>(T v) { int idx = BitEnumUtil.ToInt32(v); return new BitEnum32<T>(1u << idx); }
+        public static implicit operator BitEnum32<T>(T v) { int idx = BitUtil.Struct2Int(v); return new BitEnum32<T>(1u << idx); }
         public static implicit operator BitEnum32<T>(int v) { return new BitEnum32<T>(v); }
         public static implicit operator BitEnum32<T>(uint v) { return new BitEnum32<T>(v); }
         public static implicit operator uint(BitEnum32<T> v) { return v.Value; }

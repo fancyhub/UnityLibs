@@ -178,8 +178,8 @@ namespace FH
         public static int Struct2Int<T>(T value) where T : struct, IConvertible
         {
             Log.Assert(typeof(T).IsEnum || typeof(T).IsValueType, "T is not enum {0}", typeof(T));
-            //return v.GetHashCode();
-            return Unity.Collections.LowLevel.Unsafe.UnsafeUtility.EnumToInt(value);
+            return value.GetHashCode();
+            //return Unity.Collections.LowLevel.Unsafe.UnsafeUtility.EnumToInt(value); //有问题
         }
 
 
