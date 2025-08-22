@@ -40,7 +40,30 @@ namespace Game
 
 #if UNITY_2023_2_OR_NEWER
             _TestAync();
+#else 
+            _TestAyncLoad();
 #endif
+        }
+
+        private  void _TestAyncLoad()
+        {
+            var holder = this;
+            System.Threading.CancellationTokenSource c = new System.Threading.CancellationTokenSource();
+
+            FH.InstEvent call_back = (job_id, error, res_ref) =>
+            {
+                Debug.LogError("Done");
+                res_ref.AddUser(holder);
+                res_ref.Get<GameObject>().transform.SetParent(BaseView.SelfRoot.transform, false);
+
+                TimerMgr.AddTimer((timer_id) =>
+                {
+                    res_ref.RemoveUser(holder);
+
+                },5000);
+
+            };
+            ResMgr.AsyncCreate(UIButtonView.CPath, call_back, out var job_id);            
         }
 
 #if UNITY_2023_2_OR_NEWER

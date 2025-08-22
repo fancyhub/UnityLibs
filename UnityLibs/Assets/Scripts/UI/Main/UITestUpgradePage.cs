@@ -34,8 +34,8 @@ namespace Game
             if (string.IsNullOrEmpty(version))
                 return;
 
-            _is_inprogress = true;
 #if UNITY_2023_2_OR_NEWER
+            _is_inprogress = true;
             _UpgradeWrapper(version);
 #endif
         }

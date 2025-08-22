@@ -28,14 +28,24 @@ namespace FH
         public bool SetBit(T idx, bool state)
         {
             //1. check
-            int index = idx.GetHashCode();
+            int index = BitUtil.Enum2Int(idx);
+            if (index < 0 || index >= LENGTH)
+            {
+                Log.Assert(false, "idx:{1},{2} 要在 [0,{0})", LENGTH, idx, index);
+                return false;
+            }
             return SetBit(index, state);
         }
 
         public bool GetBit(T idx)
         {
             //1. check
-            int index = idx.GetHashCode();
+            int index = BitUtil.Enum2Int(idx);
+            if (index < 0 || index >= LENGTH)
+            {
+                Log.Assert(false, "idx:{1},{2} 要在 [0,{0})", LENGTH, idx, index);
+                return false;
+            }
             return GetBit(index);
         }
 
@@ -123,13 +133,11 @@ namespace FH
         {
             set
             {
-                int index = idx.GetHashCode();
-                SetBit(index, value);
+                SetBit(idx, value);
             }
             get
             {
-                int index = idx.GetHashCode();
-                return GetBit(index);
+                return GetBit(idx);
             }
         }
 

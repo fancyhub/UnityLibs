@@ -46,7 +46,7 @@ namespace FH.DebugUI
             // 创建树状图
             _TreeView = new TreeView();
             _TreeView.name = StyleNameTree;
-            _TreeView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;            
+            _TreeView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
             _TreeView.style.flexGrow = 1;
             _TreeView.selectionChanged += _OnTreeSelected;
             _TreeContainer.Add(_TreeView);
@@ -97,8 +97,17 @@ namespace FH.DebugUI
                 break;
             }
 
-            if (selected_item == null || selected_item.Views == null)
+            if (selected_item == null)
                 return;
+
+            if (selected_item.Views == null)
+            {
+                if (_TreeView.IsExpanded(selected_item.Id))
+                    _TreeView.CollapseItem(selected_item.Id);
+                else
+                    _TreeView.ExpandItem(selected_item.Id);
+                return;
+            }
 
             _ContentContainer.Clear();
             foreach (var view in selected_item.Views)

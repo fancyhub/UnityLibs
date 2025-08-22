@@ -76,8 +76,8 @@ namespace FH{
             }
             ;
             Map.TryGetValue(Id, out var ret);
-            if(Id!=default);
-            Log.Assert(ret != null, "can't find {0} in TableTLoc", Id);
+            if(Id!=default)
+                Log.Assert(ret != null, "can't find {0} in TableTLoc", Id);
             return ret;
         }    
 

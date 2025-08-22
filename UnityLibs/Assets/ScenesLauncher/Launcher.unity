@@ -367,7 +367,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Config:
-    Mode: 1
+    Mode: 0
     AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
     FileMgrConfig:
       LogLvl: 1
