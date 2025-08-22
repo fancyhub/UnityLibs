@@ -7,6 +7,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace FH
 {
@@ -69,20 +70,97 @@ namespace FH
                 }
             }
         }
-         
+
+        internal static class SystemStartTimerSystem
+        {
+
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            [DllImport("kernel32.dll")]
+            private static extern ulong GetTickCount64();
+            public static long Now
+            {
+                get
+                {
+                    return (long)GetTickCount64(); 
+                }
+            }
+#elif UNITY_STANDALONE_LINUX || UNITY_ANDROID
+            private const int CLOCK_BOOTTIME = 7;    
+            [StructLayout(LayoutKind.Sequential)]
+            private struct timespec
+            {
+                public IntPtr tv_sec;   
+                public IntPtr tv_nsec;
+            }
+
+            [DllImport("c")]
+            private static extern int clock_gettime(int clockId, out timespec tp);
+
+            public static long Now
+            {
+                get
+                {
+                    if (clock_gettime(CLOCK_BOOTTIME, out timespec tp) != 0)
+                        return 0;
+
+                    long sec = tp.tv_sec.ToInt64();
+                    long nsec = tp.tv_nsec.ToInt64();
+                    return sec * 1000 + nsec / 1000000;
+                }
+            }
+
+#elif UNITY_IOS || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+            private const int CLOCK_MONOTONIC = 6;
+
+            [StructLayout(LayoutKind.Sequential)]
+            private struct timespec
+            {
+                public long tv_sec;  
+                public long tv_nsec; 
+            }
+
+            //[DllImport("System")]
+            [DllImport("__Internal")]
+            private static extern int clock_gettime(int clockId, out timespec tp);
+
+            public static long Now
+            {
+                get
+                {
+ 
+                    if (clock_gettime(CLOCK_MONOTONIC, out timespec tp) == 0)
+                        return tp.tv_sec * 1000 + tp.tv_nsec / 1000000;       
+                    return 0; 
+                }
+            }
+
+#else
+            public static long Now
+            {
+                get
+                { 
+                    return SystemStartTimer32.Now;
+                }
+            }
+#endif
+
+
+        }
+
+
         /// <summary>
         /// 获取系统开启到现在的时间，毫秒,用户不可修改, 线程安全的
         /// </summary>
-        public static long SystemStartTime => SystemStartTimer32.Now;
-        #endregion
+        public static long SystemStartTime => SystemStartTimerSystem.Now;
+#endregion
 
         #region Local time
-        private static readonly long _local_dt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - SystemStartTimer32.Now;
+        private static readonly long _local_dt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - SystemStartTimerSystem.Now;
         /// <summary>
         /// 本地时间戳,毫秒
         /// </summary>
         //public static long UnixMilli { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); } }
-        public static long UnixMilli { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return SystemStartTimer32.Now + _local_dt; } }
+        public static long UnixMilli { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return SystemStartTimerSystem.Now + _local_dt; } }
 
 
         /// <summary>
@@ -102,7 +180,7 @@ namespace FH
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return (int)(SvrUnixMilli / C_SEC_2_MILLI); }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set { SvrUnixMilli = value * C_SEC_2_MILLI ; }
+            set { SvrUnixMilli = value * C_SEC_2_MILLI; }
         }
 
         /// <summary>
@@ -116,7 +194,7 @@ namespace FH
             set { _svr_dt = value - UnixMilli; }
         }
         #endregion
-        
+
         #region Local & Server Time Converter
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long Loc2SvrMilli(long local_time_milli)
