@@ -27,15 +27,15 @@ namespace FH.UI
             UISafeAreaRoot root = GetComponentInParent<UISafeAreaRoot>();
             if (root == null)
             {
-                Adjust(UISafeAreaRoot.UISafeAreaRectInfo.Default);
+                Adjust(UISafeAreaRoot.UISafeAreaRectTranInfo.Default);
             }
             else
             {
-                Adjust(root._SafeAreaRectInfo);
+                Adjust(root.ResultRectTranInfo);
             }
         }
 
-        public void Adjust(UISafeAreaRoot.UISafeAreaRectInfo data)
+        public void Adjust(UISafeAreaRoot.UISafeAreaRectTranInfo data)
         {
             _RectTran.anchorMin = data.AnchorMin;
             _RectTran.anchorMax = data.AnchorMax;

@@ -18,10 +18,170 @@ namespace FH.UI
     [RequireComponent(typeof(CanvasScaler))]
     public sealed class UISafeAreaRoot : MonoBehaviour
     {
-        [Serializable]
-        public struct UISafeAreaRectInfo
+        public enum EUISafeAreaOffset
         {
-            public static UISafeAreaRectInfo Default = new UISafeAreaRectInfo()
+            Canvas,
+            Screen,
+            Ratio,
+        }
+
+        [Serializable]
+        public struct UISize
+        {
+            public Vector2 Screen;
+            public Vector2 Canvas;
+
+            public static UISize Create(RectTransform rect_transform)
+            {
+                return new UISize()
+                {
+                    Screen = new Vector2(UnityEngine.Screen.width, UnityEngine.Screen.height),
+                    Canvas = rect_transform.rect.size
+                };
+            }
+
+            public bool IsValid()
+            {
+                return (Screen.x > 0 && Screen.y > 0 && Canvas.x > 0 && Canvas.y > 0) ;
+            }
+        }
+
+        [Serializable]
+        public struct UISafeAreaRect
+        {
+            public EUISafeAreaOffset Mode;
+            public float Left;
+            public float Right;
+            public float Top;
+            public float Bottom;
+             
+            public UISafeAreaRect(EUISafeAreaOffset mode)
+            {
+                Mode = mode;
+                Left = Right = Top = Bottom = 0;
+            }
+            public UISafeAreaRect Clamp(float min, float max)
+            {
+                return new UISafeAreaRect(Mode)
+                {
+                    Left = Mathf.Clamp(this.Left, min, max),
+                    Right = Mathf.Clamp(this.Right, min, max),
+                    Top = Mathf.Clamp(this.Top, min, max),
+                    Bottom = Mathf.Clamp(this.Bottom, min, max),
+                };
+            }
+
+            public static UISafeAreaRect Max(UISafeAreaRect a, UISafeAreaRect b)
+            {
+                return new UISafeAreaRect(a.Mode)
+                {
+                    Left = Mathf.Max(a.Left, b.Left),
+                    Right = Mathf.Max(a.Right, b.Right),
+                    Top = Mathf.Max(a.Top, b.Top),
+                    Bottom = Mathf.Max(a.Bottom, b.Bottom),
+                };
+            }
+
+            public bool IsEqual(UISafeAreaRect other)
+            {
+                if (other.Mode != Mode)
+                    return false;
+
+                const float epsilon = 0.01f;
+                return Mathf.Abs(other.Left - Left) < epsilon && Mathf.Abs(other.Right - Right) < epsilon &&
+                    Mathf.Abs(other.Top - Top) < epsilon && Mathf.Abs(other.Bottom - Bottom) < epsilon;
+            }
+
+
+            public UISafeAreaRect ToScreen(UISize size)
+            {
+                var ratio = this;
+                if(Mode != EUISafeAreaOffset.Ratio)
+                {
+                    ratio = this.ToRatio(size);
+                }
+
+                return new UISafeAreaRect(EUISafeAreaOffset.Screen)
+                {
+                    Left = Left* size.Screen.x,
+                    Right = Right * size.Screen.x,
+                    Top = Top * size.Screen.y,
+                    Bottom = Bottom * size.Screen.y,
+                };
+            }
+
+            public UISafeAreaRect ToCanvas(UISize size)
+            {
+                var ratio = this;
+                if (Mode != EUISafeAreaOffset.Ratio)
+                {
+                    ratio = this.ToRatio(size);
+                }
+
+                return new UISafeAreaRect(EUISafeAreaOffset.Canvas)
+                {
+                    Left = Left * size.Canvas.x,
+                    Right = Right * size.Canvas.x,
+                    Top = Top * size.Canvas.y,
+                    Bottom = Bottom * size.Canvas.y,
+                };
+            }
+
+            public UISafeAreaRect ToRatio(UISize size)
+            {
+                switch(Mode)
+                {
+                    case EUISafeAreaOffset.Screen:
+                        return new UISafeAreaRect(EUISafeAreaOffset.Ratio)
+                        {
+                            Left = this.Left / size.Screen.x,
+                            Right = this.Right / size.Screen.x,
+                            Top = this.Top / size.Screen.y,
+                            Bottom = this.Bottom / size.Screen.y,
+                        };
+
+                    case EUISafeAreaOffset.Canvas:
+                        return new UISafeAreaRect(EUISafeAreaOffset.Ratio)
+                        {
+                            Left = this.Left / size.Canvas.x,
+                            Right = this.Right / size.Canvas.x,
+                            Top = this.Top / size.Canvas.y,
+                            Bottom = this.Bottom / size.Canvas.y,
+                        };
+
+                    case EUISafeAreaOffset.Ratio:
+                        return this;
+
+                    default:
+                        return new UISafeAreaRect(EUISafeAreaOffset.Ratio);
+                }
+            }
+
+            public static UISafeAreaRect CreateFromScreenSafeArea(UISize size)
+            {
+                var ret = new UISafeAreaRect(EUISafeAreaOffset.Screen);
+                var safe_area = Screen.safeArea;
+                ret.Left = safe_area.xMin;
+                ret.Right = size.Screen.x - safe_area.xMax;
+                ret.Top = size.Screen.y-safe_area.yMax;
+                ret.Bottom =  safe_area.yMin;
+
+                return ret;
+            }           
+        }
+
+        public UISafeAreaRect _Offset;
+
+        private RectTransform _RectTransform;
+        public UISize _Size;
+        public UISafeAreaRect _FinalScreenSafeArea;
+        public UISafeAreaRect _FinalCanvasSafeArea;
+        public UISafeAreaRect _FinalRatioSafeArea;
+
+        [Serializable]
+        public struct UISafeAreaRectTranInfo
+        {
+            public static UISafeAreaRectTranInfo Default = new UISafeAreaRectTranInfo()
             {
                 AnchorMin = Vector2.zero,
                 AnchorMax = Vector2.one,
@@ -36,29 +196,21 @@ namespace FH.UI
             public Vector2 AnchoredPos;
             public Vector2 SizeDelta;
         }
-        public UISafeAreaRectInfo _SafeAreaRectInfo = UISafeAreaRectInfo.Default;
 
-        [Serializable]
-        public struct UISafeAreaOffset
-        {
-            public float Left;
-            public float Right;
-            public float Top;
-            public float Bottom;
-        }
+        public UISafeAreaRectTranInfo _ResultRectTranInfo = UISafeAreaRectTranInfo.Default;
 
-        public Vector2Int _ScreenSize;
-        public Rect _ScreenSafeArea;
+        public UISafeAreaRectTranInfo ResultRectTranInfo => _ResultRectTranInfo;
 
-        public bool _Manual = false;
-        public UISafeAreaOffset _ManualOffset;
+
         public bool _ShowSafeArea = false;
 
         public void Awake()
         {
-            _SafeAreaRectInfo = UISafeAreaRectInfo.Default;
-            _ScreenSize = default;
-            _ScreenSafeArea = default;
+            _ResultRectTranInfo = UISafeAreaRectTranInfo.Default;
+            _FinalScreenSafeArea = new UISafeAreaRect(EUISafeAreaOffset.Screen);
+            _FinalCanvasSafeArea = new UISafeAreaRect(EUISafeAreaOffset.Canvas);
+            _FinalRatioSafeArea = new UISafeAreaRect(EUISafeAreaOffset.Ratio);
+            _RectTransform = GetComponent<RectTransform>();
         }
 
         public void Start()
@@ -70,7 +222,6 @@ namespace FH.UI
         {
             _Update();
         }
-
 #if UNITY_EDITOR
         public void OnGUI()
         {
@@ -79,8 +230,11 @@ namespace FH.UI
 
             //GUI 是左上角 为0,0
             //Screen 是左下角为0,0
-            Rect rect = _ScreenSafeArea;
-            _ScreenSafeArea.y = _ScreenSize.y - rect.yMax;
+            Rect rect = new Rect();
+            rect.x = _FinalScreenSafeArea.Left;
+            rect.y = _FinalScreenSafeArea.Top;
+            rect.width = _Size.Screen.x - _FinalScreenSafeArea.Left - _FinalScreenSafeArea.Right;
+            rect.height = _Size.Screen.y - _FinalScreenSafeArea.Top - _FinalScreenSafeArea.Bottom;
             _DrawRect(rect, Color.yellow, 10);
         }
 
@@ -101,41 +255,45 @@ namespace FH.UI
 
         private void _Update()
         {
-            Vector2Int screen_size = new Vector2Int(Screen.width, Screen.height);
-            if (screen_size.x == 0 || screen_size.y == 0)
+            //1. 获取size
+            UISize size = UISize.Create(_RectTransform);
+            if (!size.IsValid())
                 return;
+            _Size = size;
 
-            Rect screen_safe_area = Screen.safeArea;
-#if UNITY_EDITOR
-            if (_Manual)
-            {
-                screen_safe_area.xMin = Math.Clamp(_ManualOffset.Left, 0, screen_size.x * 0.5f - 5);
-                screen_safe_area.xMax = Math.Clamp(screen_size.x - _ManualOffset.Right, screen_size.x * 0.5f + 5, screen_size.x);
+            //2. 计算
+            UISafeAreaRect screen_safe_area = UISafeAreaRect.CreateFromScreenSafeArea(size);
+            UISafeAreaRect screen_safe_area_ratio= screen_safe_area.ToRatio(size);
+            UISafeAreaRect manual_offset_ratio = _Offset.ToRatio(size);
+            UISafeAreaRect final_ratio = UISafeAreaRect.Max(screen_safe_area_ratio, manual_offset_ratio);
+            final_ratio = final_ratio.Clamp(0, 0.4f);
 
-                screen_safe_area.yMin = Math.Clamp(_ManualOffset.Bottom, 0, screen_size.y * 0.5f - 5);
-                screen_safe_area.yMax = Math.Clamp(screen_size.y - _ManualOffset.Top, screen_size.y * 0.5f + 5, screen_size.y);
-            }
-#endif
-            if (_ScreenSafeArea.Equals(screen_safe_area) && _ScreenSize.Equals(screen_size))
-                return;
+            //3. 判断变化
+            bool is_changed = final_ratio.IsEqual(_FinalRatioSafeArea);
 
-            _ScreenSize = screen_size;
-            _ScreenSafeArea = screen_safe_area;
+
+            //4. 赋值
+            _FinalRatioSafeArea = final_ratio;
+            _FinalCanvasSafeArea = final_ratio.ToCanvas(_Size);
+            _FinalScreenSafeArea = final_ratio.ToScreen(_Size);
 
             //Mode: change anchorMin & Max
-            _SafeAreaRectInfo.AnchorMin.x = _ScreenSafeArea.x / _ScreenSize.x;
-            _SafeAreaRectInfo.AnchorMin.y = _ScreenSafeArea.y / _ScreenSize.y;
+            _ResultRectTranInfo.AnchorMin.x = _FinalRatioSafeArea.Left;
+            _ResultRectTranInfo.AnchorMin.y = _FinalRatioSafeArea.Bottom;
 
-            _SafeAreaRectInfo.AnchorMax.x = _ScreenSafeArea.xMax / _ScreenSize.x;
-            _SafeAreaRectInfo.AnchorMax.y = _ScreenSafeArea.yMax / _ScreenSize.y;
+            _ResultRectTranInfo.AnchorMax.x = 1-_FinalRatioSafeArea.Right;
+            _ResultRectTranInfo.AnchorMax.y = 1-_FinalRatioSafeArea.Top;
 
+
+            //5. 通知
+            if (!is_changed)
+                return;
 
             var list = this.ExtGetCompsInChildren<UISafeAreaPanel>(false);
             foreach (var p in list)
             {
-                p.Adjust(_SafeAreaRectInfo);
+                p.Adjust(_ResultRectTranInfo);
             }
-
             BroadcastMessage("OnRectTransformDimensionsChange", SendMessageOptions.DontRequireReceiver);
         }
     }
