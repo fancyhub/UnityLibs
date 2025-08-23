@@ -1,0 +1,22 @@
+{
+  "name": "com.fancyhub.unitylibs.filedownloadmanager",
+  "version": "1.0.0",
+  "displayName": "[fancyhub] File Download Manager",
+  "description": "File Download Manager",
+  "unity": "2022.3",
+  "keywords": [],
+  "author": {
+    "name": "fancyhub",
+    "email": "fancy113@msn.com",
+    "url": "https://github.com/fancyhub/UnityLibs"
+  },
+  "dependencies": {
+    "com.fancyhub.unitylibs.log": "1.0.0",
+    "com.fancyhub.unitylibs.memorypool": "1.0.0",
+    "com.fancyhub.unitylibs.collection": "1.0.0",
+    "com.fancyhub.unitylibs.taskqueue": "1.0.0",
+    "com.fancyhub.unitylibs.httpdownloader": "1.0.0",
+    "com.fancyhub.unitylibs.fsm": "1.0.0",
+    "com.fancyhub.unitylibs.filemanager": "1.0.0"
+  }
+}

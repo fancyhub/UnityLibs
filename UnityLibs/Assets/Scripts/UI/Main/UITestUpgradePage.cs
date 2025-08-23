@@ -12,11 +12,12 @@ namespace Game
         protected override void OnUI2Open()
         {
             base.OnUI2Open();
-            this.ResHolder.PreInst(UIButtonView.CPath, 2);
             BaseView._BtnClose.OnClick = _OnBtnCloseClick;
             BaseView._BtnUpgrade.OnClick = _OnBtnUpgradeClick;
             BaseView._CurVersion.text = "Current Version: " + FileMgr.GetVersionInfo();
         }
+
+      
 
         private void _OnBtnCloseClick()
         {

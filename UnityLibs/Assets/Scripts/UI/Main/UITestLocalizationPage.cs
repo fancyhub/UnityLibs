@@ -11,7 +11,7 @@ namespace Game
     {
         public static List<(string langCode, string langName)> _LangList = new List<(string, string)>
         {
-            ("en","English"),
+            ("EN","English"),
             ("zh-Hans","中文"),
         };
 

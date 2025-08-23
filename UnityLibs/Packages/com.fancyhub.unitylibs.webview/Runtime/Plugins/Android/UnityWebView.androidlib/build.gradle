@@ -1,0 +1,49 @@
+
+buildscript {
+    repositories {
+       jcenter()
+       google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:4.1.0'
+    }
+}
+
+
+apply plugin: 'com.android.library'
+
+android {
+    namespace 'com.fancyhub.webview'
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    defaultConfig {
+        consumerProguardFiles 'proguard-user.txt'
+    }
+
+    compileSdkVersion 34
+    buildToolsVersion '34.0.0'
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+dependencies {
+
+    implementation fileTree(dir: '../libs', includes: ['unity-classes.jar'])
+
+    implementation 'com.google.code.gson:gson:2.8.2'
+
+    implementation 'androidx.browser:browser:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+}

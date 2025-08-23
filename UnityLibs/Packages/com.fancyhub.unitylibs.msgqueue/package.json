@@ -1,0 +1,18 @@
+{
+  "name": "com.fancyhub.unitylibs.msgqueue",
+  "version": "1.0.0",
+  "displayName": "[fancyhub] Message Queue",
+  "description": "Message Queue",
+  "unity": "2022.3",
+  "keywords": [],
+  "author": {
+    "name": "fancyhub",
+    "email": "fancy113@msn.com",
+    "url": "https://github.com/fancyhub/UnityLibs"
+  },
+  "dependencies": {
+    "com.fancyhub.unitylibs.log": "1.0.0",
+    "com.fancyhub.unitylibs.memorypool": "1.0.0",
+    "com.fancyhub.unitylibs.collection": "1.0.0"
+  }
+}

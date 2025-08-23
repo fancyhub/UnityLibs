@@ -1,0 +1,13 @@
+{
+  "name": "com.fancyhub.unitylibs.platform",
+  "version": "1.0.0",
+  "displayName": "[fancyhub] Platform",
+  "description": "Platform",
+  "unity": "2022.3",
+  "keywords": [],
+  "author": {
+    "name": "fancyhub",
+    "email": "fancy113@msn.com",
+    "url": "https://github.com/fancyhub/UnityLibs"
+  }
+}

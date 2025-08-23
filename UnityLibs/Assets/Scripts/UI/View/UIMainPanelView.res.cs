@@ -21,6 +21,7 @@ namespace Game
 		public UIButtonView _BtnLocalization;
 		public UIButtonView _BtnUpgrade;
 		public UIButtonView _BtnReloadUIScene;
+		public UIButtonView _BtnTime;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -40,6 +41,7 @@ namespace Game
 			_BtnLocalization = _CreateSub<UIButtonView>(refs.GetObj("_BtnLocalization"));
 			_BtnUpgrade = _CreateSub<UIButtonView>(refs.GetObj("_BtnUpgrade"));
 			_BtnReloadUIScene = _CreateSub<UIButtonView>(refs.GetObj("_BtnReloadUIScene"));
+			_BtnTime = _CreateSub<UIButtonView>(refs.GetObj("_BtnTime"));
 
         }
 
@@ -54,6 +56,7 @@ namespace Game
 			_BtnLocalization.Destroy();
 			_BtnUpgrade.Destroy();
 			_BtnReloadUIScene.Destroy();
+			_BtnTime.Destroy();
 
         }
 

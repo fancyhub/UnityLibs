@@ -83,6 +83,9 @@ MonoBehaviour:
     - name: TestScene
       dir: 
       ext: .prefab
+    - name: TestTime
+      dir: 
+      ext: .prefab
     - name: TestUIGroupDialog
       dir: 
       ext: .prefab

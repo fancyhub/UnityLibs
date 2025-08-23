@@ -44,7 +44,12 @@ namespace Game
             {
                 FH.UI.UISceneMgr.ChangeScene<UISceneMain>();
             };
-            
+
+            BaseView._BtnTime.OnClick = () =>
+            {
+                FH.UI.UISceneMgr.OpenUI<Game.UITestTime>();
+            };
+
         }
 
         protected override void OnUI5Close()
