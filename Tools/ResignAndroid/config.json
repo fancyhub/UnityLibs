@@ -1,0 +1,10 @@
+{
+	"keyStoreFilePath":"./keystores/test_jks.keystore",
+	"keyStorePassword":"123456",
+	"keyAlias":"android",
+	"keyPassword":"654321",
+
+	"apksignerPath":"./tool/apksigner_35.0.0.jar",
+	"zipalignPath":"./tool/zipalign.exe",
+	"bundletoolPath":"./tool/bundletool-all-1.18.1.jar"
+}
