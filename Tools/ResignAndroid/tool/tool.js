@@ -226,11 +226,11 @@ function aab2Apks(config, aabFilePath, apksFilePath, universal) {
 
 
 /**
- * printCertWithJarsigner https://docs.oracle.com/javase/8/docs/technotes/tools/windows/jarsigner.html
+ * printJarCert https://docs.oracle.com/javase/8/docs/technotes/tools/windows/jarsigner.html
  * @param {string} inputFilePath aab,jar
  * @returns {boolean} true if success, false otherwise
- */
-function printCertWithJarsigner(inputFilePath) {
+ */ 
+function printJarCert(inputFilePath) {
     const command = [
         `jarsigner`,
         `-verify`,
@@ -242,12 +242,53 @@ function printCertWithJarsigner(inputFilePath) {
     try {
         console.log(`print cert with jarsigner:\n\t${command}\n`);
         execSync(command, { stdio: 'inherit' });
-        return true;
     } catch (error) {
         console.error(`print cert with jarsigner Failed: ${error.message}`);
         return false;
     }
+
+    unzipTargetMetaInf2Dir(inputFilePath, path.resolve("output/temp"));
+
+    let metaInfDir = path.resolve("output/temp/META-INF/");
+    if (!fs.existsSync(metaInfDir)) {
+        return;
+    }
+
+    const fileNames = fs.readdirSync(metaInfDir);
+    for (const fileName of fileNames) {        
+        extName = path.extname(fileName)
+        if (extName === ".RSA" || extName === ".DSA") {
+            const certFilePath = path.resolve(metaInfDir, fileName);
+            printCertWithKeytool(certFilePath);
+        }
+    }
 }
+
+/**
+ * printKeyStoreWithKeytool
+ * @param {string} keyStoreFilePath  keystore file path
+ * @param {string} storePassword  store password
+ * @returns {boolean} true if success, false otherwise
+ */
+function printKeyStoreWithKeytool(keyStoreFilePath, storePassword) {
+    const command = [
+        `keytool`,
+        `-list`,
+        `-v`,
+        `-keystore "${keyStoreFilePath}"`,
+        `-storepass "${storePassword}"`,
+    ].join(' ');
+
+    try {
+        console.log(`print keystore with keytool: \n\t${command}\n`);
+        execSync(command, { stdio: 'inherit' });
+        return true;
+    } catch (error) {
+        console.error(`print keystore with keytool Failed: ${error.message}`);
+        return false;
+    }
+}
+
 
 /**
  * printCertWithKeytool
@@ -255,13 +296,11 @@ function printCertWithJarsigner(inputFilePath) {
  * @param {string} storePassword  store password
  * @returns {boolean} true if success, false otherwise
  */
-function printCertWithKeytool(keyStoreFilePath, storePassword) {
+function printCertWithKeytool(certFilePath) {
     const command = [
         `keytool`,
-        `-list`,
-        `-v`,
-        `-keystore "${keyStoreFilePath}"`,
-        `-storepass "${storePassword}"`,
+        `-printcert`,        
+        `-file  "${certFilePath}"`,
     ].join(' ');
 
     try {
@@ -273,7 +312,6 @@ function printCertWithKeytool(keyStoreFilePath, storePassword) {
         return false;
     }
 }
-
 
 
 /**
@@ -383,6 +421,34 @@ function copyFile(sourceFilePath, targetFilePath, changeTime = false) {
         let time = new Date();
         fs.utimesSync(targetFilePath, time, time);
         // fs.utimesSync(targetFilePath, fs.statSync(sourceFilePath).atime, fs.statSync(sourceFilePath).mtime);
+    }
+}
+
+/**
+ * unzip 
+ * @param {string} inputFilePath 
+ * @param {string} baseDir 
+ * @returns {bool} 
+ */
+function unzipTargetMetaInf2Dir(inputFilePath, baseDir) {
+    baseDir = path.resolve(baseDir);
+
+    try {
+        clearDir(baseDir);
+
+        const command = [
+            `jar`,
+            `-xf`,
+            `"${inputFilePath}"`,
+            'META-INF/'
+        ].join(' ');
+
+        console.log(`unzipTargetMetaInf2Dir: \n\t${command}\n`);
+        execSync(command, { stdio: 'inherit', cwd: baseDir });
+        return true;
+    } catch (error) {
+        console.error(`unzipTargetMetaInf2Dir Failed: ${error.message}`);
+        return false;
     }
 }
 
@@ -594,7 +660,7 @@ function main() {
 
                             //5. print cert
                             console.log("\nstep5/5: print cert================================");
-                            printCertWithJarsigner(outputFilePath);
+                            printJarCert(outputFilePath);
 
                             console.log("\n================================");
                             console.log("Success: " + outputFilePath);
@@ -675,7 +741,7 @@ function main() {
 
                             //4. print cert
                             console.log("\nstep4/4: print cert================================");
-                            printCertWithJarsigner(outputFilePath);
+                            printJarCert(outputFilePath);
 
                             console.log("\n================================");
                             console.log("Success: " + outputFilePath);
@@ -689,7 +755,7 @@ function main() {
 
         case "printcertself":
             {
-                printCertWithKeytool(config.keyStoreFilePath, config.keyStorePassword);
+                printKeyStoreWithKeytool(config.keyStoreFilePath, config.keyStorePassword);
             }
             break;
 
@@ -714,7 +780,7 @@ function main() {
 
                     case ".apks":
                     case ".aab":
-                        printCertWithJarsigner(inputFilePath);
+                        printJarCert(inputFilePath);
                         break;
                 }
             }
@@ -792,7 +858,7 @@ function main() {
 
                         //step2: print cert
                         console.log("\nstep2/2: print cert================================");
-                        printCertWithJarsigner(outputFilePath);
+                        printJarCert(outputFilePath);
 
                         console.log("\n================================");
                         console.log("Success: " + outputFilePath);
