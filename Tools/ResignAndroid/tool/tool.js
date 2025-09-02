@@ -539,6 +539,11 @@ function removeSignatureFiles(baseDir) {
 }
 
 
+/**
+ * readLineFromStdin 
+ * @param {string} name 
+ * @returns {string}
+ */
 function readLineFromStdin(name) {
     process.stdout.write(`${name}:`);
     const buffer = Buffer.alloc(2048);
@@ -548,7 +553,7 @@ function readLineFromStdin(name) {
 }
 
 /**
- * 
+ * getArg
  * @param {number} index 
  * @param {string} name 
  * @returns {string}
@@ -596,11 +601,294 @@ Usage: node ${selfName} -config </path/xxx/config.json> cmd
         `);
 }
 
+function cmdResign(config) {
+    let input = getArg(5, "inputFilePath(apk/aab)");
+    if (input === "") {
+        printUsage();
+        process.exit(1);
+    }
+
+    let inputFilePath = path.resolve(input);
+    let extName = path.extname(inputFilePath).toLowerCase();
+    if (extName === ".apk") {
+        //step1: copy apk to temp apk
+        console.log("\nstep1/3: copy apk to temp apk================================");
+        let outputFilePath = createNewFilePath(inputFilePath, "_new");
+        copyFile(inputFilePath, outputFilePath);
+
+        //step2: sign with apksigner
+        console.log("\nstep2/3: sign with apksigner================================");
+        if (!signWithApksigner(config, outputFilePath))
+            return;
+
+        //step3: print cert
+        console.log("\nstep3/3: print cert================================");
+        printCertWithApksinger(config, outputFilePath);
+
+        console.log("\n================================");
+        console.log("Success: " + outputFilePath);
+        console.log("================================");
+    } else if (extName === ".aab") {
+        //1. unzip to temp dir
+        console.log("\nstep1/5: unzip to temp dir================================");
+        let tempDir = path.resolve("output/temp");
+        if (!unzipTarget2Dir(inputFilePath, tempDir))
+            return;
+
+        //2. remove signature files
+        console.log("\nstep2/5: remove signature files================================");
+        if (!removeSignatureFiles(tempDir))
+            return;
+
+        //3. zip to new aab
+        console.log("\nstep3/5: zip to new aab================================");
+        let outputFilePath = createNewFilePath(inputFilePath, "_new");
+        if (!zipDir2Target(tempDir, outputFilePath))
+            return;
+
+        //4. sign with apksigner
+        console.log("\nstep4/5: sign with jarsigner================================");
+        if (!signWithJarsigner(config, outputFilePath))
+            return;
+
+        //5. print cert
+        console.log("\nstep5/5: print cert================================");
+        printJarCert(outputFilePath);
+
+        console.log("\n================================");
+        console.log("Success: " + outputFilePath);
+        console.log("================================");
+    }
+    else {
+        console.error(`input apk/aab,does't support ${input}`);
+        process.exit(1);
+    }
+}
+
+function cmdPrintCert(config) {
+    let input = getArg(5, "inputFilePath(apk/apks/aab/keystore)")
+    if (input === "") {
+        printUsage();
+        process.exit(1);
+    }
+    let inputFilePath = path.resolve(input);
+    let extName = path.extname(inputFilePath).toLowerCase();
+    switch (extName) {
+        default:
+            console.error(`input APK/AAB/APKS/keystore, does't support ${input}`);
+            process.exit(1);
+            break;
+
+        case ".apk":
+            printCertWithApksinger(config, inputFilePath);
+            break;
+
+        case ".apks":
+        case ".aab":
+            printJarCert(inputFilePath);
+            break;
+
+        case ".keystore":
+            let password = getArg(6, "password")
+            printKeyStoreWithKeytool(inputFilePath, password);
+            break
+
+    }
+}
+
+function cmdReplaceResource(config) {
+    let input = getArg(5, "inputFilePath(apk/apks/aab)")
+    if (input === "") {
+        printUsage();
+        process.exit(1);
+    }
+    let inputFilePath = path.resolve(input);
+
+    let resourcesRootDir = getArg(6, "resourcesRootDir")
+    if (resourcesRootDir === "") {
+        printUsage();
+        process.exit(1);
+    }
+    resourcesRootDir = path.resolve(resourcesRootDir);
+    let extName = path.extname(inputFilePath).toLowerCase();
+
+    if (extName === ".apk") {
+        //1. copy apk to temp apk
+        console.log("\nstep1/5: copy apk to temp apk================================");
+        let tempApkFilePath = path.resolve("output/temp.apk");
+        copyFile(inputFilePath, tempApkFilePath);
+
+        //2. replace resources
+        console.log("\nstep2/5: replace resources================================");
+        if (!replaceResources(tempApkFilePath, resourcesRootDir))
+            return;
+
+        //3. zipalign
+        console.log("\nstep3/5: zipalign================================");
+        let outputFilePath = createNewFilePath(inputFilePath, "_new");
+        if (!zipAlign(config, tempApkFilePath, outputFilePath))
+            return;
+
+        //4. sign with apksigner
+        console.log("\nstep4/5: sign with apksigner================================");
+        if (!signWithApksigner(config, outputFilePath))
+            return;
+
+        //5. print cert
+        console.log("\nstep5/5: print cert================================");
+        printCertWithApksinger(config, outputFilePath);
+
+        console.log("\n================================");
+        console.log("Success: " + outputFilePath);
+        console.log("================================");
+    } else if (extName == ".aab") {
+        //1. copy apk to temp apk
+        console.log("\nstep1/4: copy aab to temp aab================================");
+        let outputFilePath = createNewFilePath(inputFilePath, "_new");
+        copyFile(inputFilePath, outputFilePath);
+
+        //2. replace resources
+        console.log("\nstep2/4: replace resources================================");
+        if (!replaceResources(outputFilePath, resourcesRootDir))
+            return;
+
+        //3. sign with jarsigner
+        console.log("\nstep3/4: sign with jarsigner================================");
+        if (!signWithJarsigner(config, outputFilePath))
+            return;
+
+        //4. print cert
+        console.log("\nstep4/4: print cert================================");
+        printJarCert(outputFilePath);
+
+        console.log("\n================================");
+        console.log("Success: " + outputFilePath);
+        console.log("================================");
+    } else {
+        console.error(`input APK/AAB/APKS,does't support ${input}`);
+        process.exit(1);
+    }
+}
+
+function cmdAab2Apks(config) {
+    let input = getArg(5, "inputFilePath(aab)");
+    if (input === "") {
+        printUsage();
+        process.exit(1);
+    }
+    let inputFilePath = path.resolve(input);
+    let extName = path.extname(inputFilePath).toLowerCase();
+    if (extName === ".aab") {
+        //step1: convert aab to apks
+        console.log("\nstep1/2: convert aab to apks================================");
+        let outputFilePath = replaceExtName(inputFilePath, ".apks");
+        if (!aab2Apks(config, inputFilePath, outputFilePath, false))
+            return;
+
+        //step2: print cert
+        console.log("\nstep2/2: print cert================================");
+        printJarCert(outputFilePath);
+
+        console.log("\n================================");
+        console.log("Success: " + outputFilePath);
+        console.log("================================");
+    } else {
+        console.error(`input AAB, can't ${input}`);
+        process.exit(1);
+    }
+}
+
+function cmdAab2Apk(config) {
+    let input = getArg(5, "inputFilePath(aab)");
+    if (input === "") {
+        printUsage();
+        process.exit(1);
+    }
+    let inputFilePath = path.resolve(input);
+    let extName = path.extname(inputFilePath).toLowerCase();
+    if (extName === ".aab") {
+        //step1: convert aab to apks
+        console.log("\nstep1/4: convert aab to apks================================");
+        let tempFilePath = path.resolve("output/temp.apks");
+        if (!aab2Apks(config, inputFilePath, tempFilePath, true))
+            return;
+
+        //step2: unzip apks to temp dir
+        console.log("\nstep2/4: unzip apks to temp dir================================");
+        let tempDir = unzipTarget2Dir(tempFilePath)
+        if (tempDir == null)
+            return;
+
+        //step3: copy universal apk to output apk
+        console.log("\nstep3/4: copy universal apk to output apk================================");
+        let universalApkFilePath = path.join(tempDir, "universal.apk");
+        let outputFilePath = replaceExtName(inputFilePath, ".apk");
+        copyFile(universalApkFilePath, outputFilePath, true);
+
+        //step4: print cert
+        console.log("\nstep4/4: print cert================================");
+        printCertWithApksinger(config, outputFilePath);
+
+
+        console.log("\n================================");
+        console.log("Success: " + outputFilePath);
+        console.log("================================");
+    } else {
+        console.error(`input AAB, does't support ${input}`);
+        process.exit(1);
+    }
+}
+
+function cmdInstall(config) {
+    let input = getArg(5, "inputFilePath(apk/apks/aab)");
+    if (input === "") {
+        printUsage();
+        process.exit(1);
+    }
+    let inputFilePath = path.resolve(input);
+    let extName = path.extname(inputFilePath).toLowerCase();
+    switch (extName) {
+        default:
+            console.error(`input APK/AAB/APKS, does't support ${input}`);
+            process.exit(1);
+            break;
+
+        case ".apk":
+            {
+                if (!installApk(inputFilePath))
+                    return;
+            }
+            break;
+
+        case ".apks":
+            {
+                if (!installApks(config, inputFilePath))
+                    return;
+            }
+            break;
+
+        case ".aab":
+            {
+                //1. convert aab to apks
+                console.log("\nstep1/2: convert aab to apks================================");
+                let outputFilePath = path.resolve("output/temp.apks");
+                if (!aab2Apks(config, inputFilePath, outputFilePath, false))
+                    return;
+
+                //2. install apks
+                console.log("\nstep2/2: install apks================================");
+                if (!installApks(config, outputFilePath))
+                    return;
+            }
+            break;
+    }
+}
+
 function main() {
     let args = process.argv;
 
     //1. load config file
-    if (args.length < 4 || args[2].toLowerCase() !== "-config") {
+    if (args.length < 5 || args[2].toLowerCase() !== "-config") {
         printUsage()
         process.exit(1);
     }
@@ -611,13 +899,8 @@ function main() {
         process.exit(1);
     }
 
-    //2. get command
-    if (args.length < 5) {
-        printUsage()
-        process.exit(1);
-    }
+    //2. get command   
     let cmd = args[4].toLocaleLowerCase();
-
 
     switch (cmd) {
         default:
@@ -626,335 +909,30 @@ function main() {
             break;
 
         case "resign":
-            {
-                let input = getArg(5, "inputFilePath(apk/aab)");
-                if (input === "") {
-                    printUsage();
-                    process.exit(1);
-                }
-
-                let inputFilePath = path.resolve(input);
-                let extName = path.extname(inputFilePath).toLowerCase();
-                switch (extName) {
-                    default:
-                        console.error(`input apk/aab,does't support ${input}`);
-                        process.exit(1);
-                        break;
-
-                    case ".apk":
-                        {
-                            //step1: copy apk to temp apk
-                            console.log("\nstep1/3: copy apk to temp apk================================");
-                            let outputFilePath = createNewFilePath(inputFilePath, "_new");
-                            copyFile(inputFilePath, outputFilePath);
-
-                            //step2: sign with apksigner
-                            console.log("\nstep2/3: sign with apksigner================================");
-                            if (!signWithApksigner(config, outputFilePath))
-                                return;
-
-                            //step3: print cert
-                            console.log("\nstep3/3: print cert================================");
-                            printCertWithApksinger(config, outputFilePath);
-
-                            console.log("\n================================");
-                            console.log("Success: " + outputFilePath);
-                            console.log("================================");
-                        }
-                        break;
-
-                    case ".aab":
-                        {
-                            //1. unzip to temp dir
-                            console.log("\nstep1/5: unzip to temp dir================================");
-                            let tempDir = path.resolve("output/temp");
-                            if (!unzipTarget2Dir(inputFilePath, tempDir))
-                                return;
-
-                            //2. remove signature files
-                            console.log("\nstep2/5: remove signature files================================");
-                            if (!removeSignatureFiles(tempDir))
-                                return;
-
-                            //3. zip to new aab
-                            console.log("\nstep3/5: zip to new aab================================");
-                            let outputFilePath = createNewFilePath(inputFilePath, "_new");
-                            if (!zipDir2Target(tempDir, outputFilePath))
-                                return;
-
-                            //4. sign with apksigner
-                            console.log("\nstep4/5: sign with jarsigner================================");
-                            if (!signWithJarsigner(config, outputFilePath))
-                                return;
-
-                            //5. print cert
-                            console.log("\nstep5/5: print cert================================");
-                            printJarCert(outputFilePath);
-
-                            console.log("\n================================");
-                            console.log("Success: " + outputFilePath);
-                            console.log("================================");
-                        }
-                        break;
-
-                }
-            }
-
+            cmdResign(config);
             break;
 
         case "replaceRes":
-            {
-                let input = getArg(5, "inputFilePath(apk/apks/aab)")
-                if (input === "") {
-                    printUsage();
-                    process.exit(1);
-                }
-                let inputFilePath = path.resolve(input);
-
-                let resourcesRootDir = getArg(6, "resourcesRootDir")
-                if (resourcesRootDir === "") {
-                    printUsage();
-                    process.exit(1);
-                }
-                resourcesRootDir = path.resolve(resourcesRootDir);
-                let extName = path.extname(inputFilePath).toLowerCase();
-
-                switch (extName) {
-                    default:
-                        console.error(`input APK/AAB/APKS,does't support ${input}`);
-                        process.exit(1);
-                        break;
-
-                    case ".apk":
-                        {
-                            //1. copy apk to temp apk
-                            console.log("\nstep1/5: copy apk to temp apk================================");
-                            let tempApkFilePath = path.resolve("output/temp.apk");
-                            copyFile(inputFilePath, tempApkFilePath);
-
-                            //2. replace resources
-                            console.log("\nstep2/5: replace resources================================");
-                            if (!replaceResources(tempApkFilePath, resourcesRootDir))
-                                return;
-
-                            //3. zipalign
-                            console.log("\nstep3/5: zipalign================================");
-                            let outputFilePath = createNewFilePath(inputFilePath, "_new");
-                            if (!zipAlign(config, tempApkFilePath, outputFilePath))
-                                return;
-
-                            //4. sign with apksigner
-                            console.log("\nstep4/5: sign with apksigner================================");
-                            if (!signWithApksigner(config, outputFilePath))
-                                return;
-
-                            //5. print cert
-                            console.log("\nstep5/5: print cert================================");
-                            printCertWithApksinger(config, outputFilePath);
-
-                            console.log("\n================================");
-                            console.log("Success: " + outputFilePath);
-                            console.log("================================");
-                        }
-                        break;
-
-                    case ".aab":
-                        {
-                            //1. copy apk to temp apk
-                            console.log("\nstep1/4: copy aab to temp aab================================");
-                            let outputFilePath = createNewFilePath(inputFilePath, "_new");
-                            copyFile(inputFilePath, outputFilePath);
-
-                            //2. replace resources
-                            console.log("\nstep2/4: replace resources================================");
-                            if (!replaceResources(outputFilePath, resourcesRootDir))
-                                return;
-
-                            //3. sign with jarsigner
-                            console.log("\nstep3/4: sign with jarsigner================================");
-                            if (!signWithJarsigner(config, outputFilePath))
-                                return;
-
-                            //4. print cert
-                            console.log("\nstep4/4: print cert================================");
-                            printJarCert(outputFilePath);
-
-                            console.log("\n================================");
-                            console.log("Success: " + outputFilePath);
-                            console.log("================================");
-                        }
-                        break;
-
-                }
-            }
+            cmdReplaceResource(config);
             break;
 
         case "printcertself":
-            {
-                printKeyStoreWithKeytool(config.keyStoreFilePath, config.keyStorePassword);
-            }
+            printKeyStoreWithKeytool(config.keyStoreFilePath, config.keyStorePassword);
             break;
 
         case "printcert":
-            {
-                let input = getArg(5, "inputFilePath(apk/apks/aab/keystore)")
-                if (input === "") {
-                    printUsage();
-                    process.exit(1);
-                }
-                let inputFilePath = path.resolve(input);
-                let extName = path.extname(inputFilePath).toLowerCase();
-                switch (extName) {
-                    default:
-                        console.error(`input APK/AAB/APKS/keystore, does't support ${input}`);
-                        process.exit(1);
-                        break;
-
-                    case ".apk":
-                        printCertWithApksinger(config, inputFilePath);
-                        break;
-
-                    case ".apks":
-                    case ".aab":
-                        printJarCert(inputFilePath);
-                        break;
-
-                    case ".keystore":
-                        let password = getArg(6, "password")                         
-                        printKeyStoreWithKeytool(inputFilePath, password);
-                        break
-
-                }
-            }
+            cmdPrintCert(config);
             break;
         case "aab2apk":
-            {
-                let input = getArg(5, "inputFilePath(aab)");
-                if (input === "") {
-                    printUsage();
-                    process.exit(1);
-                }
-                let inputFilePath = path.resolve(input);
-                let extName = path.extname(inputFilePath).toLowerCase();
-                switch (extName) {
-                    default:
-                        console.error(`input AAB, does't support ${input}`);
-                        process.exit(1);
-                        break;
-
-                    case ".aab":
-                        {
-                            //step1: convert aab to apks
-                            console.log("\nstep1/4: convert aab to apks================================");
-                            let tempFilePath = path.resolve("output/temp.apks");
-                            if (!aab2Apks(config, inputFilePath, tempFilePath, true))
-                                return;
-
-                            //step2: unzip apks to temp dir
-                            console.log("\nstep2/4: unzip apks to temp dir================================");
-                            let tempDir = unzipTarget2Dir(tempFilePath)
-                            if (tempDir == null)
-                                return;
-
-                            //step3: copy universal apk to output apk
-                            console.log("\nstep3/4: copy universal apk to output apk================================");
-                            let universalApkFilePath = path.join(tempDir, "universal.apk");
-                            let outputFilePath = replaceExtName(inputFilePath, ".apk");
-                            copyFile(universalApkFilePath, outputFilePath, true);
-
-                            //step4: print cert
-                            console.log("\nstep4/4: print cert================================");
-                            printCertWithApksinger(config, outputFilePath);
-
-
-                            console.log("\n================================");
-                            console.log("Success: " + outputFilePath);
-                            console.log("================================");
-                        }
-                        break;
-                }
-            }
+            cmdAab2Apk(config);
             break;
 
         case "aab2apks":
-            let input = getArg(5, "inputFilePath(aab)");
-            if (input === "") {
-                printUsage();
-                process.exit(1);
-            }
-            let inputFilePath = path.resolve(input);
-            let extName = path.extname(inputFilePath).toLowerCase();
-            switch (extName) {
-                default:
-                    console.error(`input AAB, can't ${input}`);
-                    process.exit(1);
-                    break;
-
-                case ".aab":
-                    {
-                        //step1: convert aab to apks
-                        console.log("\nstep1/2: convert aab to apks================================");
-                        let outputFilePath = replaceExtName(inputFilePath, ".apks");
-                        if (!aab2Apks(config, inputFilePath, outputFilePath, false))
-                            return;
-
-                        //step2: print cert
-                        console.log("\nstep2/2: print cert================================");
-                        printJarCert(outputFilePath);
-
-                        console.log("\n================================");
-                        console.log("Success: " + outputFilePath);
-                        console.log("================================");
-                    }
-                    break;
-            }
+            cmdAab2Apks(config);
             break;
 
         case "install":
-            {
-                let input = getArg(5, "inputFilePath(apk/apks/aab)");
-                if (input === "") {
-                    printUsage();
-                    process.exit(1);
-                }
-                let inputFilePath = path.resolve(input);
-                let extName = path.extname(inputFilePath).toLowerCase();
-                switch (extName) {
-                    default:
-                        console.error(`input APK/AAB/APKS, does't support ${input}`);
-                        process.exit(1);
-                        break;
-
-                    case ".apk":
-                        {
-                            if (!installApk(inputFilePath))
-                                return;
-                        }
-                        break;
-
-                    case ".apks":
-                        {
-                            if (!installApks(config, inputFilePath))
-                                return;
-                        }
-                        break;
-
-                    case ".aab":
-                        {
-                            //1. convert aab to apks
-                            console.log("\nstep1/2: convert aab to apks================================");
-                            let outputFilePath = path.resolve("output/temp.apks");
-                            if (!aab2Apks(config, inputFilePath, outputFilePath, false))
-                                return;
-
-                            //2. install apks
-                            console.log("\nstep2/2: install apks================================");
-                            if (!installApks(config, outputFilePath))
-                                return;
-                        }
-                        break;
-                }
-            }
+            cmdInstall(config);
             break;
     }
 }
