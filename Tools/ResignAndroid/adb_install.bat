@@ -1,8 +1,8 @@
-echo off
+@echo off
 cd /d %~dp0
 set CurDir=%CD%
 
-echo Install
+echo install
 
 SET INPUT_FILE=%1
 

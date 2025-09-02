@@ -1,8 +1,8 @@
-echo off
+@echo off
 cd /d %~dp0
 set CurDir=%CD%
 
-echo Aab To Apks
+echo convert aab to apk
 
 SET INPUT_FILE=%1
 

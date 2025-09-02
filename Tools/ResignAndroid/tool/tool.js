@@ -562,11 +562,9 @@ function getArg(index, name) {
     if (process.argv.length <= index) {
         return readLineFromStdin(name);
     }
-
     if (process.argv[index] === "") {
         return readLineFromStdin(name);
     }
-
     return process.argv[index];
 }
 
@@ -912,7 +910,7 @@ function main() {
             cmdResign(config);
             break;
 
-        case "replaceRes":
+        case "replaceres":
             cmdReplaceResource(config);
             break;
 

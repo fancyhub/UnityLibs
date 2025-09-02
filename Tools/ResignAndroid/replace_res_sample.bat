@@ -1,7 +1,7 @@
 @echo off
 cd /d %~dp0
 
-
+echo replace resources in aab/apk 
 SET INPUT_FILE=%1
 set ASSET_DIR=%CD%\res_replacement\%ResName%
 

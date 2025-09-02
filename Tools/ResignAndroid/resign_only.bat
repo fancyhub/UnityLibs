@@ -1,7 +1,7 @@
 @echo off
 cd /d %~dp0
 
-echo Resign Apk
+echo resign apk/aab
 
 
 SET INPUT_FILE=%1
