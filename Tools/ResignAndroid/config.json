@@ -1,5 +1,5 @@
 {
-	"keyStoreFilePath":"./keystores/test_jks.keystore",
+	"keyStoreFilePath":"./keystores/test_pkcs12.keystore",
 	"keyStorePassword":"123456",
 	"keyAlias":"android",
 	"keyPassword":"654321",

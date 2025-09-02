@@ -52,7 +52,7 @@ function signWithJarsigner(config, filePath) {
 function signWithApksigner(config, filePath) {
     const command = [
         `java -jar "${config.apksignerPath}"`,
-        `sign`,        
+        `sign`,
         `--ks "${config.keyStoreFilePath}"`,
         `--ks-pass pass:${config.keyStorePassword}`,
         `--ks-key-alias "${config.keyAlias}"`,
@@ -92,7 +92,7 @@ function zipAlign(config, inputFilePath, outputFilePath) {
         `"${outputFilePath}"`
     ].join(' ');
 
-    try {       
+    try {
         console.log(`Exe zipalign: \n\t${command}\n`);
         execSync(command, { stdio: 'inherit' });
         return true;
@@ -229,7 +229,7 @@ function aab2Apks(config, aabFilePath, apksFilePath, universal) {
  * printJarCert https://docs.oracle.com/javase/8/docs/technotes/tools/windows/jarsigner.html
  * @param {string} inputFilePath aab,jar
  * @returns {boolean} true if success, false otherwise
- */ 
+ */
 function printJarCert(inputFilePath) {
     const command = [
         `jarsigner`,
@@ -255,7 +255,7 @@ function printJarCert(inputFilePath) {
     }
 
     const fileNames = fs.readdirSync(metaInfDir);
-    for (const fileName of fileNames) {        
+    for (const fileName of fileNames) {
         extName = path.extname(fileName)
         if (extName === ".RSA" || extName === ".DSA") {
             const certFilePath = path.resolve(metaInfDir, fileName);
@@ -299,7 +299,7 @@ function printKeyStoreWithKeytool(keyStoreFilePath, storePassword) {
 function printCertWithKeytool(certFilePath) {
     const command = [
         `keytool`,
-        `-printcert`,        
+        `-printcert`,
         `-file  "${certFilePath}"`,
     ].join(' ');
 
@@ -539,6 +539,34 @@ function removeSignatureFiles(baseDir) {
 }
 
 
+function readLineFromStdin(name) {
+    process.stdout.write(`${name}:`);
+    const buffer = Buffer.alloc(2048);
+    const bytesRead = fs.readSync(process.stdin.fd, buffer, 0, buffer.length);
+    const input = buffer.toString('utf8', 0, bytesRead).trim();
+    return input;
+}
+
+/**
+ * 
+ * @param {number} index 
+ * @param {string} name 
+ * @returns {string}
+ */
+function getArg(index, name) {
+    if (process.argv.length <= index) {
+        return readLineFromStdin(name);
+    }
+
+    if (process.argv[index] === "") {
+        return readLineFromStdin(name);
+    }
+
+    return process.argv[index];
+}
+
+
+
 function printUsage() {
     let selfName = path.basename(__filename)
 
@@ -599,16 +627,17 @@ function main() {
 
         case "resign":
             {
-                if (args.length < 6) {
-                    printUsage()
+                let input = getArg(5, "inputFilePath(apk/aab)");
+                if (input === "") {
+                    printUsage();
                     process.exit(1);
                 }
-                let inputFilePath = args[5];
-                inputFilePath = path.resolve(inputFilePath);
+
+                let inputFilePath = path.resolve(input);
                 let extName = path.extname(inputFilePath).toLowerCase();
                 switch (extName) {
                     default:
-                        console.error('input apk/aab');
+                        console.error(`input apk/aab,does't support ${input}`);
                         process.exit(1);
                         break;
 
@@ -675,17 +704,24 @@ function main() {
 
         case "replaceRes":
             {
-                if (args.length < 7) {
-                    printUsage()
+                let input = getArg(5, "inputFilePath(apk/apks/aab)")
+                if (input === "") {
+                    printUsage();
                     process.exit(1);
                 }
-                let inputFilePath = path.resolve(args[5]);
-                let resourcesRootDir = path.resolve(args[6]);
+                let inputFilePath = path.resolve(input);
+
+                let resourcesRootDir = getArg(6, "resourcesRootDir")
+                if (resourcesRootDir === "") {
+                    printUsage();
+                    process.exit(1);
+                }
+                resourcesRootDir = path.resolve(resourcesRootDir);
                 let extName = path.extname(inputFilePath).toLowerCase();
 
                 switch (extName) {
                     default:
-                        console.error('input APK/AAB/APKS');
+                        console.error(`input APK/AAB/APKS,does't support ${input}`);
                         process.exit(1);
                         break;
 
@@ -761,16 +797,16 @@ function main() {
 
         case "printcert":
             {
-                if (args.length < 6) {
-                    printUsage()
+                let input = getArg(5, "inputFilePath(apk/apks/aab/keystore)")
+                if (input === "") {
+                    printUsage();
                     process.exit(1);
                 }
-                let inputFilePath = args[5];
-                inputFilePath = path.resolve(inputFilePath);
+                let inputFilePath = path.resolve(input);
                 let extName = path.extname(inputFilePath).toLowerCase();
                 switch (extName) {
                     default:
-                        console.error('input APK/AAB/APKS/keystore');
+                        console.error(`input APK/AAB/APKS/keystore, does't support ${input}`);
                         process.exit(1);
                         break;
 
@@ -782,21 +818,27 @@ function main() {
                     case ".aab":
                         printJarCert(inputFilePath);
                         break;
+
+                    case ".keystore":
+                        let password = getArg(6, "password")                         
+                        printKeyStoreWithKeytool(inputFilePath, password);
+                        break
+
                 }
             }
             break;
         case "aab2apk":
             {
-                if (args.length < 6) {
-                    printUsage()
+                let input = getArg(5, "inputFilePath(aab)");
+                if (input === "") {
+                    printUsage();
                     process.exit(1);
                 }
-                let inputFilePath = args[5];
-                inputFilePath = path.resolve(inputFilePath);
+                let inputFilePath = path.resolve(input);
                 let extName = path.extname(inputFilePath).toLowerCase();
                 switch (extName) {
                     default:
-                        console.error('input AAB');
+                        console.error(`input AAB, does't support ${input}`);
                         process.exit(1);
                         break;
 
@@ -835,16 +877,16 @@ function main() {
             break;
 
         case "aab2apks":
-            if (args.length < 6) {
-                printUsage()
+            let input = getArg(5, "inputFilePath(aab)");
+            if (input === "") {
+                printUsage();
                 process.exit(1);
             }
-            let inputFilePath = args[5];
-            inputFilePath = path.resolve(inputFilePath);
+            let inputFilePath = path.resolve(input);
             let extName = path.extname(inputFilePath).toLowerCase();
             switch (extName) {
                 default:
-                    console.error('input AAB');
+                    console.error(`input AAB, can't ${input}`);
                     process.exit(1);
                     break;
 
@@ -870,16 +912,16 @@ function main() {
 
         case "install":
             {
-                if (args.length < 6) {
-                    printUsage()
+                let input = getArg(5, "inputFilePath(apk/apks/aab)");
+                if (input === "") {
+                    printUsage();
                     process.exit(1);
                 }
-                let inputFilePath = args[5];
-                inputFilePath = path.resolve(inputFilePath);
+                let inputFilePath = path.resolve(input);
                 let extName = path.extname(inputFilePath).toLowerCase();
                 switch (extName) {
                     default:
-                        console.error('input APK/AAB/APKS');
+                        console.error(`input APK/AAB/APKS, does't support ${input}`);
                         process.exit(1);
                         break;
 
