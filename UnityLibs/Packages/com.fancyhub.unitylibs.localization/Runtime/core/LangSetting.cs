@@ -51,7 +51,7 @@ namespace FH
             if (string.IsNullOrEmpty(lang))
             {
                 lang = GetFromSystemLang(Application.systemLanguage);
-                LocLog._.D("param lang is null, use system lang: {1}", lang);
+                LocLog._.D("param lang is null, use system lang: {0}", lang);
             }
 
             foreach (var p in Langs)

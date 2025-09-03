@@ -16,9 +16,6 @@ namespace Game
             base.OnUI2Open();
             BaseView._BtnClose.OnClick = _OnBtnCloseClick;
             UISceneMgr.AddUpdate(this);
-#if NET_4_6
-            Debug.Log("FFF");
-#endif
         }
 
         void IUIUpdater.OnUIUpdate()
