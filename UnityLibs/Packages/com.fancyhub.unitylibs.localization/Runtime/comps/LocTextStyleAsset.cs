@@ -1,3 +1,10 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2024/1/18
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -34,17 +41,18 @@ namespace FH.UI
 #if UNITY_EDITOR
         public void EdCreateAll()
         {
-            List<TextStyle> temp = new List<TextStyle>(LocLang.LangList.Length);
+            var lang_list = LangSettingAsset.EdGetLangIdList();
+            List<TextStyle> temp = new List<TextStyle>(lang_list.Count);
 
 
-            foreach (var p in LocLang.LangList)
+            foreach (var p in lang_list)
             {
-                TextStyle item = Find(p);
+                TextStyle item = Find(p.Lang);
                 if (item == null)
                 {
                     item = new TextStyle()
                     {
-                        Lang = p,
+                        Lang = p.Lang,
                     };
                 }
                 temp.Add(item);

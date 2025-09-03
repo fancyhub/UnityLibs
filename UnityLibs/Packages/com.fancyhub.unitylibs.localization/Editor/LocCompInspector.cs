@@ -4,6 +4,7 @@
  * Title   : 
  * Desc    : 
 *************************************************************************************/
+using FH.UI;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
@@ -12,7 +13,7 @@ using UnityEngine;
 namespace FH
 {
     public static class LocMgrEditorLoader
-    { 
+    {
         public static void Init()
         {
             if (Application.isPlaying)
@@ -36,8 +37,8 @@ namespace FH
         {
             _KeyProperty = serializedObject.FindProperty("_LocKey");
             LocMgrEditorLoader.Init();
-            ((LocComp)target).EdDoLocalize(LocLang.Lang);
-            _LangIndex = LocLang.IndexOf(LocLang.Lang);
+            ((LocComp)target).EdDoLocalize(LocMgr.CurrentLang);
+            _LangIndex = LangSettingAsset.EdIndexOfLang(LocMgr.CurrentLang);
         }
 
 
@@ -45,11 +46,12 @@ namespace FH
         {
             GUILayout.BeginHorizontal();
 
-            int index = EditorGUILayout.Popup("Lang", _LangIndex, LocLang.LangList);
+            string[] lang_list = LangSettingAsset.EdGetLangNameList();
+            int index = EditorGUILayout.Popup("Lang", _LangIndex, lang_list);
             if (index != _LangIndex)
             {
                 _LangIndex = index;
-                string lang = LocLang.LangList[index];
+                string lang = lang_list[index];
                 ((LocComp)target).EdDoLocalize(lang);
             }
 

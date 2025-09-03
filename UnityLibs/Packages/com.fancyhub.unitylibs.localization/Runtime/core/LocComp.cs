@@ -46,7 +46,8 @@ namespace FH
 
         public void DoLocalize()
         {
-            OnLocalize(LocMgr.Lang);
+            if(this.enabled)
+                OnLocalize(LocMgr.CurrentLang);
         }
 
         protected bool TryGetTran(out string tran)

@@ -38,6 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
+  m_IndirectSpecularColor: {r: 0.16788375, g: 0.21073635, b: 0.28994125, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -438,7 +439,7 @@ MonoBehaviour:
       ServerUrl: http://10.21.76.68:5000/
       MaxRetryCount: 3
     TableLogLvl: 1
-    LocLogLvl: 1
+    LocLogLvl: 0
 --- !u!114 &1811144038
 MonoBehaviour:
   m_ObjectHideFlags: 0

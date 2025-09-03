@@ -11,27 +11,27 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using FH.UI;
 
-namespace FH.LocStrKeyBrowser
+namespace FH.Localization
 {
-    internal static class BrowserDefine
+    public sealed class LocStrKeyBrowser : EditorWindow
     {
-        public const float WindowWidth = 800;
-        public const float WindowHeight = 600;
+        internal static class Define
+        {
+            public const float WindowWidth = 800;
+            public const float WindowHeight = 600;
 
-        private const float TreeViewWidth = WindowWidth - 40;
-        private const float TreeViewLeftPanding = (WindowWidth - TreeViewWidth) * 0.5f;
+            private const float TreeViewWidth = WindowWidth - 40;
+            private const float TreeViewLeftPanding = (WindowWidth - TreeViewWidth) * 0.5f;
 
-        public static readonly Rect ToolbarRect = new Rect(TreeViewLeftPanding, 30f, TreeViewWidth, 20f);
-        public static readonly Rect TreeViewRect = new Rect(TreeViewLeftPanding, 50f, TreeViewWidth, WindowHeight - 110);
+            public static readonly Rect ToolbarRect = new Rect(TreeViewLeftPanding, 30f, TreeViewWidth, 20f);
+            public static readonly Rect TreeViewRect = new Rect(TreeViewLeftPanding, 50f, TreeViewWidth, WindowHeight - 110);
 
-        public const float ColumnKeyWidth = TreeViewWidth * 0.5f - 5;
-        public const float ColumnTranWidth = TreeViewWidth * 0.5f;
-    }
+            public const float ColumnKeyWidth = TreeViewWidth * 0.5f - 5;
+            public const float ColumnTranWidth = TreeViewWidth * 0.5f;
+        }
 
-
-    public sealed class Browser : EditorWindow
-    {
         private SerializedProperty _keyProperty;
         private SearchField _SearchField;
         private EdTableView<TableItem> _TreeView;
@@ -72,20 +72,20 @@ namespace FH.LocStrKeyBrowser
 
         public static void Show(SerializedProperty prop, Rect pos)
         {
-            var stringKeyBrowser = Browser.CreateInstance<Browser>();
+            var stringKeyBrowser = LocStrKeyBrowser.CreateInstance<LocStrKeyBrowser>();
             stringKeyBrowser._keyProperty = prop;
             pos.position = GUIUtility.GUIToScreenPoint(pos.position);
-            stringKeyBrowser.ShowAsDropDown(pos, new Vector2(BrowserDefine.WindowWidth, BrowserDefine.WindowHeight));
+            stringKeyBrowser.ShowAsDropDown(pos, new Vector2(Define.WindowWidth, Define.WindowHeight));
         }
 
         void OnGUI()
         {
             _Init();
 
-            string search_string = _SearchField.OnGUI(BrowserDefine.ToolbarRect, _TreeView.searchString);
+            string search_string = _SearchField.OnGUI(Define.ToolbarRect, _TreeView.searchString);
             if (search_string != _TreeView.searchString)
                 _TreeView.searchString = search_string;
-            _TreeView.OnGUI(BrowserDefine.TreeViewRect);
+            _TreeView.OnGUI(Define.TreeViewRect);
         }
 
         private void OnDestroy()
@@ -100,7 +100,7 @@ namespace FH.LocStrKeyBrowser
                 _Data = new List<TableItem>(LocMgr.EdAllData.Count);
                 foreach (var p in LocMgr.EdAllData)
                 {
-                    //只取第一个Trans
+                    //只取第一个
                     _Data.Add(new TableItem() { Key = p.Key, Translation = p.Value[0] });
                 }
                 _Data.Sort((a, b) => a.Key.CompareTo(b.Key));
@@ -147,6 +147,8 @@ namespace FH.LocStrKeyBrowser
 
         private static MultiColumnHeader _CreateHeader()
         {
+            var list = LangSettingAsset.EdGetLangIdList();
+            string first_name = list[0].Lang;
             var columns = new[]
             {
                 new MultiColumnHeaderState.Column
@@ -155,18 +157,18 @@ namespace FH.LocStrKeyBrowser
                     headerTextAlignment = TextAlignment.Left,
                     sortedAscending = true,
                     sortingArrowAlignment = TextAlignment.Left,
-                    width = BrowserDefine.ColumnKeyWidth,
+                    width = Define.ColumnKeyWidth,
                     minWidth = 10,
                     autoResize = true,
                     allowToggleVisibility = false
                 },
                 new MultiColumnHeaderState.Column
                 {
-                    headerContent = new GUIContent("Translation: "+LocLang.LangList[0]),
+                    headerContent = new GUIContent("Translation: "+first_name),
                     headerTextAlignment = TextAlignment.Left,
                     sortedAscending = true,
                     sortingArrowAlignment = TextAlignment.Left,
-                    width =  BrowserDefine.ColumnTranWidth,
+                    width =  Define.ColumnTranWidth,
                     minWidth = 10,
                     autoResize = true,
                     allowToggleVisibility = false

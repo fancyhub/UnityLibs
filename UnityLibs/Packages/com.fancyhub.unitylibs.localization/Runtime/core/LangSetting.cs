@@ -5,98 +5,69 @@
  * Desc    : 
 *************************************************************************************/
 
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace FH
 {
-    public sealed class LocLang
+    [Serializable]
+    public class LangItem
     {
-        public const string LangKey = "KEY";
+        public string Lang;
+        public bool Enable = true;
 
-        public const string FallBack = "zh-Hans";
-
-        /// <summary>
-        /// FH.LocStrKeyBrowser.Browser 只取第一个
-        /// </summary>
-        public static readonly string[] LangList = new string[]
+        public LangItem(string lang, bool enable = true)
         {
-            "zh-Hans",
-            "EN",
-        };
-
-        private static LocLang _Inst = new LocLang();
-
-        private const string CSavedKey = "LOC_SELECTED_LANG";
-
-        public string _Lang = null;
-        public readonly string SystemLang;
-        private string _SavedLang = null;
-
-        public LocLang()
-        {
-            SystemLang = ParseSystemLang();
-            _SavedLang = PlayerPrefs.GetString(CSavedKey);
-
-            if (_SetLang(_SavedLang))
-                return;
-
-            if (_SetLang(SystemLang))
-                return;
-
-            _SetLang(FallBack);
+            Lang = lang;
+            Enable = enable;
         }
 
-        public static int IndexOf(string lang)
+        public override string ToString() { return Lang;}
+    }
+
+    [Serializable]
+    public partial class LangSetting
+    {
+        public string FallbackLang = "en";
+        public List<LangItem> Langs = new()
         {
-            for (int i = 0; i < LangList.Length; i++)
+            new("en"),
+            new("zh-Hans"),
+        };
+
+        public int IndexOfLang(string lang)
+        {
+            for (int i = 0; i < Langs.Count; i++)
             {
-                if (LangList[i] == lang)
+                if (lang == Langs[i].Lang)
                     return i;
             }
             return -1;
         }
 
-        public static int LangIndex
+        public string GetLang(string lang)
         {
-            get
+            if (string.IsNullOrEmpty(lang))
             {
-                for (int i = 0; i < LangList.Length; i++)
-                {
-                    if (LangList[i] == _Inst._Lang)
-                        return i;
-                }
-                return -1;
+                lang = GetFromSystemLang(Application.systemLanguage);
+                LocLog._.D("param lang is null, use system lang: {1}", lang);
             }
-        }
 
-        public static string Lang
-        {
-            get { return _Inst._Lang; }
-        }
-
-        public static bool IsValid(string lang_code)
-        {
-            if (string.IsNullOrEmpty(lang_code))
-                return false;
-            foreach (var p in LangList)
+            foreach (var p in Langs)
             {
-                if (p == lang_code)
-                {
-                    return true;
-                }
+                if (p.Lang == lang && p.Enable)
+                    return p.Lang;
             }
-            return false;
+
+            LocLog._.D("can't find lang: {0}, use fallback lang: {1}", lang, FallbackLang);
+            return FallbackLang;
         }
 
-        internal static bool SetLang(string lang_code)
-        {
-            return _Inst._SetLang(lang_code);
-        }
-
-        public static string ParseSystemLang()
+        public static string GetFromSystemLang(SystemLanguage systemLang)
         {
             string code = null;
-            switch (Application.systemLanguage)
+            switch (systemLang)
             {
                 case SystemLanguage.Afrikaans: code = "af"; break;
                 case SystemLanguage.Arabic: code = "ar"; break;
@@ -145,33 +116,34 @@ namespace FH
             return code;
         }
 
-        private bool _SetLang(string lang_code)
+
+#if UNITY_EDITOR
+        public void EdChangeList(List<string> lang_list)
         {
-            if (string.IsNullOrEmpty(lang_code))
+            for (int i = Langs.Count - 1; i >= 0; i--)
             {
-                LocLog._.E("LangCode Is Null");
-                return false;
+                if (!lang_list.Contains(Langs[i].Lang))
+                {
+                    Langs.RemoveAt(i);
+                }
             }
 
-            if (_Lang == lang_code)
+            foreach (var p in lang_list)
             {
-                LocLog._.D("LangCode Is Same");
-                return true;
+                if (IndexOfLang(p) < 0)
+                {
+                    Langs.Add(new LangItem(p));
+                }
             }
 
-            if (!IsValid(lang_code))
+            if (IndexOfLang(FallbackLang) < 0)
             {
-                LocLog._.E("LangCode Is Not Valid: {0}", lang_code);
-                return false;
+                if (Langs.Count > 0)
+                    FallbackLang = Langs[0].Lang;
+                else
+                    FallbackLang = "";
             }
-
-            _Lang = lang_code;
-            _SavedLang = _Lang;
-            PlayerPrefs.SetString(CSavedKey, _SavedLang);
-
-            LocLog._.D("Set Current Lang: {0}", lang_code);
-            return true;
         }
-
+#endif
     }
 }

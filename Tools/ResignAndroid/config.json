@@ -5,6 +5,6 @@
 	"keyPassword":"654321",
 
 	"apksignerPath":"./tool/apksigner_35.0.0.jar",
-	"zipalignPath":"./tool/zipalign.exe",
+	"zipalignPath":"./tool/zipalign_35.0.0.exe",
 	"bundletoolPath":"./tool/bundletool-all-1.18.1.jar"
 }

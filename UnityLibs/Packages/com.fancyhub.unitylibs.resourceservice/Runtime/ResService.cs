@@ -78,7 +78,9 @@ namespace FH
             _MountVfs(mode, Config.VfsBuilderConfig);
             //TableMgr.Init(Config.TableLogLvl, new VfsTableReaderBinCreator("Table/"));
             TableMgr.Init(Config.TableLogLvl, new VfsTableReaderCsvCreator("Table/"));
-            LocMgr.InitLog(Config.LocLogLvl);
+
+            var langSettingAsset = ResMgr.Load(LangSettingAsset.CPath).Get<LangSettingAsset>();
+            LocMgr.Init(Config.LocLogLvl, langSettingAsset);
             LocMgr.FuncLoader = TableMgr.LoadTranslation;
         }
 
@@ -150,7 +152,7 @@ namespace FH
                                     return null;
                                 }
 
-                                if(file_path.StartsWith(Application.streamingAssetsPath))
+                                if (file_path.StartsWith(Application.streamingAssetsPath))
                                 {
                                     Log.E("ZipFile can't read in StreamingAssets,{0}:{1}", name, file_path);
                                     return null;
@@ -204,8 +206,8 @@ namespace FH
                                     ret = Lz4ZipFile.LoadFromFile(full_path);
                                 }
 
-                                if (ret == null)                                
-                                    Log.E("Load Lz4Zip failed, {0}",full_path);
+                                if (ret == null)
+                                    Log.E("Load Lz4Zip failed, {0}", full_path);
                                 return ret;
                             });
                             VfsMgr.Mount(fs_zip);

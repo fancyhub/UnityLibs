@@ -9,17 +9,22 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using UnityEngine.SceneManagement;
+using FH.UI;
 
 namespace FH
 {
     public sealed partial class LocMgr
     {
         public delegate List<(LocId key, string tran)> TranslationLoader(string lang);
-        public static Action EventLangChanged = _SampleNotify;
-
         private static LocMgr _ = new LocMgr();
 
+
+        public static Action EventLangChanged = _SampleNotify;
+        private static string _CurrentLang = null;
+        public static string CurrentLang => _CurrentLang;
+
         private Dictionary<LocId, string> _Translation;
+        private LangSetting _LangSetting;
 
         private TranslationLoader _FuncLoader;
 
@@ -28,45 +33,44 @@ namespace FH
             _Translation = new Dictionary<LocId, string>(LocId.EqualityComparer);
         }
 
-        public static void InitLog(ELogLvl log_lvl)
+        public static void Init(ELogLvl log_lvl, LangSettingAsset langSettingAsset)
         {
             LocLog._.SetMasks(log_lvl);
+            _._LangSetting = langSettingAsset.Setting;
+            string lang = _LoadLang();             
+            _CurrentLang = _._LangSetting.GetLang(lang);
         }
 
 
-        #region  Lang & Load 
+        #region  Lang & Load        
         public static void ChangeLang(string lang)
         {
-            if (!LocLang.IsValid(lang))
+            if (string.IsNullOrEmpty(lang))
             {
                 LocLog._.E("Lang Is Not Valid {0}", lang);
                 return;
             }
 
-            if (LocLang.Lang == lang)
+            if (_CurrentLang == lang)
                 return;
+
+            _CurrentLang = lang;
 
             //加载器还没有好, 等待Loader好了
             if (_._FuncLoader == null)
-            {
-                LocLang.SetLang(lang);
+            {                
                 return;
             }
 
-            LocLog._.D("加载多语言表: {0}", lang);
-            var trans = _._FuncLoader(lang);
+            LocLog._.D("加载多语言表: {0}", _CurrentLang);
+            var trans = _._FuncLoader(_CurrentLang);
             if (trans == null)
             {
-                LocLog._.E("Lang {0}, Load Trans failed", lang);
+                LocLog._.E("Lang {0}, Load Trans failed", _CurrentLang);
                 return;
             }
 
             _Change(lang, trans);
-        }
-
-        public static string Lang
-        {
-            get { return LocLang.Lang; }
         }
 
         public static TranslationLoader FuncLoader
@@ -79,22 +83,21 @@ namespace FH
                     return;
 
                 _._FuncLoader = value;
-                string lang = LocLang.Lang;
-                if (string.IsNullOrEmpty(lang))
+                if (string.IsNullOrEmpty(_CurrentLang))
                 {
-                    LocLog._.D("当前语言为null", lang);
+                    LocLog._.D("当前语言为null", _CurrentLang);
                     return;
                 }
 
-                LocLog._.D("加载多语言表: {0}", lang);
-                var trans = _._FuncLoader(lang);
+                LocLog._.D("加载多语言表: {0}", _CurrentLang);
+                var trans = _._FuncLoader(_CurrentLang);
                 if (trans == null)
                 {
-                    LocLog._.E("加载多语言表失败: {0}", lang);
+                    LocLog._.E("加载多语言表失败: {0}", _CurrentLang);
                     return;
                 }
 
-                _Change(lang, trans);
+                _Change(_CurrentLang, trans);
             }
         }
 
@@ -103,18 +106,17 @@ namespace FH
             if (_._FuncLoader == null)
                 return;
 
-            string lang = LocLang.Lang;
-            if (string.IsNullOrEmpty(lang))
+            if (string.IsNullOrEmpty(_CurrentLang))
                 return;
 
-            LocLog._.D("加载多语言表: {0}", lang);
-            var trans = _._FuncLoader(lang);
+            LocLog._.D("加载多语言表: {0}", _CurrentLang);
+            var trans = _._FuncLoader(_CurrentLang);
             if (trans == null)
             {
-                LocLog._.E("加载多语言表失败: {0}", lang);
+                LocLog._.E("加载多语言表失败: {0}", _CurrentLang);
                 return;
             }
-            _Change(lang, trans);
+            _Change(_CurrentLang, trans);
         }
 
         public static void NotiLangChanged(Canvas rootCanvas)
@@ -130,7 +132,7 @@ namespace FH
 
         private static void _Change(string lang, List<(LocId key, string tran)> all)
         {
-            if (!LocLang.IsValid(lang))
+            if (string.IsNullOrEmpty(lang))
             {
                 LocLog._.E("Lang Is Not Valid {0}", lang);
                 return;
@@ -144,18 +146,29 @@ namespace FH
 
                 _._Translation[p.key] = p.tran;
             }
-            LocLang.SetLang(lang);
+            _Save(lang);
 
 
             //通知
             _Notify();
         }
 
+        private const string CSaveKey = "LOC_SELECTED_LANG_ID";
+        private static void _Save(string lang)
+        {
+            PlayerPrefs.SetString(CSaveKey, lang);
+        }
+
+        private static string _LoadLang()
+        {
+            return PlayerPrefs.GetString(CSaveKey);
+        }
+
         private static void _Notify()
         {
             if (!Application.isPlaying)
                 return;
-            EventLangChanged?.Invoke();          
+            EventLangChanged?.Invoke();
         }
 
         private static void _SampleNotify()
@@ -193,8 +206,8 @@ namespace FH
         public static bool TryGet(LocKey key, out string tran, UnityEngine.Object obj = null)
         {
             var int_key = key.ToLocId();
-            if (_._Translation.TryGetValue(int_key, out tran))            
-                return true;            
+            if (_._Translation.TryGetValue(int_key, out tran))
+                return true;
 
             LocLog._.E(obj, "Can't find \"{0}\"", key.Key);
             return false;

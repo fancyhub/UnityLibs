@@ -11,7 +11,7 @@ namespace Game
     {
         public static List<(string langCode, string langName)> _LangList = new List<(string, string)>
         {
-            ("EN","English"),
+            ("en","English"),
             ("zh-Hans","中文"),
         };
 
@@ -24,7 +24,7 @@ namespace Game
                 LocMgr.NotiLangChanged(UIRoot.Canvas2D);
             };
 
-            var opIndex = _FindOptionIndex(LocMgr.Lang, BaseView._Selector);
+            var opIndex = _FindOptionIndex(LocMgr.CurrentLang, BaseView._Selector);
             if (opIndex >= 0)
                 BaseView._Selector.value = opIndex;
 

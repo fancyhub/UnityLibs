@@ -8,6 +8,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using FH.UI;
 
 namespace FH
 {
@@ -40,9 +41,9 @@ namespace FH
 
         public static bool EdTryGet(LocKey key, string lang, out string trans)
         {
-            if (_EdAllData.Count == 0 && _._FuncLoader != null)            
+            if (_EdAllData.Count == 0 && _._FuncLoader != null)
                 EdReloadAll();
-            
+
             trans = null;
             if (string.IsNullOrEmpty(key.Key))
                 return false;
@@ -53,7 +54,7 @@ namespace FH
                 return false;
             }
 
-            int index = LocLang.IndexOf(lang);
+            int index = LangSettingAsset.EdIndexOfLang(lang);
             if (index < 0)
                 return false;
             trans = all_trans[index];
@@ -69,7 +70,8 @@ namespace FH
             }
 
 
-            var key_list = _._FuncLoader(LocLang.LangKey);
+            var key_list = _._FuncLoader("KEY");
+            var lang_list = LangSettingAsset.EdGetLangIdList();
             _EdAllData.Clear();
             Dictionary<LocId, string> temp_dict = new(key_list.Count, LocId.EqualityComparer);
             foreach (var p in key_list)
@@ -81,13 +83,13 @@ namespace FH
                 }
 
                 temp_dict[p.key] = p.tran;
-                _EdAllData[p.tran] = new string[LocLang.LangList.Length];
+                _EdAllData[p.tran] = new string[lang_list.Count];
             }
 
 
-            for (int i = 0; i < LocLang.LangList.Length; i++)
+            for (int i = 0; i < lang_list.Count; i++)
             {
-                string lang = LocLang.LangList[i];
+                string lang = lang_list[i].Lang;
                 var tran_list = _._FuncLoader(lang);
                 if (tran_list == null)
                 {

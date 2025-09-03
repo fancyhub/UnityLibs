@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using System;
+using FH.UI;
 
 
 namespace FH
@@ -55,7 +56,7 @@ namespace FH
                 height += EditorGUIUtility.singleLineHeight;
                 return height;
             }
-            height += (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * LocLang.LangList.Length;
+            height += (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * LangSettingAsset.EdGetLangIdList().Count;
             return height;
         }
 
@@ -83,7 +84,7 @@ namespace FH
 
                 if (GUI.Button(searchRect, new GUIContent(_SearchIcon, "Search"), _SearchBtnStyle))
                 {
-                    LocStrKeyBrowser.Browser.Show(keyProperty, position);
+                    FH.Localization.LocStrKeyBrowser.Show(keyProperty, position);
                 }
                 EditorGUI.EndProperty();
             }
@@ -111,12 +112,12 @@ namespace FH
                 translationPosition.y += (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
                 translationPosition.height = EditorGUIUtility.singleLineHeight;
 
-                string[] lang_list = LocLang.LangList;
+                List<LangItem> lang_list = LangSettingAsset.EdGetLangIdList();
 
                 EditorGUI.indentLevel++;
-                for (int i = 0; i < lang_list.Length; i++)
+                for (int i = 0; i < lang_list.Count; i++)
                 {
-                    string code = lang_list[i];
+                    string code = lang_list[i].Lang;
                     string tran = all_trans[i];
 
                     if (!string.IsNullOrEmpty(tran))

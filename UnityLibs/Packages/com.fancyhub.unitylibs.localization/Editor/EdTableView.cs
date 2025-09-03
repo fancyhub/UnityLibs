@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
-namespace FH.LocStrKeyBrowser
+namespace FH
 {
     public interface IEdTableItem
     {
