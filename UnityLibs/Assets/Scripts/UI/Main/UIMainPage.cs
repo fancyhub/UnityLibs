@@ -47,7 +47,7 @@ namespace Game
 
             BaseView._BtnTime.OnClick = () =>
             {
-                FH.UI.UISceneMgr.OpenUI<Game.UITestTime>();
+                FH.UI.UISceneMgr.OpenUI<Game.UITestTimePage>();
             };
 
         }

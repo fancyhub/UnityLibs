@@ -813,7 +813,7 @@ function cmdAab2Apk(config) {
 
         //step2: unzip apks to temp dir
         console.log("\nstep2/4: unzip apks to temp dir================================");
-        let tempDir = unzipTarget2Dir(tempFilePath)
+        let tempDir = unzipTarget2Dir(tempFilePath, path.resolve("output/temp"))
         if (tempDir == null)
             return;
 
@@ -852,32 +852,25 @@ function cmdInstall(config) {
             break;
 
         case ".apk":
-            {
-                if (!installApk(inputFilePath))
-                    return;
-            }
+            installApk(inputFilePath);
+
             break;
 
         case ".apks":
-            {
-                if (!installApks(config, inputFilePath))
-                    return;
-            }
+            installApks(config, inputFilePath);
             break;
 
         case ".aab":
-            {
-                //1. convert aab to apks
-                console.log("\nstep1/2: convert aab to apks================================");
-                let outputFilePath = path.resolve("output/temp.apks");
-                if (!aab2Apks(config, inputFilePath, outputFilePath, false))
-                    return;
+            //1. convert aab to apks
+            console.log("\nstep1/2: convert aab to apks================================");
+            let outputFilePath = path.resolve("output/temp.apks");
+            if (!aab2Apks(config, inputFilePath, outputFilePath, false))
+                return;
 
-                //2. install apks
-                console.log("\nstep2/2: install apks================================");
-                if (!installApks(config, outputFilePath))
-                    return;
-            }
+            //2. install apks
+            console.log("\nstep2/2: install apks================================");
+            if (!installApks(config, outputFilePath))
+                return;
             break;
     }
 }

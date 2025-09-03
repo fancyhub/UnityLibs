@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: LangSetting
   m_EditorClassIdentifier: 
   Setting:
-    FallbackLang: zh-Hans
+    FallbackLang: en
     Langs:
-    - Lang: en
-      Enable: 1
     - Lang: zh-Hans
+      Enable: 1
+    - Lang: en
       Enable: 1
