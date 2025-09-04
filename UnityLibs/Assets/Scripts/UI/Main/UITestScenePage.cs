@@ -30,7 +30,7 @@ namespace Game
         protected override void OnUI3Show()
         {
             base.OnUI3Show();
-
+            
             FH.UI.UISceneMgr.AddUpdate(_Update);
         }
 

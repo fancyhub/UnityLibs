@@ -1,10 +1,17 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2024/9/3
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
+
 using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEditor.IMGUI.Controls;
 using System.Globalization;
-
+using FH.Ed;
 namespace FH
 {
     class LangBrowser : EditorWindow
@@ -12,24 +19,13 @@ namespace FH
 
         internal static class Define
         {
-            public const float WindowWidth = 400;
-            public const float WindowHeight = 600;
-
-            private const float TreeViewWidth = WindowWidth - 40;
-            private const float TreeViewLeftPanding = (WindowWidth - TreeViewWidth) * 0.5f;
-
-            public static readonly Rect ToolbarRect = new Rect(TreeViewLeftPanding, 30f, TreeViewWidth, 20f);
-            public static readonly Rect TreeViewRect = new Rect(TreeViewLeftPanding, 50f, TreeViewWidth, WindowHeight - 110);
-
             public const float ColumnEnableWidth = 50;
-            public const float ColumnLangWidth = TreeViewWidth - ColumnEnableWidth;
-
             public const float WindowFooterHeight = 150;
 
             public static GUIContent ButtonApply = new GUIContent("Apply");
             public static GUIContent LableSource = new GUIContent("Locale Source", "Source data for generating the locales");
-            public const string progressTitle = "Generating Locales";
-            public const string saveDialog = "Save locales to folder";
+            //public const string progressTitle = "Generating Locales";
+            //public const string saveDialog = "Save locales to folder";
 
             public static GUIContent[] FooterButtonnames =
             {
@@ -39,10 +35,10 @@ namespace FH
         }
 
 
-        private class Item : IEdTableItem
+        private class Item : IEdTableItem<Item>
         {
-            public string Lang;
             public bool Enable;
+            public string Lang;
             public Item(string Lang, bool Enable)
             {
                 this.Lang = Lang;
@@ -69,6 +65,19 @@ namespace FH
 
                 }
             }
+
+            public int CompareTo(Item item, int field_index)
+            {
+                switch (field_index)
+                {
+                    case 0:
+                        return Enable.CompareTo(item.Enable);
+                    case 1:
+                        return Lang.CompareTo(item.Lang);
+                    default:
+                        return 0;
+                }
+            }
         }
 
         private Dictionary<string, Item> _AllItems = new();
@@ -81,7 +90,6 @@ namespace FH
             SystemLanguage
         }
         private LocaleSource _LocaleSource;
-        private SearchField _SearchField;
         private EdTableView<Item> _ListView;
         private static LangSettingAsset _LangSettingAsset;
 
@@ -137,42 +145,10 @@ namespace FH
                 }
             }
 
-            _ListView = new EdTableView<Item>(_CreateHeader());
-            _ListView.SetData(_CultureInfoList, -1);
-            _SearchField = new SearchField();
-            _SearchField.downOrUpArrowKeyPressed += _ListView.SetFocusAndEnsureSelectedItem;
-        }
+            if (_ListView == null)
+                _ListView = new EdTableView<Item>(new string[] { "", "Lang" });
 
-        private static MultiColumnHeader _CreateHeader()
-        {
-            var list = LangSettingAsset.EdGetLangIdList();
-            string first_name = list[0].Lang;
-            var columns = new[]
-            {
-                new MultiColumnHeaderState.Column
-                {
-                    headerContent = new GUIContent(" "),
-                    headerTextAlignment = TextAlignment.Left,
-                    sortedAscending = true,
-                    sortingArrowAlignment = TextAlignment.Left,
-                    width = Define.ColumnEnableWidth,
-                    minWidth = 10,
-                    autoResize = true,
-                    allowToggleVisibility = false
-                },
-                new MultiColumnHeaderState.Column
-                {
-                    headerContent = new GUIContent("Lang"),
-                    headerTextAlignment = TextAlignment.Left,
-                    sortedAscending = true,
-                    sortingArrowAlignment = TextAlignment.Left,
-                    width =  Define.ColumnLangWidth,
-                    minWidth = 10,
-                    autoResize = true,
-                    allowToggleVisibility = false
-                }
-            };
-            return new MultiColumnHeader(new MultiColumnHeaderState(columns));
+            _ListView.SetData(_CultureInfoList);
         }
 
         void OnGUI()
@@ -183,12 +159,10 @@ namespace FH
             {
                 _LocaleSource = newSource;
                 list_item = _GetCurrentList();
-                _ListView.SetData(list_item, -1);
+                _ListView.SetData(list_item);
             }
 
-            _ListView.searchString = _SearchField.OnToolbarGUI(_ListView.searchString);
-            var rect = EditorGUILayout.GetControlRect(false, position.height - Define.WindowFooterHeight);
-            _ListView.OnGUI(rect);
+            _ListView.OnGUI(position.width, position.height - Define.WindowFooterHeight);
 
             var selection = GUILayout.Toolbar(-1, Define.FooterButtonnames, EditorStyles.toolbarButton);
             if (selection == 0)
@@ -251,7 +225,6 @@ namespace FH
                     return _CultureInfoList;
 
                 default: return _SystemLangList;
-
             }
         }
     }

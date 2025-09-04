@@ -21,6 +21,20 @@ namespace FH
         #endregion
 
 
+        /// <summary>
+        /// 修复Culture, 解决不同区的 float.Parse("3.1415") , 某些地方(法国等) 用 逗号做小数点的问题
+        /// 但是日期的格式化还是要用本地的格式
+        /// </summary>
+        public static void FixCultureInfo()
+        {
+            System.Globalization.CultureInfo newCultureInfo = (System.Globalization.CultureInfo)System.Globalization.CultureInfo.CurrentUICulture.Clone();
+            newCultureInfo.NumberFormat = System.Globalization.CultureInfo.InvariantCulture.NumberFormat;
+
+            System.Globalization.CultureInfo.CurrentCulture = newCultureInfo;
+            System.Globalization.CultureInfo.DefaultThreadCurrentCulture = newCultureInfo;
+            System.Threading.Thread.CurrentThread.CurrentCulture = newCultureInfo;
+        }
+
         public static DateTimeOffset NowLocal { get { return ToDateTimeLocal(TimeUtil.UnixMilli); } }
 
         public static DateTimeOffset NowSvr { get { return ToDateTimeSvr(TimeUtil.SvrUnixMilli); } }

@@ -4,18 +4,15 @@
  * Title   : 
  * Desc    : 
 *************************************************************************************/
-#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.IMGUI.Controls;
-using FH.UI;
+using FH.Ed;
 
 namespace FH.Localization
 {
-    public sealed class LocStrKeyBrowser : EditorWindow
+    sealed class LocStrKeyBrowser : EditorWindow
     {
         internal static class Define
         {
@@ -25,21 +22,29 @@ namespace FH.Localization
             private const float TreeViewWidth = WindowWidth - 40;
             private const float TreeViewLeftPanding = (WindowWidth - TreeViewWidth) * 0.5f;
 
-            public static readonly Rect ToolbarRect = new Rect(TreeViewLeftPanding, 30f, TreeViewWidth, 20f);
-            public static readonly Rect TreeViewRect = new Rect(TreeViewLeftPanding, 50f, TreeViewWidth, WindowHeight - 110);
-
-            public const float ColumnKeyWidth = TreeViewWidth * 0.5f - 5;
-            public const float ColumnTranWidth = TreeViewWidth * 0.5f;
+            public static readonly Rect TreeViewRect = new Rect(TreeViewLeftPanding, 50f, TreeViewWidth, WindowHeight - 90);
         }
 
         private SerializedProperty _keyProperty;
-        private SearchField _SearchField;
         private EdTableView<TableItem> _TreeView;
 
-        internal class TableItem : IEdTableItem
+        internal class TableItem : IEdTableItem<TableItem>
         {
             public string Key;
             public string Translation;
+
+            public int CompareTo(TableItem item, int field_index)
+            {
+                switch (field_index)
+                {
+                    case 0:
+                        return Key.CompareTo(item.Key);
+                    case 1:
+                        return Translation.CompareTo(item.Translation);
+                    default:
+                        return 0;
+                }
+            }
 
             public bool IsMatch(string search)
             {
@@ -66,6 +71,9 @@ namespace FH.Localization
 
                 }
             }
+
+
+
         }
 
         private List<TableItem> _Data;
@@ -82,10 +90,14 @@ namespace FH.Localization
         {
             _Init();
 
-            string search_string = _SearchField.OnGUI(Define.ToolbarRect, _TreeView.searchString);
-            if (search_string != _TreeView.searchString)
-                _TreeView.searchString = search_string;
             _TreeView.OnGUI(Define.TreeViewRect);
+
+            Event currentEvent = Event.current;
+            if (currentEvent.type == EventType.KeyDown && currentEvent.keyCode == KeyCode.Escape)
+            {
+                Close();
+                currentEvent.Use();
+            }
         }
 
         private void OnDestroy()
@@ -108,21 +120,13 @@ namespace FH.Localization
 
             if (_TreeView == null)
             {
-                _TreeView = new EdTableView<TableItem>(_CreateHeader());
+                var list = LangSettingAsset.EdGetLangIdList();
+                _TreeView = new EdTableView<TableItem>(new string[] { "Key", "Translation: " + list[0].Lang });
 
                 string key_value = _keyProperty.stringValue;
                 var selected_index = _Data.FindIndex(element => { return element.Key == key_value; });
                 _TreeView.SetData(_Data, selected_index);
-                _TreeView.ExpandAll();
-
-
                 _TreeView.SelectionChangedCallback += _OnSelectionChanged;
-            }
-
-            if (_SearchField == null)
-            {
-                _SearchField = new SearchField();
-                _SearchField.downOrUpArrowKeyPressed += _TreeView.SetFocusAndEnsureSelectedItem;
             }
         }
 
@@ -142,40 +146,6 @@ namespace FH.Localization
                     }
                 }
             }
-            Close();
-        }
-
-        private static MultiColumnHeader _CreateHeader()
-        {
-            var list = LangSettingAsset.EdGetLangIdList();
-            string first_name = list[0].Lang;
-            var columns = new[]
-            {
-                new MultiColumnHeaderState.Column
-                {
-                    headerContent = new GUIContent("Key"),
-                    headerTextAlignment = TextAlignment.Left,
-                    sortedAscending = true,
-                    sortingArrowAlignment = TextAlignment.Left,
-                    width = Define.ColumnKeyWidth,
-                    minWidth = 10,
-                    autoResize = true,
-                    allowToggleVisibility = false
-                },
-                new MultiColumnHeaderState.Column
-                {
-                    headerContent = new GUIContent("Translation: "+first_name),
-                    headerTextAlignment = TextAlignment.Left,
-                    sortedAscending = true,
-                    sortingArrowAlignment = TextAlignment.Left,
-                    width =  Define.ColumnTranWidth,
-                    minWidth = 10,
-                    autoResize = true,
-                    allowToggleVisibility = false
-                }
-            };
-            return new MultiColumnHeader(new MultiColumnHeaderState(columns));
         }
     }
 }
-#endif

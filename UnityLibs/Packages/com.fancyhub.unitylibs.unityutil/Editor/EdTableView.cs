@@ -4,7 +4,6 @@
  * Title   : 
  * Desc    : 
 *************************************************************************************/
-#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 
@@ -12,21 +11,23 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
-namespace FH
+namespace FH.Ed
 {
-    public interface IEdTableItem
+    public interface IEdTableItem<T>
     {
         bool IsMatch(string search);
         void OnDrawField(Rect cellRect, int field_index);
+
+        int CompareTo(T item, int field_index);
     }
 
-    public class EdTableView<T> : TreeView where T : IEdTableItem
+    public class EdTableView<T> : TreeView where T : class, IEdTableItem<T>
     {
         private const float RowHeight = 20;
         private const float kToggleWidth = 18f;
+        private readonly static float SearchFieldHeight = EditorGUIUtility.singleLineHeight;
 
         public Action<int, T> SelectionChangedCallback { get; set; }
-
 
         sealed private class TableViewItem : TreeViewItem
         {
@@ -41,6 +42,12 @@ namespace FH
         private TreeViewItem _Root;
         private List<TableViewItem> _AllItemList = new List<TableViewItem>();
         private List<TreeViewItem> _TempFilterItemViewList = new List<TreeViewItem>();
+        private bool _ResizeColWidth = false;
+        private SearchField _SearchField;
+
+        public SearchField SearchField => _SearchField;
+        public bool EnableSearchField { get; set; } = true;
+
 
         public EdTableView(MultiColumnHeader multiColumnHeader) : base(new TreeViewState(), multiColumnHeader)
         {
@@ -50,9 +57,52 @@ namespace FH
             showBorder = true;
             customFoldoutYOffset = (RowHeight - EditorGUIUtility.singleLineHeight) * 0.5f; // center foldout in the row since we also center content. See RowGUI
             extraSpaceBeforeIconAndLabel = kToggleWidth;
+
+            _SearchField = new SearchField();
+            _SearchField.downOrUpArrowKeyPressed += this.SetFocusAndEnsureSelectedItem;
+
+            this.multiColumnHeader.sortingChanged += _OnSortingChanged;
         }
 
-        public void SetData(List<T> data, int selected_index)
+
+
+        public EdTableView(string[] headerNames) : this(_CreateHeader(headerNames))
+        {
+            _ResizeColWidth = true;
+        }
+
+
+        public void OnGUI(float width, float height)
+        {
+            var rect = EditorGUILayout.GetControlRect(false, height);
+            rect.width = width;
+            OnGUI(rect);
+        }
+
+        public override void OnGUI(Rect rect)
+        {
+            if (_ResizeColWidth)
+            {
+                _ResizeColWidth = false;
+                int count = this.multiColumnHeader.state.columns.Length;
+                float colWidth = (rect.width-20) / count;
+                foreach (var p in this.multiColumnHeader.state.columns)
+                    p.width = colWidth;
+            }
+
+            if (EnableSearchField)
+            {
+                Rect searchFieldRect = new Rect(rect.x, rect.y, rect.width, SearchFieldHeight);
+                searchString = _SearchField.OnToolbarGUI(searchFieldRect, searchString);
+
+                rect.height -= searchFieldRect.height;
+                rect.y += searchFieldRect.height;
+            }
+
+            base.OnGUI(rect);
+        }
+
+        public void SetData(List<T> data, int selected_index = -1)
         {
             _AllItemList.Clear();
             foreach (var p in data)
@@ -111,7 +161,10 @@ namespace FH
             for (int i = 0; i < args.GetNumVisibleColumns(); ++i)
             {
                 Rect cellRect = args.GetCellRect(i);
-                CenterRectUsingSingleLineHeight(ref cellRect);
+
+                //CenterRectUsingSingleLineHeight(ref cellRect);
+                //var c=  this.multiColumnHeader.GetColumn(args.GetColumn(i));
+
                 item.Data.OnDrawField(cellRect, i);
             }
         }
@@ -127,6 +180,40 @@ namespace FH
         }
 
         protected override bool CanMultiSelect(TreeViewItem item) { return false; }
+
+        private void _OnSortingChanged(MultiColumnHeader header)
+        {
+            int index = header.sortedColumnIndex;
+            var column = header.GetColumn(index);
+            int neg = column.sortedAscending ? -1 : 1;
+
+
+            _AllItemList.Sort((a, b) =>
+            {
+                return neg * a.Data.CompareTo(b.Data, index);
+            });
+
+            Reload();
+        }
+
+        private static MultiColumnHeader _CreateHeader(string[] headerNames)
+        {
+            MultiColumnHeaderState.Column[] columns = new MultiColumnHeaderState.Column[headerNames.Length];
+            for (int i = 0; i < headerNames.Length; i++)
+            {
+                columns[i] = new MultiColumnHeaderState.Column()
+                {
+                    headerContent = new GUIContent(headerNames[i]),
+                    headerTextAlignment = TextAlignment.Center,
+                    sortedAscending = true,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    minWidth = 10,
+                    autoResize = true,
+                    allowToggleVisibility = false
+                };
+            }
+            return new MultiColumnHeader(new MultiColumnHeaderState(columns));
+        }
+
     }
 }
-#endif

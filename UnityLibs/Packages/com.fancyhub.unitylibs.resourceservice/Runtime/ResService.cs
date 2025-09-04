@@ -63,6 +63,8 @@ namespace FH
 
         private System.Collections.IEnumerator _Init()
         {
+            DateUtil.FixCultureInfo();
+
             var mode = Config.Mode;
             if (!Application.isEditor)
                 mode = EMode.Bundle;
