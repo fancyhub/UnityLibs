@@ -32,7 +32,7 @@ namespace FH.FileDownload
         public FileDownloadJobInfo _CurrentJobInfo;
         public FileDownloadJobDesc _CurrentJobDesc;
 
-        public CPtr<ITask> _Task;
+        public TaskRef _Task;
 
 
         public string _RemoteFileUri; // http://xxxx/Android/file_full_name 
@@ -118,7 +118,7 @@ namespace FH.FileDownload
             }
 
             //4. 
-            ITask task = null;
+            TaskRef task = default;
             FileDownloadLog.D("添加Task {0} -> {1}", _RemoteFileUri, _LocalFilePath);
 
             if (_RemoteFileUri.StartsWith("http://") || _RemoteFileUri.StartsWith("https://"))
@@ -129,8 +129,8 @@ namespace FH.FileDownload
             {
                 task = TaskQueue.AddTask(_TaskFileCopy, _OnDownloaded);
             }
-            _Task = new CPtr<ITask>();
-            return task != null;
+            _Task = task;
+            return _Task.IsValid();
         }
 
         private void _OnDownloaded()

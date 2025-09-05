@@ -13,10 +13,10 @@ namespace FH
 {
     public static class ObjectChannelExt
     {
-        public static ITask ConnectInStream<T>(this IObjectChannel<T> self, IObjectStreamIn<T> in_stream, Action task_end_cb = null)
+        public static TaskRef ConnectInStream<T>(this IObjectChannel<T> self, IObjectStreamIn<T> in_stream, Action task_end_cb = null)
         {
             if (self == null || in_stream == null)
-                return null;
+                return default;
 
             Action act = () =>
             {
@@ -43,13 +43,13 @@ namespace FH
             return TaskQueue.AddTask(act, task_end_cb);
         }
 
-        public static ITask ConnectOutStream<T>(
+        public static TaskRef ConnectOutStream<T>(
            this IObjectChannel<T> self,
            IObjectStreamOut<T> out_stream,
            Action task_end_cb = null)
         {
             if (self == null || out_stream == null)
-                return null;
+                return default;
 
             Action act = () =>
             {

@@ -57,7 +57,7 @@ namespace FH
     }
 
 
-    public sealed class ResMgrUpgradeOperation : UnityEngine.YieldInstruction
+    public sealed class ResMgrUpgradeOperation : UnityEngine.CustomYieldInstruction
     {
         private int _total_count;
         internal System.Func<(int remain_count, bool all_done)> FuncGetStat;
@@ -85,6 +85,8 @@ namespace FH
                 return System.Math.Clamp((float)((_total_count - remain_count) / (double)_total_count), 0, 0.99f);
             }
         }
+
+        public override bool keepWaiting => !FuncGetStat().all_done;
     }
 
 

@@ -19,12 +19,13 @@ namespace FH
         bool IPoolItem.InPool { get => ___in_pool; set => ___in_pool = value; }
 
         private int ___obj_ver = 0;
-        int IVersionObj.ObjVersion => ___obj_ver;       
+        int IVersionObj.ObjVersion => ___obj_ver;
 
         public ETaskStatus _status = ETaskStatus.None;
         public bool _cancel = false;
         public Action _task;
         public Action _call_back;
+        public bool _Destroyed = false;
 
         public static TaskImplement Create(Action task, Action call_back = null)
         {
@@ -33,22 +34,23 @@ namespace FH
             ret._call_back = call_back;
             ret._status = ETaskStatus.None;
             ret._cancel = false;
+            ret._Destroyed = false;
             return ret;
         }
 
         public ETaskStatus Status { get { return _status; } }
-
+        public bool IsDestroyed() { return _Destroyed; }
         public void Destroy()
         {
             //1. 检查状态
-            if (_status != ETaskStatus.Dead)
+            if (_status != ETaskStatus.Finish || _Destroyed)
             {
                 Log.Assert(false, "状态不合法 destroy {0}", _status);
                 return;
             }
 
             //2.  修改成员变量
-            _status = ETaskStatus.Destroyed;
+            _Destroyed = true;
             _task = null;
             _call_back = null;
 
@@ -63,8 +65,7 @@ namespace FH
         public void Cancel()
         {
             //1. 这两个状态修改 标记位不合法
-            if (_status == ETaskStatus.None
-                || _status == ETaskStatus.Destroyed)
+            if (_status == ETaskStatus.None || _Destroyed)
             {
                 Log.E("Invaldate status to cancel {0}", _status);
                 return;
@@ -82,12 +83,12 @@ namespace FH
                 Log.E("Invaldate status to Start {0}", _status);
                 return;
             }
-            _status = ETaskStatus.Run;
+            _status = ETaskStatus.Running;
 
             //2. 检查是否已经取消了
             if (_cancel)
             {
-                _status = ETaskStatus.Finish;
+                _status = ETaskStatus.WaitCallBack;
                 return;
             }
 
@@ -106,19 +107,19 @@ namespace FH
             }
             finally
             {
-                _status = ETaskStatus.Finish;
+                _status = ETaskStatus.WaitCallBack;
             }
         }
 
         public void CallBack()
         {
             //1. 检查状态
-            if (_status != ETaskStatus.Finish)
+            if (_status != ETaskStatus.WaitCallBack)
             {
                 Log.E("Invaldate status to CallBack {0}", _status);
                 return;
             }
-            _status = ETaskStatus.Dead;
+            _status = ETaskStatus.Finish;
 
             //2. 判断是否已经取消了
             if (_cancel)

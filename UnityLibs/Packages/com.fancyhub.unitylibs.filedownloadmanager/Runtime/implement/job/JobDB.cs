@@ -46,18 +46,30 @@ namespace FH.FileDownload
             {
                 FileDownloadLog.Assert(false, "param task is not valid");
                 return null;
-            }          
+            }
 
             _Dict.TryGetValue(job_desc.KeyName, out var job_node);
             if (job_node != null)
+            {
+                if (job_node.Value.Status == EFileDownloadStatus.Succ)
+                {
+                    if (!System.IO.File.Exists(job_desc.DestFilePath))
+                    {
+                        FileDownloadLog.D("File {0} has Downloaded, but has been deleted, redownload", job_desc.DestFilePath);
+                        //redownload
+                        Change(job_node.Value, EFileDownloadStatus.Pending);
+                    }
+                }
+
                 return job_node.Value;
+            }
 
             Job ret = Job.Create(job_desc);
 
             if (System.IO.File.Exists(job_desc.DestFilePath))
             {
                 FileDownloadLog.D("File {0} has Downloaded", job_desc.DestFilePath);
-                ret.Status = EFileDownloadStatus.Succ;               
+                ret.Status = EFileDownloadStatus.Succ;
             }
 
             job_node = _StatusList[(int)ret.Status].ExtAddLast(ret);
@@ -161,7 +173,8 @@ namespace FH.FileDownload
                         .To(EFileDownloadStatus.Pending, EFileDownloadStatus.Pending)
                     .From(EFileDownloadStatus.Failed)
                         .To(EFileDownloadStatus.Pending, EFileDownloadStatus.Pending)
-                    .From(EFileDownloadStatus.Succ);
+                    .From(EFileDownloadStatus.Succ)
+                        .To(EFileDownloadStatus.Pending, EFileDownloadStatus.Pending);
 
             }
             return _JobStatusTranMap.Next(from, to, out var _);

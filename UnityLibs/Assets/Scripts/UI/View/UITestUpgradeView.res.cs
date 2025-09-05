@@ -14,10 +14,11 @@ namespace Game
         public  const string CPath = "Assets/Res/UI/Prefab/TestUpgrade.prefab";
 
 		public UnityEngine.RectTransform _TestUpgrade;
-		public UnityEngine.UI.Text _CurVersion;
-		public UnityEngine.UI.InputField _Version;
+		public UnityEngine.UI.Text _VersionInfo;
+		public UnityEngine.UI.InputField _VersionInput;
 		public UIButtonView _BtnClose;
 		public UIButtonView _BtnUpgrade;
+		public UIButtonView _BtnBackToBase;
 		public UnityEngine.UI.Slider _Progress;
 
         #region AutoGen 1
@@ -31,10 +32,11 @@ namespace Game
                 return;
 
 			_TestUpgrade = refs.GetComp<UnityEngine.RectTransform>("_TestUpgrade");
-			_CurVersion = refs.GetComp<UnityEngine.UI.Text>("_CurVersion");
-			_Version = refs.GetComp<UnityEngine.UI.InputField>("_Version");
+			_VersionInfo = refs.GetComp<UnityEngine.UI.Text>("_VersionInfo");
+			_VersionInput = refs.GetComp<UnityEngine.UI.InputField>("_VersionInput");
 			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
 			_BtnUpgrade = _CreateSub<UIButtonView>(refs.GetObj("_BtnUpgrade"));
+			_BtnBackToBase = _CreateSub<UIButtonView>(refs.GetObj("_BtnBackToBase"));
 			_Progress = refs.GetComp<UnityEngine.UI.Slider>("_Progress");
 
         }
@@ -45,6 +47,7 @@ namespace Game
 
 			_BtnClose.Destroy();
 			_BtnUpgrade.Destroy();
+			_BtnBackToBase.Destroy();
 
         }
 

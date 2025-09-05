@@ -161,13 +161,21 @@ namespace FH.FileManagement
             ___obj_ver++;
         }
 
-        public VersionInfo GetVersionInfo()
+        public VersionInfo GetBaseVersionInfo()
+        {
+            if (_Manifest_Base == null)
+                return default;
+            return new VersionInfo(_Manifest_Base.Version);
+        }
+
+        public VersionInfo GetCurrentVersionInfo()
         {
             if (_Manifest_Current == null)
                 return default;
             return new VersionInfo(_Manifest_Current.Version);
         }
 
+      
         public void RefreshFileList()
         {
             _FileCollection.CollectLocalDir();

@@ -37,10 +37,14 @@ namespace FH.FileManagement
             ___obj_ver++;
         }
 
-        public VersionInfo GetVersionInfo()
+        public VersionInfo GetBaseVersionInfo()
         {
             return default;
         }
+        public VersionInfo GetCurrentVersionInfo()
+        {
+            return default;
+        }      
 
         public bool Upgrade(FileManifest new_manifest, List<FileManifest.FileItem> out_need_download_list = null)
         {

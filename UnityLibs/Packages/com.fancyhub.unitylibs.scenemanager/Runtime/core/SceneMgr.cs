@@ -7,10 +7,11 @@
 
 using FH.SceneManagement;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace FH
 {
-    public sealed class SceneMgrUpgradeOperation : UnityEngine.YieldInstruction
+    public sealed class SceneMgrUpgradeOperation : UnityEngine.CustomYieldInstruction
     {
         private int _total_count;
         internal System.Func<(int remain_count, bool all_done)> FuncGetStat;
@@ -19,6 +20,8 @@ namespace FH
             _total_count = total_count;
         }
 
+        public override bool keepWaiting => !FuncGetStat().all_done;
+
         public bool IsDone
         {
             get
@@ -26,6 +29,7 @@ namespace FH
                 return FuncGetStat().all_done;
             }
         }
+
         public float Progress
         {
             get

@@ -33,7 +33,8 @@ namespace FH
 
     public partial interface IFileMgr : ICPtr
     {
-        public VersionInfo GetVersionInfo();
+        public VersionInfo GetBaseVersionInfo();
+        public VersionInfo GetCurrentVersionInfo();
         public FileManifest GetCurrentManifest();
 
         public bool Upgrade(FileManifest new_manifest, List<FileManifest.FileItem> out_need_download_list = null);
@@ -120,7 +121,7 @@ namespace FH
             mgr.RefreshFileList();
         }
 
-        public static VersionInfo GetVersionInfo()
+        public static VersionInfo GetBaseVersionInfo()
         {
             var mgr = _.Val;
             if (mgr == null)
@@ -128,8 +129,20 @@ namespace FH
                 FileLog._.E("FileMgr Is Null");
                 return default;
             }
-            return mgr.GetVersionInfo();
+            return mgr.GetBaseVersionInfo();
         }
+
+        public static VersionInfo GetCurrentVersionInfo()
+        {
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                FileLog._.E("FileMgr Is Null");
+                return default;
+            }
+            return mgr.GetCurrentVersionInfo();
+        }
+
 
         public static bool Upgrade(FileManifest new_manifest, List<FileManifest.FileItem> out_need_download_list = null)
         {

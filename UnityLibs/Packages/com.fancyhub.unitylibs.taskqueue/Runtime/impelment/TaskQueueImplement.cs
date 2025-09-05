@@ -22,20 +22,20 @@ namespace FH
         private LinkedList<TaskImplement> _pending_queue = new LinkedList<TaskImplement>();
 
         private List<TaskWorker> _thread_pool;
-        private ETaskQueueStatus _status = ETaskQueueStatus.none;
+        private ETaskQueueStatus _status = ETaskQueueStatus.None;
         private ThreadPriority _priority = ThreadPriority.Normal;
 
         //子线程的数量
         public void Start(int thread_count)
         {
-            if (_status != ETaskQueueStatus.none)
+            if (_status != ETaskQueueStatus.None)
                 return;
 
             if (thread_count < 1)
                 return;
 
             _max_thread_count = thread_count;
-            _status = ETaskQueueStatus.running;
+            _status = ETaskQueueStatus.Running;
             _thread_pool = new List<TaskWorker>(thread_count);
             for (int i = 0; i < thread_count; ++i)
             {
@@ -64,9 +64,9 @@ namespace FH
 
         public void Stop()
         {
-            if (_status == ETaskQueueStatus.none)
+            if (_status == ETaskQueueStatus.None)
                 return;
-            _status = ETaskQueueStatus.stoping;
+            _status = ETaskQueueStatus.Stoping;
         }
 
         public ETaskQueueStatus GetStatus()
@@ -84,12 +84,12 @@ namespace FH
             _thread_pool.Clear();
         }
 
-        public ITask AddTask(Action task, Action call_back = null)
+        public TaskRef AddTask(Action task, Action call_back = null)
         {
             TaskImplement ret = TaskImplement.Create(task, call_back);
             _pending_queue.ExtAddLast(ret);
             ret._status = ETaskStatus.Pending;
-            return ret;
+            return new TaskRef(ret);
         }
 
         //清除所有在等待队列里面的任务

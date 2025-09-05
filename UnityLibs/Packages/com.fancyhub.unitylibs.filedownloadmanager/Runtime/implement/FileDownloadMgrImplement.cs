@@ -88,12 +88,15 @@ namespace FH.FileDownload
 
             var job = _JobDB.AddJob(job_desc);
             if (job == null)
+            {
                 return null;
+            }
             var ret = job._JobInfo;
             if (ret != null)
             {
                 _WorkerConfig.CallBack?.Invoke(ret);
             }
+            FileDownloadLog.D("add job {0} -> {1}", job_desc.RemoteUrl, job_desc.DestFilePath);
             return ret;
         }
 

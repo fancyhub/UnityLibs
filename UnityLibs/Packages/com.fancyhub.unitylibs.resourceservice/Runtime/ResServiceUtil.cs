@@ -204,5 +204,115 @@ namespace FH
             }
         }
 #endif
+
+        public static System.Collections.IEnumerator FetchRemoteFileManifestRoutine(string version, Action<FileManifest> call_back)
+        {
+            string file_name = FileManifest.GetRemoteFileName(version);
+            string dir = GConfig.FileDownloadMgrConfig.ServerUrl;
+            if (!dir.EndsWith("/"))
+                dir += "/";
+            string full_path = dir + FileSetting.Platform.ToString() + "/" + file_name;
+
+
+            if (!full_path.StartsWith("http://") && !full_path.StartsWith("https://"))
+            {
+                string text = System.IO.File.ReadAllText(full_path);
+                call_back.Invoke(FileManifest.ReadFromText(text));
+                yield break;
+            }
+            else
+            {
+                FileManifest file_manifest = null;
+                var task = TaskQueue.AddTask(() =>
+                {
+                    byte[] content = HttpDownloader.RequestFileContent(full_path);
+                    string text = System.Text.Encoding.UTF8.GetString(content);
+                    file_manifest = FileManifest.ReadFromText(text);
+                });
+
+
+                for (; ; )
+                {
+                    if (task.IsDone())
+                        break;
+                    yield return null;
+                }
+                call_back(file_manifest);
+            }
+        }
+
+        public static System.Collections.IEnumerator UpgradeRoutine(FileManifest file_manifest)
+        {
+            TagLog Log = TagLog.Create("Upgrade", ELogLvl.Debug);
+
+            //1. 检查 file_manifest 是否合法
+            if (file_manifest == null || GConfig == null)
+            {
+                Log.E("null");
+                yield break;
+            }
+
+            //1.1 版本和当前的要不一致
+            if (FileMgr.GetCurrentManifest().Version == file_manifest.Version)
+            {
+                Log.E("version is same");
+                yield break;
+            }
+
+            //1.2 基础的文件要已经下载好了
+            if (!FileMgr.IsAllTagsReady(file_manifest, GConfig.FileMgrConfig.BaseTags))
+            {
+                Log.E("有资源未下载");
+                yield break;
+            }
+
+            //2. 检查 Res, Scene 是否有正在处于加载的逻辑, 并等待结束
+            var res_mgr = ResMgr.Inst;
+            var scene_mgr = SceneMgr.Inst;
+
+            Log.D("Begin ResMgr upgrade");
+            var res_op = res_mgr.BeginUpgrade();
+            Log.D("Begin SceneMgr upgrade");
+            var scene_op = scene_mgr.BeginUpgrade();
+
+            Log.D("Wait Resmgr async is all done");
+            yield return res_op;
+
+            Log.D("Wait SceneMgr async is all done");
+            yield return scene_op;
+
+            //3. 更新 manifest
+            Log.D("begin FileMgr upgrade");
+            if (!FileMgr.Upgrade(file_manifest))
+            {
+                Log.E("FileMgr upgrade failed");
+                res_mgr.EndUpgrade(false);
+                scene_mgr.EndUpgrade(false);
+                yield break;
+            }
+
+            //4. 更新 bundle 
+            Log.D("Upgrade BundleMgr");
+            BundleMgr.Inst?.Upgrade();
+
+            //5. 结束 res mgr & scene mgr 的upgrade
+            Log.D("End Resmgr upgrade");
+            res_mgr.EndUpgrade(true);
+            Log.D("End Scene Mgr upgrade");
+            scene_mgr.EndUpgrade(true);
+
+            //6. vfs 重新挂载
+            Log.D("remount vfs");
+            VfsMgr.RemountAll();
+
+            //7. TableMgr 重新加载
+            Log.D("reload table mgr");
+            TableMgr.ReloadAll();
+            //TableMgr            
+
+            LocMgr.Reload();
+
+            FileMgr.DeleteUnusedFiles(file_manifest);
+        }
     }
 }

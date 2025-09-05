@@ -12,34 +12,75 @@ namespace FH
 {
     public enum ETaskQueueStatus
     {
-        none,   //没有运行
-        running, //正在运行
-        stoping, //正在关闭，等待当前的任务做完，如果当前任务是无限循环，理论上是关闭不了
+        None,   //没有运行
+        Running, //正在运行
+        Stoping, //正在关闭，等待当前的任务做完，如果当前任务是无限循环，理论上是关闭不了
     }
 
 
     //状态迁移
     /*
     None -> Pending : 主线程设置，创建完立刻就是pending
-    Pending -> Run: 子线程设置
-    Run -> Finish: 子线程设置 (会执行任务，然后设置状态)
-    Finish -> Dead: 主线程设置 （会先设置，然后调用回调)    
-    Dead -> Destroyed: 主线程设置，会回收到池里面
+    Pending -> Running: 子线程设置
+    Running -> WaitCallBack: 子线程设置 (会执行任务，然后设置状态)
+    WaitCallBack -> Dead: 主线程设置 （会先设置，然后调用回调)        
     */
     public enum ETaskStatus
     {
         None,
         Pending,
-        Run,
+        Running,
+        WaitCallBack,
         Finish,
-        Dead,
-        Destroyed,
     }
 
     public interface ITask : ICPtr
     {
         public ETaskStatus Status { get; }
         public void Cancel();
+        public bool IsDestroyed();
+    }
+
+    public struct TaskRef
+    {
+        private ITask _Task;
+        private readonly int _Id;
+        internal TaskRef(ITask task)
+        {
+            _Task = task;
+            _Id = _Task == null ? 0 : _Task.ObjVersion;
+        }
+
+        public bool IsValid() { return Task != null; }
+
+        public ITask Task
+        {
+            get
+            {
+                if (_Task == null)
+                    return null;
+                if (_Task.ObjVersion != _Id)
+                {
+                    _Task = null;
+                    return null;
+                }
+                return _Task;
+            }
+        }
+        public bool IsDone()
+        {
+            var t = Task;
+            if (t == null)
+                return true;
+            if (t.IsDestroyed() || t.Status == ETaskStatus.Finish)
+                return true;
+            return false;
+        }
+
+        public void Cancel()
+        {
+            Task?.Cancel();
+        }
     }
 
     public interface ITaskQueue : ICPtr
@@ -51,7 +92,7 @@ namespace FH
         public ThreadPriority Priority { get; set; }
         public ETaskQueueStatus GetStatus();
 
-        public ITask AddTask(Action task, Action main_thread_call_back = null);
+        public TaskRef AddTask(Action task, Action main_thread_call_back = null);
         public void Update();
     }
 
@@ -98,18 +139,18 @@ namespace FH
                 if (_.Null)
                 {
                     Log.E("TaskQueue Is Null");
-                    return ETaskQueueStatus.none;
+                    return ETaskQueueStatus.None;
                 }
                 return _.Val.GetStatus();
             }
         }
 
-        public static ITask AddTask(Action task, Action main_thread_call_back = null)
+        public static TaskRef AddTask(Action task, Action main_thread_call_back = null)
         {
             if (_.Null)
             {
                 Log.E("TaskQueue Is Null");
-                return null;
+                return default;
             }
             return _.Val.AddTask(task, main_thread_call_back);
         }
