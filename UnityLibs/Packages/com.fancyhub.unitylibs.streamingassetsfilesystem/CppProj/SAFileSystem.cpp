@@ -1,11 +1,11 @@
 #include <jni.h>
-#include <string>
-#include <vector>
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
 #include <unistd.h>
 #include <memory.h>
 #include <android/log.h>
+#include <string.h>
+#include <stdlib.h>
 
 #define TAG    "<NativeIO>"
 
@@ -16,16 +16,136 @@
 #define LOGF(...)  __android_log_print(ANDROID_LOG_FATAL,TAG,__VA_ARGS__)
 #define LOGD(...)
 
-//https://developer.android.google.cn/ndk/reference/group/asset
-static std::vector<std::string> g_fh_file_list;
+
+class MyString {
+private:
+    char* m_data;   
+    size_t m_len;
+
+    void free_buff() {
+        if (m_data != nullptr) {
+            delete[] m_data;
+            m_data = nullptr;
+            m_len = 0;
+        }
+    }
+
+public:
+    MyString() : m_data(nullptr), m_len(0) {
+        m_data = new char[1];
+        m_data[m_len] = '\0';
+    }
+
+    MyString(const char* cstr) : m_data(nullptr), m_len(0) {
+        if (cstr == nullptr) {
+            m_data = new char[1];
+            m_data[0] = '\0';
+        } else {
+            m_len = strlen(cstr);
+            m_data = new char[m_len + 1];  
+            memcpy(m_data, cstr,m_len+1);
+            m_data[m_len]='\0';
+        }
+    }
+
+    MyString(const MyString& other) : m_data(nullptr), m_len(other.m_len) {
+        m_data = new char[m_len + 1];
+        memcpy(m_data, other.m_data,m_len+1);
+        m_data[m_len]='\0';
+    }
+
+    ~MyString() {
+        free_buff();
+    }
+
+    MyString& operator=(const MyString& other) {
+        if (this != &other) {  
+            free_buff();
+            m_len = other.m_len;
+            m_data = new char[m_len + 1];
+            memcpy(m_data, other.m_data,m_len+1);
+            m_data[m_len]='\0';
+        }
+        return *this;
+    }
+
+    size_t size()const{
+        return m_len;
+    }
+
+    const char* c_str() const {
+        return m_data;
+    }
+};
 
 
+template <typename T>
+class MyVector {
+private:
+    T* _data;
+    size_t _size;
+    size_t _capacity;
+
+    void resize_capacity(size_t new_capacity) {
+        if (new_capacity <= _capacity) {
+            return;  
+        }
+
+        T* new_data = new T[new_capacity];
+        for(int i=0;i<_size;i++)
+        {
+            new_data[i]=_data[i];
+        }
+        delete[] _data;
+        _data = new_data;
+        _capacity = new_capacity;
+    }
+
+public:
+    explicit MyVector(size_t init_capacity = 100) 
+        : _data(nullptr), _size(0), _capacity(0) {
+        if (init_capacity > 0) {
+            _data = new T[init_capacity];
+            _capacity = init_capacity;
+        }
+    }
+
+    ~MyVector() {
+        delete[] _data;
+        _data = nullptr;
+        _size = 0;
+        _capacity = 0;
+    }
+
+    void push_back(const T& elem) {
+        if (_size >= _capacity) {
+            resize_capacity(_capacity == 0 ? 4 : _capacity * 2);
+        }
+        _data[_size++] = elem;
+    } 
+
+    const T& operator[](size_t index) const {        
+        return _data[index];
+    }
+
+    size_t size() const {
+        return _size;
+    }
+
+    void clear() {
+        _size = 0;
+    }
+};
+
+
+
+static MyVector<MyString> g_fh_file_list;
  
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+//https://developer.android.google.cn/ndk/reference/group/asset
 static AAssetManager* g_asset_mgr=NULL;
 
 
@@ -76,23 +196,33 @@ JNIEXPORT void JNICALL Java_com_fancyhub_nativeio_JNIContext_nativeAddFolder(
     }
     for(;;)
     {
-        const char* ret =  AAssetDir_getNextFileName(asset_dir);
-        if(ret ==NULL)
+        const char* file_name =  AAssetDir_getNextFileName(asset_dir);
+        if(file_name ==NULL)
             break;
 
-        if(strlen(ret) == 0)
-        {            
-            g_fh_file_list.push_back(ret);
-            LOGD("Add File: %s",ret);
-        }
-        else 
+        auto file_name_len =strlen(file_name);
+        if( file_name_len == 0)
         {
-            char buff[1024];
-            sprintf(buff,"%s/%s",folder_path,ret);
-            const char* const_buff = buff;
-            g_fh_file_list.push_back(const_buff);
-            LOGD("Add File: %s",buff);
-        }        
+            LOGD("Add File Ignore: %s",file_name);
+            continue;
+        }
+         
+        size_t buff_size = strlen(folder_path) + file_name_len +2;
+        if(buff_size<=1024)
+        {
+            char temp[1024];
+            sprintf(temp,"%s/%s",folder_path,file_name);
+            g_fh_file_list.push_back(temp);  
+            LOGD("Add File: %s",temp);
+        }
+        else
+        {
+            char* temp = (char *)malloc(buff_size);
+            sprintf(temp,"%s/%s",folder_path,file_name);
+            g_fh_file_list.push_back(temp);  
+            LOGD("Add File: %s",temp);
+            free(temp);
+        }
     }
 
     AAssetDir_close(asset_dir);
@@ -309,7 +439,7 @@ int fh_native_io_get_file(int index,unsigned char* buff,int buff_size)
         return -1;
     }
 
-    const std::string& file_name =  g_fh_file_list[index];
+    const MyString& file_name =  g_fh_file_list[index];
     if(buff_size< file_name.size())
     {
         LOGE("fh_native_io_get_file: buff size is less than file name len , %d < %d, %s",buff_size,(int)file_name.size(),file_name.c_str());
