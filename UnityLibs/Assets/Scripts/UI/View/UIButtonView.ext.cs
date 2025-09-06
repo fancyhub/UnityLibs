@@ -1,4 +1,5 @@
 
+using FH;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -33,6 +34,18 @@ namespace Game
             set
             {
                 _TextName.text = value;
+            }
+        }
+
+        public bool Visible
+        {
+            get
+            {
+                return _Button.gameObject.activeSelf;
+            }
+            set
+            {
+                _Button.ExtSetGameObjectActive(value);
             }
         }
 

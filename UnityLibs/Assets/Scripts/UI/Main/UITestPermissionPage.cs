@@ -10,8 +10,7 @@ namespace Game
 {
     public enum EPermissionItem
     {
-        AndroidPermission,
-        AndroidUnity,
+        Android,
         IOS,
     }
 
@@ -38,8 +37,14 @@ namespace Game
             UISceneMgr.AddUpdate(this);
 
             _Data.Clear();
-            _Data.Add(new(UnityEngine.Android.Permission.Microphone, EPermissionItem.AndroidPermission));
-            _Data.Add(new(UnityEngine.Android.Permission.Microphone, EPermissionItem.AndroidUnity));
+            if(Application.platform == RuntimePlatform.Android)
+            {
+                string[] permissions = FH.AndroidDeviceInfo.GetSelfPackageInfoPermissions();
+                foreach(var permission in permissions)
+                {
+                    _Data.Add(new(permission, EPermissionItem.Android));
+                }
+            }         
 
 
             _ViewSyncer = new UIListViewSync<PerissmionItem, UITestPermissionItemPage>(this, BaseView._ScrollView.content);
@@ -65,6 +70,7 @@ namespace Game
             base.OnUI2Open();
 
             BaseView._BtnRequest.OnClick = _OnRequestClick;
+            BaseView._BtnRequest2.OnClick = _OnRequestClick2;
         }
 
         public void SetData(PerissmionItem data)
@@ -83,18 +89,24 @@ namespace Game
         {
             switch (_Data.Type)
             {
-                case EPermissionItem.AndroidUnity:
-                    _RequestWithUnity();
-                    break;
-
-                case EPermissionItem.AndroidPermission:
-                    _RequestWithPermission();
-                    break;
+                case EPermissionItem.Android:
+                    _RequestAndroidPermissionWithUnity();
+                    break; 
             }
         }
 
+        private void _OnRequestClick2()
+        {
+            switch (_Data.Type)
+            {
+                case EPermissionItem.Android:
+                    _RequestAndroidPermissionWithJava();
+                    break;
+            }            
+        }
+
         private UnityEngine.Android.PermissionCallbacks _UnityCallBacks;
-        private void _RequestWithUnity()
+        private void _RequestAndroidPermissionWithUnity()
         {
             if (Application.platform != RuntimePlatform.Android)
                 return;
@@ -114,19 +126,23 @@ namespace Game
         private void _OnUnityPermissionGranted(string permission)
         {
             Debug.Log($"<Permission>: _OnUnityPermissionGranted: {permission} ");
+
+            _Apply();
         }
 
         private void _OnUnityPermissionDenied(string permission)
         {
             Debug.Log($"<Permission>: _OnUnityPermissionDenied: {permission} ");
+            _Apply();
         }
 
         private void _OnUnityPermissionDeniedAndDontAskAgain(string permission)
         {
             Debug.Log($"<Permission>: _OnUnityPermissionDeniedAndDontAskAgain: {permission} ");
+            _Apply();
         }
 
-        private void _RequestWithPermission()
+        private void _RequestAndroidPermissionWithJava()
         {
             if (Application.platform != RuntimePlatform.Android)
                 return;
@@ -136,28 +152,29 @@ namespace Game
 
             var dialog1 = new AndroidPermissionUtil.AlertDialog()
             {
-                Title = "权限1",
-                Message = "需要权限1",
+                Title = $"{_Data.Name} 1",
+                Message = $"Need {_Data.Name} 1",
                 ButtonOK = "OK",
                 ButtonCancel = "Cancle",
             };
 
             var dialog2 = new AndroidPermissionUtil.AlertDialog()
             {
-                Title = "权限2",
-                Message = "需要权限2",
+                Title = $"{_Data.Name} 2",
+                Message = $"Need {_Data.Name} 2",
                 ButtonOK = "OK2",
                 ButtonCancel = "Cancle2",
             };
 
             Debug.Log($"<Permission>: _RequestWithPermission: {_Data.Name} ");
             AndroidPermissionUtil.RequestPermission(permission,
-            _OnPermissionCallBack,
+            _OnAndroidPermissionCallBack,
             dialog1, dialog2);
         }
 
-        private void _OnPermissionCallBack(bool allGranted, string[] grantedList, string[] deniedList)
+        private void _OnAndroidPermissionCallBack(bool allGranted, string[] grantedList, string[] deniedList)
         {
+            _Apply();
             Debug.Log($"<Permission>: allGranted: {allGranted} grantedList:{grantedList.Length} deniedList:{deniedList.Length}");
 
             foreach (var p in grantedList)
@@ -179,22 +196,24 @@ namespace Game
             BaseView._Name.text = $"{_Data.Type}: {_Data.Name}";
             switch (_Data.Type)
             {
-                case EPermissionItem.AndroidUnity:
+                case EPermissionItem.Android:
                     {
                         bool has = UnityEngine.Android.Permission.HasUserAuthorizedPermission(_Data.Name);
                         BaseView._Status.text = $"{has}";
+
+                        BaseView._BtnRequest2.Visible = true;
                     }
                     break;
 
-                case EPermissionItem.AndroidPermission:
-                    {
-                        bool has = FH.AndroidPermissionUtil.HasPermission(_Data.Name);
-                        BaseView._Status.text = $"{has}";
-                    }
+                case EPermissionItem.IOS:
+                    BaseView._BtnRequest2.Visible = false;
+                    //UnityEngine.Application.HasUserAuthorization()
                     break;
+                     
                 default:
                     {
                         BaseView._Status.text = "Unkown";
+                        BaseView._BtnRequest2.Visible = false;
                     }
                     break;
             }

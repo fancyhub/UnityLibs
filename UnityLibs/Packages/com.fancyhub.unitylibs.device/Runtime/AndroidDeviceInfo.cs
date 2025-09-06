@@ -241,9 +241,28 @@ namespace FH
             }
         }
 
-        private static AndroidJavaObject _GetSelfPackageInfo(int flags)
+        //ref https://developer.android.google.cn/reference/android/content/pm/PackageManager.PackageInfoFlags
+        public enum EPackageInfoFlag
         {
-            return _GetPackageManager()._ExtCall<AndroidJavaObject, string, int>("getPackageInfo", UnityEngine.Application.identifier, flags);
+            GET_PERMISSIONS = 4096,
+            GET_SIGNATURES = 64,
+        }
+        public static AndroidJavaObject GetPackageInfo(string package_name, EPackageInfoFlag flag)
+        {
+            return _GetPackageManager()._ExtCall<AndroidJavaObject, string, int>("getPackageInfo", UnityEngine.Application.identifier, (int)flag);
+        }
+
+        public static AndroidJavaObject GetSelfPackageInfo(EPackageInfoFlag flag)
+        {
+            return GetPackageInfo(UnityEngine.Application.identifier, flag);
+        }
+
+        public static string[] GetSelfPackageInfoPermissions()
+        {
+            string[] signatures = GetSelfPackageInfo(EPackageInfoFlag.GET_PERMISSIONS)._ExtGet<string[]>("requestedPermissions");
+            if (signatures == null || signatures.Length == 0)
+                return System.Array.Empty<string>();
+            return signatures;
         }
 
         public sealed class ApkSignature
@@ -280,7 +299,7 @@ namespace FH
             }
 
             public string ToSha256()
-            {                
+            {
                 System.Security.Cryptography.SHA256 sha256 = new System.Security.Cryptography.SHA256CryptoServiceProvider();
                 byte[] result = sha256.ComputeHash(Data);
 
@@ -295,7 +314,7 @@ namespace FH
 
         public static ApkSignature GetSelfPackageInfoSignature()
         {
-            AndroidJavaObject[] signatures = _GetSelfPackageInfo(64)._ExtGet<AndroidJavaObject[]>("signatures");
+            AndroidJavaObject[] signatures = GetSelfPackageInfo(EPackageInfoFlag.GET_SIGNATURES)._ExtGet<AndroidJavaObject[]>("signatures");
             if (signatures == null || signatures.Length == 0)
                 return null;
             byte[] bytes = signatures[0].Call<byte[]>("toByteArray");
@@ -307,7 +326,7 @@ namespace FH
             get
             {
                 var signature = GetSelfPackageInfoSignature();
-                if(signature == null)
+                if (signature == null)
                     return null;
                 return signature.ToMd5();
             }

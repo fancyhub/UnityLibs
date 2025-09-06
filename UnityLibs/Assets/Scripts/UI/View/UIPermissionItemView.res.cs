@@ -17,6 +17,7 @@ namespace Game
 		public UnityEngine.UI.Text _Name;
 		public UnityEngine.UI.Text _Status;
 		public UIButtonView _BtnRequest;
+		public UIButtonView _BtnRequest2;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -32,6 +33,7 @@ namespace Game
 			_Name = refs.GetComp<UnityEngine.UI.Text>("_Name");
 			_Status = refs.GetComp<UnityEngine.UI.Text>("_Status");
 			_BtnRequest = _CreateSub<UIButtonView>(refs.GetObj("_BtnRequest"));
+			_BtnRequest2 = _CreateSub<UIButtonView>(refs.GetObj("_BtnRequest2"));
 
         }
 
@@ -40,6 +42,7 @@ namespace Game
             base._AutoDestroy();
 
 			_BtnRequest.Destroy();
+			_BtnRequest2.Destroy();
 
         }
 
