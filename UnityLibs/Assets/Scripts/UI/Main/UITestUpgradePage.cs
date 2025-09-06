@@ -14,7 +14,12 @@ namespace Game
             base.OnUI2Open();
             BaseView._BtnClose.OnClick = _OnBtnCloseClick;
             BaseView._BtnUpgrade.OnClick = ()=> _UpgradeToVersion(BaseView._VersionInput.text.Trim()); 
-            BaseView._BtnBackToBase.OnClick = ()=> _UpgradeToVersion(FileMgr.GetBaseVersionInfo().ToString()); 
+            BaseView._BtnBackToBase.OnClick = ()=> _UpgradeToVersion(FileMgr.GetBaseVersionInfo().ToString());
+            BaseView._CDNInput.text = FileDownloadMgr.GetDefaultSvrUrl();
+            BaseView._CDNInput.onValueChanged.AddListener((url) =>
+            {
+                FileDownloadMgr.SetDefaultSvrUrl(url.Trim());
+            });
             _RefreshVersionInfo();
         }
 

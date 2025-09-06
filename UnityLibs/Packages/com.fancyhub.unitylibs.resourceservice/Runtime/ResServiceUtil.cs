@@ -208,10 +208,7 @@ namespace FH
         public static System.Collections.IEnumerator FetchRemoteFileManifestRoutine(string version, Action<FileManifest> call_back)
         {
             string file_name = FileManifest.GetRemoteFileName(version);
-            string dir = GConfig.FileDownloadMgrConfig.ServerUrl;
-            if (!dir.EndsWith("/"))
-                dir += "/";
-            string full_path = dir + FileSetting.Platform.ToString() + "/" + file_name;
+            string full_path = FileDownloadMgr.GetRemoteFileFullPath(file_name);
 
 
             if (!full_path.StartsWith("http://") && !full_path.StartsWith("https://"))

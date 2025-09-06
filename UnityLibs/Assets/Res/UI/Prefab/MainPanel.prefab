@@ -486,7 +486,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1974650230161901671, guid: dc557665a4531c440a805553b642e21e, type: 3}
       propertyPath: m_Text
-      value: Test Time
+      value: Date Time
       objectReference: {fileID: 0}
     - target: {fileID: 8392225713847172894, guid: dc557665a4531c440a805553b642e21e, type: 3}
       propertyPath: m_Pivot.x

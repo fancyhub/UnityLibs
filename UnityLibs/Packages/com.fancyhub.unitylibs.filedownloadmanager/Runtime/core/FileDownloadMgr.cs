@@ -122,6 +122,7 @@ namespace FH
         private static CPtr<IFileDownloadMgr> _Inst;
 
         private static string DefaultServerUrl;
+        private static string DefaultServerFullUrl = "";
         private static string DefaultSaveDir;
         public static void Init(IFileDownloadMgr.Config config)
         {
@@ -160,8 +161,19 @@ namespace FH
             mgr.ClearAll();
         }
 
+        public static string GetDefaultSvrUrl()
+        {
+            return DefaultServerUrl;
+        }
+
+        public static string GetRemoteFileFullPath(string file_name)
+        {
+            return DefaultServerFullUrl + file_name;
+        }
+
         public static void SetDefaultSvrUrl(string url)
         {
+            url = url.Trim();
             if (string.IsNullOrEmpty(url))
             {
                 FileDownloadLog.E("ServerUrl is Null");
@@ -171,11 +183,11 @@ namespace FH
             DefaultServerUrl = url;
             if (DefaultServerUrl.EndsWith('/') || DefaultServerUrl.EndsWith('\\'))
             {
-                DefaultServerUrl += FileSetting.Platform.ToString() + "/";
+                DefaultServerFullUrl = DefaultServerUrl + FileSetting.Platform.ToString() + "/";
             }
             else
             {
-                DefaultServerUrl += "/" + FileSetting.Platform.ToString() + "/";
+                DefaultServerFullUrl = DefaultServerUrl + "/" + FileSetting.Platform.ToString() + "/";
             }
         }
 
@@ -295,7 +307,7 @@ namespace FH
             var ret = new FileDownloadJobDesc()
             {
                 KeyName = item.FullName,
-                RemoteUrl = DefaultServerUrl + item.FullName,
+                RemoteUrl = GetRemoteFileFullPath(item.FullName),
                 DestFilePath = DefaultSaveDir + item.FullName,
                 Crc32 = item.Crc32,
                 TotalSize = item.Size,

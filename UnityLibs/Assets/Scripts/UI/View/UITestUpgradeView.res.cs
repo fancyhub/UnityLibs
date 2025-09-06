@@ -15,6 +15,7 @@ namespace Game
 
 		public UnityEngine.RectTransform _TestUpgrade;
 		public UnityEngine.UI.Text _VersionInfo;
+		public UnityEngine.UI.InputField _CDNInput;
 		public UnityEngine.UI.InputField _VersionInput;
 		public UIButtonView _BtnClose;
 		public UIButtonView _BtnUpgrade;
@@ -33,6 +34,7 @@ namespace Game
 
 			_TestUpgrade = refs.GetComp<UnityEngine.RectTransform>("_TestUpgrade");
 			_VersionInfo = refs.GetComp<UnityEngine.UI.Text>("_VersionInfo");
+			_CDNInput = refs.GetComp<UnityEngine.UI.InputField>("_CDNInput");
 			_VersionInput = refs.GetComp<UnityEngine.UI.InputField>("_VersionInput");
 			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
 			_BtnUpgrade = _CreateSub<UIButtonView>(refs.GetObj("_BtnUpgrade"));
