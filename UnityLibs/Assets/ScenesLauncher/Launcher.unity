@@ -403,7 +403,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Config:
-    Mode: 1
+    Mode: 0
     AtlasPathFormater: Assets/Res/UI/Atlas/{0}.spriteatlasv2
     FileMgrConfig:
       LogLvl: 1
@@ -452,14 +452,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 592e8b0b0274ea141b2893fb8624ff9a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SpritePath: 
-  ResWithSprite: {fileID: 0}
-  ResWithDefault: {fileID: 0}
-  SameAssetPath1: Assets/Resources/GameObject.prefab
-  SameAssetPath2: GameObject
-  SameAsset1: {fileID: 0}
-  SameAsset2: {fileID: 0}
-  ResSnapShots: []
 --- !u!1001 &1975162760
 PrefabInstance:
   m_ObjectHideFlags: 0

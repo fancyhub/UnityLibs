@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using FH.UI;
 
 namespace Game
 {
@@ -49,7 +50,11 @@ namespace Game
             {
                 FH.UI.UISceneMgr.OpenUI<Game.UITestTimePage>();
             };
-
+            
+            BaseView._BtnPermission.OnClick = () =>
+            {
+                FH.UI.UISceneMgr.OpenUI<Game.UITestPermissionPage>();
+            };
         }
 
         protected override void OnUI5Close()
