@@ -14,6 +14,9 @@ namespace Game
         public  const string CPath = "Assets/Res/UI/Prefab/TestDeviceInfo.prefab";
 
 		public UnityEngine.RectTransform _TestDeviceInfo;
+		public UnityEngine.RectTransform _DeviceInfo;
+		public UnityEngine.UI.ToggleGroup _TabGroup;
+		public UnityEngine.UI.Text _text;
 		public UIButtonView _BtnClose;
 
         #region AutoGen 1
@@ -27,6 +30,9 @@ namespace Game
                 return;
 
 			_TestDeviceInfo = refs.GetComp<UnityEngine.RectTransform>("_TestDeviceInfo");
+			_DeviceInfo = refs.GetComp<UnityEngine.RectTransform>("_DeviceInfo");
+			_TabGroup = refs.GetComp<UnityEngine.UI.ToggleGroup>("_TabGroup");
+			_text = refs.GetComp<UnityEngine.UI.Text>("_text");
 			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
 
         }

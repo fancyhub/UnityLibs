@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace FH
+namespace FH.Device
 {
-    public class TestDevceInfoPage : MonoBehaviour
+    public class DevceInfoPanel : MonoBehaviour
     {
         public RectTransform ViewRoot;
 
