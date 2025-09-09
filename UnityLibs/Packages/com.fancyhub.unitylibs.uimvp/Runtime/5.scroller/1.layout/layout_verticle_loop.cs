@@ -13,30 +13,32 @@ using UnityEngine;
 namespace FH.UI
 {
     //垂直, 循环的, 必须每个item的大小一致
-    public class LayoutVLoop : IScrollerLayout
+    public class ScrollLayoutVLoop : IScrollLayout
     {
-        public IScroller Scroller { get; set; }
         public float _spacing = 0;
         public bool _half_view_offset = false;
 
-        public LayoutVLoop()
+        public ScrollLayoutVLoop()
         {
         }
 
-        public LayoutVLoop(EUIScroll scroll, float spacing, bool half_view_offset)
+        public ScrollLayoutVLoop(float spacing, bool half_view_offset)
         {
             _spacing = spacing;
             _half_view_offset = half_view_offset;
-            scroll.EventMoving += Build;
         }
+
+        public EScrollLayoutBuildFlag BuildFlag => EScrollLayoutBuildFlag.ItemChange| EScrollLayoutBuildFlag.Moving;
+
         public bool EdChanged() { return false; }
-        public void Build()
+
+        public void Build(IScroll scroller)
         {
             //1. 参数检查
-            if (null == Scroller)
+            if (null == scroller)
                 return;
 
-            List<IScrollerItem> item_list = Scroller.GetItemList();
+            List<IScrollItem> item_list = scroller.GetItemList();
             int item_count = item_list.Count;
             if (0 == item_count)
                 return;
@@ -46,9 +48,9 @@ namespace FH.UI
                 return;
 
             item_size = item_size + _spacing;
-            float view_size = Scroller.ViewSize.y;
+            float view_size = scroller.ViewSize.y;
 
-            float center_y = view_size * 0.5f + Scroller.ContentPos.y;
+            float center_y = view_size * 0.5f + scroller.ContentPos.y;
 
             float offset = 0;
             if (_half_view_offset)
@@ -68,7 +70,7 @@ namespace FH.UI
                 int item_index = (i + start_item_index) % item_count;
                 if (item_index < 0)
                     item_index += item_count;
-                IScrollerItem item = item_list[item_index];
+                IScrollItem item = item_list[item_index];
 
                 float y = item_size * i + 0.5f * _spacing + start_item_pos;
                 item.Pos = new Vector2(0, y);

@@ -17,37 +17,39 @@ namespace FH.UI
     /// <summary>
     /// 一个简单的组装
     /// </summary>
-    public class EUIScroll : IScrollerEvent, ICPtr
+    public class FUIScroll : IScrollEvent, ICPtr
     {
         public event Action EventDragStart; // 开始移动了
-        public event Action EventDragEnd; //拖拽结束了
-        public event Action EventMoving; //移动中
+        public event Action EventDragEnd; //拖拽结束了        
         public event Action EventMoveEnd; //移动结束了
+
         public int ObjVersion { get; private set; }
 
-        private IScroller _scroller;
-        private IScrollerLayout _layout;
-        private IScrollerCuller _culler;
+        private IScroll _scroller;
+        private IScrollLayout _layout;
+        private IScrollCuller _culler;
+        private IScrollMovement _movement;
+
         private bool _in_stack = false;
 
-        public static EUIScroll Create(ScrollRect scroll_rect, IResInstHolder res_holder)
+        public static FUIScroll Create(ScrollRect scroll_rect, IResInstHolder res_holder)
         {
-            EUIScroll eui_scroll = new EUIScroll();
-            eui_scroll._scroller = new UIScroller(scroll_rect, res_holder);
-            eui_scroll._scroller.ScrollEvent = eui_scroll;
-
-            IScrollerLayout layout = LayoutUnityWrapFactory.Create(scroll_rect, scroll_rect.content);
-            eui_scroll.SetLayout(layout);
-            eui_scroll.SetCuller(new ScrollItemCulling());
+            FUIScroll eui_scroll = new FUIScroll();
+            eui_scroll._scroller = new UIScroll(scroll_rect, res_holder);
+            eui_scroll._scroller.ScrollerEvent = eui_scroll;
+            eui_scroll._movement = UIScrollMovement.Get(scroll_rect);
+            eui_scroll._movement.ScrollerEvent = eui_scroll;
+            eui_scroll._layout = ScrollLayoutUnityWrapFactory.Create(scroll_rect, scroll_rect.content);
+            eui_scroll._culler = new ScrollCuller();
 
             return eui_scroll;
         }
 
-        private EUIScroll()
+        private FUIScroll()
         {
-
         }
 
+        public IScrollMovement Movement => _movement;
 
         public Vector2 ViewSize
         {
@@ -97,38 +99,24 @@ namespace FH.UI
 
         public void Refresh(bool layout = false)
         {
-            if (layout)
-                _layout.Build();
-
-            _update_culling();
+            _build_layout_and_culling(layout);
         }
 
-        public void SetCuller(IScrollerCuller culler)
+        public void SetCuller(IScrollCuller culler)
         {
             if (_culler == culler || culler == null)
                 return;
-            if (_culler != null)
-                _culler.Scroller = null;
-
             _culler = culler;
-            _culler.Scroller = _scroller;
             Log.Assert(_scroller.GetItemList().Count == 0, "必须要先设置 culling才能添加 item");
         }
 
-        public void SetLayout(IScrollerLayout layout)
+        public void SetLayout(IScrollLayout layout)
         {
-            if (_layout != null)
-                _layout.Scroller = null;
-
             _layout = layout;
-            if (null != _layout)
-            {
-                _layout.Scroller = _scroller;
-                Log.Assert(_scroller.GetItemList().Count == 0, "必须要先设置 layout 才能添加 item");
-            }
+
         }
 
-        public IScrollerLayout GetLayout()
+        public IScrollLayout GetLayout()
         {
             return _layout;
         }
@@ -139,17 +127,17 @@ namespace FH.UI
             ObjVersion++;
         }
 
-        public void AddItem(IScrollerItem item)
+        public void AddItem(IScrollItem item)
         {
             _scroller.AddItem(item);
         }
 
-        public void RemoveItem(IScrollerItem item)
+        public void RemoveItem(IScrollItem item)
         {
             _scroller.RemoveItem(item, true);
         }
 
-        public void RemoveItem(IScrollerItem item, bool destroy_item)
+        public void RemoveItem(IScrollItem item, bool destroy_item)
         {
             _scroller.RemoveItem(item, destroy_item);
         }
@@ -161,19 +149,19 @@ namespace FH.UI
 
         public void ResetPosition()
         {
-            _scroller.StopMovement();
+            _movement.StopMovement();
             _scroller.ContentPos = Vector2.zero;
         }
 
         public void MoveToHead()
         {
-            _scroller.StopMovement();
+            _movement.StopMovement();
             _scroller.ContentPos = Vector2.zero;
         }
 
         public void MoveToEnd()
         {
-            _scroller.StopMovement();
+            _movement.StopMovement();
             for (; ; )
             {
                 _scroller.ContentPos = _scroller.ContentPosMax;
@@ -184,7 +172,7 @@ namespace FH.UI
             }
         }
 
-        public void MoveItemToViewport(IScrollerItem item)
+        public void MoveItemToViewport(IScrollItem item)
         {
             float percent;
             if (_find_nearest_percent(item, out percent))
@@ -195,7 +183,7 @@ namespace FH.UI
 
         public void MoveItemToViewport(int item_index)
         {
-            IScrollerItem item = _get_item_by_index(item_index);
+            IScrollItem item = _get_item_by_index(item_index);
             if (null != item)
             {
                 MoveItemToViewport(item);
@@ -205,14 +193,14 @@ namespace FH.UI
         //view_percent 描述item在viewport区域的百分比位置，vertical情况下，0为最上方
         public void MoveToItem(int item_index, float view_percent)
         {
-            IScrollerItem item = _get_item_by_index(item_index);
+            IScrollItem item = _get_item_by_index(item_index);
             if (null != item)
             {
                 MoveToItem(item, view_percent);
             }
         }
 
-        public void MoveToItem(IScrollerItem item, float view_percent)
+        public void MoveToItem(IScrollItem item, float view_percent)
         {
             view_percent = Mathf.Clamp01(view_percent);
 
@@ -225,7 +213,7 @@ namespace FH.UI
             _scroller.ContentPos = new_content_pos;
         }
 
-        public List<IScrollerItem> GetItemList()
+        public List<IScrollItem> GetItemList()
         {
             return _scroller.GetItemList();
         }
@@ -241,7 +229,7 @@ namespace FH.UI
             return false;
         }
 
-        public bool _find_nearest_percent(IScrollerItem item, out float percent)
+        private bool _find_nearest_percent(IScrollItem item, out float percent)
         {
             //获取item高度和垂直坐标
             float item_height = item.Size.y;
@@ -279,7 +267,7 @@ namespace FH.UI
             return false;
         }
 
-        public IScrollerItem _get_item_by_index(int item_index)
+        private IScrollItem _get_item_by_index(int item_index)
         {
             var items = GetItemList();
             if (item_index < 0 || item_index >= items.Count)
@@ -291,7 +279,7 @@ namespace FH.UI
         }
 
         #region IScrollerEvent
-        void IScrollerEvent.OnScrollUpdate()
+        void IScrollEvent.OnScrollUpdate()
         {
 #if UNITY_EDITOR 
             if (_layout.EdChanged())
@@ -300,17 +288,15 @@ namespace FH.UI
             }
 #endif
         }
-        void IScrollerEvent.OnScrollItemChange()
+        void IScrollEvent.OnScrollItemChange()
         {
             if (_in_stack)
                 return;
 
-            //先排版,再culling
-            _layout.Build();
-            _update_culling();
+            _build_layout_and_culling((_layout.BuildFlag & EScrollLayoutBuildFlag.ItemChange) != EScrollLayoutBuildFlag.None);
         }
 
-        void IScrollerEvent.OnScrollViewSizeChange(Vector2 dt)
+        void IScrollEvent.OnScrollViewSizeChange(Vector2 dt)
         {
             Vector2 new_pos = _scroller.ContentPos + dt;
             Vector2 pos_max = _scroller.ContentPosMax;
@@ -318,45 +304,48 @@ namespace FH.UI
             float pos_y = Mathf.Clamp(new_pos.y, 0, pos_max.y);
             _scroller.ContentPos = new Vector2(pos_x, pos_y);
 
-            //_layout.Build();
-            _update_culling();
+
+            _build_layout_and_culling((_layout.BuildFlag & EScrollLayoutBuildFlag.ViewSizeChange) != EScrollLayoutBuildFlag.None);
         }
 
-        void IScrollerEvent.OnScrollMoving()
+        void IScrollEvent.OnScrollMoving()
         {
-            //EventMing?.Invoke();
-            _update_culling();
+            _build_layout_and_culling((_layout.BuildFlag & EScrollLayoutBuildFlag.Moving) != EScrollLayoutBuildFlag.None);
         }
 
-        void IScrollerEvent.OnScrollDragStart()
+        void IScrollEvent.OnScrollDragStart()
         {
             EventDragStart?.Invoke();
         }
 
         //这里是drag end
-        void IScrollerEvent.OnScrollDragEnd()
+        void IScrollEvent.OnScrollDragEnd()
         {
             EventDragEnd?.Invoke();
         }
 
-        void IScrollerEvent.OnScrollMoveEnd()
+        void IScrollEvent.OnScrollMoveEnd()
         {
             EventMoveEnd?.Invoke();
         }
         #endregion
 
-        public void _update_culling()
+        private void _build_layout_and_culling(bool rebuild)
         {
             if (_in_stack)
                 return;
             _in_stack = true;
+
+            if (rebuild)
+                _layout.Build(_scroller);
+
             for (; ; )
             {
-                if (_culler.Cull())
+                if (_culler.Cull(_scroller))
                 {
                     break;
                 }
-                _layout.Build();
+                _layout.Build(_scroller);
             }
 
             _in_stack = false;

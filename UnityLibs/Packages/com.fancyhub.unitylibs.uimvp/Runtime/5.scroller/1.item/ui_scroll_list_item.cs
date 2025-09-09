@@ -10,12 +10,9 @@ using UnityEngine;
 
 namespace FH.UI
 {
-    public interface IVoSetter<TData>
-    {
-        void SetData(TData data);
-    }
+  
 
-    public interface IScrollListItem : IScrollerItem
+    public interface IScrollListItem : IScrollItem
     {
         UIBaseView View { get; }
         int ItemIndex { get; set; }
@@ -50,7 +47,7 @@ namespace FH.UI
     {
         public static Dictionary<Type, ScrollListItemConfig> _configs = new Dictionary<Type, ScrollListItemConfig>();
 
-        public bool _selected = false; //默认false
+        protected bool _selected = false; //默认false
         public Action<int, long> _click_cb;
 
         public int ItemIndex { get; set; }
@@ -241,7 +238,7 @@ namespace FH.UI
             DestroyView();
         }
 
-        public override void SetParent(IScrollerItemParent parent)
+        public override void SetParent(IScrollItemParent parent)
         {
             if (null == parent)
             {

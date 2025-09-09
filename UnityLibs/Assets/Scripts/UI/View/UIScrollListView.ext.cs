@@ -13,14 +13,14 @@ namespace Game
 
     public partial class UIScrollListView // : UIScrollBaseView 
     {
-        public IScrollBinder _binder;
+        public IUIScrollBinder _binder;
 
         public override void OnCreate()
         {
             base.OnCreate();
         }
 
-        public IScrollBinder<TData> CreateBinder<TView, TData>() 
+        public IUIScrollBinder<TData> CreateBinder<TView, TData>() 
             where TView : UIBaseView, IVoSetter<TData>, new()
         {
             if (_binder != null)
@@ -28,12 +28,12 @@ namespace Game
                 Log.Assert(false, "不支持创建多次");
                 return null;
             }
-            IScrollBinder<TData> binder = new ScrollBinder<TData>(EUIScroll, new ScrollListItemSingleFactory<TView, TData>());
+            IUIScrollBinder<TData> binder = new FUIScrollBinder<TData>(UIScroll, new ScrollListItemSingleFactory<TView, TData>());
             _binder = binder;
             return binder;
         }
 
-        public IScrollBinder<TData> CreateBinder<TData>(IScrollListItemFactory<TData> factory)
+        public IUIScrollBinder<TData> CreateBinder<TData>(IUIScrollListItemFactory<TData> factory)
         {
             if (_binder != null)
             {
@@ -41,7 +41,7 @@ namespace Game
                 return null;
             }
 
-            IScrollBinder<TData> binder = new ScrollBinder<TData>(EUIScroll, factory);
+            IUIScrollBinder<TData> binder = new FUIScrollBinder<TData>(UIScroll, factory);
             _binder = binder;
             return binder;
         }
@@ -87,7 +87,7 @@ namespace Game
         public override void ClearItems()
         {
             _binder?.SetData(null);
-            EUIScroll.ClearItems();
+            UIScroll.ClearItems();
         }
     }
 

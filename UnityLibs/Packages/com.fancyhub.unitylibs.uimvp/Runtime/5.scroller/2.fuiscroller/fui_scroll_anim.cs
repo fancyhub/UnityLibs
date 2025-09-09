@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace FH.UI
 {
-    public class UIScrollAnim
+    public class FUIScrollAnim
     {
         //动画播放的方向
         public static Vector4 IN_DIR_LEFT_2_RIGHT = new Vector4(-1.5f, 0, 0, 0);
@@ -29,7 +29,7 @@ namespace FH.UI
         //动画的curve，ease in out，如果需要其他的，可以增加
         public static AnimationCurve _s_easy_in_out;
 
-        public EUIScroll _scroller;
+        public FUIScroll _scroller;
         public AnimationCurve _anim_curve;
         public float _single_time;
         public float _interval;
@@ -41,7 +41,7 @@ namespace FH.UI
         public Action _end_cb = null;
         public Func<int, int, int> _index_map;
 
-        public UIScrollAnim(EUIScroll scroller)
+        public FUIScrollAnim(FUIScroll scroller)
         {
             _scroller = scroller;
             if (null == _s_easy_in_out)
@@ -91,13 +91,13 @@ namespace FH.UI
         }
 
         public static float CalcTotalTime(
-            EUIScroll scroller
+            FUIScroll scroller
             , float single_time
             , float interval_time)
         {
             //1. 计算total time
             float total_time;
-            List<IScrollerItem> item_list = scroller.GetItemList();
+            List<IScrollItem> item_list = scroller.GetItemList();
             int count = item_list.Count;
             if (count == 0)
                 total_time = 0.01f;
@@ -156,7 +156,7 @@ namespace FH.UI
             }
 
             //3. 更新 item
-            List<IScrollerItem> item_list = _scroller.GetItemList();
+            List<IScrollItem> item_list = _scroller.GetItemList();
             int count = item_list.Count;
             for (int i = 0; i < count; ++i)
             {
@@ -169,7 +169,7 @@ namespace FH.UI
                 int index = i;
                 if (_index_map != null)
                     index = _index_map(count, i);
-                IScrollerItem item = item_list[index];
+                IScrollItem item = item_list[index];
                 item.AnimPos = Vector2.Lerp(_start_anim_pos, _end_anim_pos, curve_value);
             }
 
@@ -177,9 +177,9 @@ namespace FH.UI
             return EUIUpdateResult.Continue;
         }
 
-        public void _reset_anim_pos(EUIScroll scroller)
+        public void _reset_anim_pos(FUIScroll scroller)
         {
-            List<IScrollerItem> item_list = scroller.GetItemList();
+            List<IScrollItem> item_list = scroller.GetItemList();
             for (int i = 0; i < item_list.Count; ++i)
             {
                 var item = item_list[i];

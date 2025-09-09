@@ -12,13 +12,18 @@ using UnityEngine;
 
 namespace FH.UI
 {
-    public abstract class ScrollItemBase : IScrollerItem
+    public interface IVoSetter<TData>
     {
-        public IScrollerItemParent _parent;
-        public Vector2 _pos;
-        public Vector2 _anim_pos = Vector2.zero;
+        void SetData(TData data);
+    }
 
-        public virtual void SetParent(IScrollerItemParent parent)
+    public abstract class ScrollItemBase : IScrollItem
+    {
+        protected IScrollItemParent _parent;
+        protected Vector2 _pos;
+        protected Vector2 _anim_pos = Vector2.zero;
+
+        public virtual void SetParent(IScrollItemParent parent)
         {
             _parent = parent;
         }

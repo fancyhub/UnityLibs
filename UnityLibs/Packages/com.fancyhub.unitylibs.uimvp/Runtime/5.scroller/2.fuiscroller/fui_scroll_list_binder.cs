@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace FH.UI
 {
-    public interface IScrollListItemFactory<TData>
+    public interface IUIScrollListItemFactory<TData>
     {
         /// <summary>
         /// 根据 数据类型来创建 item
@@ -28,7 +28,7 @@ namespace FH.UI
 
     public delegate void ScrollItemClickCB(int index, long user_data);
 
-    public interface IScrollBinder
+    public interface IUIScrollBinder
     {
         void SetData(IList data);
         IList GetData();
@@ -38,7 +38,7 @@ namespace FH.UI
         void Destroy();
     }
 
-    public interface IScrollBinder<TData> : IScrollBinder
+    public interface IUIScrollBinder<TData> : IUIScrollBinder
     {
         void SetTData(IList<TData> data);
         IList<TData> GetTData();
@@ -48,19 +48,19 @@ namespace FH.UI
     /// <summary>
     /// 一个数据绑定类
     /// </summary>
-    public class ScrollBinder<TData> : IScrollBinder<TData>
+    public class FUIScrollBinder<TData> : IUIScrollBinder<TData>
     {
         public static TData[] _empty = new TData[0];
         public static LinkedList<IScrollListItem<TData>> _item_cache_list = new LinkedList<IScrollListItem<TData>>();
 
-        public EUIScroll _scroller;
-        public IScrollListItemFactory<TData> _item_factory;
+        public FUIScroll _scroller;
+        public IUIScrollListItemFactory<TData> _item_factory;
         public List<IScrollListItem<TData>> _item_list = new List<IScrollListItem<TData>>();
         public IList<TData> _data;
         public ScrollItemClickCB _item_click_cb;
         public Action<TData, IUIView> _view_create_cb;
 
-        public ScrollBinder(EUIScroll scroller, IScrollListItemFactory<TData> item_factory)
+        public FUIScrollBinder(FUIScroll scroller, IUIScrollListItemFactory<TData> item_factory)
         {
             _scroller = scroller;
             _item_factory = item_factory;
@@ -175,7 +175,7 @@ namespace FH.UI
 
         public IScrollListItem<TData> _find_suit_item(
             TData vo_data,
-            IScrollListItemFactory<TData> item_factory,
+            IUIScrollListItemFactory<TData> item_factory,
             LinkedList<IScrollListItem<TData>> link_list)
         {
             //找到可以从用的item                

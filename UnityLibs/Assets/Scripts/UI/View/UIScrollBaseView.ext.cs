@@ -12,85 +12,85 @@ namespace Game
 
     public partial class UIScrollBaseView // : FH.UI.UIBaseView 
     {
-        public EUIScroll EUIScroll;
+        public FUIScroll UIScroll;
         public override void OnCreate()
         {
             base.OnCreate();
-            EUIScroll = EUIScroll.Create(this._ScrollBase,  this.ResHolder);
+            UIScroll = FUIScroll.Create(this._ScrollBase,  this.ResHolder);
         }
 
         public override void OnDestroy()
         {
-            EUIScroll?.Destroy();
-            EUIScroll = null;
+            UIScroll?.Destroy();
+            UIScroll = null;
             base.OnDestroy();
         }
 
         public Vector2 ViewSize
         {
-            get => EUIScroll.ViewSize;
-            set => EUIScroll.ViewSize = value;
+            get => UIScroll.ViewSize;
+            set => UIScroll.ViewSize = value;
         }
 
-        public void SetLayout(IScrollerLayout layout)
+        public void SetLayout(IScrollLayout layout)
         {
-            EUIScroll.SetLayout(layout);
+            UIScroll.SetLayout(layout);
         }
 
-        public void AddItem(IScrollerItem item)
+        public void AddItem(IScrollItem item)
         {
-            EUIScroll.AddItem(item);
+            UIScroll.AddItem(item);
         }
-        public void RemoveItem(IScrollerItem item)
+        public void RemoveItem(IScrollItem item)
         {
-            EUIScroll.RemoveItem(item);
+            UIScroll.RemoveItem(item);
         }
 
-        public void RemoveItem(IScrollerItem item, bool destroy_item)
+        public void RemoveItem(IScrollItem item, bool destroy_item)
         {
-            EUIScroll.RemoveItem(item, destroy_item);
+            UIScroll.RemoveItem(item, destroy_item);
         }
 
         public virtual void ClearItems()
         {
-            EUIScroll.ClearItems();
+            UIScroll.ClearItems();
         }
 
-        public List<IScrollerItem> GetItems()
+        public List<IScrollItem> GetItems()
         {
-            return EUIScroll.GetItemList();
+            return UIScroll.GetItemList();
         }
       
 
         public void MoveToEnd()
         {
-            EUIScroll.MoveToEnd();
+            UIScroll.MoveToEnd();
         }
 
         public void MoveToHead()
         {
-            EUIScroll.MoveToHead();
+            UIScroll.MoveToHead();
         }
 
-        public void MoveItemToViewport(IScrollerItem item)
+        public void MoveItemToViewport(IScrollItem item)
         {
-            EUIScroll.MoveItemToViewport(item);
+            UIScroll.MoveItemToViewport(item);
         }
 
         public void MoveItemToViewport(int item_index)
         {
-            EUIScroll.MoveItemToViewport(item_index);
+            UIScroll.MoveItemToViewport(item_index);
         }
 
         //view_percent 描述item在viewport区域的百分比位置，vertical情况下，0为最上方
         public void MoveToItem(int item_index, float view_percent)
         {
-            EUIScroll.MoveToItem(item_index, view_percent);
+            UIScroll.MoveToItem(item_index, view_percent);
         }
 
-        public void MoveToItem(IScrollerItem item, float view_percent)
+        public void MoveToItem(IScrollItem item, float view_percent)
         {
-            EUIScroll.MoveToItem(item, view_percent);
+            UIScroll.MoveToItem(item, view_percent);
         }
     }
 

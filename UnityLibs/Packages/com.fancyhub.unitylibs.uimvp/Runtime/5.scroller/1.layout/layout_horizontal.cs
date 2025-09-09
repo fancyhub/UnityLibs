@@ -14,27 +14,25 @@ using UnityEngine;
 namespace FH.UI
 {
     //水平方向
-    public class LayoutH : IScrollerLayout
-    {
-        public IScroller Scroller { set; get; }
-
+    public class ScrollLayoutH : IScrollLayout
+    { 
         //每个元素之间的间距
         private float _spacing = 0;
 
         //item 的 y 坐标在整个scroll view 里面的 对齐方式
         private float _alignment = 0.5f;
 
-        private LayoutPadding _padding = LayoutPadding.Zero;
+        private ScrollLayoutPadding _padding = ScrollLayoutPadding.Zero;
 
-        public LayoutH()
+        public ScrollLayoutH()
         {
         }
 
-        public LayoutH(float spacing)
+        public ScrollLayoutH(float spacing)
         {
             _spacing = spacing;
         }
-
+        public EScrollLayoutBuildFlag BuildFlag => EScrollLayoutBuildFlag.ItemChange;
         public float Alignment
         {
             get => _alignment;
@@ -48,7 +46,7 @@ namespace FH.UI
             set => _spacing = Mathf.Max(0, value);
         }
 
-        public LayoutPadding Padding
+        public ScrollLayoutPadding Padding
         {
             get => _padding;
             set => _padding = value;
@@ -56,12 +54,12 @@ namespace FH.UI
 
         public bool EdChanged() { return false; }
 
-        public void Build()
+        public void Build(IScroll scroller)
         {
             //1. 参数检查
-            if (null == Scroller)
+            if (null == scroller)
                 return;
-            Vector2 view_size = Scroller.ViewSize;
+            Vector2 view_size = scroller.ViewSize;
 
             //2.1 初始化参数 : x,y游标，一行的宽度size_x
             float pos_x = _padding.Left;
@@ -69,7 +67,7 @@ namespace FH.UI
             float view_height = view_size.y - _padding.Top - _padding.Bottom;
 
             //2.2 遍历item_list
-            foreach (IScrollerItem item in Scroller.GetItemList())
+            foreach (IScrollItem item in scroller.GetItemList())
             {
                 Vector2 item_size = item.Size;
 
@@ -84,7 +82,7 @@ namespace FH.UI
 
             //3. 重置内容大小
             size_x += _padding.Right;
-            Scroller.ContentSize = new Vector2(size_x, view_size.y);
+            scroller.ContentSize = new Vector2(size_x, view_size.y);
         }
     }
 }

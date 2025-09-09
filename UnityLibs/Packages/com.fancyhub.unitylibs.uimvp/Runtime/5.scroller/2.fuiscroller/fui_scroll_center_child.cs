@@ -12,50 +12,54 @@ using UnityEngine;
 
 namespace FH.UI
 {
-    public class UIScrollCenterChild
+    /// <summary>
+    /// 
+    /// </summary>
+    public class FUIScrollCenterChild
     {
-        public CPtr<EUIScroll> _scroller;
-        public float _speed;
-        public Vector3 _start_pos;
-        public Vector3 _end_pos;
-        public bool _moving = false;
-        public bool _ver = true;
-        public float _timer = 0;
-        public float _total_time = 0;
-        public int _index_selected = -1;
-        public Action<int> _select_cb;
-        public bool _invoke_cb = false;
-        public float _max_move_time = 100;
-        public UIScrollCenterChild(EUIScroll scroll, float speed, float max_time, Action<int> OnSelectCb)
+        private CPtr<FUIScroll> _scroller;
+        private float _move_speed;
+        private float _max_move_time = 100;
+        private Action<int> _select_cb;
+
+        private Vector3 _start_pos;
+        private Vector3 _end_pos;
+        private bool _moving = false;
+        private bool _dir_ver = true;
+        private float _timer = 0;
+        private float _total_time = 0;
+        private int _index_selected = -1;
+        private bool _invoke_cb = false;
+
+        public FUIScrollCenterChild(FUIScroll scroll, float move_speed, float max_time, Action<int> OnSelectCb)
         {
             _scroller = scroll;
-            _speed = speed;
+            _move_speed = Mathf.Max(move_speed, 1);
+            _max_move_time = max_time;
+            _select_cb = OnSelectCb;
+
             scroll.EventMoveEnd += _on_scroll_move_end;
             scroll.EventDragStart += _on_drag_start;
             if (!scroll.UnityScroll.vertical)
-                _ver = false;
-            _speed = Mathf.Max(speed, 1);
-            _select_cb = OnSelectCb;
-            _max_move_time = max_time;
-            UIScrollEventBehaviour b = UIScrollEventBehaviour.Get(scroll.UnityScroll);
-            b._threshold = speed;
+                _dir_ver = false;
+            scroll.Movement.Threshold = move_speed;
         }
 
         public void MoveTo(int index, bool invoke_cb = false)
         {
-            EUIScroll scroller = _scroller;
+            FUIScroll scroller = _scroller;
             if (scroller == null)
                 return;
             scroller.UnityScroll.StopMovement();
             _invoke_cb = invoke_cb;
 
-            List<IScrollerItem> item_list = scroller.GetItemList();
+            List<IScrollItem> item_list = scroller.GetItemList();
             if (index < 0 || index >= item_list.Count)
             {
                 _moving = false;
                 return;
             }
-            IScrollerItem item = item_list[index];
+            IScrollItem item = item_list[index];
 
             _index_selected = index;
             Vector2 pos = scroller.ViewSize * 0.5f + scroller.ContentPos;
@@ -68,15 +72,15 @@ namespace FH.UI
             }
 
             Vector3 dt = item_pos - pos;
-            if (_ver)
+            if (_dir_ver)
             {
                 dt.x = 0;
-                _total_time = dt.y / _speed;
+                _total_time = dt.y / _move_speed;
             }
             else
             {
                 dt.y = 0;
-                _total_time = dt.x / _speed;
+                _total_time = dt.x / _move_speed;
             }
             _total_time = Mathf.Abs(_total_time);
 
@@ -94,29 +98,29 @@ namespace FH.UI
             _timer = 0;
             _moving = true;
 
-            UISceneMgr.AddUpdate(_on_update);            
+            UISceneMgr.AddUpdate(_on_update);
         }
 
-        public void _on_scroll_move_end()
+        private void _on_scroll_move_end()
         {
-            EUIScroll scroller = _scroller;
+            FUIScroll scroller = _scroller;
             if (scroller == null)
                 return;
 
-            List<IScrollerItem> item_list = scroller.GetItemList();
+            List<IScrollItem> item_list = scroller.GetItemList();
 
             Vector2 pos = scroller.ViewSize * 0.5f + scroller.ContentPos;
             int index = _find_closest_item(item_list, pos);
             MoveTo(index, true);
         }
 
-        public EUIUpdateResult _on_update(float dt)
+        private EUIUpdateResult _on_update(float dt)
         {
             if (!_moving)
             {
                 return EUIUpdateResult.Stop;
             }
-            EUIScroll scroller = _scroller;
+            FUIScroll scroller = _scroller;
             if (scroller == null)
                 return EUIUpdateResult.Stop;
 
@@ -140,12 +144,12 @@ namespace FH.UI
             return EUIUpdateResult.Continue;
         }
 
-        public void _on_drag_start()
+        private void _on_drag_start()
         {
             _moving = false;
         }
 
-        public int _find_closest_item(List<IScrollerItem> item_list, Vector2 pos)
+        private int _find_closest_item(List<IScrollItem> item_list, Vector2 pos)
         {
             float min_dist = float.MaxValue;
             int index = -1;

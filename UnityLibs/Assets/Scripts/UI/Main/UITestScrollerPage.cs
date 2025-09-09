@@ -44,8 +44,8 @@ namespace Game
     public class PageElemScrollDemoBase
     {
         public UIScrollListView _view;
-        public IScrollBinder _binder;
-        public ScrollItemClickCB _cb;
+        public IUIScrollBinder _binder;
+        public ScrollItemClickCB _ItemClickCallBack;
 
         public PageElemScrollDemoBase(UIScrollListView view)
         {
@@ -66,46 +66,36 @@ namespace Game
 
         public void SetItemClickCB(ScrollItemClickCB cb)
         {
-            _cb = cb;
+            _ItemClickCallBack = cb;
         }
 
         public void _on_item_click(int item_index, long user_data)
         {
             Debug.Log("OnClick");
-            _cb?.Invoke(item_index, user_data);
+            _ItemClickCallBack?.Invoke(item_index, user_data);
         }
     }
 
     public class ScrollDemoRow2 : PageElemScrollDemoBase
     {
-        public UIScrollAnim _scroll_anim;
+        public FUIScrollAnim _scroll_anim;
         public ScrollDemoRow2(UIScrollListView view) : base(view)
         {
-            var layout = new LayoutVRow(2);
+            var layout = new ScrollScrollLayoutVRow(2);
             layout.Spacing = 4;
             view.SetLayout(layout);
-            _scroll_anim = new UIScrollAnim(view.EUIScroll);
-        }
-
-        public void AnimFadeIn()
-        {
-            _scroll_anim.Play(UIScrollAnim.IN_DIR_LEFT_2_RIGHT, 0.5f, 0.1f, null, _anim_item_map);
-        }
-
-        public void AnimFadeOut()
-        {
-            _scroll_anim.Play(UIScrollAnim.OUT_DIR_LEFT_2_RIGHT, 0.5f, 0.1f);
-        }
-
-        public int _anim_item_map(int item_count, int index)
-        {
-            return UIScrollAnim.RowMultiIndexMap(2, item_count, index);
+            _scroll_anim = new FUIScrollAnim(view.UIScroll);
         }
 
         public override void SetData(List<string> data)
         {
             base.SetData(data);
-            AnimFadeIn();
+            _scroll_anim.Play(FUIScrollAnim.IN_DIR_LEFT_2_RIGHT, 0.5f, 0.1f, null, _anim_item_map);
+        }
+
+        private int _anim_item_map(int item_count, int index)
+        {
+            return FUIScrollAnim.RowMultiIndexMap(2, item_count, index);
         }
     }
 
@@ -115,21 +105,22 @@ namespace Game
     /// </summary>
     public class ScrollDemoCenter : PageElemScrollDemoBase
     {
-        public UIScrollCenterChild _center_child;
-        public UIScrollAnim _scroll_anim;
+        public FUIScrollCenterChild _center_child;
+        public FUIScrollAnim _scroll_anim;
 
         public ScrollDemoCenter(UIScrollListView view) : base(view)
         {
-            view.SetLayout(new LayoutCenterV(5));
-            _center_child = new UIScrollCenterChild(view.EUIScroll, 100, 0.5f, _on_select); ;
+            view.SetLayout(new ScrollLayoutCenterV(5));
+            _scroll_anim = new FUIScrollAnim(view.UIScroll);
 
-            _scroll_anim = new UIScrollAnim(view.EUIScroll);
+             _center_child = new FUIScrollCenterChild(view.UIScroll, 100, 0.5f, _on_select); ;
+            
         }
 
         public override void SetData(List<string> data)
         {
             base.SetData(data);
-            AnimFadeIn();
+            _scroll_anim.Play(FUIScrollAnim.IN_DIR_RIGHT_2_LEFT, 0.5f, 0.1f, null);
         }
 
         public override void Select(int index)
@@ -140,19 +131,8 @@ namespace Game
 
         public void _on_select(int index)
         {
-            _cb?.Invoke(index, 0);
+            _ItemClickCallBack?.Invoke(index, 0);
         }
-
-        public void AnimFadeIn()
-        {
-            _scroll_anim.Play(UIScrollAnim.IN_DIR_RIGHT_2_LEFT, 0.5f, 0.1f, null);
-        }
-
-        public void AnimFadeOut()
-        {
-            _scroll_anim.Play(UIScrollAnim.OUT_DIR_LEFT_2_RIGHT, 0.5f, 0.1f);
-        }
-
     }
 
     /// <summary>
@@ -162,7 +142,7 @@ namespace Game
     {
         public ScrollDemoLoop(UIScrollListView view) : base(view)
         {
-            view.SetLayout(new LayoutVLoop(view.EUIScroll, 20, true));
+            view.SetLayout(new ScrollLayoutVLoop(20, true));
         }
     }
 }

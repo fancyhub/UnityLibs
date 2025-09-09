@@ -11,12 +11,9 @@ using UnityEngine.UI;
 
 namespace FH.UI
 {
-    public abstract class LayoutUnityWrap : IScrollerLayout
+    public abstract class ScrollLayoutUnityWrap : IScrollLayout
     {
-        public abstract IScroller Scroller { set; }
-
-        public abstract void Build();
-
+        public abstract void Build(IScroll scroller);
 
         public abstract bool UpdateParams();
 
@@ -25,12 +22,12 @@ namespace FH.UI
             return UpdateParams();
         }
 
+        public EScrollLayoutBuildFlag BuildFlag => EScrollLayoutBuildFlag.ItemChange;
+
         public static int GetCount(ScrollRect scroll_rect, LayoutGroup group)
         {
             if (scroll_rect == null)
                 return 1;
-
-
 
             switch (group)
             {
@@ -59,7 +56,7 @@ namespace FH.UI
                 bottom = 0;
                 return;
             }
-            LayoutPadding padding = LayoutPadding.From(group.padding);
+            ScrollLayoutPadding padding = ScrollLayoutPadding.From(group.padding);
             left = padding.Left;
             right = padding.Right;
             top = padding.Top;
@@ -160,22 +157,22 @@ namespace FH.UI
     }
 
     //水平排布
-    public class LayoutUnityWrapH : LayoutUnityWrap
+    public class ScrollLayoutUnityWrapH : ScrollLayoutUnityWrap
     {
         private LayoutGroup _unity_layout;
         private ScrollRect _unity_scroll;
-        private LayoutHCol _layout;
+        private ScrollLayoutHCol _layout;
 
-        public LayoutUnityWrapH(ScrollRect scroll_rect, LayoutGroup unity_layout)
+        public ScrollLayoutUnityWrapH(ScrollRect scroll_rect, LayoutGroup unity_layout)
         {
             _unity_layout = unity_layout;
             _unity_scroll = scroll_rect;
-            _layout = new LayoutHCol();
+            _layout = new ScrollLayoutHCol();
         }
 
         public override bool UpdateParams()
         {
-            LayoutPadding padding = LayoutPadding.From(_unity_layout.padding);
+            ScrollLayoutPadding padding = ScrollLayoutPadding.From(_unity_layout.padding);
             float spacing = GetSpacing(_unity_scroll, _unity_layout);
             float alignment = GetAlignment(_unity_scroll, _unity_layout);
             int count = GetCount(_unity_scroll, _unity_layout);
@@ -193,37 +190,28 @@ namespace FH.UI
             return changed;
         }
 
-        public override IScroller Scroller
+        public override void Build(IScroll scroller)
         {
-            set
-            {
-                _layout.Scroller = value;
-                UpdateParams();
-            }
-        }
-
-        public override void Build()
-        {
-            _layout.Build();
+            _layout.Build(scroller);
         }
     }
 
     //竖直
-    public class LayoutUnityWrapV : LayoutUnityWrap
+    public class ScrollLayoutUnityWrapV : ScrollLayoutUnityWrap
     {
         private LayoutGroup _unity_layout;
         private ScrollRect _unity_scroll;
-        private LayoutVRow _layout;
-        public LayoutUnityWrapV(ScrollRect scroll_rect, LayoutGroup unity_layout)
+        private ScrollScrollLayoutVRow _layout;
+        public ScrollLayoutUnityWrapV(ScrollRect scroll_rect, LayoutGroup unity_layout)
         {
             _unity_layout = unity_layout;
             _unity_scroll = scroll_rect;
-            _layout = new LayoutVRow();
+            _layout = new ScrollScrollLayoutVRow();
         }
 
         public override bool UpdateParams()
         {
-            LayoutPadding padding = LayoutPadding.From(_unity_layout.padding);
+            ScrollLayoutPadding padding = ScrollLayoutPadding.From(_unity_layout.padding);
             float spacing = GetSpacing(_unity_scroll, _unity_layout);
             float alignment = GetAlignment(_unity_scroll, _unity_layout);
             int count = GetCount(_unity_scroll, _unity_layout);
@@ -241,25 +229,18 @@ namespace FH.UI
             return changed;
         }
 
-        public override IScroller Scroller
-        {
-            set
-            {
-                _layout.Scroller = value;
-                UpdateParams();
-            }
-        }
+       
 
-        public override void Build()
+        public override void Build(IScroll scroller)
         {
-            _layout.Build();
+            _layout.Build(scroller);
         }
     }
 
 
-    public static class LayoutUnityWrapFactory
+    public static class ScrollLayoutUnityWrapFactory
     {
-        public static IScrollerLayout Create(ScrollRect scroll_rect, Transform content = null)
+        public static IScrollLayout Create(ScrollRect scroll_rect, Transform content = null)
         {
             //1. 获取 Unity 的Layout
             if (content == null)
@@ -270,19 +251,19 @@ namespace FH.UI
             if (unity_layout == null)
             {
                 if (scroll_rect.vertical)
-                    return new LayoutV();
-                return new LayoutH();
+                    return new ScrollLayoutV();
+                return new ScrollLayoutH();
             }
             unity_layout.enabled = false;
 
             //3. 创建Unity Wrap 的Layout
-            LayoutUnityWrap unity_wrap = null;
+            ScrollLayoutUnityWrap unity_wrap = null;
             if (scroll_rect.vertical)
             {
-                unity_wrap = new LayoutUnityWrapV(scroll_rect, unity_layout);
+                unity_wrap = new ScrollLayoutUnityWrapV(scroll_rect, unity_layout);
             }
             else
-                unity_wrap = new LayoutUnityWrapH(scroll_rect, unity_layout);
+                unity_wrap = new ScrollLayoutUnityWrapH(scroll_rect, unity_layout);
             return unity_wrap;
         }
     }

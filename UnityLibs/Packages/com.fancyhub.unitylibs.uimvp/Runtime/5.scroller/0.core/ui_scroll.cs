@@ -20,10 +20,9 @@ namespace FH.UI
     /// 3. 获取/设置 Content Size
     /// 4. 获取/设置 Content Pos
     /// </summary>
-    public class UIScroller : IScroller, IScrollerItemParent
+    internal class UIScroll : IScroll, IScrollItemParent
     {
         public int ObjVersion { get; private set; }
-
 
         public struct ScrollerDummy
         {
@@ -61,13 +60,13 @@ namespace FH.UI
         private RectTransform _content_tran;
         private ScrollerDummy _dummy;
 
-        private Vector2 _all_item_size = Vector2.zero;
-        private IScrollerEvent _evt;
-        private List<IScrollerItem> _item_list = new List<IScrollerItem>();
+        private Vector2 _real_content_size = Vector2.zero;
+        private IScrollEvent _evt;
+        private List<IScrollItem> _item_list = new List<IScrollItem>();
         private int _batch_mode = 0;
 
-        public UIScroller(ScrollRect scroll_rect, IResInstHolder holder)
-        {
+        public UIScroll(ScrollRect scroll_rect, IResInstHolder holder)
+        {            
             _holder = holder;
 
             _unity_scroll = scroll_rect;
@@ -76,17 +75,9 @@ namespace FH.UI
 
             ContentPos = Vector2.zero;
             ContentSize = Vector2.zero;
-
-            _unity_scroll.onValueChanged.AddListener(_on_scroll_move);
-            UIScrollEventBehaviour scroll_evt = _unity_scroll.ExtGetComp<UIScrollEventBehaviour>(true);
-            scroll_evt.EvtOnDragStart = _on_drag_start;
-            scroll_evt.EvtOnDragEnd = _on_drag_end;
-            scroll_evt.EvtOnScrollMoveEnd = _on_move_end;
-            scroll_evt.EvtUpdate = _on_update;
         }
 
-
-        public IScrollerEvent ScrollEvent { get { return _evt; } set { _evt = value; } }
+        public IScrollEvent ScrollerEvent { get { return _evt; } set { _evt = value; } }
 
         public ScrollRect UnityScroll { get { return _unity_scroll; } }
 
@@ -114,8 +105,8 @@ namespace FH.UI
                 //3. 设置view size
                 _view_port_tran.sizeDelta = new_size;
 
-                //4. 调整 container size
-                _update_content_size();
+                //4. 调整 content size
+                _update_content_transform_size();
 
                 //5. 发出事件, view size 发生变化了
                 _evt?.OnScrollViewSizeChange(now_size - new_size);
@@ -130,11 +121,11 @@ namespace FH.UI
         {
             set
             {
-                Vector2 new_all_item_size = Vector2.Max(value, Vector2.zero);
-                if (_all_item_size.Equals(new_all_item_size))
+                Vector2 new_content_size = Vector2.Max(value, Vector2.zero);
+                if (_real_content_size.Equals(new_content_size))
                     return;
-                _all_item_size = new_all_item_size;
-                _update_content_size();
+                _real_content_size = new_content_size;
+                _update_content_transform_size();
             }
             get
             {
@@ -175,56 +166,20 @@ namespace FH.UI
             }
         }
 
-        private void _update_content_size()
+        private void _update_content_transform_size()
         {
             //1. 获取view 的size
-            Vector2 new_content_size = Vector2.Max(ViewSize, _all_item_size);
-            Vector2 old_content_size = _content_tran.rect.size;
+            Vector2 new_content_transform_size = Vector2.Max(ViewSize, _real_content_size);
+            Vector2 old_content_transform_size = _content_tran.rect.size;
 
             //4. 比较content size 是否发生了变化
-            if (new_content_size.Equals(old_content_size))
+            if (new_content_transform_size.Equals(old_content_transform_size))
                 return;
 
             //5. 调整content size
-            _content_tran.sizeDelta = new_content_size;
+            _content_tran.sizeDelta = new_content_transform_size;
         }
-        #endregion
-
-
-        #region Movement
-
-        public void StopMovement()
-        {
-            _unity_scroll.StopMovement();
-        }
-
-        private void _on_scroll_move(Vector2 pos)
-        {
-            _evt?.OnScrollMoving();
-        }
-
-        private void _on_drag_start()
-        {
-            _evt?.OnScrollDragStart();
-        }
-
-        //这里是drag end
-        private void _on_drag_end()
-        {
-            _evt?.OnScrollDragEnd();
-        }
-
-        private void _on_move_end()
-        {
-            _evt?.OnScrollMoveEnd();
-        }
-
-        private void _on_update()
-        {
-            _evt?.OnScrollUpdate();
-        }
-
-        #endregion
+        #endregion         
 
 
         #region Items
@@ -235,7 +190,7 @@ namespace FH.UI
             return _batch_mode;
         }
 
-        public void AddItem(IScrollerItem item)
+        public void AddItem(IScrollItem item)
         {
             Log.Assert(!_item_list.Contains(item), "item list duplicate item !!!");
             _item_list.Add(item);
@@ -249,7 +204,7 @@ namespace FH.UI
         /// </summary>
         /// <param name="item"></param>
         /// <param name="destroy_item"></param>
-        public void RemoveItem(IScrollerItem item, bool destroy_item)
+        public void RemoveItem(IScrollItem item, bool destroy_item)
         {
             if (!_item_list.Remove(item))
                 return;
@@ -261,7 +216,7 @@ namespace FH.UI
             _item_changed();
         }
 
-        public List<IScrollerItem> GetItemList()
+        public List<IScrollItem> GetItemList()
         {
             return _item_list;
         }
@@ -289,6 +244,9 @@ namespace FH.UI
 
         private void _clear_items()
         {
+            if (_item_list.Count == 0)
+                return;
+
             foreach (var a in _item_list)
             {
                 a.SetParent(null);
@@ -305,7 +263,7 @@ namespace FH.UI
 
             _evt?.OnScrollItemChange();
         }
-#endregion
+        #endregion
 
 
         public void Destroy()
@@ -317,11 +275,10 @@ namespace FH.UI
 
             _dummy.Destroy();
             ObjVersion++;
-
         }
 
         #region IScrollItemParent
-        RectTransform IScrollerItemParent.ItemParent
+        RectTransform IScrollItemParent.ItemParent
         {
             get
             {
@@ -330,109 +287,16 @@ namespace FH.UI
             }
         }
 
-        IResInstHolder IScrollerItemParent.Holder
+        IResInstHolder IScrollItemParent.Holder
         {
             get { return _holder; }
         }
 
-        void IScrollerItemParent.OnChildSizeChange()
+        void IScrollItemParent.OnChildSizeChange()
         {
             _item_changed();
         }
         #endregion
 
-    }
-
-
-    [RequireComponent(typeof(ScrollRect))]
-    public class UIScrollEventBehaviour : MonoBehaviour, IBeginDragHandler, IEndDragHandler
-    {
-        public const float C_THRESHOLD = 1.0f;
-        public Action EvtOnDragStart;
-        public Action EvtOnDragEnd;
-        public Action EvtOnScrollMoveEnd;
-        public Action EvtUpdate;
-
-        public float _threshold = C_THRESHOLD;
-
-        public enum EStatus
-        {
-            Stop,
-            Scrolling,
-            Moving,
-        }
-
-        public EStatus _status = EStatus.Stop;
-        private ScrollRect _scroll_rect;
-        private ScrollRect ScrollRect
-        {
-            get
-            {
-                if (_scroll_rect == null)
-                    _scroll_rect = GetComponent<ScrollRect>();
-                return _scroll_rect;
-            }
-        }
-
-        public static UIScrollEventBehaviour Get(ScrollRect rect)
-        {
-            return rect.ExtGetComp<UIScrollEventBehaviour>(true);
-        }
-
-        protected void Awake()
-        {
-            _status = EStatus.Stop;
-        }
-
-        void IBeginDragHandler.OnBeginDrag(PointerEventData eventData)
-        {
-            if (eventData.button != PointerEventData.InputButton.Left)
-                return;
-
-            if (!ScrollRect.IsActive())
-                return;
-            _status = EStatus.Scrolling;
-            EvtOnDragStart?.Invoke();
-        }
-
-        void IEndDragHandler.OnEndDrag(PointerEventData eventData)
-        {
-            if (eventData.button != PointerEventData.InputButton.Left)
-                return;
-
-            _status = EStatus.Moving;
-            EvtOnDragEnd?.Invoke();
-        }
-
-        protected void OnDisable()
-        {
-            _status = EStatus.Stop;
-        }
-
-        protected void Update()
-        {
-            _UpdateMovement();
-            EvtUpdate?.Invoke();
-        }
-
-        private void _UpdateMovement()
-        {
-            if (_status != EStatus.Moving)
-                return;
-
-            ScrollRect scroll = ScrollRect;
-            if (!_is_velocity_zero(scroll.velocity, _threshold))
-                return;
-            scroll.StopMovement();
-            _status = EStatus.Stop;
-            EvtOnScrollMoveEnd?.Invoke();
-        }
-
-        private static bool _is_velocity_zero(Vector2 velocity, float threshold)
-        {
-            if (Math.Abs(velocity.x) < threshold && Mathf.Abs(velocity.y) < threshold)
-                return true;
-            return false;
-        }
     }
 }

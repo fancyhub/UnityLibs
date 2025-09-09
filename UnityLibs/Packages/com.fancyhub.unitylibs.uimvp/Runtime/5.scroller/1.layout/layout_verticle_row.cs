@@ -12,9 +12,9 @@ using System.Collections.Generic;
 namespace FH.UI
 {
     // 垂直移动，但是 水平方向是按照grid 来的    
-    public class LayoutVRow : IScrollerLayout
+    public class ScrollScrollLayoutVRow : IScrollLayout
     {
-        public IScroller Scroller { get; set; }
+        public IScroll Scroller { get; set; }
 
         private int _count;
 
@@ -24,9 +24,9 @@ namespace FH.UI
         //y 方向上 两个item的间距
         private float _spacing = 0;
 
-        private LayoutPadding _padding = LayoutPadding.Zero;
+        private ScrollLayoutPadding _padding = ScrollLayoutPadding.Zero;
 
-        public LayoutVRow(int count = 1)
+        public ScrollScrollLayoutVRow(int count = 1)
         {
             _count = Mathf.Max(1, count);
         }
@@ -49,21 +49,24 @@ namespace FH.UI
             set => _spacing = Mathf.Max(0, value);
         }
 
-        public LayoutPadding Padding
+        public ScrollLayoutPadding Padding
         {
             get => _padding;
             set => _padding = value;
         }
+
+        public EScrollLayoutBuildFlag BuildFlag => EScrollLayoutBuildFlag.ItemChange;
+
         public bool EdChanged() { return false; }
-        public void Build()
+        public void Build(IScroll scroller)
         {
             //1. 参数检查
-            if (null == Scroller)
+            if (null == scroller)
                 return;
 
             //2. 一行中的每个单元的宽度，（视口宽度 / item个数）
-            List<IScrollerItem> list = Scroller.GetItemList();
-            Vector2 view_size = Scroller.ViewSize;
+            List<IScrollItem> list = scroller.GetItemList();
+            Vector2 view_size = scroller.ViewSize;
             float cell_width = (view_size.x - _padding.Left - _padding.Right) / _count;
 
             //3. 初始化y坐标，下一个y的坐标，一行的item计数
@@ -78,7 +81,7 @@ namespace FH.UI
                 int x = i % _count;
 
                 //4.2 设置该index下item的位置坐标
-                IScrollerItem item = list[i];
+                IScrollItem item = list[i];
                 Vector2 item_size = item.Size;
                 float pos_x = x * cell_width + (cell_width - item_size.x) * _alignment + _padding.Left;
                 item.Pos = new Vector2(pos_x, pos_y);
@@ -100,7 +103,7 @@ namespace FH.UI
 
             //5. 计算完所有item后得出的next_pos_y则为内容大小的高度
             size_y += _padding.Bottom;
-            Scroller.ContentSize = new Vector2(view_size.x, size_y);
+            scroller.ContentSize = new Vector2(view_size.x, size_y);
         }
     }
 }

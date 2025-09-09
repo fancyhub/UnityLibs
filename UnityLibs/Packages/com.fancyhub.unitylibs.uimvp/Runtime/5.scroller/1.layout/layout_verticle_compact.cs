@@ -13,38 +13,36 @@ using UnityEngine;
 namespace FH.UI
 {
     //紧凑垂直layout,尽量按一行一行排列，一行满就排到下一行
-    public class LayoutVCompact : IScrollerLayout
-    {
-        public IScroller Scroller { set; get; }
-
+    public class ScrollLayoutVCompact : IScrollLayout
+    { 
         //item 和item 之间 y 方向的距离
         public float _spacing_y = 0;
 
-        public LayoutPadding _padding = LayoutPadding.Zero;
+        public ScrollLayoutPadding _padding = ScrollLayoutPadding.Zero;
 
         //scroller 中的一行
         public LayoutVCompactRow _row = new LayoutVCompactRow();
 
-        public LayoutVCompact(float spacing_y)
+        public ScrollLayoutVCompact(float spacing_y)
         {
             _spacing_y = spacing_y;
         }
-
+        public EScrollLayoutBuildFlag BuildFlag => EScrollLayoutBuildFlag.ItemChange;
         public void SetSpacing(float spacing_x, float spacing_y)
         {
             _spacing_y = spacing_y;
             _row.SetSpacingX(spacing_x);
         }
 
-        public void SetPadding(LayoutPadding padding)
+        public void SetPadding(ScrollLayoutPadding padding)
         {
             _padding = padding;
         }
         public bool EdChanged() { return false; }
-        public void Build()
+        public void Build(IScroll scroller)
         {
             //1. 参数检查
-            if (null == Scroller)
+            if (null == scroller)
                 return;
 
             //2.1 scroller 内容的y坐标初始化
@@ -53,12 +51,12 @@ namespace FH.UI
             _row.Clear();
 
             //2.3 设置一行的宽度为  scroller 内容宽度
-            float width = Scroller.ViewSize.x - _padding.Left - _padding.Right;
+            float width = scroller.ViewSize.x - _padding.Left - _padding.Right;
 
             _row.SetContentWidth(width);
 
             //2.4 遍历 scroller 的item_list， 按行排列，若一行排不下，换到下一行
-            foreach (var a in Scroller.GetItemList())
+            foreach (var a in scroller.GetItemList())
             {
                 //2.4.1 如果一行加不进去说明行满
                 if (_row.AddItem(a))
@@ -91,14 +89,14 @@ namespace FH.UI
 
             //3.4 设置新的内容大小为内容宽度，和计算出来的y
             y += _padding.Bottom;
-            Scroller.ContentSize = new Vector2(width, y);
+            scroller.ContentSize = new Vector2(width, y);
         }
     }
 
     public class LayoutVCompactRow
     {
         //一行中的item缓存
-        public List<IScrollerItem> _items = new List<IScrollerItem>();
+        public List<IScrollItem> _items = new List<IScrollItem>();
 
         //内容宽度
         public float _content_width;
@@ -115,7 +113,7 @@ namespace FH.UI
         }
 
         // 给 scroller 的一行加入item
-        public bool AddItem(IScrollerItem item)
+        public bool AddItem(IScrollItem item)
         {
 
             //1. 每加入一个item，当前宽度就会加上一个item的宽度
@@ -140,7 +138,7 @@ namespace FH.UI
         public void SetPosition(float start_x, float start_y)
         {
             //1. 遍历这一行，设置item的坐标为 start_x, start_y, 
-            foreach (IScrollerItem item in _items)
+            foreach (IScrollItem item in _items)
             {
                 item.Pos = new Vector2(start_x, start_y);
                 //1.1 每设置一个坐标，start_x向右偏移一个item宽度的位置
