@@ -62,7 +62,7 @@ namespace FH.UI
         private PtrList _CurrentScenePages;
         protected CPtr<IUIScene> _NextScene;
 
-        protected UIUpdaterMgr _UpdaterMgr;
+        protected ListUpdate _UpdaterMgr;
         protected UIViewLayerMgr _ViewLayerMgr;
         protected UIPageTagMgr _TagMgr;
         protected UIPageGroupMgr _GroupMgr;
@@ -71,7 +71,7 @@ namespace FH.UI
         {
             _ = this;
             SceneMgrUpdater.CreateUpdater(_Update);
-            _UpdaterMgr = new UIUpdaterMgr();
+            _UpdaterMgr = new ListUpdate();
             FH.UI.UIObjFinder.Show();
         }
 
@@ -166,6 +166,8 @@ namespace FH.UI
             _._NextScene = new CPtr<IUIScene>(_.CreateScene<T>());
         }
 
+
+
         public static bool AddUpdate(IUIUpdater updater)
         {
             if (_ == null)
@@ -180,16 +182,16 @@ namespace FH.UI
             return _._UpdaterMgr.AddUpdate(action);
         }
 
-        public static int AddUpdateForever(Action action)
+        public static int AddUpdateForever(Action<float> action)
         {
             if (_ == null)
                 return 0;
             if (action == null)
                 return 0;
 
-            return _._UpdaterMgr.AddUpdate(() =>
+            return _._UpdaterMgr.AddUpdate((dt) =>
             {
-                action();
+                action(dt);
                 return EUIUpdateResult.Continue;
             });
         }
@@ -208,7 +210,7 @@ namespace FH.UI
         {
             _SwitchScene();
             _CurrentScene.Val?.OnUpdate();
-            _UpdaterMgr.Update();
+            _UpdaterMgr.Update(UnityEngine.Time.deltaTime);
         }
 
         private void _SwitchScene()

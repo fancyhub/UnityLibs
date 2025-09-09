@@ -18,7 +18,7 @@ namespace Game
             UISceneMgr.AddUpdate(this);
         }
 
-        void IUIUpdater.OnUIUpdate()
+        void IUIUpdater.OnUIUpdate(float dt)
         {
             //{ DateUtil.NowLocal.DateTime - _start_time}
             //{ DateUtil.NowLocal.DateTime}

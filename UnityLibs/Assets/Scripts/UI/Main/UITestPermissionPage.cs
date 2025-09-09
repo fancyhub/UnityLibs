@@ -25,16 +25,15 @@ namespace Game
         }
     }
 
-    public class UITestPermissionPage : UIPageBase<UITestPermissionView>, IUIUpdater
+    public class UITestPermissionPage : UIPageBase<UITestPermissionView>
     {
         public List<PerissmionItem> _Data = new List<PerissmionItem>();
-        public UIListViewSync<PerissmionItem, UITestPermissionItemPage> _ViewSyncer;
+        public IListDataSetter<PerissmionItem> _ViewSyncer;
 
         protected override void OnUI2Open()
         {
             base.OnUI2Open();
             BaseView._BtnClose.OnClick = _OnBtnCloseClick;
-            UISceneMgr.AddUpdate(this);
 
             _Data.Clear();
             if(Application.platform == RuntimePlatform.Android)
@@ -47,13 +46,10 @@ namespace Game
             }         
 
 
-            _ViewSyncer = new UIListViewSync<PerissmionItem, UITestPermissionItemPage>(this, BaseView._ScrollView.content);
+            //_ViewSyncer = new UIListViewSyncer<PerissmionItem, UITestPermissionItemPage>(this, BaseView._ScrollView.content);
             _ViewSyncer.SetData(_Data);
         }
-
-        void IUIUpdater.OnUIUpdate()
-        {
-        }
+         
 
         private void _OnBtnCloseClick()
         {

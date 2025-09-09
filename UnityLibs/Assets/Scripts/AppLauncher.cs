@@ -18,10 +18,10 @@ namespace Game
             FH.TaskQueue.Init(10);
 
             FH.UI.UIRedDotMgr.Init(FH.ELogLvl.Info);
-            FH.UI.UISceneMgr.AddUpdate(() => { FH.UI.UIRedDotMgr.Update(); return FH.UI.EUIUpdateResult.Continue; });
+            FH.UI.UISceneMgr.AddUpdate((float dt) => { FH.UI.UIRedDotMgr.Update(); return FH.UI.EUIUpdateResult.Continue; });
 
             FH.TimerMgr.Init();
-            FH.UI.UISceneMgr.AddUpdate(() => { FH.TimerMgr.Update(); return FH.UI.EUIUpdateResult.Continue; });
+            FH.UI.UISceneMgr.AddUpdate((float dt) => { FH.TimerMgr.Update(); return FH.UI.EUIUpdateResult.Continue; });
         }
     }
 

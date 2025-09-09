@@ -81,7 +81,7 @@ namespace FH
         /// <summary>
         /// 这里面将当前时间也作为参数传到下一层
         /// </summary>
-        public void Update()
+        public void Update(float dt = 0)
         {
             for (int i = 0; i < _channels.Length; ++i)
             {
@@ -134,7 +134,7 @@ namespace FH
         {
             for (int i = 0; i < (int)ENoticeChannel.Max; ++i)
             {
-                _channels[i]?.RaiseClearSignal(signal);                 
+                _channels[i]?.RaiseClearSignal(signal);
             }
         }
 

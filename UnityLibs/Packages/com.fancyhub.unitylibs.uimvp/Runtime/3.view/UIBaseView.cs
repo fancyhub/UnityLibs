@@ -107,6 +107,35 @@ namespace FH.UI
             }
         }
 
+        public virtual Vector2 GetViewSize()
+        {
+            if (_self_rect_tran == null)
+                return Vector2.one;
+            return _self_rect_tran.rect.size;
+        }
+
+        public virtual Vector2 GetPivot()
+        {
+            if (_self_rect_tran == null)
+                return Vector2.one;
+            return _self_rect_tran.pivot;
+        }
+
+
+        public virtual void SetLocalPos(Vector3 local_pos)
+        {
+            if (null == _self_rect_tran)
+                return;
+            _self_rect_tran.localPosition = local_pos;
+        }
+
+        public Vector3 GetLocalPos()
+        {
+            if (null == _self_rect_tran)
+                return Vector3.zero;
+            return _self_rect_tran.localPosition;
+        }
+
         #region Don't Need Impeplemnt
         public virtual string GetPath() { return null; }
         public virtual string GetDebugName() { return this.GetType().Name; }

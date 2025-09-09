@@ -42,6 +42,12 @@ namespace FH.UI
         void SetOrder(int order, bool relative = false);
     }
 
+    public interface IUISelectable
+    {
+        bool Selected { get; set; }
+        void SetBtnClickCb(Action<IUISelectable, long> cb);
+    }
+
 
     #region Res Page
     public interface IUIResPage : IHolderCallBack, IUIElement
@@ -221,7 +227,7 @@ namespace FH.UI
     #region update
     public interface IUIUpdater : IUIElement
     {
-        public void OnUIUpdate();
+        public void OnUIUpdate(float dt);
     }
     public enum EUIUpdateResult
     {
@@ -229,17 +235,7 @@ namespace FH.UI
         Stop,
     }
 
-    public delegate EUIUpdateResult ActionUIUpdate();
-
-    public interface IUIUpdaterMgr
-    {
-        public bool AddUpdate(IUIUpdater updater);
-        public int AddUpdate(ActionUIUpdate action);
-
-        public bool RemoveUpdate(int id);
-
-        public void Update();
-    }
+    public delegate EUIUpdateResult ActionUIUpdate(float dt);    
     #endregion
 
     #region IUIScene

@@ -3,58 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using FH;
+using FH.UI;
+using Unity.Collections;
 
 namespace Game
 {
 
-    public interface IDataSetter<T>
-    {
-        public void SetData(T data);
-    }
-    public class UIListViewSync<TData, TPage> where TPage : FH.UI.UIPageBase, IDataSetter<TData>, new()
-    {
-        private RectTransform _Dummy;
-        private FH.UI.UIPageBase _ParentPage;
-        private List<TPage> _ItemViews = new List<TPage>();
-        public UIListViewSync(FH.UI.UIPageBase parentPage, RectTransform dummy)
-        {
-            _ParentPage = parentPage;
-            _Dummy = dummy;
-        }
-
-        public void SetData(IList<TData> data)
-        {
-            //1. 删除多余的
-            int dataCount = 0;
-            if (data != null)
-                dataCount = data.Count;
-
-            for (int i = _ItemViews.Count - 1; i >= dataCount; i--)
-            {
-                _ItemViews[i].Destroy();
-                _ItemViews.RemoveAt(i);
-            }
-
-            //2. 创建新的
-            for (int i = _ItemViews.Count; i < dataCount; i++)
-            {
-                var openInfo = FH.UI.PageOpenInfo.CreateDefaultSubPage(_Dummy, _ParentPage.ResHolder);
-                var item = _ParentPage.OpenChildPage<TPage>(openInfo);
-                _ItemViews.Add(item);
-            }
-
-            //3. 数据同步
-            for (int i = 0; i < dataCount; i++)
-            {
-                _ItemViews[i].SetData(data[i]);
-            }
-        }
-    }
 
     public class UITestScenePage : FH.UI.UIPageBase<UITestSceneView>
     {
         public List<SceneRef> _SceneRefList = new List<SceneRef>();
-        public UIListViewSync<SceneRef, UIServerItemPage> _ViewSyncer;
+        public IListDataSetter<SceneRef> _ViewSyncer;
 
         private int _X = 0;
         private int _Y = 0;
@@ -70,7 +29,18 @@ namespace Game
             BaseView._BtnLoadSceneAdditive.OnClick = _OnLoadAdditive;
 
             _Comp = BaseView.SelfRoot.ExtGetComp<DynamicCoroutineComp>(true);
-            _ViewSyncer = new UIListViewSync<SceneRef, UIServerItemPage>(this, BaseView._ItemList);
+            _ViewSyncer = new UIListViewSyncer<SceneRef>(_ItemViewCreator);
+        }
+
+        public IListViewSyncerViewer<SceneRef> _ItemPageCreator()
+        {            
+            var openInfo = FH.UI.PageOpenInfo.CreateDefaultSubPage(BaseView._ItemList, ResHolder);
+            return OpenChildPage<UIServerItemPage>(openInfo);
+        }
+
+        public IListViewSyncerViewer<SceneRef> _ItemViewCreator()
+        {            
+            return FH.UI.UIBaseView.CreateView<Game.UISceneItemView>(BaseView._ItemList, ResHolder);
         }
 
         protected override void OnUI3Show()
@@ -92,7 +62,7 @@ namespace Game
             FH.UI.UIRedDotMgr.Set("root.test.scene", 0);
         }
 
-        private FH.UI.EUIUpdateResult _Update()
+        private FH.UI.EUIUpdateResult _Update(float dt)
         {
             if (!IsPageVisible || IsDestroyed())
                 return FH.UI.EUIUpdateResult.Stop;
@@ -110,7 +80,7 @@ namespace Game
             if (isDirty)
                 FH.UI.UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);
 
-            _ViewSyncer.SetData(_SceneRefList); 
+            _ViewSyncer.SetData(_SceneRefList);
             return FH.UI.EUIUpdateResult.Continue;
         }
 
@@ -158,9 +128,8 @@ namespace Game
     }
 
 
-    public class UIServerItemPage : FH.UI.UIPageBase<Game.UISceneItemView>, IDataSetter<SceneRef>
+    public class UIServerItemPage : FH.UI.UIPageBase<Game.UISceneItemView>, IListViewSyncerViewer<SceneRef>
     {
-        private FH.SceneRef _Data;
         public UIServerItemPage()
         {
         }
@@ -171,28 +140,13 @@ namespace Game
 
             BaseView._Unload.OnClick = () =>
                 {
-                    _Data.Unload();
+                    BaseView._Scene.Unload();
                 };
-        }
-
-        protected override void OnUI3Show()
-        {
-            base.OnUI3Show();
-            _Apply();
         }
 
         public void SetData(FH.SceneRef scene)
         {
-            _Data = scene;
-            _Apply();
-        }
-
-        private void _Apply()
-        {
-            if (BaseView == null)
-                return;
-
-            BaseView._Name.text = $"{_Data.SceneId}, Name:{_Data.UnityScene.name}_Valid:{_Data.IsValid}_Done:{_Data.IsDone} ";
+            BaseView.SetData(scene);
         }
     }
 }

@@ -55,7 +55,7 @@ namespace FH.NoticeSample
 
         internal sealed class MonoUpdater : MonoBehaviour
         {
-            public static Action ActionUpdate;
+            public static Action<float> ActionUpdate;
 
             private static MonoUpdater _Inst;
 
@@ -79,7 +79,7 @@ namespace FH.NoticeSample
             {
                 if (ActionUpdate == null)
                     return;
-                ActionUpdate();
+                ActionUpdate(Time.deltaTime);
             }
 
             public void OnDestroy()

@@ -23,6 +23,7 @@ namespace Game
 		public UIButtonView _BtnReloadUIScene;
 		public UIButtonView _BtnTime;
 		public UIButtonView _BtnPermission;
+		public UIButtonView _BtnScroller;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -44,6 +45,7 @@ namespace Game
 			_BtnReloadUIScene = _CreateSub<UIButtonView>(refs.GetObj("_BtnReloadUIScene"));
 			_BtnTime = _CreateSub<UIButtonView>(refs.GetObj("_BtnTime"));
 			_BtnPermission = _CreateSub<UIButtonView>(refs.GetObj("_BtnPermission"));
+			_BtnScroller = _CreateSub<UIButtonView>(refs.GetObj("_BtnScroller"));
 
         }
 
@@ -60,6 +62,7 @@ namespace Game
 			_BtnReloadUIScene.Destroy();
 			_BtnTime.Destroy();
 			_BtnPermission.Destroy();
+			_BtnScroller.Destroy();
 
         }
 

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace FH.UI
 {
-    public sealed class UIUpdaterMgr
+    public sealed class ListUpdate
     {
         private struct Data
         {
@@ -57,7 +57,7 @@ namespace FH.UI
                 }
             }
 
-            public bool Update()
+            public bool Update(float dt)
             {
                 switch (Type)
                 {
@@ -68,7 +68,7 @@ namespace FH.UI
                             var updater = UIUpdater.Val;
                             if (updater == null)
                                 return false;
-                            updater.OnUIUpdate();
+                            updater.OnUIUpdate(dt);
                             return true;
                         }
 
@@ -76,12 +76,12 @@ namespace FH.UI
                         {
                             if (Action == null)
                                 return false;
-                            return Action() == EUIUpdateResult.Continue;
+                            return Action(dt) == EUIUpdateResult.Continue;
                         }
                 }
             }
         }
-
+                
         private LinkedList<Data> _List = new LinkedList<Data>();
         private Dictionary<int, LinkedListNode<Data>> _Dict = new();
 
@@ -136,7 +136,7 @@ namespace FH.UI
             return true;
         }
 
-        public void Update()
+        public void Update(float dt)
         {
             var node = _List.First;
             for (; ; )
@@ -147,12 +147,17 @@ namespace FH.UI
                 var cur = node;
                 node = node.Next;
 
-                if (!data.Update())
+                if (!data.Update(dt))
                 {
                     cur.ExtRemoveFromList();
                     _Dict.Remove(data.ID);
                 }
             }
+        }
+    
+        public void Clear()
+        {
+
         }
     }
 }

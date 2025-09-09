@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace Game
 {
 
-    public partial class UISceneItemView // : FH.UI.UIBaseView 
+    public partial class UISceneItemView : FH.UI.IListViewSyncerViewer<FH.SceneRef>// : FH.UI.UIBaseView 
     {
         //public override void OnCreate()
         //{
@@ -19,6 +19,13 @@ namespace Game
         //{
         //    base.OnDestroy();    
         //}
+
+        public FH.SceneRef _Scene;
+        public void SetData(FH.SceneRef scene)
+        {
+            _Scene = scene;
+            _Name.text = $"{scene.SceneId}, Name:{scene.UnityScene.name}_Valid:{scene.IsValid}_Done:{scene.IsDone} ";
+        }
     }
 
 }

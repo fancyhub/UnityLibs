@@ -55,6 +55,11 @@ namespace Game
             {
                 FH.UI.UISceneMgr.OpenUI<Game.UITestPermissionPage>();
             };
+
+            BaseView._BtnScroller.OnClick = () =>
+            {
+                UISceneMgr.OpenUI<UITestScrollerPage>();
+            };
         }
 
         protected override void OnUI5Close()

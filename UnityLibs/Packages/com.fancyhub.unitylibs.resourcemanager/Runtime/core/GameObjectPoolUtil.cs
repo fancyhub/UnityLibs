@@ -13,9 +13,10 @@ namespace FH
     {
         public void OnDynamicRelease();
     }
+     
 
     public sealed class DynamicCoroutineComp : MonoBehaviour, IDynamicComponent
-    {        
+    {
         void IDynamicComponent.OnDynamicRelease()
         {
             this.StopAllCoroutines();

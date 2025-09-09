@@ -15,7 +15,7 @@ namespace Game
             UISceneMgr.AddUpdate(this);
         }
 
-        public void OnUIUpdate()
+        public void OnUIUpdate(float dt)
         {
             if (_Op.IsDone)
             {
