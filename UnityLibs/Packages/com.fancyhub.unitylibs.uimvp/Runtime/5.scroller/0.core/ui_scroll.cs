@@ -59,22 +59,25 @@ namespace FH.UI
         private RectTransform _view_port_tran;
         private RectTransform _content_tran;
         private ScrollerDummy _dummy;
+        private Vector2 _view_port_size;
 
-        private Vector2 _real_content_size = Vector2.zero;
+        private Vector2 _content_size = Vector2.zero;
         private IScrollEvent _evt;
         private List<IScrollItem> _item_list = new List<IScrollItem>();
         private int _batch_mode = 0;
 
         public UIScroll(ScrollRect scroll_rect, IResInstHolder holder)
-        {            
+        {
             _holder = holder;
 
             _unity_scroll = scroll_rect;
-            _view_port_tran = _unity_scroll.viewport;
+            _view_port_tran = scroll_rect.viewport;
             _content_tran = _unity_scroll.content;
 
             ContentPos = Vector2.zero;
             ContentSize = Vector2.zero;
+            _view_port_size = _view_port_tran.rect.size;
+            ViewPortSizeMonitor.MonitorSizeChanged(_view_port_tran, _on_view_size_changed);
         }
 
         public IScrollEvent ScrollerEvent { get { return _evt; } set { _evt = value; } }
@@ -88,48 +91,39 @@ namespace FH.UI
             {
                 Vector2 size = _view_port_tran.rect.size;
                 return size;
-            }
-
-            set
-            {
-                //1. 获取size, 不能变成负数
-                Vector2 new_size = value;
-                new_size.x = Mathf.Max(0, new_size.x);
-                new_size.y = Mathf.Max(0, new_size.y);
-
-                //2. 比较,是否发生变化
-                Vector2 now_size = ViewSize;
-                if (now_size.Equals(new_size))
-                    return;
-
-                //3. 设置view size
-                _view_port_tran.sizeDelta = new_size;
-
-                //4. 调整 content size
-                _update_content_transform_size();
-
-                //5. 发出事件, view size 发生变化了
-                _evt?.OnScrollViewSizeChange(now_size - new_size);
-            }
+            }            
         }
 
+        private void _on_view_size_changed()
+        {
+            //1. 获取size, 不能变成负数
+            Vector2 new_size = _view_port_tran.rect.size;
 
-        /// <summary>
-        /// ContentSize = Max(ViewSize,AllItemSize)
-        /// </summary>
+            //2. 比较,是否发生变化
+            Vector2 old_size = _view_port_size;
+            if (_view_port_size.Equals(new_size))
+                return;
+
+            //3. 调整 content size
+            _update_unity_content_size();
+
+            //4. 发出事件, view size 发生变化了
+            _evt?.OnScrollViewSizeChange(new_size - old_size);
+        }
+            
         public Vector2 ContentSize
         {
             set
             {
                 Vector2 new_content_size = Vector2.Max(value, Vector2.zero);
-                if (_real_content_size.Equals(new_content_size))
+                if (_content_size.Equals(new_content_size))
                     return;
-                _real_content_size = new_content_size;
-                _update_content_transform_size();
+                _content_size = new_content_size;
+                _update_unity_content_size();
             }
             get
             {
-                return _content_tran.rect.size;
+                return _content_size;
             }
         }
 
@@ -155,10 +149,10 @@ namespace FH.UI
             get
             {
                 //根据 容器的大小来计算,而不是根据 内容的大小
-                Vector2 cont_size = ContentSize;
+                Vector2 unity_cont_size = _content_tran.rect.size;
                 Vector2 view_size = ViewSize;
 
-                Vector2 ret = cont_size - view_size;
+                Vector2 ret = unity_cont_size - view_size;
                 ret.x = Mathf.Max(ret.x, 0.0001f);
                 ret.y = Mathf.Max(ret.y, 0.0001f);
 
@@ -166,10 +160,10 @@ namespace FH.UI
             }
         }
 
-        private void _update_content_transform_size()
+        private void _update_unity_content_size()
         {
             //1. 获取view 的size
-            Vector2 new_content_transform_size = Vector2.Max(ViewSize, _real_content_size);
+            Vector2 new_content_transform_size = Vector2.Max(ViewSize, _content_size);
             Vector2 old_content_transform_size = _content_tran.rect.size;
 
             //4. 比较content size 是否发生了变化
@@ -298,5 +292,27 @@ namespace FH.UI
         }
         #endregion
 
+
+        private class ViewPortSizeMonitor : UIBehaviour
+        {
+            private Action _call_back;
+            public static void MonitorSizeChanged(RectTransform tar, Action call_back)
+            {
+                if (tar == null)
+                    return;
+                var inst = tar.GetComponent<ViewPortSizeMonitor>();
+                if (inst == null)
+                {
+                    inst = tar.gameObject.AddComponent<ViewPortSizeMonitor>();
+                }
+
+                inst._call_back = call_back;
+            }
+
+            protected override void OnRectTransformDimensionsChange()
+            {
+                _call_back?.Invoke();
+            }
+        }
     }
 }

@@ -103,7 +103,7 @@ namespace FH
             return _Driver.AddTimer(cb, time_ms);
         }
 
-        public static void Update()
+        public static void Update(float dt =0)
         {
             if (_Driver == null)
                 return;

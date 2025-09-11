@@ -49,7 +49,7 @@ namespace FH.UI
         /// <summary>
         /// 获取裁剪窗口的大小
         /// </summary>
-        public Vector2 ViewSize { get; set; }
+        public Vector2 ViewSize { get; }
 
         /// <summary>
         /// 内容的位置

@@ -16,7 +16,7 @@ namespace Game
         public override void OnCreate()
         {
             base.OnCreate();
-            UIScroll = FUIScroll.Create(this._ScrollBase,  this.ResHolder);
+            UIScroll = FUIScroll.Create(this._ScrollBase, this.ResHolder);
         }
 
         public override void OnDestroy()
@@ -29,12 +29,11 @@ namespace Game
         public Vector2 ViewSize
         {
             get => UIScroll.ViewSize;
-            set => UIScroll.ViewSize = value;
         }
 
         public void SetLayout(IScrollLayout layout)
         {
-            UIScroll.SetLayout(layout);
+            UIScroll.Layout = layout;
         }
 
         public void AddItem(IScrollItem item)
@@ -60,7 +59,7 @@ namespace Game
         {
             return UIScroll.GetItemList();
         }
-      
+
 
         public void MoveToEnd()
         {

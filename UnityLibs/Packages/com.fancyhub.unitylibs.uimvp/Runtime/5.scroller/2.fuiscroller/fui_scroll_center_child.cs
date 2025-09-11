@@ -98,7 +98,7 @@ namespace FH.UI
             _timer = 0;
             _moving = true;
 
-            UISceneMgr.AddUpdate(_on_update);
+            UIMgr.UpdateList+=_on_update;
         }
 
         private void _on_scroll_move_end()

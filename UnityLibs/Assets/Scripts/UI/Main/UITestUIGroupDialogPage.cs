@@ -13,7 +13,7 @@ namespace Game
 
             BaseView._BtnOpenFree.OnClick = () =>
                 {
-                    FH.UI.UISceneMgr.OpenUI<UITestUIGroupDialogPage>(new FH.UI.PageOpenInfo()
+                    FH.UI.UIMgr.OpenUI<UITestUIGroupDialogPage>(new FH.UI.PageOpenInfo()
                     {
                         GroupChannel = FH.UI.EUIPageGroupChannel.Free,
                         AddToScene = true,
@@ -25,7 +25,7 @@ namespace Game
 
             BaseView._BtnOpenFreeUnique.OnClick = () =>
             {
-                FH.UI.UISceneMgr.OpenUI<UITestUIGroupDialogPage>(new FH.UI.PageOpenInfo()
+                FH.UI.UIMgr.OpenUI<UITestUIGroupDialogPage>(new FH.UI.PageOpenInfo()
                 {
                     GroupChannel = FH.UI.EUIPageGroupChannel.Free,
                     AddToScene = true,
@@ -37,7 +37,7 @@ namespace Game
 
             BaseView._BtnOpenStack.OnClick = () =>
             {
-                FH.UI.UISceneMgr.OpenUI<UITestUIGroupDialogPage>(new FH.UI.PageOpenInfo()
+                FH.UI.UIMgr.OpenUI<UITestUIGroupDialogPage>(new FH.UI.PageOpenInfo()
                 {
                     GroupChannel = FH.UI.EUIPageGroupChannel.Stack,
                     AddToScene = true,
@@ -50,7 +50,7 @@ namespace Game
 
             BaseView._BtnOpenStackUnique.OnClick = () =>
             {
-                FH.UI.UISceneMgr.OpenUI<UITestUIGroupDialogPage>(new FH.UI.PageOpenInfo()
+                FH.UI.UIMgr.OpenUI<UITestUIGroupDialogPage>(new FH.UI.PageOpenInfo()
                 {
                     GroupChannel = FH.UI.EUIPageGroupChannel.Stack,
                     AddToScene = true,
@@ -63,7 +63,7 @@ namespace Game
 
             BaseView._BtnOpenQueue.OnClick = () =>
             {
-                FH.UI.UISceneMgr.OpenUI<UITestUIGroupDialogPage>(new FH.UI.PageOpenInfo()
+                FH.UI.UIMgr.OpenUI<UITestUIGroupDialogPage>(new FH.UI.PageOpenInfo()
                 {
                     GroupChannel = FH.UI.EUIPageGroupChannel.Queue,
                     AddToScene = true,
@@ -75,7 +75,7 @@ namespace Game
 
             BaseView._BtnOpenQueueUnique.OnClick = () =>
             {
-                FH.UI.UISceneMgr.OpenUI<UITestUIGroupDialogPage>(new FH.UI.PageOpenInfo()
+                FH.UI.UIMgr.OpenUI<UITestUIGroupDialogPage>(new FH.UI.PageOpenInfo()
                 {
                     GroupChannel = FH.UI.EUIPageGroupChannel.Queue,
                     AddToScene = true,

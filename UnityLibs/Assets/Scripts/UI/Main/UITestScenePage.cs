@@ -19,7 +19,6 @@ namespace Game
         private int _Y = 0;
 
 
-        public DynamicCoroutineComp _Comp;
         protected override void OnUI2Open()
         {
             base.OnUI2Open();
@@ -28,26 +27,20 @@ namespace Game
             BaseView._BtnLoadSceneSingle.OnClick = _OnLoadSingle;
             BaseView._BtnLoadSceneAdditive.OnClick = _OnLoadAdditive;
 
-            _Comp = BaseView.SelfRoot.ExtGetComp<DynamicCoroutineComp>(true);
-            _ViewSyncer = new UIListViewSyncer<SceneRef>(_ItemViewCreator);
+            _ViewSyncer = new UIListViewSyncer<SceneRef>(_ItemPageCreator);
         }
 
         public IListViewSyncerViewer<SceneRef> _ItemPageCreator()
-        {            
+        {
             var openInfo = FH.UI.PageOpenInfo.CreateDefaultSubPage(BaseView._ItemList, ResHolder);
             return OpenChildPage<UIServerItemPage>(openInfo);
-        }
-
-        public IListViewSyncerViewer<SceneRef> _ItemViewCreator()
-        {            
-            return FH.UI.UIBaseView.CreateView<Game.UISceneItemView>(BaseView._ItemList, ResHolder);
-        }
+        } 
 
         protected override void OnUI3Show()
         {
             base.OnUI3Show();
 
-            FH.UI.UISceneMgr.AddUpdate(_Update);
+            FH.UI.UIMgr.UpdateList += _Update;
         }
 
         protected override void OnUI5Close()
@@ -138,10 +131,12 @@ namespace Game
         {
             base.OnUI2Open();
 
-            BaseView._Unload.OnClick = () =>
-                {
-                    BaseView._Scene.Unload();
-                };
+            BaseView._Unload.OnClick = _OnClick;
+        }
+
+        private void _OnClick()
+        {
+            BaseView._Scene.Unload();
         }
 
         public void SetData(FH.SceneRef scene)

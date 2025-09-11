@@ -55,7 +55,7 @@ namespace Game
                 return;
 
             _ = new NoticeApi();
-            FH.UI.UISceneMgr.AddUpdateForever(_._Mgr.Update);
+            FH.UI.UIMgr.UpdateList += _._Mgr.Update;
         }
     }
 }

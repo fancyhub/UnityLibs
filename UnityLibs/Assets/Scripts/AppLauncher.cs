@@ -13,20 +13,20 @@ namespace Game
             FH.Log.AutoInit();
 
             new MyUISceneMgr().Init();
-            FH.UI.UISceneMgr.ChangeScene<UISceneExtractAsset>();
+            FH.UI.UIMgr.ChangeScene<UISceneExtractAsset>();
 
             FH.TaskQueue.Init(10);
 
             FH.UI.UIRedDotMgr.Init(FH.ELogLvl.Info);
-            FH.UI.UISceneMgr.AddUpdate((float dt) => { FH.UI.UIRedDotMgr.Update(); return FH.UI.EUIUpdateResult.Continue; });
+            FH.UI.UIMgr.UpdateList += FH.UI.UIRedDotMgr.Update;
 
             FH.TimerMgr.Init();
-            FH.UI.UISceneMgr.AddUpdate((float dt) => { FH.TimerMgr.Update(); return FH.UI.EUIUpdateResult.Continue; });
+            FH.UI.UIMgr.UpdateList += FH.TimerMgr.Update;
         }
     }
 
 
-    public class MyUISceneMgr : FH.UI.UISceneMgr
+    public class MyUISceneMgr : FH.UI.UIMgr
     {
         protected override FH.UI.IUIScene CreateScene<T>()
         {

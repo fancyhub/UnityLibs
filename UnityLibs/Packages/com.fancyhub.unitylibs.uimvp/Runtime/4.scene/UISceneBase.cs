@@ -30,7 +30,7 @@ namespace FH.UI
             defaultInfo.ResHolder = ResHolder;
             defaultInfo.ViewParent = Parent;
 
-            return UISceneMgr.OpenUI<T>(defaultInfo);
+            return UIMgr.OpenUI<T>(defaultInfo);
         }
     }
 }

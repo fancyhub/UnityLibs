@@ -14,7 +14,7 @@ namespace FH.UI
     public sealed class UIStateGroup : MonoBehaviour
     {
         [Serializable]
-        private sealed class UIState
+        public sealed class UIState
         {
             public string name;
             public GameObject[] objs;

@@ -25,7 +25,7 @@ namespace FH.UI
         //scroller居中的item索引
         private int _scroller_item_index = -1;
 
-        private bool _dir_ver = true;
+        private bool _dir_vertical = true;
 
 
         public FUIScrollerAutoSelectCenter(FUIScroll scroller, Action<int> on_item_change)
@@ -36,7 +36,7 @@ namespace FH.UI
             _on_item_change = on_item_change;
 
             if (!scroller.UnityScroll.vertical)
-                _dir_ver = false;
+                _dir_vertical = false;
 
             //如果item变化没有事件通知，则不设置item居中的索引
             if (null != on_item_change)
@@ -69,7 +69,7 @@ namespace FH.UI
 
         public int GetSelectedItemIndex()
         {
-            if (_dir_ver)
+            if (_dir_vertical)
             {
                 //1. 找到Scroller scroller 的中心点
                 //scroller 的中心点y坐标 = scroller 中内容位置的垂直坐标y + viewport的垂直长度的一半；

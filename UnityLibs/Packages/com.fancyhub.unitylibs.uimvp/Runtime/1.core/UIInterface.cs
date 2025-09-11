@@ -223,20 +223,7 @@ namespace FH.UI
         public bool SetBgClick(int view_id, IUILayerViewBGHandler handler, EUIBgClickMode click_mode);
     }
     #endregion
-
-    #region update
-    public interface IUIUpdater : IUIElement
-    {
-        public void OnUIUpdate(float dt);
-    }
-    public enum EUIUpdateResult
-    {
-        Continue,
-        Stop,
-    }
-
-    public delegate EUIUpdateResult ActionUIUpdate(float dt);    
-    #endregion
+     
 
     #region IUIScene
 

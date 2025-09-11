@@ -47,10 +47,10 @@ namespace FH.UI
         public IResInstHolder ResHolder;
     }
 
-    public abstract class UISceneMgr : IUISceneMgr
+    public abstract class UIMgr : IUISceneMgr
     {
-        private static UISceneMgr _;
-        public static UISceneMgr Inst
+        private static UIMgr _;
+        public static UIMgr Inst
         {
             get
             {
@@ -62,20 +62,22 @@ namespace FH.UI
         private PtrList _CurrentScenePages;
         protected CPtr<IUIScene> _NextScene;
 
-        protected ListUpdate _UpdaterMgr;
+        private UIUpdateList _UpdateList;
+
+
         protected UIViewLayerMgr _ViewLayerMgr;
         protected UIPageTagMgr _TagMgr;
         protected UIPageGroupMgr _GroupMgr;
 
-        public UISceneMgr()
+        public UIMgr()
         {
             _ = this;
             SceneMgrUpdater.CreateUpdater(_Update);
-            _UpdaterMgr = new ListUpdate();
+            _UpdateList = new UIUpdateList();
             FH.UI.UIObjFinder.Show();
         }
 
-        public virtual UISceneMgr Init()
+        public virtual UIMgr Init()
         {
             _ViewLayerMgr = new UIViewLayerMgr(UIRoot.Root2D);
             _ViewLayerMgr.AddLayer(EUIViewLayer.Normal.ToString(), true);
@@ -166,43 +168,20 @@ namespace FH.UI
             _._NextScene = new CPtr<IUIScene>(_.CreateScene<T>());
         }
 
-
-
-        public static bool AddUpdate(IUIUpdater updater)
+        public static UIUpdateList UpdateList
         {
-            if (_ == null)
-                return false;
-            return _._UpdaterMgr.AddUpdate(updater);
-        }
-
-        public static int AddUpdate(ActionUIUpdate action)
-        {
-            if (_ == null)
-                return 0;
-            return _._UpdaterMgr.AddUpdate(action);
-        }
-
-        public static int AddUpdateForever(Action<float> action)
-        {
-            if (_ == null)
-                return 0;
-            if (action == null)
-                return 0;
-
-            return _._UpdaterMgr.AddUpdate((dt) =>
+            get
             {
-                action(dt);
-                return EUIUpdateResult.Continue;
-            });
-        }
+                if (_ == null)
+                    return null;
 
-        public static bool RemoveUpdate(int id)
-        {
-            if (_ == null)
-                return false;
-            return _._UpdaterMgr.RemoveUpdate(id);
+                return _._UpdateList;
+            }
+            set
+            {
+            }
         }
-
+         
         protected abstract IUIScene CreateScene<T>();
 
 
@@ -210,7 +189,7 @@ namespace FH.UI
         {
             _SwitchScene();
             _CurrentScene.Val?.OnUpdate();
-            _UpdaterMgr.Update(UnityEngine.Time.deltaTime);
+            _UpdateList.Update(UnityEngine.Time.deltaTime);
         }
 
         private void _SwitchScene()

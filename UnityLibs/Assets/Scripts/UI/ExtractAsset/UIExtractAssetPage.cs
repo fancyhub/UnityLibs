@@ -12,20 +12,20 @@ namespace Game
         {
             base.OnUI2Open();
             _Op = FileMgr.GetExtractOperation();
-            UISceneMgr.AddUpdate(this);
+            UIMgr.UpdateList += this;
         }
 
         public void OnUIUpdate(float dt)
         {
             if (_Op.IsDone)
             {
-                UISceneMgr.ChangeScene<UISceneMain>();
+                UIMgr.ChangeScene<UISceneMain>();
             }
 
-            if(BaseView!=null)
+            if (BaseView != null)
             {
                 BaseView._LblDesc.text = _Op.Progress.ToString();
-            }            
+            }
         }
     }
 }

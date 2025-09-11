@@ -39,10 +39,24 @@ namespace FH.UI
             eui_scroll._scroller.ScrollerEvent = eui_scroll;
             eui_scroll._movement = UIScrollMovement.Get(scroll_rect);
             eui_scroll._movement.ScrollerEvent = eui_scroll;
-            eui_scroll._layout = ScrollLayoutUnityWrapFactory.Create(scroll_rect, scroll_rect.content);
             eui_scroll._culler = new ScrollCuller();
 
             return eui_scroll;
+        }
+
+        public IScrollLayout Layout
+        {
+            get
+            {
+                if (_layout == null)
+                    _layout = ScrollLayoutUnityWrapFactory.Create(_scroller.UnityScroll, _scroller.UnityScroll.content);
+                return _layout;
+            }
+
+            set
+            {
+                _layout = value;
+            }
         }
 
         private FUIScroll()
@@ -54,7 +68,6 @@ namespace FH.UI
         public Vector2 ViewSize
         {
             get => _scroller.ViewSize;
-            set => _scroller.ViewSize = value;
         }
 
         public Vector2 ContentSize
@@ -84,41 +97,9 @@ namespace FH.UI
             get => _scroller.UnityScroll;
         }
 
-
-
-        public float ViewHeight
-        {
-            get { return _scroller.ViewSize.y; }
-            set
-            {
-                Vector2 view_size = _scroller.ViewSize;
-                view_size.y = value;
-                _scroller.ViewSize = view_size;
-            }
-        }
-
         public void Refresh(bool layout = false)
         {
             _build_layout_and_culling(layout);
-        }
-
-        public void SetCuller(IScrollCuller culler)
-        {
-            if (_culler == culler || culler == null)
-                return;
-            _culler = culler;
-            Log.Assert(_scroller.GetItemList().Count == 0, "必须要先设置 culling才能添加 item");
-        }
-
-        public void SetLayout(IScrollLayout layout)
-        {
-            _layout = layout;
-
-        }
-
-        public IScrollLayout GetLayout()
-        {
-            return _layout;
         }
 
         public void Destroy()
@@ -282,7 +263,7 @@ namespace FH.UI
         void IScrollEvent.OnScrollUpdate()
         {
 #if UNITY_EDITOR 
-            if (_layout.EdChanged())
+            if (Layout.EdChanged())
             {
                 this.Refresh(true);
             }
@@ -293,7 +274,7 @@ namespace FH.UI
             if (_in_stack)
                 return;
 
-            _build_layout_and_culling((_layout.BuildFlag & EScrollLayoutBuildFlag.ItemChange) != EScrollLayoutBuildFlag.None);
+            _build_layout_and_culling((Layout.BuildFlag & EScrollLayoutBuildFlag.ItemChange) != EScrollLayoutBuildFlag.None);
         }
 
         void IScrollEvent.OnScrollViewSizeChange(Vector2 dt)
@@ -305,12 +286,12 @@ namespace FH.UI
             _scroller.ContentPos = new Vector2(pos_x, pos_y);
 
 
-            _build_layout_and_culling((_layout.BuildFlag & EScrollLayoutBuildFlag.ViewSizeChange) != EScrollLayoutBuildFlag.None);
+            _build_layout_and_culling((Layout.BuildFlag & EScrollLayoutBuildFlag.ViewSizeChange) != EScrollLayoutBuildFlag.None);
         }
 
         void IScrollEvent.OnScrollMoving()
         {
-            _build_layout_and_culling((_layout.BuildFlag & EScrollLayoutBuildFlag.Moving) != EScrollLayoutBuildFlag.None);
+            _build_layout_and_culling((Layout.BuildFlag & EScrollLayoutBuildFlag.Moving) != EScrollLayoutBuildFlag.None);
         }
 
         void IScrollEvent.OnScrollDragStart()
@@ -337,7 +318,7 @@ namespace FH.UI
             _in_stack = true;
 
             if (rebuild)
-                _layout.Build(_scroller);
+                Layout.Build(_scroller);
 
             for (; ; )
             {
@@ -345,7 +326,7 @@ namespace FH.UI
                 {
                     break;
                 }
-                _layout.Build(_scroller);
+                Layout.Build(_scroller);
             }
 
             _in_stack = false;

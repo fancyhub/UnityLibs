@@ -76,7 +76,7 @@ namespace FH.UI
 
             //3. 挂载更新
             if (!_playing)
-                UISceneMgr.AddUpdate(_update);
+                UIMgr.UpdateList +=_update;
             _playing = true;
         }
 

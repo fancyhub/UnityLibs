@@ -26,7 +26,7 @@ namespace FH
         }
 
         [System.Serializable]
-        struct PermissionResult
+        public struct PermissionResult
         {
             public bool allGranted;
             public string[] grantedList;

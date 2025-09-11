@@ -50,15 +50,15 @@ namespace FH.UI
     /// </summary>
     public class FUIScrollBinder<TData> : IUIScrollBinder<TData>
     {
-        public static TData[] _empty = new TData[0];
-        public static LinkedList<IScrollListItem<TData>> _item_cache_list = new LinkedList<IScrollListItem<TData>>();
+        private static TData[] _empty = new TData[0];
+        private static LinkedList<IScrollListItem<TData>> _item_cache_list = new LinkedList<IScrollListItem<TData>>();
 
-        public FUIScroll _scroller;
-        public IUIScrollListItemFactory<TData> _item_factory;
-        public List<IScrollListItem<TData>> _item_list = new List<IScrollListItem<TData>>();
-        public IList<TData> _data;
-        public ScrollItemClickCB _item_click_cb;
-        public Action<TData, IUIView> _view_create_cb;
+        private FUIScroll _scroller;
+        private IUIScrollListItemFactory<TData> _item_factory;
+        private List<IScrollListItem<TData>> _item_list = new List<IScrollListItem<TData>>();
+        private IList<TData> _data;
+        private ScrollItemClickCB _item_click_cb;
+        private Action<TData, IUIView> _view_create_cb;
 
         public FUIScrollBinder(FUIScroll scroller, IUIScrollListItemFactory<TData> item_factory)
         {
@@ -173,7 +173,7 @@ namespace FH.UI
             _scroller.EndBatch();
         }
 
-        public IScrollListItem<TData> _find_suit_item(
+        private IScrollListItem<TData> _find_suit_item(
             TData vo_data,
             IUIScrollListItemFactory<TData> item_factory,
             LinkedList<IScrollListItem<TData>> link_list)
@@ -246,12 +246,12 @@ namespace FH.UI
             ClearItems();
         }
 
-        public void _on_item_click(int index, long user_data)
+        private void _on_item_click(int index, long user_data)
         {
             _item_click_cb?.Invoke(index, user_data);
         }
 
-        public void _on_view_create(TData data, IUIView view)
+        private void _on_view_create(TData data, IUIView view)
         {
             _view_create_cb?.Invoke(data, view);
         }

@@ -13,52 +13,52 @@ namespace Game
             base.OnUI2Open();
             BaseView._BtnTestUIGroupDialog.OnClick = () =>
             {
-                FH.UI.UISceneMgr.OpenUI<Game.UITestUIGroupDialogPage>();
+                FH.UI.UIMgr.OpenUI<Game.UITestUIGroupDialogPage>();
             };
 
             BaseView._BtnTestLoadScene.OnClick = () =>
             {
-                FH.UI.UISceneMgr.OpenUI<Game.UITestScenePage>();
+                FH.UI.UIMgr.OpenUI<Game.UITestScenePage>();
             };
 
             BaseView._BtnTestPageAsync.OnClick = () =>
             {
-                FH.UI.UISceneMgr.OpenUI<Game.UITestUIResPage>();
+                FH.UI.UIMgr.OpenUI<Game.UITestUIResPage>();
             };
 
             BaseView._BtnTestDeviceInfo.OnClick = () =>
             {
-                FH.UI.UISceneMgr.OpenUI<Game.UITestDeviceInfoPage>();
+                FH.UI.UIMgr.OpenUI<Game.UITestDeviceInfoPage>();
             };
 
             BaseView._BtnLocalization.OnClick = () =>
             {
-                FH.UI.UISceneMgr.OpenUI<Game.UITestLocalizationPage>();
+                FH.UI.UIMgr.OpenUI<Game.UITestLocalizationPage>();
             };
 
             BaseView._BtnUpgrade.OnClick = () =>
             {
-                FH.UI.UISceneMgr.OpenUI<Game.UITestUpgradePage>();
+                FH.UI.UIMgr.OpenUI<Game.UITestUpgradePage>();
             };
 
             BaseView._BtnReloadUIScene.OnClick = () =>
             {
-                FH.UI.UISceneMgr.ChangeScene<UISceneMain>();
+                FH.UI.UIMgr.ChangeScene<UISceneMain>();
             };
 
             BaseView._BtnTime.OnClick = () =>
             {
-                FH.UI.UISceneMgr.OpenUI<Game.UITestTimePage>();
+                FH.UI.UIMgr.OpenUI<Game.UITestTimePage>();
             };
             
             BaseView._BtnPermission.OnClick = () =>
             {
-                FH.UI.UISceneMgr.OpenUI<Game.UITestPermissionPage>();
+                FH.UI.UIMgr.OpenUI<Game.UITestPermissionPage>();
             };
 
             BaseView._BtnScroller.OnClick = () =>
             {
-                UISceneMgr.OpenUI<UITestScrollerPage>();
+                UIMgr.OpenUI<UITestScrollerPage>();
             };
         }
 

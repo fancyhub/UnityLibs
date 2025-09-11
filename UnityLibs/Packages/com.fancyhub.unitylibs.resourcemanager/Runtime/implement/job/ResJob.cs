@@ -35,8 +35,8 @@ namespace FH.ResManagement
         public CPtr<IResDoneCallBack> Target;
 #if UNITY_2023_2_OR_NEWER
         public AwaitableCompletionSource<(EResError error, ResRef res_ref)> AwaitSource;
-#endif
         public CancellationToken CancelToken;
+#endif
 
         public bool IsValid => Type != 0;
 
@@ -117,8 +117,8 @@ namespace FH.ResManagement
         public CPtr<IInstDoneCallBack> Target;
 #if UNITY_2023_2_OR_NEWER
         public AwaitableCompletionSource<(EResError error, ResRef res_ref)> AwaitSource;
-#endif
         public CancellationToken CancelToken;
+#endif
 
         public bool IsValid => Type != 0;
 
@@ -134,8 +134,8 @@ namespace FH.ResManagement
                 Target = null,
 #if UNITY_2023_2_OR_NEWER
                 AwaitSource = null,
-#endif
                 CancelToken = default,
+#endif
             };
             return ret;
         }
@@ -151,8 +151,8 @@ namespace FH.ResManagement
                 Target = new CPtr<IInstDoneCallBack>(target),
 #if UNITY_2023_2_OR_NEWER
                 AwaitSource = null,
-#endif
                 CancelToken = default,
+#endif
             };
             return ret;
         }
@@ -241,10 +241,12 @@ namespace FH.ResManagement
             {
                 if (_IsCancelled)
                     return true;
+#if UNITY_2023_2_OR_NEWER
                 if (EventResCallBack.IsValid && EventResCallBack.CancelToken.IsCancellationRequested)
                     return true;
                 if (EventInstCallBack.IsValid && EventInstCallBack.CancelToken.IsCancellationRequested)
                     return true;
+#endif
                 return false;
             }
         }

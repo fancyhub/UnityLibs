@@ -43,13 +43,18 @@ namespace Game
                 {
                     _Data.Add(new(permission, EPermissionItem.Android));
                 }
-            }         
+            }
 
-
-            //_ViewSyncer = new UIListViewSyncer<PerissmionItem, UITestPermissionItemPage>(this, BaseView._ScrollView.content);
+            _ViewSyncer = new UIListViewSyncer<PerissmionItem>(_ItemPageCreator);
             _ViewSyncer.SetData(_Data);
         }
-         
+
+        public IListViewSyncerViewer<PerissmionItem> _ItemPageCreator()
+        {
+            var openInfo = FH.UI.PageOpenInfo.CreateDefaultSubPage(BaseView._ScrollView.content, ResHolder);
+            var ret= OpenChildPage<UITestPermissionItemPage>(openInfo);
+            return ret;
+        }
 
         private void _OnBtnCloseClick()
         {
@@ -57,7 +62,7 @@ namespace Game
         }
     }
 
-    public class UITestPermissionItemPage : UIPageBase<UIPermissionItemView>, IDataSetter<PerissmionItem>
+    public class UITestPermissionItemPage : UIPageBase<UIPermissionItemView>, IListViewSyncerViewer<PerissmionItem>
     {
         private PerissmionItem _Data;
 
@@ -115,26 +120,26 @@ namespace Game
                 _UnityCallBacks.PermissionDeniedAndDontAskAgain += _OnUnityPermissionDeniedAndDontAskAgain;
             }
 
-            Debug.Log($"<Permission>: _RequestWithUnity: {_Data.Name} ");
+            Log.I($"<Permission>: _RequestWithUnity: {_Data.Name} ");
             UnityEngine.Android.Permission.RequestUserPermission(_Data.Name, _UnityCallBacks);
         }
 
         private void _OnUnityPermissionGranted(string permission)
         {
-            Debug.Log($"<Permission>: _OnUnityPermissionGranted: {permission} ");
+            Log.I($"<Permission>: _OnUnityPermissionGranted: {permission} ");
 
             _Apply();
         }
 
         private void _OnUnityPermissionDenied(string permission)
         {
-            Debug.Log($"<Permission>: _OnUnityPermissionDenied: {permission} ");
+            Log.I($"<Permission>: _OnUnityPermissionDenied: {permission} ");
             _Apply();
         }
 
         private void _OnUnityPermissionDeniedAndDontAskAgain(string permission)
         {
-            Debug.Log($"<Permission>: _OnUnityPermissionDeniedAndDontAskAgain: {permission} ");
+            Log.I($"<Permission>: _OnUnityPermissionDeniedAndDontAskAgain: {permission} ");
             _Apply();
         }
 
@@ -162,7 +167,7 @@ namespace Game
                 ButtonCancel = "Cancle2",
             };
 
-            Debug.Log($"<Permission>: _RequestWithPermission: {_Data.Name} ");
+            Log.I($"<Permission>: _RequestWithPermission: {_Data.Name} ");
             AndroidPermissionUtil.RequestPermission(permission,
             _OnAndroidPermissionCallBack,
             dialog1, dialog2);
@@ -171,16 +176,16 @@ namespace Game
         private void _OnAndroidPermissionCallBack(bool allGranted, string[] grantedList, string[] deniedList)
         {
             _Apply();
-            Debug.Log($"<Permission>: allGranted: {allGranted} grantedList:{grantedList.Length} deniedList:{deniedList.Length}");
+            Log.I($"<Permission>: allGranted: {allGranted} grantedList:{grantedList.Length} deniedList:{deniedList.Length}");
 
             foreach (var p in grantedList)
             {
-                Debug.Log($"<Permission>: grantedList: {p} ");
+                Log.I($"<Permission>: grantedList: {p} ");
             }
 
             foreach (var p in deniedList)
             {
-                Debug.Log($"<Permission>: deniedList: {p} ");
+                Log.I($"<Permission>: deniedList: {p} ");
             }
         }
 

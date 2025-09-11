@@ -218,6 +218,20 @@ namespace FH
         /// </summary>
         [Conditional(LogConditional.COND_INFO)]
         [HideInCallstack]
+        public static void I<T0>(string format, T0 arg0)
+        {
+#if ENABLE_LOG_Info
+            if (!_IsEnable(ELogLvl.Info))
+                return;
+            LogPrinter.Print1(ELogLvl.Info, null, TraceMask, UnityMask, null, format, arg0);
+#endif
+        }
+
+        /// <summary>
+        /// Info
+        /// </summary>
+        [Conditional(LogConditional.COND_INFO)]
+        [HideInCallstack]
         public static void I(UnityEngine.Object content, string format, params object[] args)
         {
 #if ENABLE_LOG_Info

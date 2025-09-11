@@ -15,7 +15,7 @@ namespace Game
         {
             base.OnUI2Open();
             BaseView._BtnClose.OnClick = _OnBtnCloseClick;
-            UISceneMgr.AddUpdate(this);
+            UIMgr.UpdateList += this;
         }
 
         void IUIUpdater.OnUIUpdate(float dt)

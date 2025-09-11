@@ -159,7 +159,7 @@ namespace FH.UI
             UIRedDotLog.D("====End Del Path: {0}", path);
         }
 
-        public static void Update()
+        public static void Update(float dt = 0)
         {
             if (Inst == null)
                 return;
