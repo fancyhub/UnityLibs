@@ -8,9 +8,8 @@ SET PATH=%PATH%;%NDKROOT%
 
 call ndk-build NDK_PROJECT_PATH=. NDK_APPLICATION_MK=Application.mk NDK_APP_DST_DIR=../Runtime/Plugins/Android/$(TARGET_ARCH_ABI)
 
-::timeout /t 2
-::rd /s /q obj
-::del obj.meta
+rd /s /q obj
+del obj.meta
 :: rm -r ../Runtime/Plugins/Android/*/libc++_shared.so
 ::xcopy .\libs\*.so ..\Runtime\Plugins\Android  /Y /S
 pause
