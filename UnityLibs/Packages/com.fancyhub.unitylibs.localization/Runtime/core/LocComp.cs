@@ -14,27 +14,27 @@ namespace FH
     {
         public enum EMode
         {
-            Key,
+            Str,
             Id,
         }
-        [SerializeField] private LocKeyStr _LocKey;
-        protected LocKeyId _LocId;
-        private EMode _Mode = EMode.Key;
+        [SerializeField] private LocKeyStr _LocKeyStr;
+        protected LocKeyId _LocKeyId;
+        private EMode _Mode = EMode.Str;
 
         public void SetKey(LocKeyStr key)
         {
-            if (_Mode == EMode.Key && _LocKey.Equals(key))
+            if (_Mode == EMode.Str && _LocKeyStr.Equals(key))
                 return;
-            _LocKey = key;
-            _Mode = EMode.Key;
+            _LocKeyStr = key;
+            _Mode = EMode.Str;
             DoLocalize();
         }
 
-        public void SetId(LocKeyId id)
+        public void Setkey(LocKeyId id)
         {
-            if (_Mode == EMode.Id && _LocId.Equals(id))
+            if (_Mode == EMode.Id && _LocKeyId.Equals(id))
                 return;
-            _LocId = id;
+            _LocKeyId = id;
             _Mode = EMode.Id;
             DoLocalize();
         }
@@ -52,17 +52,17 @@ namespace FH
 
         protected bool TryGetTran(out string tran)
         {
-            if (_Mode == EMode.Key)
-                return LocMgr.TryGet(this._LocKey, out tran, this);
+            if (_Mode == EMode.Str)
+                return LocMgr.TryGet(this._LocKeyStr, out tran, this);
             else
-                return LocMgr.TryGet(this._LocId, out tran, this);
+                return LocMgr.TryGet(this._LocKeyId, out tran, this);
         }
 
 #if UNITY_EDITOR
         public abstract void EdDoLocalize(string lang);
         protected bool EdTryGetTran(string lang, out string tran)
         {
-            return LocMgr.EdTryGet(this._LocKey, lang, out tran);
+            return LocMgr.EdTryGet(this._LocKeyStr, lang, out tran);
         }
 #endif
 

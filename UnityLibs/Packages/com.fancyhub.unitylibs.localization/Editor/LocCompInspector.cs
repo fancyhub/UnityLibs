@@ -35,7 +35,7 @@ namespace FH
 
         public virtual void OnEnable()
         {
-            _KeyProperty = serializedObject.FindProperty("_LocKey");
+            _KeyProperty = serializedObject.FindProperty("_LocKeyStr");
             LocMgrEditorLoader.Init();
             ((LocComp)target).EdDoLocalize(LocMgr.CurrentLang);
             _LangIndex = LangSettingAsset.EdIndexOfLang(LocMgr.CurrentLang);

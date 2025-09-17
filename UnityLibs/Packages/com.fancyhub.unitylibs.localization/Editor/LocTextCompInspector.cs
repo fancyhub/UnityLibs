@@ -24,7 +24,7 @@ namespace FH
             base.OnEnable();
             _StyleProperty = serializedObject.FindProperty("_Style");
             _ArgsProperty = serializedObject.FindProperty("_Arguments");
-            _KeyProperty = serializedObject.FindProperty("_LocKey.Key");
+            _KeyProperty = serializedObject.FindProperty("_LocKeyStr.Key");
         }
         public override void OnInspectorGUI()
         {

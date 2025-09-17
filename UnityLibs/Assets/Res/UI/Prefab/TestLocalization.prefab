@@ -443,8 +443,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51936c04224061c4cb310ad80fdd8300, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _LocKey:
-    Key: ITEMDATA_NAME_ID_1
+  _LocKeyStr:
+    Key: ITEMDATA_NAME_ID_2
   _Arguments: []
   _Style: {fileID: 11400000, guid: d2a67adbae7148d4292f945e036455e6, type: 2}
 --- !u!1 &3944863129131762448
@@ -539,7 +539,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51936c04224061c4cb310ad80fdd8300, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _LocKey:
+  _LocKeyStr:
     Key: ITEMDATA_NAME_ID_1
   _Arguments: []
   _Style: {fileID: 11400000, guid: d2a67adbae7148d4292f945e036455e6, type: 2}
@@ -982,7 +982,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78d73d99fb1d04b4cb1692b78a5d3617, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _LocKey:
+  _LocKeyStr:
     Key: LOCIMAGE_VAL_ID_TEXTUREA
 --- !u!1 &6970441149260654095
 GameObject:
@@ -1198,7 +1198,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6bf60e29dc2fea43ad1900621a98f15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _LocKey:
+  _LocKeyStr:
     Key: LOCIMAGE_VAL_ID_IMAGEA
 --- !u!1 &8782947883826490633
 GameObject:
