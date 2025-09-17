@@ -17,11 +17,11 @@ namespace FH
             Key,
             Id,
         }
-        [SerializeField] private LocKey _LocKey;
-        protected LocId _LocId;
+        [SerializeField] private LocKeyStr _LocKey;
+        protected LocKeyId _LocId;
         private EMode _Mode = EMode.Key;
 
-        public void SetKey(LocKey key)
+        public void SetKey(LocKeyStr key)
         {
             if (_Mode == EMode.Key && _LocKey.Equals(key))
                 return;
@@ -30,7 +30,7 @@ namespace FH
             DoLocalize();
         }
 
-        public void SetId(LocId id)
+        public void SetId(LocKeyId id)
         {
             if (_Mode == EMode.Id && _LocId.Equals(id))
                 return;

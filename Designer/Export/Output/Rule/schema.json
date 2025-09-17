@@ -1,0 +1,509 @@
+{
+  "Enums": [
+    {
+      "Name": "EItemType",
+      "Fields": [
+        {
+          "Name": "None",
+          "Value": 0,
+          "Comment": "无"
+        },
+        {
+          "Name": "Weapon",
+          "Value": 1,
+          "Comment": "武器"
+        },
+        {
+          "Name": "Cosume",
+          "Value": 2,
+          "Comment": "消耗品"
+        }
+      ]
+    },
+    {
+      "Name": "EItemSubType",
+      "Fields": [
+        {
+          "Name": "None",
+          "Value": 0,
+          "Comment": "无"
+        },
+        {
+          "Name": "ShotGun",
+          "Value": 1,
+          "Comment": "手枪"
+        },
+        {
+          "Name": "Cannon",
+          "Value": 2,
+          "Comment": "加农炮"
+        }
+      ]
+    },
+    {
+      "Name": "EItemQuality",
+      "Fields": [
+        {
+          "Name": "None",
+          "Value": 0,
+          "Comment": "普通"
+        },
+        {
+          "Name": "Gray",
+          "Value": 2,
+          "Comment": "灰色"
+        },
+        {
+          "Name": "Green",
+          "Value": 3,
+          "Comment": "绿色"
+        },
+        {
+          "Name": "Purple",
+          "Value": 4,
+          "Comment": "紫色"
+        }
+      ]
+    },
+    {
+      "Name": "EItemFlag",
+      "Fields": [
+        {
+          "Name": "None",
+          "Value": 0,
+          "Comment": "无"
+        },
+        {
+          "Name": "Stack",
+          "Value": 1,
+          "Comment": "可堆叠"
+        },
+        {
+          "Name": "CanDelete",
+          "Value": 2,
+          "Comment": "可删除"
+        }
+      ]
+    }
+  ],
+  "TupleAlias": [
+    {
+      "Name": "PairItemIntBool",
+      "Fields": [
+        "Id",
+        "Exist"
+      ],
+      "CSharp": "PairItemIntBool",
+      "Go": null,
+      "Cpp": null
+    },
+    {
+      "Name": "V3",
+      "Fields": [
+        "x",
+        "y",
+        "z"
+      ],
+      "CSharp": "UnityEngine.Vector3",
+      "Go": null,
+      "Cpp": null
+    },
+    {
+      "Name": "PairItemIntInt64",
+      "Fields": [
+        "x",
+        "y"
+      ],
+      "CSharp": "PairItemIntInt64",
+      "Go": null,
+      "Cpp": null
+    }
+  ],
+  "Tables": [
+    {
+      "SheetName": "ItemData",
+      "ExportClient": true,
+      "ExportServer": true,
+      "IsMultiLang": false,
+      "Columns": [
+        {
+          "Name": "Id",
+          "Desc": "物品ID",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "Int32"
+          ],
+          "Constraints": [
+            {
+              "Type": "PK",
+              "Value": ""
+            },
+            {
+              "Type": "Unique",
+              "Value": null
+            },
+            {
+              "Type": "BlankForbid",
+              "Value": null
+            }
+          ]
+        },
+        {
+          "Name": "Name",
+          "Desc": "名称",
+          "ExportClient": true,
+          "ExportServer": false,
+          "IsList": false,
+          "Types": [
+            "LocId"
+          ],
+          "Constraints": []
+        },
+        {
+          "Name": "Type",
+          "Desc": "类型",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "Int32"
+          ],
+          "Constraints": [
+            {
+              "Type": "Enum",
+              "Value": "EItemType"
+            }
+          ]
+        },
+        {
+          "Name": "SubType",
+          "Desc": "子类",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "Int32"
+          ],
+          "Constraints": [
+            {
+              "Type": "Enum",
+              "Value": "EItemSubType"
+            }
+          ]
+        },
+        {
+          "Name": "Quality",
+          "Desc": "品质",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "Int32"
+          ],
+          "Constraints": [
+            {
+              "Type": "Enum",
+              "Value": "EItemQuality"
+            }
+          ]
+        },
+        {
+          "Name": "PairField",
+          "Desc": "测试Pair",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "Int32",
+            "Bool"
+          ],
+          "Constraints": []
+        },
+        {
+          "Name": "PairField2",
+          "Desc": "测试Pair",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "Int32",
+            "Bool"
+          ],
+          "Constraints": [
+            {
+              "Type": "Alias",
+              "Value": "PairItemIntBool"
+            }
+          ]
+        },
+        {
+          "Name": "PairField3",
+          "Desc": "测试Pair",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "Int32",
+            "Int32"
+          ],
+          "Constraints": [
+            {
+              "Type": "Alias",
+              "Value": "PairItemIntInt64"
+            }
+          ]
+        },
+        {
+          "Name": "PairFieldList",
+          "Desc": "测试PairList",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "Int32",
+            "Int64"
+          ],
+          "Constraints": []
+        },
+        {
+          "Name": "PairFieldList2",
+          "Desc": "测试PairList",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "Int32",
+            "Int64"
+          ],
+          "Constraints": []
+        },
+        {
+          "Name": "ListField",
+          "Desc": "测试List",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "Int32"
+          ],
+          "Constraints": []
+        }
+      ]
+    },
+    {
+      "SheetName": "Loc",
+      "ExportClient": true,
+      "ExportServer": false,
+      "IsMultiLang": true,
+      "Columns": [
+        {
+          "Name": "Id",
+          "Desc": "id",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "Int32"
+          ],
+          "Constraints": [
+            {
+              "Type": "PK",
+              "Value": ""
+            },
+            {
+              "Type": "Unique",
+              "Value": null
+            },
+            {
+              "Type": "BlankForbid",
+              "Value": null
+            }
+          ]
+        },
+        {
+          "Name": "Val",
+          "Desc": "",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "String"
+          ],
+          "Constraints": []
+        }
+      ]
+    },
+    {
+      "SheetName": "LocImage",
+      "ExportClient": false,
+      "ExportServer": false,
+      "IsMultiLang": false,
+      "Columns": [
+        {
+          "Name": "Id",
+          "Desc": "string\nPK",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "String"
+          ],
+          "Constraints": [
+            {
+              "Type": "PK",
+              "Value": ""
+            },
+            {
+              "Type": "Unique",
+              "Value": null
+            },
+            {
+              "Type": "BlankForbid",
+              "Value": null
+            }
+          ]
+        },
+        {
+          "Name": "Val",
+          "Desc": "中文",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "LocId"
+          ],
+          "Constraints": []
+        }
+      ]
+    },
+    {
+      "SheetName": "TC",
+      "ExportClient": false,
+      "ExportServer": false,
+      "IsMultiLang": false,
+      "Columns": [
+        {
+          "Name": "Id",
+          "Desc": "id",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "String"
+          ],
+          "Constraints": [
+            {
+              "Type": "PK",
+              "Value": ""
+            },
+            {
+              "Type": "Unique",
+              "Value": null
+            },
+            {
+              "Type": "BlankForbid",
+              "Value": null
+            }
+          ]
+        },
+        {
+          "Name": "Val",
+          "Desc": "中文",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "LocId"
+          ],
+          "Constraints": []
+        }
+      ]
+    },
+    {
+      "SheetName": "TestComposeKey",
+      "ExportClient": true,
+      "ExportServer": true,
+      "IsMultiLang": false,
+      "Columns": [
+        {
+          "Name": "Id",
+          "Desc": "角色Id",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "UInt32"
+          ],
+          "Constraints": [
+            {
+              "Type": "PK",
+              "Value": "Level"
+            },
+            {
+              "Type": "BlankForbid",
+              "Value": null
+            }
+          ]
+        },
+        {
+          "Name": "Level",
+          "Desc": "等级",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "Int32"
+          ],
+          "Constraints": [
+            {
+              "Type": "BlankForbid",
+              "Value": null
+            }
+          ]
+        },
+        {
+          "Name": "Name",
+          "Desc": "名字",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "LocId"
+          ],
+          "Constraints": []
+        },
+        {
+          "Name": "Pos",
+          "Desc": "位置",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "Float32",
+            "Float32",
+            "Float32"
+          ],
+          "Constraints": []
+        },
+        {
+          "Name": "Flags",
+          "Desc": "标记位",
+          "ExportClient": true,
+          "ExportServer": true,
+          "IsList": false,
+          "Types": [
+            "Int32"
+          ],
+          "Constraints": [
+            {
+              "Type": "Enum",
+              "Value": "EItemFlag"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

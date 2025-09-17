@@ -13,7 +13,7 @@ using FH.UI;
 
 namespace FH
 {
-    [CustomPropertyDrawer(typeof(LocKey))]
+    [CustomPropertyDrawer(typeof(LocKeyStr))]
     public class LocStrKeyDrawer : PropertyDrawer
     {
         private static Texture _SearchIcon;

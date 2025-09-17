@@ -11,24 +11,24 @@ namespace FH
 {
     public static class LockKeyExt
     {
-        public static string ExtGet(this LocId key)
+        public static string ExtGet(this LocKeyId key)
         {
             LocMgr.TryGet(key, out var tran);
             return tran;
         }
 
-        public static string ExtGet(this LocKey key)
+        public static string ExtGet(this LocKeyStr key)
         {
             LocMgr.TryGet(key, out var tran);
             return tran;
         }
 
-        public static bool ExtTryGet(this LocId key,out string tran)
+        public static bool ExtTryGet(this LocKeyId key,out string tran)
         {
             return LocMgr.TryGet(key, out  tran);
         }
 
-        public static bool ExtTryGet(this LocKey key, out string tran)
+        public static bool ExtTryGet(this LocKeyStr key, out string tran)
         {
             return LocMgr.TryGet(key, out tran);
         }

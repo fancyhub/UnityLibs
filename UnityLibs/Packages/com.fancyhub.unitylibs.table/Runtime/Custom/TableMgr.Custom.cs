@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using LocKey = FH.LocKeyId;
 
 namespace FH
 {
@@ -24,7 +25,7 @@ namespace FH
             TableLog.D("TableMgr Init Succ");
         }
 
-        public static List<(LocId key, string tran)> LoadTranslation(string lang)
+        public static List<(LocKey key, string tran)> LoadTranslation(string lang)
         {
             if (_ == null)
             {
@@ -35,30 +36,30 @@ namespace FH
             _.LoadAll(lang);
 
             var list = _.Loc.List;
-            List<(LocId, string)> ret = new List<(LocId, string)>(list.Count);
+            List<(LocKey, string)> ret = new List<(LocKey, string)>(list.Count);
             foreach (var p in list)
             {
-                ret.Add((new LocId(p.Id), p.Val));
+                ret.Add((new LocKey(p.Id), p.Val));
             }
             return ret;
         }
 
-        public static List<(LocId key, string tran)> EdLoadTranslation(string lang)
+        public static List<(LocKey key, string tran)> EdLoadTranslation(string lang)
         {
             ITableReaderCreator table_reader_creator = new TableReaderCsvTextCreator(TableMgr.CDataDir);            
             TableTLoc table = new TableTLoc();
             if (!table_reader_creator.CreateTableReader(table.SheetName, lang, out var reader))
-                return new List<(LocId key, string tran)>();
+                return new List<(LocKey key, string tran)>();
 
             if (!table.LoadFromCsv(reader))
-                return new List<(LocId key, string tran)>();
+                return new List<(LocKey key, string tran)>();
 
             var list = table.List;
-            List<(LocId, string)> ret = new List<(LocId, string)>(list.Count);
+            List<(LocKey, string)> ret = new List<(LocKey, string)>(list.Count);
 
             foreach (var p in list)
             {
-                ret.Add((new LocId(p.Id), p.Val));
+                ret.Add((new LocKey(p.Id), p.Val));
             }
             return ret;             
         }

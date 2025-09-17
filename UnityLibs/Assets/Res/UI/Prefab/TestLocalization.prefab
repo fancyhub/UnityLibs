@@ -418,7 +418,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 12800000, guid: 68b480393a924cd40baef7f56cdf38b4, type: 3}
+    m_Font: {fileID: 12800000, guid: 7d7d3633b95914e489228d2898885687, type: 3}
     m_FontSize: 30
     m_FontStyle: 0
     m_BestFit: 0
@@ -430,7 +430,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u6D4B\u8BD5\u624B\u67AA"
+  m_Text: 
 --- !u!114 &2386574391721936055
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -444,7 +444,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _LocKey:
-    Key: ITEMDATA_NAME_ID_1_1922998841
+    Key: ITEMDATA_NAME_ID_1
   _Arguments: []
   _Style: {fileID: 11400000, guid: d2a67adbae7148d4292f945e036455e6, type: 2}
 --- !u!1 &3944863129131762448
@@ -540,7 +540,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _LocKey:
-    Key: ITEMDATA_NAME_ID_1_1922998841
+    Key: ITEMDATA_NAME_ID_1
   _Arguments: []
   _Style: {fileID: 11400000, guid: d2a67adbae7148d4292f945e036455e6, type: 2}
 --- !u!1 &4739216184678908199
@@ -983,7 +983,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _LocKey:
-    Key: LOCIMAGE_VAL_ID_TEXTUREA_3382801187
+    Key: LOCIMAGE_VAL_ID_TEXTUREA
 --- !u!1 &6970441149260654095
 GameObject:
   m_ObjectHideFlags: 0
@@ -1199,7 +1199,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _LocKey:
-    Key: LOCIMAGE_VAL_ID_IMAGEA_552067113
+    Key: LOCIMAGE_VAL_ID_IMAGEA
 --- !u!1 &8782947883826490633
 GameObject:
   m_ObjectHideFlags: 0

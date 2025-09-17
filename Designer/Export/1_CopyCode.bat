@@ -4,7 +4,7 @@ cd /d %~dp0
 
  
 echo ========== copy client cs files ===================
-xcopy /S /Y Output\Client\CS\*.cs ..\..\UnityLibs\Packages\com.github.fancyhub.unitylibs.table\Runtime\AutoGen
+xcopy /S /Y Output\Client\CS\*.cs ..\..\UnityLibs\Packages\com.fancyhub.unitylibs.table\Runtime\AutoGen\
 echo.
 
 @rem echo ========== copy client Lua files ===================

@@ -2,7 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using LocStr = FH.LocKey;
+using LocStr = FH.LocKeyStr;using LocId = FH.LocKeyId;
 
 namespace FH{
 
@@ -105,11 +105,11 @@ namespace FH{
 		/// <summary>
 		/// 测试Pair
 		/// </summary>
-		public (int,bool) PairField2;
+		public PairItemIntBool PairField2;
 		/// <summary>
 		/// 测试Pair
 		/// </summary>
-		public (int,int) PairField3;
+		public PairItemIntInt64 PairField3;
 		/// <summary>
 		/// 测试PairList
 		/// </summary>

@@ -1,56 +1,86 @@
 {
-    "excelPaths": [
-        "../Excel",
-    ],
-    "validation": {
+    "excelPaths": ["../Excel", ],
+    "validation":
+    {
         "searchFileRoot": "../../Client/Resources",
         "sheetNameReg": "^[A-Z][a-zA-Z0-9]*$",
         "colNameReg": "^[A-Z][a-zA-Z0-9_]*$",
         "enumNameReg": "^E[A-Z][A-Za-z0-9_]*$",
         "enumFieldNameReg": "[A-Z][a-zA-Z0-9_]*$"
     },
-    "localization": {
+    "tableDataRule":
+    {
+        "nameRowIndex": 1,
+        "typeRowIndex": 2,
+        "descRowIndex": 3,
+        "dataStartRowIndex": 4,
+        "calculateFormula": false,
+        "emptyPlaceholder": null,
+        "separatorTuple": "|",
+        "separatorList": ";"
+    },
+    "localization":
+    {
         "enable": true,
         "sheetName": "Loc",
         "defaultLang": "zh-Hans",
         "useHashId": true,
-        "autoGenKey": true
+        "autoGenKey": true,
+        "checkKeyExist": true
     },
-    "exportCommon": {
-        "localizationTranslate": {
+    "exportCommon":
+    {
+        "localizationTranslate":
+        {
             "enable": false,
             "dir": "Output"
+        },
+        "ruleExcel":
+        {
+            "enable": true,
+            "dir": "Output/Rule"
+        },
+        "schema":
+        {
+            "enable": true,
+            "dir": "Output/Rule"
         }
     },
-    "exportClient": {
-        "csv": {
+    "exportClient":
+    {
+        "csv":
+        {
             "enable": true,
             "utf8bom": true,
             "dir": "../../ClientData/Table"
         },
-        "bin": {
+        "bin":
+        {
             "enable": true,
             "dir": "../../ClientData/Table"
-        },		 
-        "csharp": {
+        },
+        "csharp":
+        {
             "enable": true,
             "namespaceName": "FH",
             "itemParentClass": "",
             "itemClassPrefix": "T",
             "itemClassSuffix": "",
-			"tableMgrName": "TableMgr",
+            "tableMgrName": "TableMgr",
             "dir": "Output/Client/CS",
-            "header": "using System;\nusing System.Collections;\nusing System.Collections.Generic;\nusing LocStr = FH.LocKey;\n",
-            "loader": {
+            "header": "using System;\nusing System.Collections;\nusing System.Collections.Generic;\nusing LocStr = FH.LocKeyStr;using LocId = FH.LocKeyId;\n",
+            "loader":
+            {
                 "csv": true,
-				"json": false,
-            },            
-            "locId": {
+                "json": false,
+            },
+            "locId":
+            {
                 "enable": true,
                 "locIdStartWith": ""
             }
-        }         
+        }
     },
-    "exportServer": {       
-    }
+    "exportServer":
+    {}
 }

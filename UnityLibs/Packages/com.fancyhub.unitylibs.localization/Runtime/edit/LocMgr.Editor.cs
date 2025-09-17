@@ -9,7 +9,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using FH.UI;
-
+using LocKey = FH.LocKeyId;
 namespace FH
 {
     public sealed partial class LocMgr
@@ -39,7 +39,7 @@ namespace FH
             return _EdAllData.TryGetValue(key, out all_trans);
         }
 
-        public static bool EdTryGet(LocKey key, string lang, out string trans)
+        public static bool EdTryGet(LocKeyStr key, string lang, out string trans)
         {
             if (_EdAllData.Count == 0 && _._FuncLoader != null)
                 EdReloadAll();
@@ -69,54 +69,93 @@ namespace FH
                 return false;
             }
 
-
-            var key_list = _._FuncLoader("KEY");
-            var lang_list = LangSettingAsset.EdGetLangIdList();
-            _EdAllData.Clear();
-            Dictionary<LocId, string> temp_dict = new(key_list.Count, LocId.EqualityComparer);
-            foreach (var p in key_list)
+            if (typeof(LocKey) == typeof(LocKeyId))
             {
-                if (string.IsNullOrEmpty(p.tran))
+                var key_list = _._FuncLoader("KEY");
+                var lang_list = LangSettingAsset.EdGetLangIdList();
+                _EdAllData.Clear();
+                Dictionary<LocKey, string> temp_dict = new(key_list.Count, LocKey.EqualityComparer);
+                foreach (var p in key_list)
                 {
-                    LocLog._.E("String Key Is null {0}", p.key.Key);
-                    continue;
-                }
-
-                temp_dict[p.key] = p.tran;
-                _EdAllData[p.tran] = new string[lang_list.Count];
-            }
-
-
-            for (int i = 0; i < lang_list.Count; i++)
-            {
-                string lang = lang_list[i].Lang;
-                var tran_list = _._FuncLoader(lang);
-                if (tran_list == null)
-                {
-                    LocLog._.E("加载语言失败 {0}", lang);
-                    continue;
-                }
-
-                foreach (var p in tran_list)
-                {
-                    if (!temp_dict.TryGetValue(p.key, out string str_key))
+                    if (string.IsNullOrEmpty(p.tran))
                     {
-                        LocLog._.E("语言{0}, 找不到对应的StringKey {1}", lang, p.key.Key);
+                        LocLog._.E("String Key Is null {0}", p.key.Key);
                         continue;
                     }
 
-                    _EdAllData.TryGetValue(str_key, out var trans_array);
-                    if (trans_array == null)
+                    temp_dict[p.key] = p.tran;
+                    _EdAllData[p.tran] = new string[lang_list.Count];
+                }
+
+
+                for (int i = 0; i < lang_list.Count; i++)
+                {
+                    string lang = lang_list[i].Lang;
+                    var tran_list = _._FuncLoader(lang);
+                    if (tran_list == null)
                     {
-                        LocLog._.E("语言{0}, 找不到 {1}", lang, str_key);
+                        LocLog._.E("加载语言失败 {0}", lang);
                         continue;
                     }
 
-                    trans_array[i] = p.tran;
-                }
-            }
+                    foreach (var p in tran_list)
+                    {
+                        if (!temp_dict.TryGetValue(p.key, out string str_key))
+                        {
+                            LocLog._.E("语言{0}, 找不到对应的StringKey {1}", lang, p.key.Key);
+                            continue;
+                        }
 
-            return true;
+                        _EdAllData.TryGetValue(str_key, out var trans_array);
+                        if (trans_array == null)
+                        {
+                            LocLog._.E("语言{0}, 找不到 {1}", lang, str_key);
+                            continue;
+                        }
+
+                        trans_array[i] = p.tran;
+                    }
+                }
+
+                return true;
+            }
+            else
+            {
+                var lang_list = LangSettingAsset.EdGetLangIdList();
+                var key_list = _._FuncLoader(lang_list[0].Lang);
+                _EdAllData.Clear();
+                foreach (var p in key_list)
+                { 
+                    _EdAllData[p.key.Key.ToString()] = new string[lang_list.Count];
+                }
+
+
+                for (int i = 0; i < lang_list.Count; i++)
+                {
+                    string lang = lang_list[i].Lang;
+                    var tran_list = _._FuncLoader(lang);
+                    if (tran_list == null)
+                    {
+                        LocLog._.E("加载语言失败 {0}", lang);
+                        continue;
+                    }
+
+                    foreach (var p in tran_list)
+                    { 
+
+                        _EdAllData.TryGetValue(p.key.Key.ToString(), out var trans_array);
+                        if (trans_array == null)
+                        {
+                            LocLog._.E("语言{0}, 找不到 {1}", lang, p.key.Key);
+                            continue;
+                        }
+
+                        trans_array[i] = p.tran;
+                    }
+                }
+
+                return true;
+            }
         }
     }
 }

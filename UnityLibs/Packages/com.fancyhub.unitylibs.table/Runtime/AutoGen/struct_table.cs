@@ -2,7 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using LocStr = FH.LocKey;
+using LocStr = FH.LocKeyStr;using LocId = FH.LocKeyId;
 
 namespace FH{
 
@@ -39,7 +39,7 @@ namespace FH{
             }
             ;
             Map.TryGetValue(Id, out var ret);
-            if(Id!=default)
+            if(Id!=default);
             Log.Assert(ret != null, "can't find {0} in TableTItemData", Id);
             return ret;
         }    
@@ -76,8 +76,8 @@ namespace FH{
             }
             ;
             Map.TryGetValue(Id, out var ret);
-            if(Id!=default)
-                Log.Assert(ret != null, "can't find {0} in TableTLoc", Id);
+            if(Id!=default);
+            Log.Assert(ret != null, "can't find {0} in TableTLoc", Id);
             return ret;
         }    
 

@@ -4,18 +4,20 @@
  * Title   : 
  * Desc    : 
 *************************************************************************************/
+#define USE_LOC_KEY_ID
 
 using UnityEngine;
 using System.Collections.Generic;
 using System;
 using UnityEngine.SceneManagement;
 using FH.UI;
+using LocKey = FH.LocKeyId;
 
 namespace FH
 {
     public sealed partial class LocMgr
     {
-        public delegate List<(LocId key, string tran)> TranslationLoader(string lang);
+        public delegate List<(LocKey key, string tran)> TranslationLoader(string lang);
         private static LocMgr _ = new LocMgr();
 
 
@@ -23,21 +25,21 @@ namespace FH
         private static string _CurrentLang = null;
         public static string CurrentLang => _CurrentLang;
 
-        private Dictionary<LocId, string> _Translation;
+        private Dictionary<LocKey, string> _Translation;
         private LangSetting _LangSetting;
 
         private TranslationLoader _FuncLoader;
 
         private LocMgr()
         {
-            _Translation = new Dictionary<LocId, string>(LocId.EqualityComparer);
+            _Translation = new Dictionary<LocKey, string>(LocKey.EqualityComparer);
         }
 
         public static void Init(ELogLvl log_lvl, LangSettingAsset langSettingAsset)
         {
             LocLog._.SetMasks(log_lvl);
             _._LangSetting = langSettingAsset.Setting;
-            string lang = _LoadLang();             
+            string lang = _LoadLang();
             _CurrentLang = _._LangSetting.GetLang(lang);
         }
 
@@ -58,7 +60,7 @@ namespace FH
 
             //加载器还没有好, 等待Loader好了
             if (_._FuncLoader == null)
-            {                
+            {
                 return;
             }
 
@@ -130,7 +132,7 @@ namespace FH
             rootCanvas.BroadcastMessage(nameof(LocComp.DoLocalize), SendMessageOptions.DontRequireReceiver);
         }
 
-        private static void _Change(string lang, List<(LocId key, string tran)> all)
+        private static void _Change(string lang, List<(LocKey key, string tran)> all)
         {
             if (string.IsNullOrEmpty(lang))
             {
@@ -193,40 +195,52 @@ namespace FH
 
         #endregion
 
-        #region Get
-        public static bool TryGet(LocId key, out string tran, UnityEngine.Object obj = null)
+        #region Get 
+
+        public static bool TryGet(LocKeyId key, out string tran, UnityEngine.Object obj = null)
         {
+#if USE_LOC_KEY_ID
             if (_._Translation.TryGetValue(key, out tran))
                 return true;
-
             LocLog._.E(obj, "Can't find \"{0}\"", key.Key);
             return false;
+#else 
+            LocLog._.E(obj, "not implement");
+            tran = null;
+            return false;
+#endif
         }
 
-        public static bool TryGet(LocKey key, out string tran, UnityEngine.Object obj = null)
+        public static bool TryGet(LocKeyStr key, out string tran, UnityEngine.Object obj = null)
         {
-            var int_key = key.ToLocId();
+#if USE_LOC_KEY_ID
+            LocKeyId int_key = key.ToLocId();
             if (_._Translation.TryGetValue(int_key, out tran))
                 return true;
 
+#else
+            if (_._Translation.TryGetValue(key, out tran))
+                return true;
+
+#endif
             LocLog._.E(obj, "Can't find \"{0}\"", key.Key);
             return false;
         }
 
-
-        public static string Get(LocId key, UnityEngine.Object obj = null)
+        public static string Get(LocKeyId key, UnityEngine.Object obj = null)
         {
             if (TryGet(key, out var ret, obj))
                 return ret;
             return null;
         }
 
-        public static string Get(LocKey key, UnityEngine.Object obj = null)
+        public static string Get(LocKeyStr key, UnityEngine.Object obj = null)
         {
             if (TryGet(key, out var ret, obj))
                 return ret;
             return null;
         }
-        #endregion
+
+#endregion
     }
 }

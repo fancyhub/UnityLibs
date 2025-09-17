@@ -46,6 +46,7 @@ namespace FH
         {
             GUILayout.BeginHorizontal();
 
+            serializedObject.Update();
             string[] lang_list = LangSettingAsset.EdGetLangNameList();
             int index = EditorGUILayout.Popup("Lang", _LangIndex, lang_list);
             if (index != _LangIndex)
@@ -63,6 +64,7 @@ namespace FH
 
 
             EditorGUILayout.PropertyField(_KeyProperty);
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }

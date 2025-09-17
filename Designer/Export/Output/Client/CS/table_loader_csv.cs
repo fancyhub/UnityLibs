@@ -2,7 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using LocStr = FH.LocKey;
+using LocStr = FH.LocKeyStr;using LocId = FH.LocKeyId;
 
 namespace FH{
 
@@ -87,14 +87,33 @@ namespace FH{
 			Read(tupleReader,ref v.Item2);
 		}
 
-        public static void ReadTuple(ITableTupleReader tupleReader, ref (int,int) v)
+        public static void ReadTuple(ITableTupleReader tupleReader, ref PairItemIntBool v, out (int,bool) v2)
         {
+            v2=default;
             if(tupleReader==null)
+            {
+                TableAlias.Create(ref v, false,v2);                
                 return;
+            }
+			Read(tupleReader,ref v2.Item1);
+			Read(tupleReader,ref v2.Item2);
 
-			Read(tupleReader,ref v.Item1);
-			Read(tupleReader,ref v.Item2);
-		}
+             TableAlias.Create(ref v,false,v2);
+        }
+
+        public static void ReadTuple(ITableTupleReader tupleReader, ref PairItemIntInt64 v, out (int,int) v2)
+        {
+            v2=default;
+            if(tupleReader==null)
+            {
+                TableAlias.Create(ref v, false,v2);                
+                return;
+            }
+			Read(tupleReader,ref v2.Item1);
+			Read(tupleReader,ref v2.Item2);
+
+             TableAlias.Create(ref v,false,v2);
+        }
 
         public static void ReadTuple(ITableTupleReader tupleReader, ref (int,long) v)
         {
@@ -204,8 +223,8 @@ namespace FH{
 				TableLoaderCsvUtil.Read(rowReader, ref row.SubType);
 				TableLoaderCsvUtil.Read(rowReader, ref row.Quality);
 				TableLoaderCsvUtil.ReadTuple(rowReader.BeginTuple(), ref row.PairField);
-				TableLoaderCsvUtil.ReadTuple(rowReader.BeginTuple(), ref row.PairField2);
-				TableLoaderCsvUtil.ReadTuple(rowReader.BeginTuple(), ref row.PairField3);
+				TableLoaderCsvUtil.ReadTuple(rowReader.BeginTuple(), ref row.PairField2, out (int,bool) __PairField2);
+				TableLoaderCsvUtil.ReadTuple(rowReader.BeginTuple(), ref row.PairField3, out (int,int) __PairField3);
 				TableLoaderCsvUtil.ReadList(rowReader, ref row.PairFieldList);
 				TableLoaderCsvUtil.ReadList(rowReader, ref row.PairFieldList2);
 				TableLoaderCsvUtil.ReadList(rowReader, ref row.ListField);
