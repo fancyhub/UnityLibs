@@ -29,7 +29,7 @@ namespace FH.Ed.ResManagement
 
             List<BuildFileInfo> ret = new List<BuildFileInfo>();
             string dest_dir = OutputDir.Replace("{Target}", context.BuildTarget.Ext2Name());
-
+            FileUtil.CreateFileDir(dest_dir);
             foreach (var p in BuilderConfig.Items)
             {
                 string dest_file = p.EdBuildZip(dest_dir);
