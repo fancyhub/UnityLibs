@@ -66,7 +66,8 @@ namespace FH.UI
 
         public void Awake()
         {
-            SetState(0, true);
+            if (_index == -1)
+                SetState(0, true);
         }
 
         public void Reset()

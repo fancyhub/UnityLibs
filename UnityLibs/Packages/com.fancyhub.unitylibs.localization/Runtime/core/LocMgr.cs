@@ -11,15 +11,22 @@ using System.Collections.Generic;
 using System;
 using UnityEngine.SceneManagement;
 using FH.UI;
-using LocKey = FH.LocKeyId;
+using LocKey = FH.LocKeyInt;
 
 namespace FH
 {
+    public enum ELocKeyMode
+    {
+        Str,
+        Int,
+    }
+
     public sealed partial class LocMgr
     {
         public delegate List<(LocKey key, string tran)> TranslationLoader(string lang);
         private static LocMgr _ = new LocMgr();
 
+        public const ELocKeyMode KeyMode = ELocKeyMode.Int;
 
         public static Action EventLangChanged = _SampleNotify;
         private static string _CurrentLang = null;
@@ -197,7 +204,7 @@ namespace FH
 
         #region Get 
 
-        public static bool TryGet(LocKeyId key, out string tran, UnityEngine.Object obj = null)
+        public static bool TryGet(LocKeyInt key, out string tran, UnityEngine.Object obj = null)
         {
 #if USE_LOC_KEY_ID
             if (_._Translation.TryGetValue(key, out tran))
@@ -214,7 +221,7 @@ namespace FH
         public static bool TryGet(LocKeyStr key, out string tran, UnityEngine.Object obj = null)
         {
 #if USE_LOC_KEY_ID
-            LocKeyId int_key = key.ToLocId();
+            LocKeyInt int_key = key.ToLocId();
             if (_._Translation.TryGetValue(int_key, out tran))
                 return true;
 
@@ -227,7 +234,7 @@ namespace FH
             return false;
         }
 
-        public static string Get(LocKeyId key, UnityEngine.Object obj = null)
+        public static string Get(LocKeyInt key, UnityEngine.Object obj = null)
         {
             if (TryGet(key, out var ret, obj))
                 return ret;
@@ -241,6 +248,6 @@ namespace FH
             return null;
         }
 
-#endregion
+        #endregion
     }
 }

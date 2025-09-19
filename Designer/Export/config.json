@@ -52,12 +52,12 @@
         {
             "enable": true,
             "utf8bom": true,
-            "dir": "../../ClientData/Table"
+            "dir": "Output/ClientData/Table"
         },
         "bin":
         {
             "enable": true,
-            "dir": "../../ClientData/Table"
+            "dir": "Output/ClientData/Table"
         },
         "csharp":
         {

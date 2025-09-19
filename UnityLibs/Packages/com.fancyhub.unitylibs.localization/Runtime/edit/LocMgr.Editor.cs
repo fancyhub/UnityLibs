@@ -9,7 +9,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using FH.UI;
-using LocKey = FH.LocKeyId;
+using LocKey = FH.LocKeyInt;
 namespace FH
 {
     public sealed partial class LocMgr
@@ -69,7 +69,7 @@ namespace FH
                 return false;
             }
 
-            if (typeof(LocKey) == typeof(LocKeyId))
+            if (typeof(LocKey) == typeof(LocKeyInt))
             {
                 var key_list = _._FuncLoader("KEY");
                 var lang_list = LangSettingAsset.EdGetLangIdList();

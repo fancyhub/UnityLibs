@@ -12,20 +12,20 @@ using System.Collections.Generic;
 namespace FH
 {
     [Serializable]
-    public struct LocKeyId : IEquatable<LocKeyId>, IEqualityComparer<LocKeyId>
+    public struct LocKeyInt : IEquatable<LocKeyInt>, IEqualityComparer<LocKeyInt>
     {
-        public static readonly IEqualityComparer<LocKeyId> EqualityComparer = new LocKeyId();
+        public static readonly IEqualityComparer<LocKeyInt> EqualityComparer = new LocKeyInt();
 
         public readonly int Key;
-        public LocKeyId(int int_key) { this.Key = int_key; }
+        public LocKeyInt(int int_key) { this.Key = int_key; }
 
         public bool IsValid() { return Key != 0; }
-        public bool Equals(LocKeyId other) { return this.Key == other.Key; }
+        public bool Equals(LocKeyInt other) { return this.Key == other.Key; }
 
         public override int GetHashCode() { return Key; }
 
-        bool IEqualityComparer<LocKeyId>.Equals(LocKeyId x, LocKeyId y) { return x.Key == y.Key; }
-        int IEqualityComparer<LocKeyId>.GetHashCode(LocKeyId obj) { return obj.Key; }
+        bool IEqualityComparer<LocKeyInt>.Equals(LocKeyInt x, LocKeyInt y) { return x.Key == y.Key; }
+        int IEqualityComparer<LocKeyInt>.GetHashCode(LocKeyInt obj) { return obj.Key; }
     }
 
     [Serializable]
@@ -47,19 +47,19 @@ namespace FH
 
     public static class LocKeyUtil
     {
-        public static LocKeyId ToLocId(this ref LocKeyStr self)
+        public static LocKeyInt ToLocId(this ref LocKeyStr self)
         {
             return ToLocId(self.Key);
         }
 
         /// <remarks>Based on <a href="http://www.azillionmonkeys.com/qed/hash.html">SuperFastHash</a>.</remarks>
-        public static LocKeyId ToLocId(this string value)
+        public static LocKeyInt ToLocId(this string value)
         {
             unchecked
             {
                 // check for degenerate input
                 if (string.IsNullOrEmpty(value))
-                    return new LocKeyId(0);
+                    return new LocKeyInt(0);
 
                 int length = value.Length;
                 uint hash = (uint)length;
@@ -93,7 +93,7 @@ namespace FH
                 hash += hash >> 17;
                 hash ^= hash << 25;
                 hash += hash >> 6;
-                return new LocKeyId((int)hash);
+                return new LocKeyInt((int)hash);
             }
         }
     }

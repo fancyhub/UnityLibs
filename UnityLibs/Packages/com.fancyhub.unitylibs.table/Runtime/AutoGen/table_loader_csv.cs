@@ -2,7 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using LocStr = FH.LocKeyStr;using LocId = FH.LocKeyId;
+using LocStr = FH.LocKeyStr;using LocId = FH.LocKeyInt;
 
 namespace FH{
 

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using LocKey = FH.LocKeyId;
+using LocKey = FH.LocKeyInt;
 
 namespace FH
 {

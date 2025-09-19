@@ -11,7 +11,7 @@ namespace FH
 {
     public static class LockKeyExt
     {
-        public static string ExtGet(this LocKeyId key)
+        public static string ExtGet(this LocKeyInt key)
         {
             LocMgr.TryGet(key, out var tran);
             return tran;
@@ -23,7 +23,7 @@ namespace FH
             return tran;
         }
 
-        public static bool ExtTryGet(this LocKeyId key,out string tran)
+        public static bool ExtTryGet(this LocKeyInt key,out string tran)
         {
             return LocMgr.TryGet(key, out  tran);
         }

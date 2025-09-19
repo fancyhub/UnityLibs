@@ -12,30 +12,26 @@ namespace FH
     [DisallowMultipleComponent]
     public abstract class LocComp : MonoBehaviour
     {
-        public enum EMode
-        {
-            Str,
-            Id,
-        }
+       
         [SerializeField] private LocKeyStr _LocKeyStr;
-        protected LocKeyId _LocKeyId;
-        private EMode _Mode = EMode.Str;
+        protected LocKeyInt _LocKeyId;
+        private ELocKeyMode _Mode = ELocKeyMode.Str;
 
         public void SetKey(LocKeyStr key)
         {
-            if (_Mode == EMode.Str && _LocKeyStr.Equals(key))
+            if (_Mode == ELocKeyMode.Str && _LocKeyStr.Equals(key))
                 return;
             _LocKeyStr = key;
-            _Mode = EMode.Str;
+            _Mode = ELocKeyMode.Str;
             DoLocalize();
         }
 
-        public void Setkey(LocKeyId id)
+        public void Setkey(LocKeyInt id)
         {
-            if (_Mode == EMode.Id && _LocKeyId.Equals(id))
+            if (_Mode == ELocKeyMode.Int && _LocKeyId.Equals(id))
                 return;
             _LocKeyId = id;
-            _Mode = EMode.Id;
+            _Mode = ELocKeyMode.Int;
             DoLocalize();
         }
 
@@ -52,7 +48,7 @@ namespace FH
 
         protected bool TryGetTran(out string tran)
         {
-            if (_Mode == EMode.Str)
+            if (_Mode == ELocKeyMode.Str)
                 return LocMgr.TryGet(this._LocKeyStr, out tran, this);
             else
                 return LocMgr.TryGet(this._LocKeyId, out tran, this);

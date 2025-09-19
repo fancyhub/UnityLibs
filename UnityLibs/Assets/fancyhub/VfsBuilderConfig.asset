@@ -36,7 +36,7 @@ MonoBehaviour:
     Tags: base
     Dirs:
     - Name: table
-      RootDir: ../ClientData
+      RootDir: ../Designer/Export/Output/ClientData
       SpecSubDir: Table
       IncludeSub: 1
       SearchPatterns: '*.csv'
