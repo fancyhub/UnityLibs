@@ -27,11 +27,6 @@ import java.util.Map;
 import java.util.Set;
 
 
-
-
-
-
-
 public class WebViewManager {
 
     private static String LogTag = "UnityWebView";

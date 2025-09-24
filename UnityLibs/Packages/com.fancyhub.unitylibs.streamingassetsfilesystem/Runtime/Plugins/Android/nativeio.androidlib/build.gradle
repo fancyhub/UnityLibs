@@ -1,16 +1,7 @@
-
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
-
 apply plugin: 'com.android.library'
 
 android {
-    namespace 'com.fancyhub.webview'
+    namespace 'com.fancyhub.nativeio'
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
@@ -32,9 +23,6 @@ android {
     }
 }
 
-
 dependencies {
     implementation fileTree(dir: '../libs', includes: ['unity-classes.jar'])
-    implementation 'com.google.code.gson:gson:2.8.2'    
-    implementation 'androidx.appcompat:appcompat:1.1.0'
 }
