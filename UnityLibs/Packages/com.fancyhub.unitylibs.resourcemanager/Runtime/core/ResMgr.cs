@@ -28,11 +28,6 @@ namespace FH
         public void OnResDoneCallback(int job_id, EResError error, ResRef res_ref);
     }
 
-    public interface IInstDoneCallBack : ICPtr
-    {
-        public void OnResDoneCallback(int job_id, EResError error, ResRef res_ref);
-    }
-
     public enum EGameObjInstStatus
     {
         Free,
@@ -109,7 +104,7 @@ namespace FH
         #region GameObject Inst
         public EResError Create(string path, bool only_from_cache, out ResRef res_ref);
         public EResError CreateAsync(string path, int priority, InstEvent cb, out int job_id);
-        public EResError CreateAsync(string path, int priority, IInstDoneCallBack cb, out int job_id);
+        public EResError CreateAsync(string path, int priority, IResDoneCallBack cb, out int job_id);
 #if UNITY_2023_2_OR_NEWER
         public EResError CreateAsync(string path, int priority, ResAwaitSource source, CancellationToken cancelToken);
 #endif
@@ -337,7 +332,7 @@ namespace FH
             return err == EResError.OK;
         }
 
-        public static bool AsyncCreate(string path, IInstDoneCallBack cb, out int job_id, int priority = ResDef.PriorityDefault)
+        public static bool AsyncCreate(string path, IResDoneCallBack cb, out int job_id, int priority = ResDef.PriorityDefault)
         {
             IResMgr inst = _.Val;
             if (inst == null)

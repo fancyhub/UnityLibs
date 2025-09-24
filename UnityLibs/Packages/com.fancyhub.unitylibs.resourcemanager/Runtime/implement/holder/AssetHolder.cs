@@ -11,7 +11,7 @@ using UnityEngine;
 namespace FH.ResManagement
 {
     //资源和实例的 Holder,方便一起卸载
-    internal sealed class AssetHolder : CPoolItemBase, IAssetHolder
+    internal sealed class AssetHolder : CPoolItemBase, IAssetHolder, IResDoneCallBack
     {
         
         public enum EPreloadStatus
@@ -96,7 +96,7 @@ namespace FH.ResManagement
 
             //3. 预加载
             _Stat.Total++;
-            EResError err = mgr.LoadAsync(path, pathType, priority, _OnResLoaded, out int job_id);
+            EResError err = mgr.LoadAsync(path, pathType, priority, this, out int job_id);
             ResLog._.ErrCode(err);
             if (err == EResError.OK)
             {
@@ -120,7 +120,7 @@ namespace FH.ResManagement
             }
         }
 
-        private void _OnResLoaded(int job_id, EResError error, ResRef res_ref)
+        void IResDoneCallBack.OnResDoneCallback(int job_id, EResError error, ResRef res_ref)
         {
             //1. 查找, 如果找不到,说明已经被销毁了            
             if (!_PreLoadJobDict.Remove(job_id, out var res_path))

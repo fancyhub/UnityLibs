@@ -114,7 +114,7 @@ namespace FH.ResManagement
     {
         public int Type;
         public InstEvent Action;
-        public CPtr<IInstDoneCallBack> Target;
+        public CPtr<IResDoneCallBack> Target;
 #if UNITY_2023_2_OR_NEWER
         public AwaitableCompletionSource<(EResError error, ResRef res_ref)> AwaitSource;
         public CancellationToken CancelToken;
@@ -140,7 +140,7 @@ namespace FH.ResManagement
             return ret;
         }
 
-        public static InstDoneEvent Create(IInstDoneCallBack target)
+        public static InstDoneEvent Create(IResDoneCallBack target)
         {
             if (target == null)
                 return default;
@@ -148,7 +148,7 @@ namespace FH.ResManagement
             {
                 Type = 2,
                 Action = null,
-                Target = new CPtr<IInstDoneCallBack>(target),
+                Target = new CPtr<IResDoneCallBack>(target),
 #if UNITY_2023_2_OR_NEWER
                 AwaitSource = null,
                 CancelToken = default,

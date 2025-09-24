@@ -10,7 +10,7 @@ using UnityEngine;
 *************************************************************************************/
 namespace FH.ResManagement
 {
-    internal sealed class InstHolder : CPoolItemBase, IInstHolder
+    internal sealed class InstHolder : CPoolItemBase, IInstHolder, IResDoneCallBack
     {
         private bool _OnlyFromCache;
         private bool _Share;
@@ -122,7 +122,7 @@ namespace FH.ResManagement
             _Stat.Total += count;
             for (int i = 0; i < count; i++)
             {
-                EResError err = res_mgr.CreateAsync(path, priority, _OnInstCB, out int job_id);
+                EResError err = res_mgr.CreateAsync(path, priority, this, out int job_id);
                 ResLog._.ErrCode(err);
                 if (err == EResError.OK)
                 {
@@ -135,7 +135,7 @@ namespace FH.ResManagement
             }
         }
 
-        private void _OnInstCB(int job_id, EResError error, ResRef res_ref)
+        void IResDoneCallBack.OnResDoneCallback(int job_id, EResError error, ResRef res_ref)
         {
             if (!_PreCreateDict.Remove(job_id, out int priority))
                 return;

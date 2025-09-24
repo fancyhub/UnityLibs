@@ -452,7 +452,7 @@ namespace FH.ResManagement
             return err;
         }
 
-        public EResError CreateAsync(string path, int priority, IInstDoneCallBack cb, out int job_id)
+        public EResError CreateAsync(string path, int priority, IResDoneCallBack cb, out int job_id)
         {
             return CreateAsync(path, priority, InstDoneEvent.Create(cb), out job_id);
         }
