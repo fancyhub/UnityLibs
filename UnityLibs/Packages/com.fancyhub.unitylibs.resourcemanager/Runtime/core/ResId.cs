@@ -13,17 +13,11 @@ namespace FH
     public enum EResType
     {
         None,
-        Res,
+        Asset,
         Inst,
     }
 
-    public enum EResPathType
-    {
-        Default,
-        Sprite,
-        AnimClip,
-        Max,
-    }
+
 
     [Serializable]
     public readonly struct ResId : IEquatable<ResId>, IEqualityComparer<ResId>
@@ -53,7 +47,15 @@ namespace FH
         int IEqualityComparer<ResId>.GetHashCode(ResId obj) { return obj.GetHashCode(); }
     }
 
-    public static class ResPathExt
+    public enum EAssetPathType
+    {
+        Default,
+        Sprite,
+        AnimClip,
+        Max,
+    }
+
+    public static class AssetPathTypeExt
     {
         private static readonly System.Type[] _UnityTypes = new Type[]
         {
@@ -62,7 +64,7 @@ namespace FH
             typeof(UnityEngine.AnimationClip), //AnimClip
         };
 
-        public static System.Type ExtResPathType2UnityType(this EResPathType self)
+        public static System.Type ExtAssetPathType2UnityType(this EAssetPathType self)
         {
             if (self < 0 || (int)self >= _UnityTypes.Length)
             {

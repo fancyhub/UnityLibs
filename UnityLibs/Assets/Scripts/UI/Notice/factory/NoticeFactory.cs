@@ -15,7 +15,7 @@ namespace Game
     /// </summary>
     internal static class NoticeFactory
     {
-        public static INoticeChannel CreateChannel(NoticeConfig config, IClock clock, IResInstHolder holder)
+        public static INoticeChannel CreateChannel(NoticeConfig config, IClock clock, IResHolder holder)
         {
             INoticeChannelRoot root = _CreateChannelRoot(config, holder);
             if (root == null)
@@ -26,7 +26,7 @@ namespace Game
             return new NoticeChannel(config.Channel, clock, root, container);
         }
 
-        private static INoticeChannelRoot _CreateChannelRoot(NoticeConfig config, IResInstHolder holder)
+        private static INoticeChannelRoot _CreateChannelRoot(NoticeConfig config, IResHolder holder)
         {
             if (config.ChannelType == ENoticeChannel.None)
                 return null;

@@ -82,13 +82,13 @@ namespace Game
             switch (view_type)
             {
                 case ENoticeViewType.text:
-                    notice_api.ShowNotice(data, NoticeItemText.Create(notice_api.ResInstHolder, txt));
+                    notice_api.ShowNotice(data, NoticeItemText.Create(notice_api.ResHolder, txt));
                     break;
                 case ENoticeViewType.marquee:
-                    notice_api.ShowNotice(data, NoticeItemTextMarquee.Create(notice_api.ResInstHolder, txt));
+                    notice_api.ShowNotice(data, NoticeItemTextMarquee.Create(notice_api.ResHolder, txt));
                     break;
                 case ENoticeViewType.message_box:
-                    notice_api.ShowNotice(data, NoticeItemMessageBox.Create(notice_api.ResInstHolder, txt));
+                    notice_api.ShowNotice(data, NoticeItemMessageBox.Create(notice_api.ResHolder, txt));
                     break;
 
                 default:

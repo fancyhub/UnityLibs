@@ -18,12 +18,12 @@ namespace Game
         public NoticeItemDummy _dummy;
 
         public UINoticeMarqueeView _view;
-        public CPtr<IResInstHolder> _res_holder;
-        public static NoticeItemTextMarquee Create(IResInstHolder resholder, string text)
+        public CPtr<IResHolder> _res_holder;
+        public static NoticeItemTextMarquee Create(IResHolder resholder, string text)
         {
             NoticeItemTextMarquee ret = GPool.New<NoticeItemTextMarquee>();
             ret._Text = text;
-            ret._res_holder = new CPtr<IResInstHolder>(resholder);
+            ret._res_holder = new CPtr<IResHolder>(resholder);
             return ret;
         }
 

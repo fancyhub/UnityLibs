@@ -11,9 +11,9 @@ using UnityEngine;
 
 namespace FH.SampleExternalLoader
 {
-    public sealed class ResExternalLoader_Resource : CPtrBase, IResMgr.IExternalLoader
+    public sealed class AssetExternalLoader_Resource : CPtrBase, IResMgr.IExternalAssetLoader
     {
-        private sealed class ResRefDB
+        private sealed class AssetRefDB
         {
             public Dictionary<int, int> _Data = new Dictionary<int, int>();
             public void IncRef(UnityEngine.Object obj)
@@ -44,11 +44,11 @@ namespace FH.SampleExternalLoader
             }
         }
 
-        private sealed class AssetRef : CPoolItemBase, IResMgr.IExternalRef
+        private sealed class AssetRef : CPoolItemBase, IResMgr.IExternalAssetRef
         {
             public UnityEngine.Object _Asset;
             public ResourceRequest _ResRequest;
-            public ResRefDB _ResRefDB;
+            public AssetRefDB _ResRefDB;
 
             public bool IsDone
             {
@@ -65,7 +65,7 @@ namespace FH.SampleExternalLoader
                 }
             }
 
-            public static AssetRef Create(ResRefDB res_ref_db, UnityEngine.Object asset)
+            public static AssetRef Create(AssetRefDB res_ref_db, UnityEngine.Object asset)
             {
                 if (res_ref_db == null || asset == null)
                     return null;
@@ -76,7 +76,7 @@ namespace FH.SampleExternalLoader
                 return ret;
             }
 
-            public static AssetRef Create(ResRefDB res_ref_db, ResourceRequest request)
+            public static AssetRef Create(AssetRefDB res_ref_db, ResourceRequest request)
             {
                 if (res_ref_db == null || request == null)
                     return null;
@@ -112,7 +112,7 @@ namespace FH.SampleExternalLoader
             }
         }
 
-        private ResRefDB _ResRefDB = new ResRefDB();
+        private AssetRefDB _AssetRefDB = new AssetRefDB();
 
         public string AtlasTag2Path(string atlasName)
         {
@@ -124,14 +124,14 @@ namespace FH.SampleExternalLoader
             return EAssetStatus.Exist;
         }
 
-        public IResMgr.IExternalRef Load(string path, Type unityAssetType)
+        public IResMgr.IExternalAssetRef Load(string path, Type unityAssetType)
         {
-            return AssetRef.Create(_ResRefDB, Resources.Load(path, unityAssetType));
+            return AssetRef.Create(_AssetRefDB, Resources.Load(path, unityAssetType));
         }
 
-        public IResMgr.IExternalRef LoadAsync(string path, Type unityAssetType)
+        public IResMgr.IExternalAssetRef LoadAsync(string path, Type unityAssetType)
         {
-            return AssetRef.Create(_ResRefDB, Resources.LoadAsync(path, unityAssetType));
+            return AssetRef.Create(_AssetRefDB, Resources.LoadAsync(path, unityAssetType));
         }
 
         protected override void OnRelease()

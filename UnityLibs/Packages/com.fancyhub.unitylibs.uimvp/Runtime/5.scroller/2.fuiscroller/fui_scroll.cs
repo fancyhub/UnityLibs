@@ -32,7 +32,7 @@ namespace FH.UI
 
         private bool _in_stack = false;
 
-        public static FUIScroll Create(ScrollRect scroll_rect, IResInstHolder res_holder)
+        public static FUIScroll Create(ScrollRect scroll_rect, IResHolder res_holder)
         {
             FUIScroll eui_scroll = new FUIScroll();
             eui_scroll._scroller = new UIScroll(scroll_rect, res_holder);

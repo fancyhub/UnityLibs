@@ -53,7 +53,7 @@ namespace FH.UI
 
     public abstract partial class UIBaseView
     {
-        public static T CreateView<T>(Transform parent, IResInstHolder res_holder = null) where T : UIBaseView, new()
+        public static T CreateView<T>(Transform parent, IResHolder res_holder = null) where T : UIBaseView, new()
         {
             T ret = new T();
             string path = ret.GetPath();

@@ -15,7 +15,7 @@ namespace FH.ResManagement
     internal class GameObjectCreatorAsync : IMsgProc<ResJob>
     {
         #region  传入的    
-        public ResPool _res_pool;
+        public AssetPool _asset_pool;
         public GameObjectInstPool _gobj_pool;
         public ResJobDB _job_db;
         public ResMsgQueue _msg_queue;
@@ -82,11 +82,11 @@ namespace FH.ResManagement
             }
 
             //4.要特殊处理，先添加引用
-            EResError err = _res_pool.AddUser(job.ResId, job);
+            EResError err = _asset_pool.AddUser(job.AssetId, job);
             if (err != EResError.OK)
             {
                 //直接发到下一个
-                job.ErrorCode = (EResError)EResError.GameObjectCreatorAsync_inst_error_res_null;
+                job.ErrorCode = (EResError)EResError.GameObjectCreatorAsync_inst_error_asset_null;
                 _msg_queue.SendJobNext(job);
                 return;
             }
@@ -108,7 +108,7 @@ namespace FH.ResManagement
                     bool succ = _PopNextJob(
                         _job_queue
                         , _job_db
-                        , _res_pool
+                        , _asset_pool
                         , out _current_job
                         , out prefab
                         , ref _temp_list);
@@ -118,7 +118,7 @@ namespace FH.ResManagement
                     {
                         ResJob job = _temp_list[j];
 
-                        _res_pool.RemoveUser(job.ResId, job);
+                        _asset_pool.RemoveUser(job.AssetId, job);
                         _msg_queue.SendJobNext(job);
                     }
                     _temp_list.Clear();
@@ -133,7 +133,7 @@ namespace FH.ResManagement
                         var err = _gobj_pool.PopInst(_current_job.Path.Path, out _current_job.InstId);
                         if (err == EResError.OK)
                         {
-                            _res_pool.RemoveUser(_current_job.ResId, _current_job);
+                            _asset_pool.RemoveUser(_current_job.AssetId, _current_job);
                             _msg_queue.SendJobNext(_current_job);
                             _current_job = null;
                             continue;
@@ -148,7 +148,7 @@ namespace FH.ResManagement
                         _current_job.ErrorCode = (EResError)EResError.GameObjectCreatorAsync_inst_error_unkown;
                         ResLog._.Assert(false, "实例化的时候， 未知错误 {0}", _current_job.Path.Path);
 
-                        _res_pool.RemoveUser(_current_job.ResId, _current_job);
+                        _asset_pool.RemoveUser(_current_job.AssetId, _current_job);
                         _msg_queue.SendJobNext(_current_job);
                         _current_job = null;
                     }
@@ -167,13 +167,13 @@ namespace FH.ResManagement
                     GameObjectPoolUtil.InstActive(inst);
 
                     //3. 添加到pool
-                    bool succ = _gobj_pool.AddInst(new ResRef(job.ResId, job.Path.Path, _res_pool), inst, out job.InstId);
+                    bool succ = _gobj_pool.AddInst(new ResRef(job.AssetId, job.Path.Path, _asset_pool), inst, out job.InstId);
                     ResLog._.Assert(succ, "添加go inst 到 pool 失败 {0}", job.Path.Path);
                     //ResLog._.assert(ResConst.GetIdType(inst_id) == E_RES_TYPE.inst);
 
 
                     //4. 把当前任务发送给下一个
-                    _res_pool.RemoveUser(job.ResId, job);
+                    _asset_pool.RemoveUser(job.AssetId, job);
                     _msg_queue.SendJobNext(job);
                 }
             }
@@ -182,7 +182,7 @@ namespace FH.ResManagement
         public static bool _PopNextJob(
             ResJobQueuePriority job_queue
             , ResJobDB job_db
-            , ResPool res_pool
+            , AssetPool asset_pool
             , out ResJob out_job
             , out GameObject out_prefab
             , ref List<ResJob> job_list_expire)
@@ -215,11 +215,11 @@ namespace FH.ResManagement
                 }
 
                 //4. 找到资源，并检查资源                
-                UnityEngine.Object res = res_pool.Get(job.ResId);
+                UnityEngine.Object res = asset_pool.Get(job.AssetId);
                 if (res == null)
                 {
                     ResLog._.Assert(false, "严重错误， 资源没有，不能实例化 {0}", job.Path.Path);
-                    job.ErrorCode = (EResError)EResError.GameObjectCreatorAsync_inst_error_res_null2;
+                    job.ErrorCode = (EResError)EResError.GameObjectCreatorAsync_inst_error_asset_null2;
                     job_list_expire.Add(job);
                     continue;
                 }

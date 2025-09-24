@@ -15,7 +15,7 @@ namespace FH.NoticeSample
     /// </summary>
     internal static class NoticeFactory
     {
-        public static INoticeChannel CreateChannel(NoticeConfig config, IClock clock, IResInstHolder holder)
+        public static INoticeChannel CreateChannel(NoticeConfig config, IClock clock, IResHolder holder)
         {
             INoticeChannelRoot root = _CreateChannelRoot(config, holder);
             if (root == null)
@@ -26,7 +26,7 @@ namespace FH.NoticeSample
             return new NoticeChannel(config.Channel, clock, root, container);
         }
 
-        private static INoticeChannelRoot _CreateChannelRoot(NoticeConfig config, IResInstHolder holder)
+        private static INoticeChannelRoot _CreateChannelRoot(NoticeConfig config, IResHolder holder)
         {
             if (config.ChannelType == ENoticeChannel.None)
                 return null;
@@ -56,7 +56,7 @@ namespace FH.NoticeSample
             }
         }
 
-        public static RectTransform CreateView(CPtr<IResInstHolder> resHolder, string path, Transform parent)
+        public static RectTransform CreateView(CPtr<IResHolder> resHolder, string path, Transform parent)
         {
             var holder = resHolder.Val;
             if (holder == null)
@@ -69,7 +69,7 @@ namespace FH.NoticeSample
             return obj.GetComponent<RectTransform>();
         }
 
-        public static void ReleaseView(CPtr<IResInstHolder> resHolder, ref RectTransform view)
+        public static void ReleaseView(CPtr<IResHolder> resHolder, ref RectTransform view)
         {
             if (view == null)
                 return;

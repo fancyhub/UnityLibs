@@ -21,22 +21,22 @@ namespace FH.ResManagement
         private int ___obj_ver = 0;
         int IVersionObj.ObjVersion => ___obj_ver;
 
-        public IResMgr.IExternalLoader _external_loader;
+        public IResMgr.IExternalAssetLoader _external_loader;
 
         public IResMgr.Config _conf;
-        public ResPool _res_pool;
+        public AssetPool _asset_pool;
         public GameObjectInstPool _gobj_pool;
         public ResJobDB _job_db;
         public GameObjectStat _gobj_stat;
         public GameObjectPreInstData _gobj_pre_data;
-        public ResInstGc _gc;
+        public ResGC _gc;
         public AtlasLoader _atlas_loader;
 
         public GameObjectCreatorAsync _worker_go_async;
         public GameObjectCreatorSync _worker_go_sync;
-        public ResLoaderAsync _worker_res_async;
-        public ResLoaderSync _worker_res_sync;
-        public ResInstCallEvent _worker_res_cb;
+        public AssetLoaderAsync _worker_asset_async;
+        public AssetLoaderSync _worker_asset_sync;
+        public ResCallEvent _worker_res_cb;
         public GameObjectPreInst _worker_go_pre_inst;
         public ResMsgQueue _msg_queue;
         public bool _in_upgrade = false;
@@ -44,58 +44,58 @@ namespace FH.ResManagement
         static ResMgrImplement()
         {
             MyEqualityComparer.Reg(ResId.EqualityComparer);
-            MyEqualityComparer.Reg(ResPath.EqualityComparer);
+            MyEqualityComparer.Reg(AssetPath.EqualityComparer);
             MyEqualityComparer.Reg(ResRef.EqualityComparer);
         }
 
-        public ResMgrImplement(IResMgr.IExternalLoader external_loader, IResMgr.Config conf)
+        public ResMgrImplement(IResMgr.IExternalAssetLoader external_loader, IResMgr.Config conf)
         {
             _external_loader = external_loader;
             _conf = conf;
 
             _gobj_stat = new GameObjectStat();
-            _res_pool = new ResPool();
+            _asset_pool = new AssetPool();
             _gobj_pool = new GameObjectInstPool(_gobj_stat);
             _job_db = new ResJobDB();
             _gobj_pre_data = new GameObjectPreInstData(conf.PreInst);
             _msg_queue = new ResMsgQueue();
             _msg_queue._job_db = _job_db;
 
-            _gc = new ResInstGc(conf.GC);
-            _gc._res_pool = _res_pool;
+            _gc = new ResGC(conf.GC);
+            _gc._asset_pool = _asset_pool;
             _gc._gobj_pool = _gobj_pool;
             _gc._gobj_pre_data = _gobj_pre_data;
             _gc._gobj_stat = _gobj_stat;
 
             _worker_go_async = new GameObjectCreatorAsync(conf.MaxAsyncGameObjectStep);
-            _worker_go_async._res_pool = _res_pool;
+            _worker_go_async._asset_pool = _asset_pool;
             _worker_go_async._gobj_pool = _gobj_pool;
             _worker_go_async._job_db = _job_db;
             _worker_go_async._msg_queue = _msg_queue;
             _worker_go_async.Init();
 
             _worker_go_sync = new GameObjectCreatorSync();
-            _worker_go_sync._res_pool = _res_pool;
+            _worker_go_sync._asset_pool = _asset_pool;
             _worker_go_sync._gobj_pool = _gobj_pool;
             _worker_go_sync._msg_queue = _msg_queue;
             _worker_go_sync.Init();
 
-            _worker_res_async = new ResLoaderAsync(conf.MaxAsyncResLoaderSlot);
-            _worker_res_async._res_pool = _res_pool;
-            _worker_res_async._external_loader = external_loader;
-            _worker_res_async._job_db = _job_db;
-            _worker_res_async._msg_queue = _msg_queue;
-            _worker_res_async.Init();
+            _worker_asset_async = new AssetLoaderAsync(conf.MaxAsyncResLoaderSlot);
+            _worker_asset_async._asset_pool = _asset_pool;
+            _worker_asset_async._external_loader = external_loader;
+            _worker_asset_async._job_db = _job_db;
+            _worker_asset_async._msg_queue = _msg_queue;
+            _worker_asset_async.Init();
 
-            _worker_res_sync = new ResLoaderSync();
-            _worker_res_sync._res_pool = _res_pool;
-            _worker_res_sync._external_loader = external_loader;
-            _worker_res_sync._msg_queue = _msg_queue;
-            _worker_res_sync.Init();
+            _worker_asset_sync = new AssetLoaderSync();
+            _worker_asset_sync._asset_pool = _asset_pool;
+            _worker_asset_sync._external_loader = external_loader;
+            _worker_asset_sync._msg_queue = _msg_queue;
+            _worker_asset_sync.Init();
 
-            _worker_res_cb = new ResInstCallEvent();
+            _worker_res_cb = new ResCallEvent();
             _worker_res_cb._msg_queue = _msg_queue;
-            _worker_res_cb._res_pool = _res_pool;
+            _worker_res_cb._asset_pool = _asset_pool;
             _worker_res_cb._inst_pool = _gobj_pool;
             _worker_res_cb.Init();
 
@@ -108,7 +108,7 @@ namespace FH.ResManagement
             _atlas_loader = new AtlasLoader();
             _atlas_loader._external_loader = _external_loader;
             _atlas_loader._job_db = _job_db;
-            _atlas_loader._res_pool = _res_pool;
+            _atlas_loader._asset_pool = _asset_pool;
             _atlas_loader._msg_queue = _msg_queue;
             _atlas_loader.Init();
         }
@@ -117,7 +117,7 @@ namespace FH.ResManagement
         {
             _gobj_pool.Update();
             _msg_queue.ProcessMsgs(int.MaxValue);
-            _worker_res_async.Update();
+            _worker_asset_async.Update();
             _worker_go_async.Update();
             _gc.Update();
 
@@ -131,23 +131,23 @@ namespace FH.ResManagement
             _atlas_loader.Destroy();
             _worker_go_async.Destroy();
             _worker_go_sync.Destroy();
-            _worker_res_async.Destroy();
-            _worker_res_sync.Destroy();
+            _worker_asset_async.Destroy();
+            _worker_asset_sync.Destroy();
             _worker_res_cb.Destroy();
             _job_db.Destroy();
 
             _gobj_pool.Destroy();
-            _res_pool.Destroy();
+            _asset_pool.Destroy();
 
             _atlas_loader = null;
             _worker_go_async = null;
             _worker_go_sync = null;
-            _worker_res_async = null;
-            _worker_res_sync = null;
+            _worker_asset_async = null;
+            _worker_asset_sync = null;
             _worker_res_cb = null;
             _job_db = null;
             _gobj_pool = null;
-            _res_pool = null;
+            _asset_pool = null;
             _gc = null;
             _msg_queue.ClearMsgQueue();
             _msg_queue = null;
@@ -212,9 +212,9 @@ namespace FH.ResManagement
 
             switch (id.ResType)
             {
-                case EResType.Res:
+                case EResType.Asset:
                     {
-                        EResError err2 = _res_pool.AddUser(id, user);
+                        EResError err2 = _asset_pool.AddUser(id, user);
                         ResLog._.ErrCode(err2, "add user ，{0} 类型的资源", id.ResType);
                         return err2;
                     }
@@ -241,9 +241,9 @@ namespace FH.ResManagement
 
             switch (id.ResType)
             {
-                case EResType.Res:
+                case EResType.Asset:
                     {
-                        EResError err2 = _res_pool.RemoveUser(id, user);
+                        EResError err2 = _asset_pool.RemoveUser(id, user);
                         ResLog._.ErrCode(err2, "remove user ，{0} 类型的资源, {1}", id.ResType, id.Id);
                         return err2;
                     }
@@ -273,8 +273,8 @@ namespace FH.ResManagement
                 default:
                     return null;
 
-                case EResType.Res:
-                    return _res_pool.Get(id);
+                case EResType.Asset:
+                    return _asset_pool.Get(id);
 
                 case EResType.Inst:
                     return _gobj_pool.GetInst(id, true);
@@ -293,7 +293,7 @@ namespace FH.ResManagement
         }
 
         #region Res
-        public EResError Load(string path, EResPathType pathType, bool only_from_cache, out ResRef res_ref)
+        public EResError Load(string path, EAssetPathType pathType, bool only_from_cache, out ResRef res_ref)
         {
             //1. check
             if (string.IsNullOrEmpty(path))
@@ -304,11 +304,11 @@ namespace FH.ResManagement
             }
 
             //2. 先尝试找一下
-            ResPath res_path = ResPath.Create(path, pathType);
-            EResError err = _res_pool.GetIdByPath(res_path, out var res_id);
+            AssetPath res_path = AssetPath.Create(path, pathType);
+            EResError err = _asset_pool.GetIdByPath(res_path, out var res_id);
             if (err == EResError.OK) //如果找到了，直接返回
             {
-                res_ref = new ResRef(res_id, path, _res_pool);
+                res_ref = new ResRef(res_id, path, _asset_pool);
                 return EResError.OK;
             }
             if (only_from_cache)
@@ -319,34 +319,34 @@ namespace FH.ResManagement
 
             //3. 同步加载
             ResJob job = _job_db.CreateJob(res_path, 0);
-            job.AddWorker(EResWoker.sync_load_res);
+            job.AddWorker(EResWoker.sync_load_asset);
             _msg_queue.BeginJob(job, true);
-            res_id = job.ResId;
+            res_id = job.AssetId;
             err = job.ErrorCode;
             job.Destroy();
 
             //4. 再次找到该资源
             if (err == EResError.OK)
-                res_ref = new ResRef(res_id, path, _res_pool);
+                res_ref = new ResRef(res_id, path, _asset_pool);
             else
                 res_ref = default;
             return err;
         }
-        public EResError LoadAsync(string path, EResPathType pathType, int priority, IResDoneCallBack cb, out int job_id)
+        public EResError LoadAsync(string path, EAssetPathType pathType, int priority, IResDoneCallBack cb, out int job_id)
         {
-            return LoadAsync(path, pathType, priority, ResDoneEvent.Create(cb), out job_id);
+            return LoadAsync(path, pathType, priority, AssetDoneEvent.Create(cb), out job_id);
         }
-        public EResError LoadAsync(string path, EResPathType pathType, int priority, ResEvent cb, out int job_id)
+        public EResError LoadAsync(string path, EAssetPathType pathType, int priority, ResEvent cb, out int job_id)
         {
-            return LoadAsync(path, pathType, priority, ResDoneEvent.Create(cb), out job_id);
+            return LoadAsync(path, pathType, priority, AssetDoneEvent.Create(cb), out job_id);
         }
 #if UNITY_2023_2_OR_NEWER
-        public EResError LoadAsync(string path, EResPathType pathType, int priority, AwaitableCompletionSource<(EResError error, ResRef res_ref)> source, CancellationToken cancelToken)
+        public EResError LoadAsync(string path, EAssetPathType pathType, int priority, AwaitableCompletionSource<(EResError error, ResRef res_ref)> source, CancellationToken cancelToken)
         {
             return LoadAsync(path, pathType, priority, ResDoneEvent.Create(source, cancelToken), out _);
         }
 #endif
-        public EResError LoadAsync(string path, EResPathType pathType, int priority, ResDoneEvent resEvent, out int job_id)
+        public EResError LoadAsync(string path, EAssetPathType pathType, int priority, AssetDoneEvent resEvent, out int job_id)
         {
             //1. check
             if (_in_upgrade)
@@ -369,10 +369,10 @@ namespace FH.ResManagement
             }
 
             //2. 异步加载
-            ResJob job = _job_db.CreateJob(ResPath.Create(path, pathType), priority);
-            job.EventResCallBack = resEvent;
-            job.AddWorker(EResWoker.async_load_res);
-            job.AddWorker(EResWoker.call_res_event);
+            ResJob job = _job_db.CreateJob(AssetPath.Create(path, pathType), priority);
+            job.EventAssetCallBack = resEvent;
+            job.AddWorker(EResWoker.async_load_asset);
+            job.AddWorker(EResWoker.call_asset_event);
 
             _msg_queue.BeginJob(job, false);
             job_id = job.JobId;
@@ -380,16 +380,16 @@ namespace FH.ResManagement
             return EResError.OK;
         }
 
-        public EAssetStatus GetAssetStatus(string res_path)
+        public EAssetStatus GetAssetStatus(string asset_path)
         {
-            return _external_loader.GetAssetStatus(res_path);
+            return _external_loader.GetAssetStatus(asset_path);
         }
 
         // 资源的部分,key: path
         public void Snapshot(ref List<ResSnapShotItem> out_snapshot)
         {
             out_snapshot.Clear();
-            _res_pool.Snapshot(ref out_snapshot);
+            _asset_pool.Snapshot(ref out_snapshot);
             _gobj_pool.Snapshot(ref out_snapshot);
         }
         #endregion
@@ -421,10 +421,10 @@ namespace FH.ResManagement
             }
 
             //3. 加载
-            ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), 0);
+            ResJob job = _job_db.CreateJob(AssetPath.Create(path), 0);
             if (only_from_cache) //不允许同步加载
             {
-                err = _res_pool.GetIdByPath(ResPath.CreateRes(path), out job.ResId);
+                err = _asset_pool.GetIdByPath(AssetPath.Create(path), out job.AssetId);
                 if (err != EResError.OK) //资源不存在, 没有加载
                 {
                     _msg_queue.SendJobNext(job);
@@ -434,7 +434,7 @@ namespace FH.ResManagement
             }
             else
             {
-                job.AddWorker(EResWoker.sync_load_res);
+                job.AddWorker(EResWoker.sync_load_asset);
             }
             job.AddWorker(EResWoker.sync_obj_inst);
             _msg_queue.BeginJob(job, true);
@@ -493,9 +493,9 @@ namespace FH.ResManagement
             }
 
             //2. 创建Job
-            ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), priority);
+            ResJob job = _job_db.CreateJob(AssetPath.Create(path), priority);
             job.EventInstCallBack = instDoneEvent;
-            job.AddWorker(EResWoker.async_load_res);
+            job.AddWorker(EResWoker.async_load_asset);
             job.AddWorker(EResWoker.async_obj_inst);
             job.AddWorker(EResWoker.call_inst_event);
 
@@ -521,7 +521,7 @@ namespace FH.ResManagement
             if (asset_status != EAssetStatus.Exist)
             {
                 req_id = 0;
-                return (EResError)EResError.ResMgrImplement_res_not_exist;
+                return (EResError)EResError.ResMgrImplement_asset_not_exist;
             }
 
             //3. 添加
@@ -557,7 +557,7 @@ namespace FH.ResManagement
                 return;
 
             _gobj_pool.OnUpgradeSucc();
-            _res_pool.OnUpgradeSucc();
+            _asset_pool.OnUpgradeSucc();
         }
 
         private (int remain_count, bool all_done) _GetAsyncJobs()

@@ -21,13 +21,13 @@ namespace FH.NoticeSample
         public Text _TxtComp;
         public RectTransform _view;
         public NoticeItemDummy _dummy;
-        public CPtr<IResInstHolder> _ResHolder;
+        public CPtr<IResHolder> _ResHolder;
 
-        public static NoticeItemTextMarquee Create(IResInstHolder resholder, string text)
+        public static NoticeItemTextMarquee Create(IResHolder resholder, string text)
         {
             NoticeItemTextMarquee ret = GPool.New<NoticeItemTextMarquee>();
             ret._Text = text;
-            ret._ResHolder = new CPtr<IResInstHolder>(resholder);
+            ret._ResHolder = new CPtr<IResHolder>(resholder);
             return ret;
         }
 

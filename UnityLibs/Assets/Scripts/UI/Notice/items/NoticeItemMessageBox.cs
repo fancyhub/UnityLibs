@@ -23,14 +23,14 @@ namespace Game
 
         public NoticeItemDummy _dummy;
         public UINoticeMessageBoxView _view;
-        public CPtr<IResInstHolder> _res_holder;
+        public CPtr<IResHolder> _res_holder;
 
-        public static NoticeItemMessageBox Create(IResInstHolder resHolder, string text, string btn_name = null)
+        public static NoticeItemMessageBox Create(IResHolder resHolder, string text, string btn_name = null)
         {
             NoticeItemMessageBox ret = GPool.New<NoticeItemMessageBox>();
             ret._Text = text;
             ret._BtnName = btn_name;
-            ret._res_holder = new CPtr<IResInstHolder>(resHolder);
+            ret._res_holder = new CPtr<IResHolder>(resHolder);
 
             if (string.IsNullOrEmpty(btn_name))
                 ret._BtnName = "OK";

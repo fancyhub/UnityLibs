@@ -32,7 +32,7 @@ namespace FH.ResManagement
             }
         }
 
-        public ResJob CreateJob(ResPath path, int priority)
+        public ResJob CreateJob(AssetPath path, int priority)
         {
             ResJob ret = GPool.New<ResJob>();
             ret.JobId = NextJobId;

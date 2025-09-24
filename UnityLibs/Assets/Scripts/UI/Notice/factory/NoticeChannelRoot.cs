@@ -26,9 +26,9 @@ namespace Game
         private NoticeDummyConfig _Config;
         private RectTransform _ChannelRoot;
 
-        private IResInstHolder _ResHolder;
+        private IResHolder _ResHolder;
 
-        public NoticeChannelRoot(NoticeDummyConfig config, string dummy_name, IResInstHolder holder)
+        public NoticeChannelRoot(NoticeDummyConfig config, string dummy_name, IResHolder holder)
         {
             _Config = config;
             _DummyName = dummy_name;

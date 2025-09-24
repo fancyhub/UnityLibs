@@ -20,7 +20,7 @@ namespace FH.UI
     public interface IScrollItemParent
     {
         public RectTransform ItemParent { get; }
-        public IResInstHolder Holder { get; }
+        public IResHolder Holder { get; }
         public void OnChildSizeChange();
     }
 

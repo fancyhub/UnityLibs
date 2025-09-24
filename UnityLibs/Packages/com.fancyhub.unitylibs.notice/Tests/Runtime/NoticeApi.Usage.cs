@@ -29,13 +29,13 @@ namespace FH.NoticeSample
         public static void ShowMarquee(string txt, float duration_sec = 5.0f)
         {
             NoticeData data = new NoticeData(ENoticeChannel.Common, duration_sec);
-            ShowNotice(data, NoticeItemTextMarquee.Create(_ResInstHolder, txt));
+            ShowNotice(data, NoticeItemTextMarquee.Create(_ResHolder, txt));
         }
 
         public static void ShowCommon(string txt, float duration_sec = 2.0f)
         {
             NoticeData data = new NoticeData(ENoticeChannel.Common, duration_sec);
-            ShowNotice(data, NoticeItemText.Create(_ResInstHolder, txt));
+            ShowNotice(data, NoticeItemText.Create(_ResHolder, txt));
         }         
     }
 }

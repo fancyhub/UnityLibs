@@ -11,12 +11,12 @@ using UnityEngine;
 
 namespace FH.SampleExternalLoader
 {
-    public sealed class ResExternalLoader_Bundle : CPtrBase, IResMgr.IExternalLoader
+    public sealed class ResExternalLoader_Bundle : CPtrBase, IResMgr.IExternalAssetLoader
     {
         private CPtr<IBundleMgr> _BundleMgr;
         private Func<string, string> _AtlasTag;
 
-        private sealed class AssetRef : CPoolItemBase, IResMgr.IExternalRef
+        private sealed class AssetRef : CPoolItemBase, IResMgr.IExternalAssetRef
         {
             public UnityEngine.Object _Asset;
             public AssetBundleRequest _ResRequest;
@@ -110,7 +110,7 @@ namespace FH.SampleExternalLoader
                 return EAssetStatus.NotDownloaded;
         }
 
-        public IResMgr.IExternalRef Load(string path, Type unityAssetType)
+        public IResMgr.IExternalAssetRef Load(string path, Type unityAssetType)
         {
             IBundleMgr bundleMgr = _BundleMgr.Val;
             if (bundleMgr == null)
@@ -130,7 +130,7 @@ namespace FH.SampleExternalLoader
             return  AssetRef.Create(bundle, asset);
         }
 
-        public IResMgr.IExternalRef LoadAsync(string path, Type unityAssetType)
+        public IResMgr.IExternalAssetRef LoadAsync(string path, Type unityAssetType)
         {
             IBundleMgr bundleMgr = _BundleMgr.Val;
             if (bundleMgr == null)

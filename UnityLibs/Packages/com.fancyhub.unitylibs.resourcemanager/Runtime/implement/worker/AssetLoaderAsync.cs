@@ -12,19 +12,19 @@ using UnityEngine;
 namespace FH.ResManagement
 {
     //异步加载的task
-    internal class ResAsyncTask
+    internal class AssetAsyncTask
     {
-        private ResPath _Path;
-        private IResMgr.IExternalRef _AssetRequest;
+        private AssetPath _Path;
+        private IResMgr.IExternalAssetRef _AssetRequest;
         private List<int> _job_ids;
 
-        public ResAsyncTask()
+        public AssetAsyncTask()
         {
             _job_ids = new List<int>();
         }
 
-        public ResPath Path { get { return _Path; } }
-        public IResMgr.IExternalRef AssetRequest => _AssetRequest;
+        public AssetPath Path { get { return _Path; } }
+        public IResMgr.IExternalAssetRef AssetRequest => _AssetRequest;
         public List<int> JobList => _job_ids;
 
         public bool IsIdle { get { return _AssetRequest == null; } }
@@ -40,7 +40,7 @@ namespace FH.ResManagement
             _job_ids.Add(jobId);
         }
 
-        public void StartWork(int jobId, ResPath path, IResMgr.IExternalRef asset)
+        public void StartWork(int jobId, AssetPath path, IResMgr.IExternalAssetRef asset)
         {
             JobList.Add(jobId);
             _AssetRequest = asset;
@@ -57,29 +57,29 @@ namespace FH.ResManagement
     }
 
     //资源异步加载
-    internal class ResLoaderAsync : IMsgProc<ResJob>
+    internal class AssetLoaderAsync : IMsgProc<ResJob>
     {
         #region  传入的
-        public ResPool _res_pool;
-        public IResMgr.IExternalLoader _external_loader;
+        public AssetPool _asset_pool;
+        public IResMgr.IExternalAssetLoader _external_loader;
         public ResJobDB _job_db;
         public ResMsgQueue _msg_queue;
 
         #endregion
 
 
-        public ResAsyncTask[] _task_slots;
+        public AssetAsyncTask[] _task_slots;
 
         //优先级的job queue
         public ResJobQueuePriority _job_queue;
 
-        public ResLoaderAsync(int count)
+        public AssetLoaderAsync(int count)
         {
             count = Math.Max(count, 1);
-            _task_slots = new ResAsyncTask[count];
+            _task_slots = new AssetAsyncTask[count];
             for (int i = 0; i < _task_slots.Length; ++i)
             {
-                _task_slots[i] = new ResAsyncTask();
+                _task_slots[i] = new AssetAsyncTask();
             }
             _job_queue = new ResJobQueuePriority();
         }
@@ -87,14 +87,14 @@ namespace FH.ResManagement
         public void Init()
         {
             //1. 先把自己注册到 message queue 上
-            _msg_queue.Reg(EResWoker.async_load_res, this);
+            _msg_queue.Reg(EResWoker.async_load_asset, this);
         }
 
         public void Destroy()
         {
-            _msg_queue.UnReg(EResWoker.async_load_res);
+            _msg_queue.UnReg(EResWoker.async_load_asset);
             _job_queue.Destroy();
-            foreach (ResAsyncTask task in _task_slots)
+            foreach (AssetAsyncTask task in _task_slots)
             {
                 task.Clear();
             }
@@ -111,19 +111,19 @@ namespace FH.ResManagement
 
             //3.判断一定是自己
             EResWoker job_type = job.GetCurrentWorker();
-            if (job_type != EResWoker.async_load_res)
+            if (job_type != EResWoker.async_load_asset)
             {
-                ResLog._.Assert(false, "job 不是 类型 {0}!={1}, {2}", job_type, EResWoker.async_load_res, job.Path.Path);
+                ResLog._.Assert(false, "job 不是 类型 {0}!={1}, {2}", job_type, EResWoker.async_load_asset, job.Path.Path);
                 _msg_queue.SendJobNext(job);
                 return;
             }
 
             //4.判断是否已经添加了
-            EResError err = _res_pool.GetIdByPath(job.Path, out job.ResId);
+            EResError err = _asset_pool.GetIdByPath(job.Path, out job.AssetId);
             if (err == EResError.OK)
             {
                 //刷新一下, 不要被回收了
-                _res_pool.RefreshLru(job.ResId);
+                _asset_pool.RefreshLru(job.AssetId);
 
                 //直接发到下一个
                 _msg_queue.SendJobNext(job);
@@ -134,7 +134,7 @@ namespace FH.ResManagement
             var asset_status = _external_loader.GetAssetStatus(job.Path.Path);
             if (asset_status != EAssetStatus.Exist)
             {
-                job.ErrorCode = EResError.ResLoaderAsync_res_not_exist;
+                job.ErrorCode = EResError.AssetLoaderAsync_asset_not_exist;
                 ResLog._.ErrCode(job.ErrorCode, $"资源不存在 {job.Path.Path} {asset_status}");
 
                 //直接发到下一个
@@ -151,7 +151,7 @@ namespace FH.ResManagement
             //1. 先把当前正在运行的任务 弄完
             for (int i = 0; i < _task_slots.Length; ++i)
             {
-                ResAsyncTask task = _task_slots[i];
+                AssetAsyncTask task = _task_slots[i];
 
                 //1.1 检查是否任务完成了
                 if (task.IsIdle)
@@ -161,7 +161,7 @@ namespace FH.ResManagement
 
                 //1.2 添加到pool里面
                 ResLog._.D("load res async {0}", task.Path);
-                EResError error_code = _res_pool.AddRes(task.Path, task.AssetRequest, out ResId res_id);
+                EResError error_code = _asset_pool.AddAsset(task.Path, task.AssetRequest, out ResId res_id);
                 ResLog._.ErrCode(error_code, $"添加资源失败 {task.Path}");
 
                 if (error_code != EResError.OK)
@@ -171,7 +171,7 @@ namespace FH.ResManagement
                 foreach (int job_id in task.JobList)
                 {
                     _job_db.Find(job_id, out ResJob job);
-                    job.ResId = res_id;
+                    job.AssetId = res_id;
                     job.ErrorCode = error_code;
                     _msg_queue.SendJobNext(job);
                 }
@@ -206,18 +206,18 @@ namespace FH.ResManagement
                 }
 
                 //2.4 判断资源是否已经加载好了
-                EResError err = _res_pool.GetIdByPath(job.Path, out job.ResId);
+                EResError err = _asset_pool.GetIdByPath(job.Path, out job.AssetId);
                 if (err == EResError.OK)
                 {
                     //刷新一下
-                    _res_pool.RefreshLru(job.ResId);
+                    _asset_pool.RefreshLru(job.AssetId);
                     _job_queue.Pop();
                     _msg_queue.SendJobNext(job);
                     continue;
                 }
 
                 //2.5 找到执行的task_slot
-                ResAsyncTask task_slot = _GetTaskSlot(_task_slots, _task_slots.Length, job.Path);
+                AssetAsyncTask task_slot = _GetTaskSlot(_task_slots, _task_slots.Length, job.Path);
                 if (null == task_slot)
                 {
                     //没有空余的 task slot，直接break
@@ -231,7 +231,7 @@ namespace FH.ResManagement
                     task_slot.AddLinkJobId(job_id);
                     continue;
                 }
-                IResMgr.IExternalRef asset = _external_loader.LoadAsync(job.Path.Path, job.Path.PathType.ExtResPathType2UnityType());
+                IResMgr.IExternalAssetRef asset = _external_loader.LoadAsync(job.Path.Path, job.Path.PathType.ExtAssetPathType2UnityType());
 
                 if (asset != null)
                 {
@@ -241,13 +241,13 @@ namespace FH.ResManagement
 
                 //2.8 加载失败
                 ResLog._.Assert(false, "加载资源的asset request为空 {0}", job.Path.Path);
-                job.ErrorCode = EResError.ResLoaderAsync_load_res_failed2;
+                job.ErrorCode = EResError.AssetLoaderAsync_load_asset_failed2;
                 _msg_queue.SendJobNext(job);
             }
         }
 
         //找到能加载 该资源的 task slot
-        public static ResAsyncTask _GetTaskSlot(ResAsyncTask[] task_slot, int count, ResPath path)
+        public static AssetAsyncTask _GetTaskSlot(AssetAsyncTask[] task_slot, int count, AssetPath path)
         {
             //1. 先找相同的
             for (int i = 0; i < task_slot.Length; ++i)

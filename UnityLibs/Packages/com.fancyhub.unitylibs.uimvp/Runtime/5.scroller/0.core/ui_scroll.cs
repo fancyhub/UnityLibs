@@ -54,7 +54,7 @@ namespace FH.UI
             }
         }
 
-        private IResInstHolder _holder;
+        private IResHolder _holder;
         private ScrollRect _unity_scroll;
         private RectTransform _view_port_tran;
         private RectTransform _content_tran;
@@ -66,7 +66,7 @@ namespace FH.UI
         private List<IScrollItem> _item_list = new List<IScrollItem>();
         private int _batch_mode = 0;
 
-        public UIScroll(ScrollRect scroll_rect, IResInstHolder holder)
+        public UIScroll(ScrollRect scroll_rect, IResHolder holder)
         {
             _holder = holder;
 
@@ -281,7 +281,7 @@ namespace FH.UI
             }
         }
 
-        IResInstHolder IScrollItemParent.Holder
+        IResHolder IScrollItemParent.Holder
         {
             get { return _holder; }
         }

@@ -269,7 +269,7 @@ namespace FH.UI
             View = null;
         }
 
-        public abstract UIBaseView CreateView(Transform dummy, IResInstHolder holder);
+        public abstract UIBaseView CreateView(Transform dummy, IResHolder holder);
 
         public void _on_btn_click(IUISelectable b, long user_data)
         {
@@ -333,7 +333,7 @@ namespace FH.UI
         {
         }
 
-        public override UIBaseView CreateView(Transform dummy, IResInstHolder holder)
+        public override UIBaseView CreateView(Transform dummy, IResHolder holder)
         {
             return UIBaseView.CreateView<TView>(dummy, holder);
         }

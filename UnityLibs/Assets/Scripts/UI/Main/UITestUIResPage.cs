@@ -11,14 +11,14 @@ namespace Game
     {
         static string[] spriteNames = new string[] { "s0", "s1", "s2" };
 
-        //protected override IResInstHolder CreateHolder()
+        //protected override IResHolder CreateHolder()
         //{
         //    var ret = ResMgr.CreateHolder(false, false);
         //    PtrList += ret;
         //    return ret;
         //}
 
-        protected override void OnUI1PrepareRes(IResInstHolder holder)
+        protected override void OnUI1PrepareRes(IResHolder holder)
         {
             holder.PreCreate(UITestUIResView.CPath, 20);
             for (int i = 1; i < spriteNames.Length; i++)

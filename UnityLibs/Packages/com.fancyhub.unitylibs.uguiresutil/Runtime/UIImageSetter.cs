@@ -13,7 +13,7 @@ namespace FH.UI
     public static class UIImageSetterExt
     {
 
-        public static void ExtPreloadSprite(this IResInstHolder holder, string name)
+        public static void ExtPreloadSprite(this IResHolder holder, string name)
         {
 #if UNITY_EDITOR
             if (!Application.isPlaying)
@@ -33,7 +33,7 @@ namespace FH.UI
                 return;
             }
 
-            holder.PreLoad(path, EResPathType.Sprite);
+            holder.PreLoad(path, EAssetPathType.Sprite);
         }
 
         public static void ExtSyncSetSprite(this Image img, string name)
@@ -134,7 +134,7 @@ namespace FH.UI
                     _ResRef = default;
                     _Image.overrideSprite = null;
 
-                    _ResRef = ResMgr.Load(path, EResPathType.Sprite);
+                    _ResRef = ResMgr.Load(path, EAssetPathType.Sprite);
                     _Image.overrideSprite = _ResRef.Get<Sprite>();
                     if (_Image.overrideSprite != null)
                         _ResRef.AddUser(this);
@@ -144,7 +144,7 @@ namespace FH.UI
                 else //异步加载
                 {
                     //先同步加载
-                    ResRef new_res_ref = ResMgr.TryLoadExist(path, EResPathType.Sprite);
+                    ResRef new_res_ref = ResMgr.TryLoadExist(path, EAssetPathType.Sprite);
                     Sprite new_sprite = new_res_ref.Get<Sprite>();
                     if (new_sprite != null)
                     {
@@ -157,7 +157,7 @@ namespace FH.UI
                     }
                     else
                     {
-                        bool result = ResMgr.AsyncLoad(_Path, EResPathType.Sprite, _OnAsyncLoaded, out _JobId, CPriority);
+                        bool result = ResMgr.AsyncLoad(_Path, EAssetPathType.Sprite, _OnAsyncLoaded, out _JobId, CPriority);
                         if (!result)
                         {
                             _ResRef.RemoveUser(this);

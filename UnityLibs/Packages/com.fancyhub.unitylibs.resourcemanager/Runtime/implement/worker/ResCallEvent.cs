@@ -10,11 +10,11 @@ using System.Collections.Generic;
 namespace FH.ResManagement
 {
     //发出event
-    internal class ResInstCallEvent : IMsgProc<ResJob>
+    internal class ResCallEvent : IMsgProc<ResJob>
     {
         #region  传入的    
         public ResMsgQueue _msg_queue;
-        public ResPool _res_pool;
+        public AssetPool _asset_pool;
         public GameObjectInstPool _inst_pool;
         #endregion
 
@@ -22,18 +22,18 @@ namespace FH.ResManagement
         {
             //注册两个
             _msg_queue.Reg(EResWoker.call_inst_event, this);
-            _msg_queue.Reg(EResWoker.call_res_event, this);
+            _msg_queue.Reg(EResWoker.call_asset_event, this);
         }
 
         public void Destroy()
         {
             _msg_queue.UnReg(EResWoker.call_inst_event);
-            _msg_queue.UnReg(EResWoker.call_res_event);
+            _msg_queue.UnReg(EResWoker.call_asset_event);
         }
 
         public void OnMsgProc(ref ResJob job)
         {
-            if (!job.EventResCallBack.IsValid && !job.EventInstCallBack.IsValid)
+            if (!job.EventAssetCallBack.IsValid && !job.EventInstCallBack.IsValid)
             {
                 _msg_queue.SendJobNext(job);
                 return;
@@ -48,9 +48,9 @@ namespace FH.ResManagement
             {                
                 job.EventInstCallBack.Call(job.JobId, job.ErrorCode, new ResRef(job.InstId, job.Path.Path, _inst_pool));
             }
-            else if (job_type == EResWoker.call_res_event)
+            else if (job_type == EResWoker.call_asset_event)
             {
-                job.EventResCallBack.Call(job.JobId, job.ErrorCode, new ResRef(job.ResId, job.Path.Path, _res_pool));
+                job.EventAssetCallBack.Call(job.JobId, job.ErrorCode, new ResRef(job.AssetId, job.Path.Path, _asset_pool));
             }
             else
             {

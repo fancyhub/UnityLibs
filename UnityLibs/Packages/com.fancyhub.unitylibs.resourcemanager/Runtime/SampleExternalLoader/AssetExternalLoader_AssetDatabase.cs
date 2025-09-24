@@ -16,29 +16,29 @@ using FH.ResManagement;
 
 namespace FH.SampleExternalLoader
 {
-    public sealed class ResExternalLoader_AssetDatabase : CPtrBase, IResMgr.IExternalLoader
+    public sealed class AssetExternalLoader_AssetDatabase : CPtrBase, IResMgr.IExternalAssetLoader
     {
         private Dictionary<string, string> _AssetDict;
         private Func<string, string> _FuncAtlasTag2Path;
 
-        private sealed class EditorResRequestComp : MonoBehaviour
+        private sealed class EditorAssetRequestComp : MonoBehaviour
         {
-            public static EditorResRequestComp _;
+            public static EditorAssetRequestComp _;
             public static void StartReq(IEnumerator req)
             {
                 if (_ == null)
                 {
-                    GameObject obj = new GameObject("EditorResRequestComp");
+                    GameObject obj = new GameObject("EditorAssetRequestComp");
                     obj.hideFlags = HideFlags.HideAndDontSave;
                     GameObject.DontDestroyOnLoad(obj);
-                    _ = obj.AddComponent<EditorResRequestComp>();
+                    _ = obj.AddComponent<EditorAssetRequestComp>();
                 }
 
                 _.StartCoroutine(req);
             }
         }
 
-        private sealed class EditorResRequest
+        private sealed class EditorAssetRequest
         {
             private string _resPath;
             private Type _unityAssetType;
@@ -62,18 +62,18 @@ namespace FH.SampleExternalLoader
                 yield return null;
             }
 
-            public static EditorResRequest LoadAsync(string path, Type unityAssetType)
+            public static EditorAssetRequest LoadAsync(string path, Type unityAssetType)
             {
-                EditorResRequest req = new EditorResRequest();
+                EditorAssetRequest req = new EditorAssetRequest();
                 req._resPath = path;
                 req._unityAssetType = unityAssetType;
-                EditorResRequestComp.StartReq(req._LoadAsync());
+                EditorAssetRequestComp.StartReq(req._LoadAsync());
 
                 return req;
             }
         }
 
-        private sealed class ResRefDB
+        private sealed class AssetRefDB
         {
             public Dictionary<int, int> _Data = new Dictionary<int, int>();
             public void IncRef(UnityEngine.Object obj)
@@ -104,11 +104,11 @@ namespace FH.SampleExternalLoader
             }
         }
 
-        private sealed class AssetRef : CPoolItemBase, IResMgr.IExternalRef
+        private sealed class AssetRef : CPoolItemBase, IResMgr.IExternalAssetRef
         {
             public UnityEngine.Object _Asset;
-            public EditorResRequest _ResRequest;
-            public ResRefDB _ResRefDB;
+            public EditorAssetRequest _ResRequest;
+            public AssetRefDB _ResRefDB;
             public bool IsDone
             {
                 get
@@ -124,7 +124,7 @@ namespace FH.SampleExternalLoader
                 }
             }
 
-            public static AssetRef Create(ResRefDB res_ref_db, UnityEngine.Object asset)
+            public static AssetRef Create(AssetRefDB res_ref_db, UnityEngine.Object asset)
             {
                 if (res_ref_db == null || asset == null)
                     return null;
@@ -135,7 +135,7 @@ namespace FH.SampleExternalLoader
                 return ret;
             }
 
-            public static AssetRef Create(ResRefDB res_ref_db, EditorResRequest request)
+            public static AssetRef Create(AssetRefDB res_ref_db, EditorAssetRequest request)
             {
                 if (res_ref_db == null || request == null)
                     return null;
@@ -173,7 +173,7 @@ namespace FH.SampleExternalLoader
         }
 
 
-        public ResExternalLoader_AssetDatabase(List<(string path, string addressName)> asset_list = null, Func<string, string> func_atlas_tag_2_path = null)
+        public AssetExternalLoader_AssetDatabase(List<(string path, string addressName)> asset_list = null, Func<string, string> func_atlas_tag_2_path = null)
         {
             if (asset_list != null)
             {
@@ -195,7 +195,7 @@ namespace FH.SampleExternalLoader
             _FuncAtlasTag2Path = func_atlas_tag_2_path;
         }
 
-        private ResRefDB _ResRefDB = new ResRefDB();
+        private AssetRefDB _AssetRefDB = new AssetRefDB();
 
         public string AtlasTag2Path(string atlasName)
         {
@@ -228,7 +228,7 @@ namespace FH.SampleExternalLoader
             return EAssetStatus.Exist;
         }
 
-        public IResMgr.IExternalRef Load(string path, Type unityAssetType)
+        public IResMgr.IExternalAssetRef Load(string path, Type unityAssetType)
         {
             if (_AssetDict != null)
             {
@@ -250,10 +250,10 @@ namespace FH.SampleExternalLoader
                 }
             }
 
-            return AssetRef.Create(_ResRefDB, asset);
+            return AssetRef.Create(_AssetRefDB, asset);
         }
 
-        public IResMgr.IExternalRef LoadAsync(string path, Type unityAssetType)
+        public IResMgr.IExternalAssetRef LoadAsync(string path, Type unityAssetType)
         {
             if (_AssetDict != null)
             {
@@ -268,7 +268,7 @@ namespace FH.SampleExternalLoader
                 return Load(path, unityAssetType);
             }
 
-            return AssetRef.Create(_ResRefDB, EditorResRequest.LoadAsync(path, unityAssetType));
+            return AssetRef.Create(_AssetRefDB, EditorAssetRequest.LoadAsync(path, unityAssetType));
         }
 
         protected override void OnRelease()

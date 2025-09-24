@@ -19,13 +19,13 @@ namespace Game
         public string _Text;
         public UINoticeTextView _view;
         public NoticeItemDummy _dummy;
-        public CPtr<IResInstHolder> _res_holder;
+        public CPtr<IResHolder> _res_holder;
 
-        public static NoticeItemText Create(IResInstHolder resHolder, string text)
+        public static NoticeItemText Create(IResHolder resHolder, string text)
         {
             NoticeItemText ret = GPool.New<NoticeItemText>();
             ret._Text = text;
-            ret._res_holder = new CPtr<IResInstHolder>(resHolder);
+            ret._res_holder = new CPtr<IResHolder>(resHolder);
             return ret;
         }
 

@@ -15,20 +15,20 @@ namespace FH.ResManagement
     internal enum EResWoker
     {
         none,
-        sync_load_res,  //同步加载
+        sync_load_asset,  //同步加载
         sync_obj_inst,  //同步实例化
 
-        async_load_res, //异步加载
+        async_load_asset, //异步加载
         async_obj_inst, //异步实例化        
 
-        call_res_event,
+        call_asset_event,
         call_inst_event,
 
         call_set_atlas,
         max,
     }
 
-    internal struct ResDoneEvent
+    internal struct AssetDoneEvent
     {
         public int Type;
         public ResEvent Action;
@@ -41,11 +41,11 @@ namespace FH.ResManagement
         public bool IsValid => Type != 0;
 
 
-        public static ResDoneEvent Create(ResEvent action)
+        public static AssetDoneEvent Create(ResEvent action)
         {
             if (action == null)
                 return default;
-            ResDoneEvent ret = new ResDoneEvent()
+            AssetDoneEvent ret = new AssetDoneEvent()
             {
                 Type = 1,
                 Action = action,
@@ -54,12 +54,12 @@ namespace FH.ResManagement
             return ret;
         }
 
-        public static ResDoneEvent Create(IResDoneCallBack target)
+        public static AssetDoneEvent Create(IResDoneCallBack target)
         {
             if (target == null)
                 return default;
 
-            ResDoneEvent ret = new ResDoneEvent()
+            AssetDoneEvent ret = new AssetDoneEvent()
             {
                 Type = 2,
                 Action = null,
@@ -68,11 +68,11 @@ namespace FH.ResManagement
             return ret;
         }
 #if UNITY_2023_2_OR_NEWER
-        public static ResDoneEvent Create(AwaitableCompletionSource<(EResError error, ResRef res_ref)> source, CancellationToken token)
+        public static AssetDoneEvent Create(AwaitableCompletionSource<(EResError error, ResRef res_ref)> source, CancellationToken token)
         {
             if (source == null)
                 return default;
-            ResDoneEvent ret = new ResDoneEvent()
+            AssetDoneEvent ret = new AssetDoneEvent()
             {
                 Type = 3,
                 Action = null,
@@ -203,18 +203,18 @@ namespace FH.ResManagement
     internal sealed class ResJob : CPoolItemBase
     {
         public int JobId;
-        public ResPath Path;
+        public AssetPath Path;
         public int Priority;
         public EResError ErrorCode;
         public bool Immediately = false;
         public bool PreInstJob = false;
 
-        public ResId ResId;
+        public ResId AssetId;
         public ResId InstId;
 
 
 
-        public ResDoneEvent EventResCallBack;
+        public AssetDoneEvent EventAssetCallBack;
         public InstDoneEvent EventInstCallBack;
 
         private bool _IsCancelled = false;
@@ -242,7 +242,7 @@ namespace FH.ResManagement
                 if (_IsCancelled)
                     return true;
 #if UNITY_2023_2_OR_NEWER
-                if (EventResCallBack.IsValid && EventResCallBack.CancelToken.IsCancellationRequested)
+                if (EventAssetCallBack.IsValid && EventAssetCallBack.CancelToken.IsCancellationRequested)
                     return true;
                 if (EventInstCallBack.IsValid && EventInstCallBack.CancelToken.IsCancellationRequested)
                     return true;
@@ -286,10 +286,10 @@ namespace FH.ResManagement
             _workers.ExtClear();
             _done_workers.ExtClear();
 
-            ResId = ResId.Null;
+            AssetId = ResId.Null;
             InstId = ResId.Null;
 
-            EventResCallBack = default;
+            EventAssetCallBack = default;
             EventInstCallBack = default;
 
             PreInstJob = false;

@@ -15,12 +15,12 @@ namespace Game
     {
         private static NoticeApi _;
         private NoticeManager _Mgr;
-        private CPtr<IResInstHolder> _ResInstHolder;
+        private CPtr<IResHolder> _ResHolder;
         private IClock _Clock;
 
         private NoticeApi()
         {
-            _ResInstHolder = ResMgr.CreateHolder(false, false).CPtr();
+            _ResHolder = ResMgr.CreateHolder(false, false).CPtr();
             _Clock = new ClockDecorator(new ClockUnityTime(ClockUnityTime.EType.Time));
 
             var res_ref = ResMgr.Load(NoticeConfigAsset.CPath);
@@ -30,7 +30,7 @@ namespace Game
 
             foreach (var p in config.Channels)
             {
-                var channel = NoticeFactory.CreateChannel(p, _Clock, _ResInstHolder.Val);
+                var channel = NoticeFactory.CreateChannel(p, _Clock, _ResHolder.Val);
                 if (channel == null)
                     continue;
                 _Mgr.AddChannel(p.ChannelType, channel);
@@ -46,7 +46,7 @@ namespace Game
             _Mgr.ShowNotice(data, item);
         }
 
-        public IResInstHolder ResInstHolder => _ResInstHolder.Val;
+        public IResHolder ResHolder => _ResHolder.Val;
 
 
         public static void Init()

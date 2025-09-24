@@ -56,6 +56,12 @@ MonoBehaviour:
     - name: RedDotCommon
       dir: Common
       ext: .prefab
+    - name: ScrollBase
+      dir: Common
+      ext: .prefab
+    - name: ScrollList
+      dir: Common
+      ext: .prefab
     - name: ExtractAsset
       dir: 
       ext: .prefab
@@ -87,6 +93,12 @@ MonoBehaviour:
       dir: 
       ext: .prefab
     - name: TestScene
+      dir: 
+      ext: .prefab
+    - name: TestScroller
+      dir: 
+      ext: .prefab
+    - name: TestScrollItem
       dir: 
       ext: .prefab
     - name: TestTime

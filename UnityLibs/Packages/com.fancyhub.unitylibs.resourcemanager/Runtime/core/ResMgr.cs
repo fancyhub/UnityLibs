@@ -6,8 +6,8 @@
 *************************************************************************************/
 using FH.ResManagement;
 using System.Collections.Generic;
-using UnityEngine;
-using System.Threading;
+
+
 namespace FH
 {
 #if UNITY_2023_2_OR_NEWER
@@ -49,7 +49,7 @@ namespace FH
         public bool UpdateFlag;
 
         //资源部分
-        public BitEnum32<EResPathType> PathTypeMask;
+        public BitEnum32<EAssetPathType> PathTypeMask;
         public int UserCount;
         public List<System.Object> Users; //Editor 模式下才有内容
 
@@ -96,12 +96,12 @@ namespace FH
 
         public EAssetStatus GetAssetStatus(string path);
 
-        #region Res
-        public EResError Load(string path, EResPathType pathType, bool only_from_cache, out ResRef res_ref);
-        public EResError LoadAsync(string path, EResPathType pathType, int priority, ResEvent cb, out int job_id);
-        public EResError LoadAsync(string path, EResPathType pathType, int priority, IResDoneCallBack cb, out int job_id);
+        #region Asset
+        public EResError Load(string path, EAssetPathType pathType, bool only_from_cache, out ResRef res_ref);
+        public EResError LoadAsync(string path, EAssetPathType pathType, int priority, ResEvent cb, out int job_id);
+        public EResError LoadAsync(string path, EAssetPathType pathType, int priority, IResDoneCallBack cb, out int job_id);
 #if UNITY_2023_2_OR_NEWER
-        public EResError LoadAsync(string path, EResPathType pathType, int priority, ResAwaitSource source, CancellationToken cancelToken);
+        public EResError LoadAsync(string path, EAssetPathType pathType, int priority, ResAwaitSource source, CancellationToken cancelToken);
 #endif
         public void Snapshot(ref List<ResSnapShotItem> out_snapshot);
         #endregion
@@ -139,28 +139,28 @@ namespace FH
 
         public static IResMgr Inst => _.Val;
 
-        public static bool InitMgr(IResMgr.Config config, IResMgr.IExternalLoader external_loader)
+        public static bool InitMgr(IResMgr.Config config, IResMgr.IExternalAssetLoader external_loader)
         {
             if (!_.Null)
             {
-                ResManagement.ResLog._.Assert(false, "ResMgr 已经存在了");
+                ResLog._.Assert(false, "ResMgr 已经存在了");
                 return false;
             }
 
             if (external_loader == null)
             {
-                ResManagement.ResLog._.Assert(false, "AssetLoader Is null");
+                ResLog._.Assert(false, "AssetLoader Is null");
                 return false;
             }
 
             if (config == null)
             {
-                ResManagement.ResLog._.Assert(false, "ResMgrConfig Is null");
+                ResLog._.Assert(false, "ResMgrConfig Is null");
                 return false;
             }
 
             ResLog._ = TagLog.Create(ResLog._.Tag, config.LogLevel);
-            ResManagement.ResMgrImplement mgr = new ResManagement.ResMgrImplement(external_loader, config);
+            ResMgrImplement mgr = new ResMgrImplement(external_loader, config);
             _ = mgr;
             return true;
         }
@@ -180,7 +180,7 @@ namespace FH
             var inst = _.Val;
             if (inst == null)
             {
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return EAssetStatus.NotExist;
             }
             return inst.GetAssetStatus(path);
@@ -192,76 +192,76 @@ namespace FH
         /// <param name="only_from_cache">是否只从缓存里面加载</param>
         /// <param name="share_inst">实例对象是否在多个Holder之间共享</param>
         /// <returns></returns>
-        public static IResInstHolder CreateHolder(bool only_from_cache, bool share_inst)
+        public static IResHolder CreateHolder(bool only_from_cache, bool share_inst)
         {
             IResMgr inst = _.Val;
             if (inst == null)
             {
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return null;
             }
 
-            ResManagement.ResInstHolder ret = GPool.New<ResManagement.ResInstHolder>();
-            ret._res_holder = ResManagement.ResHolder.Create(inst, only_from_cache);
-            ret._inst_holder = ResManagement.InstHolder.Create(inst, only_from_cache, share_inst);
-            ret._pre_inst_holder = ResManagement.PreInstHolder.Create(inst);
+            ResHolder ret = GPool.New<ResHolder>();
+            ret._asset_holder = AssetHolder.Create(inst, only_from_cache);
+            ret._inst_holder = InstHolder.Create(inst, only_from_cache, share_inst);
+            ret._pre_inst_holder = PreInstHolder.Create(inst);
             return ret;
         }
 
-        #region Res      
-        public static ResRef TryLoadExist(string path, EResPathType pathType = EResPathType.Default)
+        #region Asset      
+        public static ResRef TryLoadExist(string path, EAssetPathType pathType = EAssetPathType.Default)
         {
             IResMgr inst = _.Val;
             if (inst == null)
             {
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return default;
             }
             var err = inst.Load(path, pathType, false, out var res_ref);
             return res_ref;
         }
 
-        public static ResRef Load(string path, EResPathType pathType = EResPathType.Default, bool only_from_cache = false)
+        public static ResRef Load(string path, EAssetPathType pathType = EAssetPathType.Default, bool only_from_cache = false)
         {
             IResMgr inst = _.Val;
             if (inst == null)
             {
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return default;
             }
 
             var err = inst.Load(path, pathType, only_from_cache, out var res_ref);
-            ResManagement.ResLog._.ErrCode(err, path);
+            ResLog._.ErrCode(err, path);
             return res_ref;
         }
 
-        public static bool AsyncLoad(string path, EResPathType pathType, ResEvent cb, out int job_id, int priority = ResDef.PriorityDefault)
+        public static bool AsyncLoad(string path, EAssetPathType pathType, ResEvent cb, out int job_id, int priority = ResDef.PriorityDefault)
         {
             IResMgr inst = _.Val;
             if (inst == null)
             {
                 job_id = default;
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return false;
             }
 
             var err = inst.LoadAsync(path, pathType, priority, cb, out job_id);
-            ResManagement.ResLog._.ErrCode(err, path);
+            ResLog._.ErrCode(err, path);
             return err == EResError.OK;
         }
 
-        public static bool AsyncLoad(string path, EResPathType pathType, IResDoneCallBack cb, out int job_id, int priority = ResDef.PriorityDefault)
+        public static bool AsyncLoad(string path, EAssetPathType pathType, IResDoneCallBack cb, out int job_id, int priority = ResDef.PriorityDefault)
         {
             IResMgr inst = _.Val;
             if (inst == null)
             {
                 job_id = default;
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return false;
             }
 
             var err = inst.LoadAsync(path, pathType, priority, cb, out job_id);
-            ResManagement.ResLog._.ErrCode(err, path);
+            ResLog._.ErrCode(err, path);
             return err == EResError.OK;
         }
 #if UNITY_2023_2_OR_NEWER
@@ -270,18 +270,18 @@ namespace FH
             IResMgr inst = _.Val;
             if (inst == null)
             {
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return default(ResRef);
             }
 
             AwaitableCompletionSource<(EResError error, ResRef res_ref)> source = new AwaitableCompletionSource<(EResError error, ResRef res_ref)>();
 
             var err = inst.LoadAsync(path, pathType, priority, source, cancelToken);
-            ResManagement.ResLog._.ErrCode(err, path);
+            ResLog._.ErrCode(err, path);
             if (err != EResError.OK)
                 return default(ResRef);
             var (err1, res_ref) = await source.Awaitable;
-            ResManagement.ResLog._.ErrCode(err1, path);
+            ResLog._.ErrCode(err1, path);
             return res_ref;
         }
 #endif
@@ -290,7 +290,7 @@ namespace FH
             var inst = _.Val;
             if (inst == null)
             {
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return;
             }
 
@@ -304,7 +304,7 @@ namespace FH
             IResMgr inst = _.Val;
             if (inst == null)
             {
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return default;
             }
             if (user == null)
@@ -314,7 +314,7 @@ namespace FH
             }
 
             var err = inst.Create(path, only_from_cache, out var res_ref);
-            ResManagement.ResLog._.ErrCode(err, path);
+            ResLog._.ErrCode(err, path);
             if (err != EResError.OK)
                 return default;
             if (res_ref.AddUser(user))
@@ -329,11 +329,11 @@ namespace FH
             if (inst == null)
             {
                 job_id = default;
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return false;
             }
             var err = inst.CreateAsync(path, priority, cb, out job_id);
-            ResManagement.ResLog._.ErrCode(err, path);
+            ResLog._.ErrCode(err, path);
             return err == EResError.OK;
         }
 
@@ -343,11 +343,11 @@ namespace FH
             if (inst == null)
             {
                 job_id = default;
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return false;
             }
             var err = inst.CreateAsync(path, priority, cb, out job_id);
-            ResManagement.ResLog._.ErrCode(err, path);
+            ResLog._.ErrCode(err, path);
             return err == EResError.OK;
         }
 #if UNITY_2023_2_OR_NEWER
@@ -356,18 +356,18 @@ namespace FH
             IResMgr inst = _.Val;
             if (inst == null)
             {
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return default(ResRef);
             }
 
             ResAwaitSource source = new ResAwaitSource();
             var err = inst.CreateAsync(path, priority, source, cancelToken);
-            ResManagement.ResLog._.ErrCode(err, path);
+            ResLog._.ErrCode(err, path);
             if (err != EResError.OK)
                 return default(ResRef);
 
             var (err1, res_ref) = await source.Awaitable;
-            ResManagement.ResLog._.ErrCode(err, path);
+            ResLog._.ErrCode(err, path);
             if (err1 != EResError.OK)
                 return default(ResRef);
             return res_ref;
@@ -382,11 +382,11 @@ namespace FH
             if (inst == null)
             {
                 req_id = default;
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return false;
             }
             var err = inst.ReqPreInst(path, count, out req_id);
-            ResManagement.ResLog._.ErrCode(err, path);
+            ResLog._.ErrCode(err, path);
             return err == EResError.OK;
         }
         public static bool CancelPreInst(int req_id)
@@ -394,11 +394,11 @@ namespace FH
             IResMgr inst = _.Val;
             if (inst == null)
             {
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return false;
             }
             var err = inst.CancelPreInst(req_id);
-            ResManagement.ResLog._.ErrCode(err);
+            ResLog._.ErrCode(err);
             return err == EResError.OK;
         }
         #endregion;        
@@ -408,7 +408,7 @@ namespace FH
             var inst = _.Val;
             if (inst == null)
             {
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return;
             }
             inst.CancelJob(job_id);
@@ -420,7 +420,7 @@ namespace FH
             var inst = _.Val;
             if (inst == null)
             {
-                ResManagement.ResLog._.ErrCode(EResError.ResMgrNotInit);
+                ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return default;
             }
             return inst.GetResRef(res);

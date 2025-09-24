@@ -87,7 +87,7 @@ namespace FH.UI
             return ret;
         }
 
-        protected abstract void OnUI1PrepareRes(IResInstHolder holder);
+        protected abstract void OnUI1PrepareRes(IResHolder holder);
         protected abstract void OnUI2Open();
         protected abstract void OnUI3Show();
         protected abstract void OnUI4Hide();
@@ -128,22 +128,22 @@ namespace FH.UI
         #endregion
 
         #region UIResPage
-        private CPtr<IResInstHolder> _Holder;
-        public IResInstHolder ResHolder
+        private CPtr<IResHolder> _Holder;
+        public IResHolder ResHolder
         {
             get
             {
                 var ret = _Holder.Val;
                 if (ret == null)
                 {
-                    _Holder = new CPtr<IResInstHolder>(CreateHolder());
+                    _Holder = new CPtr<IResHolder>(CreateHolder());
                     ret = _Holder.Val;
                     PtrList += ret;
                 }
                 return ret;
             }
         }
-        protected virtual IResInstHolder CreateHolder()
+        protected virtual IResHolder CreateHolder()
         {
             return ResMgr.CreateHolder(false, true);
         }
@@ -164,7 +164,7 @@ namespace FH.UI
             _ProcessStateMsg(EMsg.ResDone);
         }
 
-        void IUIResPage.SetResHolder(IResInstHolder resHolder)
+        void IUIResPage.SetResHolder(IResHolder resHolder)
         {
             if (_PageStatusData.ResState != EResState.None)
             {
@@ -174,7 +174,7 @@ namespace FH.UI
             if (resHolder == null || !_Holder.Null)
                 return;
 
-            _Holder = new CPtr<IResInstHolder>(resHolder);
+            _Holder = new CPtr<IResHolder>(resHolder);
             _PageStatusData.ResState = EResState.Done;
         }
         #endregion
@@ -575,7 +575,7 @@ namespace FH.UI
     {
         public TView BaseView;
 
-        protected override void OnUI1PrepareRes(IResInstHolder holder) { }
+        protected override void OnUI1PrepareRes(IResHolder holder) { }
 
         protected override void OnUI2Open()
         {

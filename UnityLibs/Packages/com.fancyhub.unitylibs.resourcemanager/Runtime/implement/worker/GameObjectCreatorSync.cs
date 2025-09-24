@@ -15,7 +15,7 @@ namespace FH.ResManagement
     internal class GameObjectCreatorSync : IMsgProc<ResJob>
     {
         #region 传入
-        public ResPool _res_pool;
+        public AssetPool _asset_pool;
         public GameObjectInstPool _gobj_pool;        
         public ResMsgQueue _msg_queue;
         #endregion
@@ -50,11 +50,11 @@ namespace FH.ResManagement
             }
 
             //5. 获取资源
-            UnityEngine.Object res = _res_pool.Get(job.ResId);
+            UnityEngine.Object res = _asset_pool.Get(job.AssetId);
             if (null == res)
             {
                 ResLog._.Assert(false, "实例化的时候，资源不正常的销毁了 {0}", job.Path);
-                job.ErrorCode = (EResError)EResError.GameObjectCreatorSync_inst_error_res_null;
+                job.ErrorCode = (EResError)EResError.GameObjectCreatorSync_inst_error_asset_null;
                 _msg_queue.SendJobNext(job);
                 return;
             }
@@ -87,7 +87,7 @@ namespace FH.ResManagement
                 return;
             }
             GameObjectPoolUtil.InstActive(inst);
-            bool succ = _gobj_pool.AddInst(new ResRef(job.ResId, job.Path.Path, _res_pool), inst, out job.InstId);
+            bool succ = _gobj_pool.AddInst(new ResRef(job.AssetId, job.Path.Path, _asset_pool), inst, out job.InstId);
             ResLog._.Assert(succ, "严重错误 {0}", job.Path);
 
             _msg_queue.SendJobNext(job);

@@ -10,10 +10,10 @@ using UnityEngine;
 
 namespace FH.ResManagement
 {
-    internal class ResInstGc
+    internal class ResGC
     {
         //下面的变量都是传入的
-        public ResPool _res_pool;
+        public AssetPool _asset_pool;
         public GameObjectInstPool _gobj_pool;
         public GameObjectPreInstData _gobj_pre_data;
         public GameObjectStat _gobj_stat;
@@ -22,7 +22,7 @@ namespace FH.ResManagement
 
         public List<KeyValuePair<ResId, int>> _temp_list = new List<KeyValuePair<ResId, int>>();
 
-        public ResInstGc(IResMgr.Config.GCConfig config)
+        public ResGC(IResMgr.Config.GCConfig config)
         {
             _config = config;
         }
@@ -37,7 +37,7 @@ namespace FH.ResManagement
             int now_time = UnityEngine.Time.frameCount;
             //1.1 获取列表
             List<KeyValuePair<ResId, int>> res_list = _temp_list;
-            _res_pool.GetLruFreeList(res_list, true, _config.MaxResCountProcess);
+            _asset_pool.GetLruFreeList(res_list, true, _config.MaxResCountProcess);
             int expire_time = now_time - _config.ResWaitFrameCount;
 
             //1.2 检查数据是否到了
@@ -49,7 +49,7 @@ namespace FH.ResManagement
 
                 //1.3 销毁
                 ResId id = res_list[i].Key;
-                EResError err = _res_pool.RemoveRes(id.Id, out ResPath path);
+                EResError err = _asset_pool.RemoveAsset(id.Id, out AssetPath path);
                 if (err != EResError.OK)
                 {
                     ResLog._.Assert(false, "释放资源错误 Code: {0}", err);

@@ -4,194 +4,118 @@ using UnityEngine;
 
 /*************************************************************************************
  * Author  : cunyu.fan
- * Time    : 2021/5/18
+ * Time    : 2021/5/18 
  * Title   : 
  * Desc    : 
 *************************************************************************************/
 namespace FH.ResManagement
 {
-    //资源和实例的 Holder,方便一起卸载
+    //UI 的资源 Holder，用来创建/加载 资源 gameobject
     internal sealed class ResHolder : CPoolItemBase, IResHolder
     {
-        
-        public enum EPreloadStatus
+        public IAssetHolder _asset_holder;
+        public IInstHolder _inst_holder;
+        public IPreInstHolder _pre_inst_holder;
+
+        #region IAssetHolder
+
+        public UnityEngine.Object Load(string path, EAssetPathType pathType = EAssetPathType.Default)
         {
-            None,
-            Succ,
-            Failed,
+            return _asset_holder.Load(path, pathType);
         }
 
-        public struct PreloadData
+        public void PreLoad(string path, EAssetPathType pathType = EAssetPathType.Default, int priority = 0)
         {
-            public ResPath Path;
-            public EPreloadStatus Status;
-            public int JobId;
+            _asset_holder.PreLoad(path, pathType, priority);
         }
 
-        private MyDict<ResPath, PreloadData> _PreloadPathDict = new MyDict<ResPath, PreloadData>();
-        //key: job id
-        private MyDict<int, ResPath> _PreLoadJobDict = new MyDict<int, ResPath>();
-
-        private HashSet<ResRef> _AllRes;
-        public HolderStat _Stat = new HolderStat();
-        public bool _OnlyFromCache;
-        private IHolderCallBack _HolderCb;
-        public CPtr<IResMgr> _ResMgr;
-
-        public ResHolder()
+        public void GetAllAsset(List<ResRef> out_list)
         {
-            _AllRes = new HashSet<ResRef>(MyEqualityComparer<ResRef>.Default);
+            _asset_holder.GetAllAsset(out_list);
         }
 
-        internal static ResHolder Create(IResMgr res_mgr, bool only_from_cache)
+        public HolderStat GetAssetStat()
         {
-            var ret = GPool.New<ResHolder>();
-            ret._ResMgr = new CPtr<IResMgr>(res_mgr);
-            ret._OnlyFromCache = only_from_cache;
+            return _asset_holder.GetAssetStat();
+        }
+        #endregion
+
+        #region Inst       
+
+        public GameObject Create(string path)
+        {
+            return _inst_holder.Create(path);
+        }
+
+        public void PreCreate(string path, int count, int priority = 0)
+        {
+            _asset_holder.PreLoad(path, EAssetPathType.Default, priority);
+            _inst_holder.PreCreate(path, count, priority);
+            _pre_inst_holder.PreInst(path, count);
+        }
+
+        public void GetAllInst(List<ResRef> out_list)
+        {
+            _inst_holder.GetAllInst(out_list);
+        }
+
+        public HolderStat GetInstStat()
+        {
+            return _inst_holder.GetInstStat();
+        }
+
+        public bool Release(GameObject obj)
+        {
+            if (obj == null)
+                return false;
+            if (_inst_holder.Release(obj))
+                return true;
+
+            return false;
+        }         
+        #endregion
+
+        #region Pre Inst
+        public void PreInst(string path, int count)
+        {
+            _asset_holder.PreLoad(path, EAssetPathType.Default);
+            _pre_inst_holder.PreInst(path, count);
+        }
+        public void ClearPreInst()
+        {
+            _pre_inst_holder.ClearPreInst();
+        }
+
+        #endregion
+
+        public void SetCallBack(IHolderCallBack callback)
+        {
+            _asset_holder?.SetCallBack(callback);
+            _inst_holder?.SetCallBack(callback);
+        }
+        public HolderStat GetStat()
+        {
+            HolderStat ret = new HolderStat();
+            ret.Add(_asset_holder.GetAssetStat());
+            ret.Add(_inst_holder.GetInstStat());
             return ret;
         }
 
-        public UnityEngine.Object Load(string path, EResPathType pathType)
+        public void GetAll(List<ResRef> out_list)
         {
-            var mgr = _ResMgr.Val;
-            if (mgr == null)
-                return null;
-
-            ResPath res_path = ResPath.Create(path, pathType);
-
-            //1. 同步加载
-            EResError err = mgr.Load(path, pathType, _OnlyFromCache, out var res_ref);
-            ResLog._.ErrCode(err, path);
-            if (err != EResError.OK)
-                return null;
-
-            //2. 添加
-            if (_AllRes.Add(res_ref))
-                res_ref.AddUser(this);
-
-            //3. 从 预加载的 dict里面移除, 并修改统计
-            if (_PreloadPathDict.TryGetValue(res_path, out var item))
-            {
-                _PreLoadJobDict.Remove(item.JobId);
-
-                item.Status = EPreloadStatus.Succ;
-                item.JobId = 0;
-                _PreloadPathDict[res_path] = item;
-                _Stat.Succ++;
-            }
-            return res_ref.Get();
-        }
-
-        public void PreLoad(string path, EResPathType pathType, int priority = 0)
-        {
-            //1. 检查ResMgr
-            IResMgr mgr = _ResMgr.Val;
-            if (mgr == null)
-                return;
-
-            //2. 已经存在了
-            ResPath res_path = ResPath.Create(path, pathType);
-            if (_PreloadPathDict.TryGetValue(res_path, out var item))
-                return;
-
-            //3. 预加载
-            _Stat.Total++;
-            EResError err = mgr.LoadAsync(path, pathType, priority, _OnResLoaded, out int job_id);
-            ResLog._.ErrCode(err);
-            if (err == EResError.OK)
-            {
-                _PreLoadJobDict[job_id] = res_path;
-                _PreloadPathDict[res_path] = new PreloadData()
-                {
-                    JobId = job_id,
-                    Path = res_path,
-                    Status = EPreloadStatus.None,
-                };
-            }
-            else
-            {
-                _PreloadPathDict[res_path] = new PreloadData()
-                {
-                    JobId = 0,
-                    Path = res_path,
-                    Status = EPreloadStatus.Failed,
-                };
-                _Stat.Fail++;
-            }
-        }
-
-        private void _OnResLoaded(int job_id, EResError error, ResRef res_ref)
-        {
-            //1. 查找, 如果找不到,说明已经被销毁了            
-            if (!_PreLoadJobDict.Remove(job_id, out var res_path))
-                return;
-            if (!_PreloadPathDict.TryGetValue(res_path, out var item))
-                return;
-
-            //2. 检查错误
-            UnityEngine.Object res = null;
-            if (res_ref.IsValid())
-                res = res_ref.Get();
-
-            //3. 添加
-            item.JobId = 0;
-            if (res == null)
-            {
-                _Stat.Fail++;
-                item.Status = EPreloadStatus.Failed;
-                _PreloadPathDict[res_path] = item;
-                _HolderCb?.OnHolderCallBack();
-            }
-            else
-            {
-                _Stat.Succ++;
-                if (_AllRes.Add(res_ref))
-                    res_ref.AddUser(this);
-                item.Status = EPreloadStatus.Succ;
-                _PreloadPathDict[res_path] = item;
-                _HolderCb?.OnHolderCallBack();
-            }
+            _asset_holder.GetAllAsset(out_list);
+            _inst_holder.GetAllInst(out_list);
         }
 
         protected override void OnPoolRelease()
         {
-            var res_mgr = _ResMgr.Val;
-            if (res_mgr != null)
-            {
-                foreach (var p in _AllRes)
-                {
-                    p.RemoveUser(this);
-                }
+            _asset_holder.Destroy();
+            _inst_holder.Destroy();
+            _pre_inst_holder.Destroy();
 
-                foreach (var p in _PreLoadJobDict)
-                {
-                    res_mgr.CancelJob(p.Key);
-                }
-            }
-
-            _PreloadPathDict.Clear();
-            _PreLoadJobDict.Clear();
-            _AllRes.Clear();
-            _Stat = new HolderStat();
-        }
-
-        public void GetAllRes(List<ResRef> out_list)
-        {
-            foreach (var p in _AllRes)
-            {
-                if (p.IsValid())
-                    out_list.Add(p);
-            }
-        }
-
-        public HolderStat GetResStat()
-        {
-            return _Stat;
-        }
-
-        public void SetCallBack(IHolderCallBack callback)
-        {
-            _HolderCb = callback;
+            _pre_inst_holder = null;
+            _asset_holder = null;
+            _inst_holder = null;
         }
     }
 }

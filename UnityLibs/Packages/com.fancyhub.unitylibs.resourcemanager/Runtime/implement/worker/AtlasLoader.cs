@@ -14,10 +14,10 @@ namespace FH.ResManagement
 {
     internal class AtlasLoader : IDestroyable, IMsgProc<ResJob>
     {
-        public IResMgr.IExternalLoader _external_loader;
+        public IResMgr.IExternalAssetLoader _external_loader;
         public ResMsgQueue _msg_queue;        
         public ResJobDB _job_db;
-        public ResPool _res_pool;
+        public AssetPool _asset_pool;
 
         public Dictionary<string, InnerData> _dict;
 
@@ -55,14 +55,14 @@ namespace FH.ResManagement
 
 
             var action = cb._call_back;
-            EResError error_code = _res_pool.GetIdByPath(job.Path, out ResId res_id);
+            EResError error_code = _asset_pool.GetIdByPath(job.Path, out ResId res_id);
 
             ResLog._.ErrCode(error_code, "加载 失败 {0}", job.Path.Path);
             if (!res_id.IsValid())
                 return;
 
 
-            SpriteAtlas atlas = _res_pool.Get<SpriteAtlas>(res_id);
+            SpriteAtlas atlas = _asset_pool.Get<SpriteAtlas>(res_id);
             if (atlas == null)
             {
                 ResLog._.Assert(false, "加载Atlas 失败{0}", job.Path.Path);
@@ -92,9 +92,9 @@ namespace FH.ResManagement
                 _path = path,
             });
 
-            ResJob job = _job_db.CreateJob(ResPath.CreateRes(path), 0);
-            job.AddWorker(EResWoker.async_load_res);
-            job.AddWorker(EResWoker.call_res_event);
+            ResJob job = _job_db.CreateJob(AssetPath.Create(path), 0);
+            job.AddWorker(EResWoker.async_load_asset);
+            job.AddWorker(EResWoker.call_asset_event);
             job.AddWorker(EResWoker.call_set_atlas);         
             _msg_queue.BeginJob(job,false);
         }

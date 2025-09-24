@@ -45,12 +45,12 @@ namespace FH
         public void SetCallBack(IHolderCallBack callback);
     }
 
-    public interface IResHolder : ICPtr, IHolderObserver
+    public interface IAssetHolder : ICPtr, IHolderObserver
     {
-        public UnityEngine.Object Load(string path, EResPathType pathType = EResPathType.Default);
-        public void PreLoad(string path, EResPathType pathType = EResPathType.Default, int priority = 0);
-        public void GetAllRes(List<ResRef> out_list);
-        public HolderStat GetResStat();
+        public UnityEngine.Object Load(string path, EAssetPathType pathType = EAssetPathType.Default);
+        public void PreLoad(string path, EAssetPathType pathType = EAssetPathType.Default, int priority = 0);
+        public void GetAllAsset(List<ResRef> out_list);
+        public HolderStat GetAssetStat();
     }
 
     public interface IPreInstHolder : ICPtr
@@ -73,7 +73,7 @@ namespace FH
     }
 
     //聚合类
-    public interface IResInstHolder : IResHolder, IInstHolder, IPreInstHolder, IHolderObserver
+    public interface IResHolder : IAssetHolder, IInstHolder, IPreInstHolder, IHolderObserver
     {
         public void GetAll(List<ResRef> out_list);
         public HolderStat GetStat();

@@ -21,7 +21,7 @@ namespace Game
                 return;
 
             NoticeData data = new NoticeData(ENoticeChannel.Common, duration_sec);
-            _.ShowNotice(data, NoticeItemTextMarquee.Create(_.ResInstHolder, txt));
+            _.ShowNotice(data, NoticeItemTextMarquee.Create(_.ResHolder, txt));
         }
 
         public static void ShowCommon(string txt, float duration_sec = 2.0f)
@@ -29,7 +29,7 @@ namespace Game
             if (_ == null)
                 return;
             NoticeData data = new NoticeData(ENoticeChannel.Common, duration_sec);
-            _.ShowNotice(data, NoticeItemText.Create(_.ResInstHolder, txt));
+            _.ShowNotice(data, NoticeItemText.Create(_.ResHolder, txt));
         }
     }
 }

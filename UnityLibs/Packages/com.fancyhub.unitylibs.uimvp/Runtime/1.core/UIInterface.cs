@@ -52,8 +52,8 @@ namespace FH.UI
     #region Res Page
     public interface IUIResPage : IHolderCallBack, IUIElement
     {
-        internal void SetResHolder(IResInstHolder resHolder);
-        public IResInstHolder ResHolder { get; }
+        internal void SetResHolder(IResHolder resHolder);
+        public IResHolder ResHolder { get; }
     }
     #endregion
 

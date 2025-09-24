@@ -22,14 +22,14 @@ namespace FH.NoticeSample
 
         public RectTransform _view;
         public NoticeItemDummy _dummy;
-        public CPtr<IResInstHolder> _ResHolder;
+        public CPtr<IResHolder> _ResHolder;
 
-        public static NoticeItemMessageBox Create(IResInstHolder resHolder, string text, string btn_name = null)
+        public static NoticeItemMessageBox Create(IResHolder resHolder, string text, string btn_name = null)
         {
             NoticeItemMessageBox ret = GPool.New<NoticeItemMessageBox>();
             ret._Text = text;
             ret._BtnName = btn_name;
-            ret._ResHolder = new CPtr<IResInstHolder>(resHolder);
+            ret._ResHolder = new CPtr<IResHolder>(resHolder);
 
             if (string.IsNullOrEmpty(btn_name))
                 ret._BtnName = "OK";

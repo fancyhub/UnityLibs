@@ -57,14 +57,14 @@ namespace FH.UI
 
         public Action EventDestroy;
 
-        private IResInstHolder _res_holder;
+        private IResHolder _res_holder;
         private GameObject _self_root;
         private RectTransform _self_rect_tran;
         private UICanvasOrder _canvas_order;
         protected EUIBaseViewCreateMode _view_create_mode;
         protected EUIBaseViewLifeState _view_life_state;
 
-        public IResInstHolder ResHolder => _res_holder;
+        public IResHolder ResHolder => _res_holder;
         public GameObject SelfRoot => _self_root;
         public RectTransform SelfRootTran => _self_rect_tran;
         public UICanvasOrder CanvasOrder => _canvas_order;
@@ -170,7 +170,7 @@ namespace FH.UI
             return UIViewCompReference.Find(_self_root, prefab_name);
         }
 
-        private bool _Init(GameObject obj_self, IResInstHolder res_holder, EUIBaseViewCreateMode create_mode)
+        private bool _Init(GameObject obj_self, IResHolder res_holder, EUIBaseViewCreateMode create_mode)
         {
             //1. Check
             if (_view_life_state == EUIBaseViewLifeState.Inited)

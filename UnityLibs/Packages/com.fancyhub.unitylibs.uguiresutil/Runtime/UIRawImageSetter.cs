@@ -149,7 +149,7 @@ namespace FH.UI
                     }
                     else
                     {
-                        bool result = ResMgr.AsyncLoad(_Path, EResPathType.Default, _OnAsyncLoaded, out _JobId, CPriority);
+                        bool result = ResMgr.AsyncLoad(_Path, EAssetPathType.Default, _OnAsyncLoaded, out _JobId, CPriority);
                         if (!result)
                         {
                             _ResRef.RemoveUser(this);

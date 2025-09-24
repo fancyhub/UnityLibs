@@ -18,7 +18,7 @@ namespace FH.UI
             ResHolder = null,
         };
 
-        public static PageOpenInfo CreateDefaultSubPage(UnityEngine.RectTransform parent, IResInstHolder resHolder)
+        public static PageOpenInfo CreateDefaultSubPage(UnityEngine.RectTransform parent, IResHolder resHolder)
         {
             return new PageOpenInfo()
             {
@@ -44,7 +44,7 @@ namespace FH.UI
 
         public EUITagIndex Tag;
 
-        public IResInstHolder ResHolder;
+        public IResHolder ResHolder;
     }
 
     public abstract class UIMgr : IUISceneMgr
@@ -146,7 +146,7 @@ namespace FH.UI
                EUIViewLayer ViewLayer = EUIViewLayer.Normal,
                UnityEngine.RectTransform Parent = null,
                EUITagIndex Tag = EUITagIndex.None,
-               IResInstHolder ResHolder = null) where T : UIPageBase, new()
+               IResHolder ResHolder = null) where T : UIPageBase, new()
         {
             PageOpenInfo defaultInfo = PageOpenInfo.Default;
             defaultInfo.GroupChannel = GroupChannel;

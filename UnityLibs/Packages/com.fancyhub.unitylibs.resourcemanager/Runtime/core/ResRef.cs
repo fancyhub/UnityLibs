@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace FH
 {
-    public interface IResInstPool : ICPtr
+    public interface IResourcePool : ICPtr
     {
         public EResError AddUser(ResId id, System.Object user);
         public EResError RemoveUser(ResId id, System.Object user);
@@ -28,42 +28,42 @@ namespace FH
 
         public readonly ResId Id;
         public readonly string Path;
-        private readonly CPtr<IResInstPool> ResInstPool;
+        private readonly CPtr<IResourcePool> ResourcePool;
 
-        internal ResRef(ResId id, string path, IResInstPool pool) { this.Id = id; this.Path = path; this.ResInstPool = new CPtr<IResInstPool>(pool); }
+        internal ResRef(ResId id, string path, IResourcePool pool) { this.Id = id; this.Path = path; this.ResourcePool = new CPtr<IResourcePool>(pool); }
 
         /// <summary>
         /// 只是判断自己是否合法, 不判断 后面的 资源是否已经被释放
         /// </summary>
         public bool IsValid()
         {
-            if (ResInstPool.Null)
+            if (ResourcePool.Null)
                 return false;
             return Id.IsValid();
         }
 
-        public UnityEngine.Object Get() { return ResInstPool.Val?.Get(Id); }
-        public T Get<T>() where T : UnityEngine.Object { return ResInstPool.Val?.Get<T>(Id); }
+        public UnityEngine.Object Get() { return ResourcePool.Val?.Get(Id); }
+        public T Get<T>() where T : UnityEngine.Object { return ResourcePool.Val?.Get<T>(Id); }
         public bool AddUser(System.Object user)
         {
-            if (ResInstPool.Val == null || !Id.IsValid())
+            if (ResourcePool.Val == null || !Id.IsValid())
                 return false;
-            if (ResInstPool.Val.AddUser(Id, user) == EResError.OK)
+            if (ResourcePool.Val.AddUser(Id, user) == EResError.OK)
                 return true;
             return false;
         }
         public bool RemoveUser(System.Object user)
         {
-            if (ResInstPool.Val == null || !Id.IsValid())
+            if (ResourcePool.Val == null || !Id.IsValid())
                 return false;
-            if (ResInstPool.Val.RemoveUser(Id, user) == EResError.OK)
+            if (ResourcePool.Val.RemoveUser(Id, user) == EResError.OK)
                 return true;
             return false;
         }
 
         public override string ToString()
         {
-            return $"ResId:({Id.Id},{Id.ResType}) ResPath:({Path})";
+            return $"ResId:({Id.Id},{Id.ResType}) AssetPath:({Path})";
         }
 
         bool IEqualityComparer<ResRef>.Equals(ResRef x, ResRef y)

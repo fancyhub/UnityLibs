@@ -19,7 +19,7 @@ namespace FH.UI
             EUIViewLayer ViewLayer = EUIViewLayer.Normal,
             UnityEngine.RectTransform Parent = null,
             EUITagIndex Tag = EUITagIndex.None,
-            IResInstHolder ResHolder = null) where T : UIPageBase, new()
+            IResHolder ResHolder = null) where T : UIPageBase, new()
         {
             PageOpenInfo defaultInfo = PageOpenInfo.Default;
             defaultInfo.GroupChannel = GroupChannel;

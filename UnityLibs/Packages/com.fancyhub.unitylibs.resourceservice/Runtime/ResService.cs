@@ -95,7 +95,7 @@ namespace FH
             FileDownloadMgr.Init(Config.FileDownloadMgrConfig);
             FileDownloadMgr.SetCallBack(_OnFileDonwloaded);
 
-            IResMgr.IExternalLoader res_loader = null;
+            IResMgr.IExternalAssetLoader res_loader = null;
             ISceneMgr.IExternalLoader scene_loader = null;
 
             if (mode == EMode.AssetDatabase)
@@ -104,14 +104,14 @@ namespace FH
                 List<(string path, string address)> asset_list = null;
                 //var bundle_config = FH.AssetBundleBuilder.Ed.AssetBundleBuilderConfig.GetDefault();
                 //asset_list = bundle_config.GetAssetCollector().GetAllAssets();
-                res_loader = new SampleExternalLoader.ResExternalLoader_Composite(new SampleExternalLoader.ResExternalLoader_AssetDatabase(asset_list, _AtlasTag2Path));
+                res_loader = new SampleExternalLoader.AssetExternalLoader_Composite(new SampleExternalLoader.AssetExternalLoader_AssetDatabase(asset_list, _AtlasTag2Path));
 
                 scene_loader = new SampleExternalLoader.SceneExternaLoader_Assetdatabase();
 #endif
             }
             else
             {
-                res_loader = new SampleExternalLoader.ResExternalLoader_Composite(new SampleExternalLoader.ResExternalLoader_Bundle(BundleMgr.Inst, _AtlasTag2Path));
+                res_loader = new SampleExternalLoader.AssetExternalLoader_Composite(new SampleExternalLoader.ResExternalLoader_Bundle(BundleMgr.Inst, _AtlasTag2Path));
                 scene_loader = new SampleExternalLoader.SceneExternalLoader_Bundle(BundleMgr.Inst);
             }
 

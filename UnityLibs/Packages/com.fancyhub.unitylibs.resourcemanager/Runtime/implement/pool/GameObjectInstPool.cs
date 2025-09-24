@@ -198,7 +198,7 @@ namespace FH.ResManagement
         }
     }
 
-    internal class GameObjectInstPool : IResInstPool
+    internal class GameObjectInstPool : IResourcePool
     {
         public const int C_POOL_CAP = 1000;
         private int ___obj_ver = 0;
@@ -562,7 +562,7 @@ namespace FH.ResManagement
                 data.ResType = EResType.Inst;
                 data.UpdateFlag = item._upgrade_flag;
                 data.Path = item._res_ref.Path;
-                data.PathTypeMask = new BitEnum32<EResPathType>(EResPathType.Default);
+                data.PathTypeMask = new BitEnum32<EAssetPathType>(EAssetPathType.Default);
                 data.UserCount = item.Status == EGameObjInstStatus.InUse ? 1 : 0;
                 data.InstStatus = item.Status;
 

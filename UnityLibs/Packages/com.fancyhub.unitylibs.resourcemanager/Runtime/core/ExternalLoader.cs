@@ -10,7 +10,7 @@ namespace FH
 {
     public partial interface IResMgr
     {
-        public interface IExternalRef : ICPtr
+        public interface IExternalAssetRef : ICPtr
         {
             bool IsDone { get; }
             UnityEngine.Object Asset { get; }
@@ -19,10 +19,10 @@ namespace FH
         /// <summary>
         /// 需要外部实现该接口
         /// </summary>
-        public interface IExternalLoader : ICPtr
+        public interface IExternalAssetLoader : ICPtr
         {
-            IExternalRef Load(string path, Type unityAssetType);
-            IExternalRef LoadAsync(string path, Type unityAssetType);
+            IExternalAssetRef Load(string path, Type unityAssetType);
+            IExternalAssetRef LoadAsync(string path, Type unityAssetType);
 
             string AtlasTag2Path(string atlasName);
 

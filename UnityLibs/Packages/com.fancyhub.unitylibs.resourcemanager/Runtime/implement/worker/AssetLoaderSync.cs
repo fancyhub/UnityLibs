@@ -10,23 +10,23 @@ using System.Collections.Generic;
 namespace FH.ResManagement
 {
     //同步创建流程
-    internal class ResLoaderSync : IMsgProc<ResJob>
+    internal class AssetLoaderSync : IMsgProc<ResJob>
     {
         #region 传入
-        public ResPool _res_pool;
-        public IResMgr.IExternalLoader _external_loader;
+        public AssetPool _asset_pool;
+        public IResMgr.IExternalAssetLoader _external_loader;
         public ResMsgQueue _msg_queue;
         #endregion
 
 
         public void Init()
         {
-            _msg_queue.Reg(EResWoker.sync_load_res, this);
+            _msg_queue.Reg(EResWoker.sync_load_asset, this);
         }
 
         public void Destroy()
         {
-            _msg_queue.UnReg(EResWoker.sync_load_res);
+            _msg_queue.UnReg(EResWoker.sync_load_asset);
         }
 
         public void OnMsgProc(ref ResJob job)
@@ -40,15 +40,15 @@ namespace FH.ResManagement
 
             //3.判断一定是自己
             EResWoker job_type = job.GetCurrentWorker();
-            if (job_type != EResWoker.sync_load_res)
+            if (job_type != EResWoker.sync_load_asset)
             {
-                ResLog._.Assert(false, "job 不是 类型 {0}!={1}, {2}", job_type, EResWoker.sync_load_res, job.Path.Path);
+                ResLog._.Assert(false, "job 不是 类型 {0}!={1}, {2}", job_type, EResWoker.sync_load_asset, job.Path.Path);
                 _msg_queue.SendJobNext(job);
                 return;
             }
 
             //4. 先查找是否存在
-            EResError err = _res_pool.GetIdByPath(job.Path, out job.ResId);
+            EResError err = _asset_pool.GetIdByPath(job.Path, out job.AssetId);
             if (err == EResError.OK)
             {
                 _msg_queue.SendJobNext(job);
@@ -56,18 +56,18 @@ namespace FH.ResManagement
             }
 
             //5. 不存在, 加载
-            IResMgr.IExternalRef asset_ref = _external_loader.Load(job.Path.Path, job.Path.PathType.ExtResPathType2UnityType());
+            IResMgr.IExternalAssetRef asset_ref = _external_loader.Load(job.Path.Path, job.Path.PathType.ExtAssetPathType2UnityType());
             if (asset_ref == null)
             {
                 ResLog._.D("load failed res {0}", job.Path);
-                job.ErrorCode = EResError.ResLoaderSync_load_res_failed;
+                job.ErrorCode = EResError.AssetLoaderSync_load_asset_failed;
                 _msg_queue.SendJobNext(job);
                 return;
             }
             else//添加到 ResPool
             {
                 ResLog._.D("load res  {0}", job.Path);
-                err = _res_pool.AddRes(job.Path, asset_ref, out job.ResId);
+                err = _asset_pool.AddAsset(job.Path, asset_ref, out job.AssetId);
                 ResLog._.ErrCode(err);
                 if (err != EResError.OK)
                 {
