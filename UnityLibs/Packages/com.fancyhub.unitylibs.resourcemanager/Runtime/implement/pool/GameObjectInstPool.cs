@@ -206,7 +206,7 @@ namespace FH.ResManagement
 
 
         public Dictionary<int, GameObjectInstItem> _all;
-        public LinkedList<CPtr<GameObjectInstItem>> _wait_for_use;
+        public LinkedList<CPtr<GameObjectInstItem>> _wait_for_use; //已经创建出来了实例, 但是还没有添加引用, 属于等待使用
         public LruList<ResId, int> _lru_free_list;
         public One2MultiMap<string, ResId> _free_index_by_path; //free pool
         public GameObjectStat _stat;
@@ -560,7 +560,7 @@ namespace FH.ResManagement
                 ResSnapShotItem data = new ResSnapShotItem();
                 data.Id = item._inst_id.Id;
                 data.ResType = EResType.Inst;
-                data.UpdateFlag = item._upgrade_flag;
+                data.UpgradeFlag = item._upgrade_flag;
                 data.Path = item._res_ref.Path;
                 data.PathTypeMask = new BitEnum32<EAssetPathType>(EAssetPathType.Default);
                 data.UserCount = item.Status == EGameObjInstStatus.InUse ? 1 : 0;

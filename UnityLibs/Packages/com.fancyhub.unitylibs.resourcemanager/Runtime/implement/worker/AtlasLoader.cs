@@ -14,7 +14,7 @@ namespace FH.ResManagement
 {
     internal class AtlasLoader : IDestroyable, IMsgProc<ResJob>
     {
-        public IResMgr.IExternalAssetLoader _external_loader;
+        public IResMgr.IExternalLoader _external_loader;
         public ResMsgQueue _msg_queue;        
         public ResJobDB _job_db;
         public AssetPool _asset_pool;

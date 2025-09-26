@@ -21,7 +21,7 @@ namespace FH.ResManagement
         private int ___obj_ver = 0;
         int IVersionObj.ObjVersion => ___obj_ver;
 
-        public IResMgr.IExternalAssetLoader _external_loader;
+        public IResMgr.IExternalLoader _external_loader;
 
         public IResMgr.Config _conf;
         public AssetPool _asset_pool;
@@ -48,7 +48,7 @@ namespace FH.ResManagement
             MyEqualityComparer.Reg(ResRef.EqualityComparer);
         }
 
-        public ResMgrImplement(IResMgr.IExternalAssetLoader external_loader, IResMgr.Config conf)
+        public ResMgrImplement(IResMgr.IExternalLoader external_loader, IResMgr.Config conf)
         {
             _external_loader = external_loader;
             _conf = conf;

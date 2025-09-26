@@ -4,7 +4,6 @@ using System;
 
 namespace FH
 {
-
     public partial class ResService : MonoBehaviour
     {
         public enum EMode
@@ -45,7 +44,7 @@ namespace FH
         {
             FH.ResMgr.Update();
             FH.SceneMgr.Update();
-            FileDownloadMgr.Update();
+            FH.FileDownloadMgr.Update();
         }
 
         public void OnDestroy()
@@ -84,6 +83,8 @@ namespace FH
             var langSettingAsset = ResMgr.Load(LangSettingAsset.CPath).Get<LangSettingAsset>();
             LocMgr.Init(Config.LocLogLvl, langSettingAsset);
             LocMgr.FuncLoader = TableMgr.LoadTranslation;
+
+            InitDebug();
         }
 
         private void _InitBase(EMode mode)
@@ -95,28 +96,42 @@ namespace FH
             FileDownloadMgr.Init(Config.FileDownloadMgrConfig);
             FileDownloadMgr.SetCallBack(_OnFileDonwloaded);
 
-            IResMgr.IExternalAssetLoader res_loader = null;
-            ISceneMgr.IExternalLoader scene_loader = null;
-
-            if (mode == EMode.AssetDatabase)
+            //Res Manager
             {
+                IResMgr.IExternalLoader res_loader = null;
+                if (mode == EMode.AssetDatabase)
+                {
 #if UNITY_EDITOR
-                List<(string path, string address)> asset_list = null;
-                //var bundle_config = FH.AssetBundleBuilder.Ed.AssetBundleBuilderConfig.GetDefault();
-                //asset_list = bundle_config.GetAssetCollector().GetAllAssets();
-                res_loader = new SampleExternalLoader.AssetExternalLoader_Composite(new SampleExternalLoader.AssetExternalLoader_AssetDatabase(asset_list, _AtlasTag2Path));
-
-                scene_loader = new SampleExternalLoader.SceneExternaLoader_Assetdatabase();
+                    List<(string path, string address)> asset_list = null;
+                    //var bundle_config = FH.AssetBundleBuilder.Ed.AssetBundleBuilderConfig.GetDefault();
+                    //asset_list = bundle_config.GetAssetCollector().GetAllAssets();
+                    res_loader = new SampleExternalLoader.ResExternalLoader_Composite(new SampleExternalLoader.ResExternalLoader_AssetDatabase(asset_list, _AtlasTag2Path));
 #endif
-            }
-            else
-            {
-                res_loader = new SampleExternalLoader.AssetExternalLoader_Composite(new SampleExternalLoader.ResExternalLoader_Bundle(BundleMgr.Inst, _AtlasTag2Path));
-                scene_loader = new SampleExternalLoader.SceneExternalLoader_Bundle(BundleMgr.Inst);
+                }
+                else
+                {
+                    res_loader = new SampleExternalLoader.ResExternalLoader_Composite(new SampleExternalLoader.ResExternalLoader_Bundle(BundleMgr.Inst, _AtlasTag2Path));
+                }
+                ResMgr.InitMgr(Config.ResMgrConfig, res_loader);
             }
 
-            ResMgr.InitMgr(Config.ResMgrConfig, res_loader);
-            SceneMgr.InitMgr(Config.SceneMgrConfig, scene_loader);
+
+            //scene Manager
+            {
+                ISceneMgr.IExternalLoader scene_loader = null;
+                if (mode == EMode.AssetDatabase)
+                {
+#if UNITY_EDITOR
+                    scene_loader = new SampleExternalLoader.SceneExternaLoader_Assetdatabase();
+#endif
+                }
+                else
+                {
+                    scene_loader = new SampleExternalLoader.SceneExternalLoader_Bundle(BundleMgr.Inst);
+                }
+                SceneMgr.InitMgr(Config.SceneMgrConfig, scene_loader);
+            }
+
             VfsMgr.InitMgr(Config.VfsMgrConfig);
         }
 
@@ -142,80 +157,86 @@ namespace FH
             {
                 switch (p.Format)
                 {
+                    default:
+                        Log.E("unkown format {0}", p.Format);
+                        break;
+
                     case VFSManagement.Builder.BuilderConfig.EFormat.ZipStore:
                     case VFSManagement.Builder.BuilderConfig.EFormat.ZipCompress:
-                        {
-                            VirtualFileSystem_Zip fs_zip = new VirtualFileSystem_Zip(p.Name, (name) =>
-                            {
-                                FileMgr.FindFile(name, out var file_path, out var _);
-                                if (file_path == null)
-                                {
-                                    Log.E("找不到文件 {0}", name);
-                                    return null;
-                                }
-
-                                if (file_path.StartsWith(Application.streamingAssetsPath))
-                                {
-                                    Log.E("ZipFile can't read in StreamingAssets,{0}:{1}", name, file_path);
-                                    return null;
-                                }
-
-                                if (!System.IO.File.Exists(file_path))
-                                {
-                                    Log.E("File Not Exist {0}:{1}", name, file_path);
-                                    return null;
-                                }
-
-                                try
-                                {
-                                    System.IO.Compression.ZipArchive zipArchive = System.IO.Compression.ZipFile.OpenRead(file_path);
-                                    if (zipArchive == null)
-                                    {
-                                        Log.E("加载失败 {0}:{1}", name, file_path);
-                                        return null;
-                                    }
-                                    return zipArchive;
-                                }
-                                catch (Exception e)
-                                {
-                                    Log.E(e);
-                                    return null;
-                                }
-                            });
-                            VfsMgr.Mount(fs_zip);
-                        }
+                        VirtualFileSystem_Zip fs_zip = new VirtualFileSystem_Zip(p.Name, _LoadZipForVFS);
+                        VfsMgr.Mount(fs_zip);
                         break;
 
                     case VFSManagement.Builder.BuilderConfig.EFormat.Lz4ZipStore:
                     case VFSManagement.Builder.BuilderConfig.EFormat.Lz4ZipCompress:
-                        {
-                            VirtualFileSystem_Lz4Zip fs_zip = new VirtualFileSystem_Lz4Zip(p.Name, (name) =>
-                            {
-                                FileMgr.FindFile(name, out var full_path, out var _);
-                                if (full_path == null)
-                                {
-                                    Log.E("找不到文件 {0}", name);
-                                    return null;
-                                }
-
-                                Lz4ZipFile ret = null;
-                                if (full_path.StartsWith(Application.streamingAssetsPath))
-                                {
-                                    ret = Lz4ZipFile.LoadFromStream(SAFileSystem.OpenRead(full_path));
-                                }
-                                else
-                                {
-                                    ret = Lz4ZipFile.LoadFromFile(full_path);
-                                }
-
-                                if (ret == null)
-                                    Log.E("Load Lz4Zip failed, {0}", full_path);
-                                return ret;
-                            });
-                            VfsMgr.Mount(fs_zip);
-                        }
+                        VirtualFileSystem_Lz4Zip fs_lz4zip = new VirtualFileSystem_Lz4Zip(p.Name, _LoadLz4ZipForVFS);
+                        VfsMgr.Mount(fs_lz4zip);
                         break;
                 }
+            }
+        }
+
+        private static Lz4ZipFile _LoadLz4ZipForVFS(string name)
+        {
+            var status = FileMgr.FindFile(name, out var full_path, out var file_loc);
+
+            switch (file_loc)
+            {
+                default:
+                    Log.E("找不到文件 {0}", name);
+                    return null;
+                case EFileLocation.Persistent:
+                    return Lz4ZipFile.LoadFromFile(full_path);
+
+                case EFileLocation.StreamingAssets:
+                    return Lz4ZipFile.LoadFromStream(SAFileSystem.OpenRead(full_path));
+
+                case EFileLocation.Remote:
+                    Log.E("Lz4ZipFile can't read remote,{0}:{1}", name, full_path);
+                    return null;
+            }
+        }
+
+        private static System.IO.Compression.ZipArchive _LoadZipForVFS(string name)
+        {
+            FileMgr.FindFile(name, out var file_path, out var file_loc);
+
+            switch (file_loc)
+            {
+                default:
+                    Log.E("找不到文件 {0}", name);
+                    return null;
+
+                case EFileLocation.StreamingAssets:
+                    Log.E("ZipFile can't read in StreamingAssets,{0}:{1}", name, file_path);
+                    return null;
+
+                case EFileLocation.Persistent:
+                    if (!System.IO.File.Exists(file_path))
+                    {
+                        Log.E("File Not Exist {0}:{1}", name, file_path);
+                        return null;
+                    }
+
+                    try
+                    {
+                        System.IO.Compression.ZipArchive zipArchive = System.IO.Compression.ZipFile.OpenRead(file_path);
+                        if (zipArchive == null)
+                        {
+                            Log.E("加载失败 {0}:{1}", name, file_path);
+                            return null;
+                        }
+                        return zipArchive;
+                    }
+                    catch (Exception e)
+                    {
+                        Log.E(e);
+                        return null;
+                    }
+
+                case EFileLocation.Remote:
+                    Log.E("ZipFile can't read remote,{0}:{1}", name, file_path);
+                    return null;
             }
         }
 

@@ -28,7 +28,7 @@ namespace FH.Localization
         private SerializedProperty _keyProperty;
         private EdTableView<TableItem> _TreeView;
 
-        internal class TableItem : IEdTableItem<TableItem>
+        internal class TableItem : IEdTableViewItem<TableItem>
         {
             public string Key;
             public string Translation;

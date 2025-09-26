@@ -61,7 +61,7 @@ namespace FH.ResManagement
     {
         #region  传入的
         public AssetPool _asset_pool;
-        public IResMgr.IExternalAssetLoader _external_loader;
+        public IResMgr.IExternalLoader _external_loader;
         public ResJobDB _job_db;
         public ResMsgQueue _msg_queue;
 
@@ -231,7 +231,7 @@ namespace FH.ResManagement
                     task_slot.AddLinkJobId(job_id);
                     continue;
                 }
-                IResMgr.IExternalAssetRef asset = _external_loader.LoadAsync(job.Path.Path, job.Path.PathType.ExtAssetPathType2UnityType());
+                IResMgr.IExternalAssetRef asset = _external_loader.LoadAssetAsync(job.Path.Path, job.Path.PathType.ExtAssetPathType2UnityType());
 
                 if (asset != null)
                 {

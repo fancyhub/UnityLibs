@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace FH.SampleExternalLoader
 {
-    public sealed class AssetExternalLoader_Resource : CPtrBase, IResMgr.IExternalAssetLoader
+    public sealed class ResExternalLoader_Resource : CPtrBase, IResMgr.IExternalLoader
     {
         private sealed class AssetRefDB
         {
@@ -87,6 +87,7 @@ namespace FH.SampleExternalLoader
                 return ret;
             }
 
+            public string BundleName => null;
             public UnityEngine.Object Asset => _Asset;
 
             protected override void OnPoolRelease()
@@ -124,12 +125,12 @@ namespace FH.SampleExternalLoader
             return EAssetStatus.Exist;
         }
 
-        public IResMgr.IExternalAssetRef Load(string path, Type unityAssetType)
+        public IResMgr.IExternalAssetRef LoadAsset(string path, Type unityAssetType)
         {
             return AssetRef.Create(_AssetRefDB, Resources.Load(path, unityAssetType));
         }
 
-        public IResMgr.IExternalAssetRef LoadAsync(string path, Type unityAssetType)
+        public IResMgr.IExternalAssetRef LoadAssetAsync(string path, Type unityAssetType)
         {
             return AssetRef.Create(_AssetRefDB, Resources.LoadAsync(path, unityAssetType));
         }

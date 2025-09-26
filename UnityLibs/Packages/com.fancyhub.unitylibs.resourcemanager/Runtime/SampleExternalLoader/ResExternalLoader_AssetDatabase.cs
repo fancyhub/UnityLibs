@@ -16,7 +16,7 @@ using FH.ResManagement;
 
 namespace FH.SampleExternalLoader
 {
-    public sealed class AssetExternalLoader_AssetDatabase : CPtrBase, IResMgr.IExternalAssetLoader
+    public sealed class ResExternalLoader_AssetDatabase : CPtrBase, IResMgr.IExternalLoader
     {
         private Dictionary<string, string> _AssetDict;
         private Func<string, string> _FuncAtlasTag2Path;
@@ -146,6 +146,7 @@ namespace FH.SampleExternalLoader
                 return ret;
             }
 
+            public string BundleName => null;
             public UnityEngine.Object Asset => _Asset;
 
             protected override void OnPoolRelease()
@@ -173,7 +174,7 @@ namespace FH.SampleExternalLoader
         }
 
 
-        public AssetExternalLoader_AssetDatabase(List<(string path, string addressName)> asset_list = null, Func<string, string> func_atlas_tag_2_path = null)
+        public ResExternalLoader_AssetDatabase(List<(string path, string addressName)> asset_list = null, Func<string, string> func_atlas_tag_2_path = null)
         {
             if (asset_list != null)
             {
@@ -228,7 +229,7 @@ namespace FH.SampleExternalLoader
             return EAssetStatus.Exist;
         }
 
-        public IResMgr.IExternalAssetRef Load(string path, Type unityAssetType)
+        public IResMgr.IExternalAssetRef LoadAsset(string path, Type unityAssetType)
         {
             if (_AssetDict != null)
             {
@@ -253,7 +254,7 @@ namespace FH.SampleExternalLoader
             return AssetRef.Create(_AssetRefDB, asset);
         }
 
-        public IResMgr.IExternalAssetRef LoadAsync(string path, Type unityAssetType)
+        public IResMgr.IExternalAssetRef LoadAssetAsync(string path, Type unityAssetType)
         {
             if (_AssetDict != null)
             {
@@ -265,7 +266,7 @@ namespace FH.SampleExternalLoader
 
             if (!Application.isPlaying)
             {
-                return Load(path, unityAssetType);
+                return LoadAsset(path, unityAssetType);
             }
 
             return AssetRef.Create(_AssetRefDB, EditorAssetRequest.LoadAsync(path, unityAssetType));

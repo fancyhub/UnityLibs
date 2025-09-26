@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using UnityEngine;
 
 namespace FH.SampleExternalLoader
 {
@@ -49,7 +50,7 @@ namespace FH.SampleExternalLoader
             return ret;
         }
 
-        public IBundleMgr.ExternalBundle LoadBundleFile(string name)
+        public IBundleMgr.IExternalRef LoadBundleFile(string name)
         {
             var mgr = _FileMgr.Val;
             if (mgr == null)
@@ -64,7 +65,7 @@ namespace FH.SampleExternalLoader
                     return null;
                 case EFileLocation.Persistent:
                     {
-                        return IBundleMgr.ExternalBundle.LoadFromFile(file_path);
+                        return BundleItem.LoadFromFile(file_path);
                     }
 
                 case EFileLocation.Remote:
@@ -76,13 +77,13 @@ namespace FH.SampleExternalLoader
                         if (stream != null)
                         {
                             if (stream.CanSeek)
-                                return IBundleMgr.ExternalBundle.LoadFromStream(stream);
+                                return BundleItem.LoadFromStream(stream);
 
                             Log.E("Stream is not seekable: {0}, {1}", stream.CanSeek, file_path);
                             stream?.Close();
                         }
 
-                        return IBundleMgr.ExternalBundle.LoadFromFile(file_path);
+                        return BundleItem.LoadFromFile(file_path);
                     }
 
             }
@@ -103,6 +104,73 @@ namespace FH.SampleExternalLoader
 
         protected override void OnRelease()
         {
+        }
+
+        public sealed class BundleItem : IBundleMgr.IExternalRef
+        {
+            private AssetBundle _Bundle;
+            private Stream _Stream;
+            public static BundleItem Create(UnityEngine.AssetBundle ab, Stream stream = null)
+            {
+                if (ab == null)
+                    return null;
+                BundleItem ret = new BundleItem();
+                ret._Bundle = ab;
+                ret._Stream = stream;
+                return ret;
+            }
+
+            public static BundleItem LoadFromFile(string file_path)
+            {
+                UnityEngine.AssetBundle ab = UnityEngine.AssetBundle.LoadFromFile(file_path);
+                if (ab == null)
+                    return null;
+                BundleItem ret = new BundleItem();
+                ret._Bundle = ab;
+                ret._Stream = null;
+                return ret;
+            }
+
+            public static BundleItem LoadFromStream(Stream stream)
+            {
+                UnityEngine.AssetBundle ab = UnityEngine.AssetBundle.LoadFromStream(stream);
+                if (ab == null)
+                    return null;
+                BundleItem ret = new BundleItem();
+                ret._Bundle = ab;
+                ret._Stream = stream;
+                return ret;
+            }
+
+            public AssetBundle UnityBundle => _Bundle;
+
+
+            public UnityEngine.Object LoadAsset(string name, Type unityAssetType)
+            {
+                return _Bundle.LoadAsset(name, unityAssetType);
+            }
+
+            public AssetBundleRequest LoadAssetAsync(string name, Type unityAssetType)
+            {
+                return _Bundle.LoadAssetAsync(name, unityAssetType);
+            }
+
+            public void UnloadBundle(bool unloadAllLoadedObjects)
+            {
+                if (_Bundle != null)
+                {
+                    var t = _Bundle;
+                    _Bundle = null;
+                    t.Unload(unloadAllLoadedObjects);
+                }
+
+                if (_Stream != null)
+                {
+                    var t = _Stream;
+                    _Stream = null;
+                    t.Close();
+                }
+            }
         }
 
     }

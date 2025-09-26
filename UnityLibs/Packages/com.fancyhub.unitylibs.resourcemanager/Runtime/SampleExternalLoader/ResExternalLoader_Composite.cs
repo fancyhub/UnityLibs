@@ -11,14 +11,14 @@ using UnityEngine;
 
 namespace FH.SampleExternalLoader
 {
-    public sealed class AssetExternalLoader_Composite : CPtrBase, IResMgr.IExternalAssetLoader
+    public sealed class ResExternalLoader_Composite : CPtrBase, IResMgr.IExternalLoader
     {
-        private IResMgr.IExternalAssetLoader _AbLoader;
-        private IResMgr.IExternalAssetLoader _ResLoader;
-        public AssetExternalLoader_Composite(IResMgr.IExternalAssetLoader ab_loader)
+        private IResMgr.IExternalLoader _AbLoader;
+        private IResMgr.IExternalLoader _ResLoader;
+        public ResExternalLoader_Composite(IResMgr.IExternalLoader ab_loader)
         {
             _AbLoader = ab_loader;
-            _ResLoader = new AssetExternalLoader_Resource();
+            _ResLoader = new ResExternalLoader_Resource();
         }
 
         public string AtlasTag2Path(string atlasName)
@@ -34,18 +34,18 @@ namespace FH.SampleExternalLoader
             return _ResLoader.GetAssetStatus(path);
         }
 
-        public IResMgr.IExternalAssetRef Load(string path, Type unityAssetType)
+        public IResMgr.IExternalAssetRef LoadAsset(string path, Type unityAssetType)
         {
             if (_UseAB(path))
-                return _AbLoader.Load(path, unityAssetType);
-            return _ResLoader.Load(path, unityAssetType);
+                return _AbLoader.LoadAsset(path, unityAssetType);
+            return _ResLoader.LoadAsset(path, unityAssetType);
         }
 
-        public IResMgr.IExternalAssetRef LoadAsync(string path, Type unityAssetType)
+        public IResMgr.IExternalAssetRef LoadAssetAsync(string path, Type unityAssetType)
         {
             if (_UseAB(path))
-                return _AbLoader.LoadAsync(path, unityAssetType);
-            return _ResLoader.LoadAsync(path, unityAssetType);
+                return _AbLoader.LoadAssetAsync(path, unityAssetType);
+            return _ResLoader.LoadAssetAsync(path, unityAssetType);
         }
 
         private static bool _UseAB(string path)

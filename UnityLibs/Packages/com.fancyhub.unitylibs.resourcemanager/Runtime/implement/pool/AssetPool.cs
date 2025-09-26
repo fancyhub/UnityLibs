@@ -19,12 +19,12 @@ namespace FH.ResManagement
         bool IPoolItem.InPool { get => ___in_pool; set => ___in_pool = value; }
 
         public string Path;
-        public BitEnum32<EAssetPathType> PathTypeMask;
+        public BitEnum32<EAssetPathType> PathTypeMask; //防止多个Type对应一个Inst, 比如 Sprite,Texture, 在手机上, 可能因为没有Texture的引用, Default 和Sprite加载都会指向该对象
         public ResId ResId;
         public UnityEngine.Object Asset;
         public CPtr<IResMgr.IExternalAssetRef> AssetRef;
 
-        public bool _update_flag;
+        public bool _upgrade_flag; //old res, before upgrade
 
         public ResPoolItem()
         {
@@ -39,7 +39,7 @@ namespace FH.ResManagement
             ret.AssetRef = new CPtr<IResMgr.IExternalAssetRef>(asset_ref);
             ret.Asset = asset_ref.Asset;
             ret.ResId = new ResId(asset_ref.Asset, EResType.Asset);
-            ret._update_flag = false;
+            ret._upgrade_flag = false;
 
             return ret;
         }
@@ -146,13 +146,12 @@ namespace FH.ResManagement
                 ResSnapShotItem data = new ResSnapShotItem();
                 data.Id = pool_val.ResId.Id;
                 data.ResType = EResType.Asset;
-                data.UpdateFlag = pool_val._update_flag;
+                data.UpgradeFlag = pool_val._upgrade_flag;
                 data.Path = pool_val.Path;
                 data.PathTypeMask = pool_val.PathTypeMask;
-
                 data.UserCount = pool_val._user_count;
                 pool_val.CopyUserList(ref data.Users);
-
+                data.BundleName = pool_val.AssetRef.Val?.BundleName;
                 out_snapshot.Add(data);
             }
         }
@@ -313,7 +312,7 @@ namespace FH.ResManagement
 
             //3. 从lru 以及 index里面删除
             _lru_free_list.Remove(pool_val.ResId, out int _);
-            if (!pool_val._update_flag)
+            if (!pool_val._upgrade_flag)
             {
                 for (var i = EAssetPathType.Default; i < EAssetPathType.Max; i++)
                 {
@@ -366,7 +365,7 @@ namespace FH.ResManagement
             bool suc = _pool.TryGetValue(res_id.Id, out ResPoolItem pool_val);
             if (!suc)
                 return EResError.AssetPool_asset_not_exist_3;
-            if (pool_val._update_flag)
+            if (pool_val._upgrade_flag)
                 return EResError.AssetPool_item_is_old_canot_add_user;
 
             //3. 获取user list并添加
@@ -411,7 +410,7 @@ namespace FH.ResManagement
             //4. 更新lru
             if (user_count == 0)
             {
-                if (pool_val._update_flag) //旧资源, 直接移除
+                if (pool_val._upgrade_flag) //旧资源, 直接移除
                     RemoveAsset(res_id.Id, out _);
                 else
                     _lru_free_list.Set(pool_val.ResId, UnityEngine.Time.frameCount);
@@ -437,7 +436,7 @@ namespace FH.ResManagement
 
             foreach (var p in _pool)
             {
-                p.Value._update_flag = true;
+                p.Value._upgrade_flag = true;
                 if (p.Value._user_count == 0)
                     temp.Add(p.Key);
             }

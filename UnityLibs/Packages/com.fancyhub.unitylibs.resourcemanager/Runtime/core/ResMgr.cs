@@ -30,9 +30,9 @@ namespace FH
 
     public enum EGameObjInstStatus
     {
-        Free,
-        InUse,
-        WaitForUse,
+        Free, //完全没有人用
+        InUse, //已经被使用了
+        WaitForUse, //已经分配, 但是还没有添加引用
     }
 
     [System.Serializable]
@@ -41,7 +41,7 @@ namespace FH
         public int Id;
         public EResType ResType;
         public string Path;
-        public bool UpdateFlag;
+        public bool UpgradeFlag; //Old Res, before upgrade
 
         //资源部分
         public BitEnum32<EAssetPathType> PathTypeMask;
@@ -49,6 +49,8 @@ namespace FH
         public List<System.Object> Users; //Editor 模式下才有内容
 
         public EGameObjInstStatus InstStatus;
+
+        public string BundleName;
     }
 
 
@@ -134,7 +136,7 @@ namespace FH
 
         public static IResMgr Inst => _.Val;
 
-        public static bool InitMgr(IResMgr.Config config, IResMgr.IExternalAssetLoader external_loader)
+        public static bool InitMgr(IResMgr.Config config, IResMgr.IExternalLoader external_loader)
         {
             if (!_.Null)
             {
@@ -280,7 +282,7 @@ namespace FH
             return res_ref;
         }
 #endif
-        public static void ResSnapshot(ref List<ResSnapShotItem> out_snapshot)
+        public static void Snapshot(ref List<ResSnapShotItem> out_snapshot)
         {
             var inst = _.Val;
             if (inst == null)

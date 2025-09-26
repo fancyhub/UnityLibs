@@ -14,7 +14,7 @@ namespace FH.ResManagement
     {
         #region 传入
         public AssetPool _asset_pool;
-        public IResMgr.IExternalAssetLoader _external_loader;
+        public IResMgr.IExternalLoader _external_loader;
         public ResMsgQueue _msg_queue;
         #endregion
 
@@ -56,7 +56,7 @@ namespace FH.ResManagement
             }
 
             //5. 不存在, 加载
-            IResMgr.IExternalAssetRef asset_ref = _external_loader.Load(job.Path.Path, job.Path.PathType.ExtAssetPathType2UnityType());
+            IResMgr.IExternalAssetRef asset_ref = _external_loader.LoadAsset(job.Path.Path, job.Path.PathType.ExtAssetPathType2UnityType());
             if (asset_ref == null)
             {
                 ResLog._.D("load failed res {0}", job.Path);

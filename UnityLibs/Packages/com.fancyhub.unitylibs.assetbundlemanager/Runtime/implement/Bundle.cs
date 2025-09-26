@@ -18,12 +18,7 @@ namespace FH.ABManagement
         public static bool UnloadAllLoadedObjectsCurrent = UnloadAllLoadedObjectsDefault;
     }
 
-    internal enum EBundleLoadStatus
-    {
-        None,
-        Loaded,
-        Error,
-    }
+   
 
     internal class Bundle : IBundle
     {
@@ -34,7 +29,7 @@ namespace FH.ABManagement
         public BundleManifest.Item _config;
         public Bundle[] _all_deps;
 
-        private IBundleMgr.ExternalBundle _unity_bundle;
+        private IBundleMgr.IExternalRef _external_bundle;
 
         private EBundleLoadStatus _status = EBundleLoadStatus.None;
 
@@ -83,6 +78,9 @@ namespace FH.ABManagement
             return RefCount;
         }
 
+        public EBundleLoadStatus Status => _status;
+
+
         public UnityEngine.Object LoadAsset(string path, Type unityAssetType)
         {
             if (_status != EBundleLoadStatus.Loaded || !_loaded_by_external_flag)
@@ -90,13 +88,13 @@ namespace FH.ABManagement
                 BundleLog.E("Bundle {0}, ({1}, {2}, {3}), is not loaded by external, canot load asset, {4}", _config.Name, _status, _external_ref_count, _dep_ref_count, path);
                 return null;
             }
-            if (_unity_bundle == null)
+            if (_external_bundle == null)
             {
                 BundleLog.E("Bundle {0} AssetBundle Is Null ", _config.Name);
                 return null;
             }
 
-            var ret = _unity_bundle.LoadAsset(path, unityAssetType);
+            var ret = _external_bundle.LoadAsset(path, unityAssetType);
             BundleLog.D("Bundle {0}, ({1}, {2}, {3}), load asset, {4}, {5} ", _config.Name, _status, _external_ref_count, _dep_ref_count, path, ret != null);
             return ret;
         }
@@ -108,13 +106,13 @@ namespace FH.ABManagement
                 BundleLog.E("Bundle {0}, ({1}, {2}, {3}), is not loaded by external, canot load asset, {4}", _config.Name, _status, _external_ref_count, _dep_ref_count, path);
                 return null;
             }
-            if (_unity_bundle == null)
+            if (_external_bundle == null)
             {
                 BundleLog.E("Bundle {0} AssetBundle Is Null ", _config.Name);
                 return null;
             }
 
-            var ret = _unity_bundle.LoadAssetAsync(path, unityAssetType);
+            var ret = _external_bundle.LoadAssetAsync(path, unityAssetType);
             BundleLog.D("Bundle {0}, ({1}, {2}, {3}), load asset async, {4}, {5} ", _config.Name, _status, _external_ref_count, _dep_ref_count, path, ret != null);
             return ret;
         }
@@ -152,9 +150,9 @@ namespace FH.ABManagement
                     if (!_LoadAllDeps())
                         return false;
 
-                    _unity_bundle = loader.LoadBundleFile(_config.Name);
+                    _external_bundle = loader.LoadBundleFile(_config.Name);
 
-                    if (_unity_bundle == null)
+                    if (_external_bundle == null)
                     {
                         _status = EBundleLoadStatus.Error;
                         foreach (var p in _all_deps)
@@ -220,8 +218,8 @@ namespace FH.ABManagement
                         return false;
                     }
 
-                    _unity_bundle = loader.LoadBundleFile(_config.Name);
-                    if (_unity_bundle == null)
+                    _external_bundle = loader.LoadBundleFile(_config.Name);
+                    if (_external_bundle == null)
                     {
                         BundleLog.E("Bundle {0} Load Dep Fail", _config.Name);
                         _status = EBundleLoadStatus.Error;
@@ -275,7 +273,7 @@ namespace FH.ABManagement
             }
             else
             {
-                if (_status != EBundleLoadStatus.Loaded || _unity_bundle == null)
+                if (_status != EBundleLoadStatus.Loaded || _external_bundle == null)
                     BundleLog.E("Bundle {0}, ({1}, {2}, {3}) unload unity bundle", _config.Name, _status, _external_ref_count, _dep_ref_count);
                 else
                     BundleLog.D("Bundle {0}, ({1}, {2}, {3}) unload unity bundle", _config.Name, _status, _external_ref_count, _dep_ref_count);
@@ -287,11 +285,11 @@ namespace FH.ABManagement
             _loaded_by_dep_flag = false;
             _loaded_by_external_flag = false;
 
-            if (_unity_bundle != null)
+            if (_external_bundle != null)
             {
-                var t = _unity_bundle;
-                _unity_bundle = null;
-                t.Unload(BundleDef.UnloadAllLoadedObjectsCurrent);
+                var t = _external_bundle;
+                _external_bundle = null;
+                t.UnloadBundle(BundleDef.UnloadAllLoadedObjectsCurrent);
             }
         }
 

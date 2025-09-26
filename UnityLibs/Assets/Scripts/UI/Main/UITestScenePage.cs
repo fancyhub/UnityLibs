@@ -81,12 +81,12 @@ namespace Game
         private void _OnLoadSingle()
         {
             var scene_a = SceneMgr.LoadScene("Assets/Scenes/a.unity", UnityEngine.SceneManagement.LoadSceneMode.Single);
-            var scene_b = SceneMgr.LoadScene("Assets/Scenes/b.unity", UnityEngine.SceneManagement.LoadSceneMode.Single);
+            //var scene_b = SceneMgr.LoadScene("Assets/Scenes/b.unity", UnityEngine.SceneManagement.LoadSceneMode.Single);
 
             _SceneRefList.Add(scene_a);
-            _SceneRefList.Add(scene_b);
+            //_SceneRefList.Add(scene_b);
             _UpdatePos(scene_a);
-            _UpdatePos(scene_b);
+            //_UpdatePos(scene_b);
 
 
 
@@ -108,12 +108,12 @@ namespace Game
 
         private void _OnLoadAdditive()
         {
-            var scene_a = SceneMgr.LoadScene("Assets/Scenes/a.unity", UnityEngine.SceneManagement.LoadSceneMode.Additive);
+            //var scene_a = SceneMgr.LoadScene("Assets/Scenes/a.unity", UnityEngine.SceneManagement.LoadSceneMode.Additive);
             var scene_b = SceneMgr.LoadScene("Assets/Scenes/b.unity", UnityEngine.SceneManagement.LoadSceneMode.Additive);
-            _UpdatePos(scene_a);
+            //_UpdatePos(scene_a);
             _UpdatePos(scene_b);
-            Log.I("LoadScene {0}", scene_a.SceneId);
-            _SceneRefList.Add(scene_a);
+            //Log.I("LoadScene {0}", scene_a.SceneId);
+            //_SceneRefList.Add(scene_a);
             _SceneRefList.Add(scene_b);
 
             FH.UI.UIRedDotMgr.Set("root.test.scene", _SceneRefList.Count);

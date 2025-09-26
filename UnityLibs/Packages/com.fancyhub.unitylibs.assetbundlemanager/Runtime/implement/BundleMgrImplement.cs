@@ -14,7 +14,6 @@ namespace FH.ABManagement
     internal class BundleMgrImplement : CPtrBase, IBundleMgr
     {
         private static Dictionary<string, Bundle> _S_TempDict = new Dictionary<string, Bundle>();
-        private static List<Bundle> _S_TempList = new List<Bundle>();
 
         public BundleManifest _config;
 
@@ -68,7 +67,7 @@ namespace FH.ABManagement
 
             foreach (var p in _S_TempDict)
             {
-                var status = _GetBundleStatus(p.Key);
+                var status = _GetFiletatus(p.Key);
                 out_bundle_stat_list.Add(new(p.Key, status));
             }
         }
@@ -78,7 +77,7 @@ namespace FH.ABManagement
             Bundle b = _FindBundleByAsset(asset);
             if (b == null)
                 return new BundleInfo(null, EBundleFileStatus.None);
-            var status = _GetBundleStatus(b.Name);
+            var status = _GetFiletatus(b.Name);
             return new BundleInfo(b.Name, status);
         }
 
@@ -96,6 +95,24 @@ namespace FH.ABManagement
             BundleDef.UnloadAllLoadedObjectsCurrent = BundleDef.UnloadAllLoadedObjectsDefault;
 
             _CreateBundles(new_manifest);
+        }
+
+        public BundleManifest GetBundleManifest()
+        {
+            return _config;
+        }
+
+        public void Snapshot(ref List<BundleSnapshotItem> out_snapshot)
+        {
+            foreach (var p in _bundle_list)
+            {
+                out_snapshot.Add(new BundleSnapshotItem()
+                {
+                    BundleName = p.Name,
+                    BundleStatus = p.Status,
+                    FileStatus = _GetFiletatus(p.Name),
+                });
+            }
         }
 
         protected override void OnRelease()
@@ -124,7 +141,7 @@ namespace FH.ABManagement
             return ret;
         }
 
-        public EBundleFileStatus _GetBundleStatus(string bundle_name)
+        public EBundleFileStatus _GetFiletatus(string bundle_name)
         {
             var loader = _external_loader.Val;
             if (loader == null)

@@ -131,19 +131,6 @@ namespace FH.AssetBundleBuilder.Ed
                 return context;
             }
         }
-
-        private static (AssetBundleManifest unityManifest, AssetBundleBuild[] buildInfoList) _BuildABNormal(BuildTarget target, BuilderParam param, string outputDir, BundleNodeMap bundleMap)
-        {
-            var buildInfoList = bundleMap.GenAssetBundleBuildList();
-            var unityManifest = UnityEditor.BuildPipeline.BuildAssetBundles(outputDir, buildInfoList, param.BuildOptions, target);
-
-            foreach (var p in bundleMap.GetAllNodes())
-            {
-                p.FileHash = unityManifest.GetAssetBundleHash(p.GetNodeName()).ToString();
-            }
-            return (unityManifest, buildInfoList);
-        }
-
         private static void _BuildTags(AssetGraph graph, ITagRuler tag_rule)
         {
             List<string> asset_list = new List<string>();

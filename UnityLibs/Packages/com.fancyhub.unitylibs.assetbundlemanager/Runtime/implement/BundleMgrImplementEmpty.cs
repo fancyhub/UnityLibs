@@ -13,47 +13,26 @@ namespace FH.ABManagement
 {
     internal class BundleMgrImplementEmpty : CPtrBase, IBundleMgr
     {
-        public void Init()
-        {
+        public void Init() { }
 
-        }
+        public IBundle FindBundleByAsset(string asset) { return null; }
 
-        public IBundle FindBundleByAsset(string asset)
-        {
-            return null;
-        }
+        public EBundleFileStatus GetBundleStatus(IBundle bundle) { return EBundleFileStatus.None; }
 
-        public EBundleFileStatus GetBundleStatus(IBundle bundle)
-        {
-            return EBundleFileStatus.None;
-        }
+        public void GetAllBundles(List<IBundle> bundles) { bundles?.Clear(); }
 
-        public void GetAllBundles(List<IBundle> bundles)
-        {
-            bundles?.Clear();
-        }
+        public ICSPtr<IBundle> LoadBundleByAsset(string asset) { return null; }
 
-        public ICSPtr<IBundle> LoadBundleByAsset(string asset)
-        {
-            return null;
-        }
+        protected override void OnRelease() { }
 
-        protected override void OnRelease()
-        {
-        }
+        public void Snapshot(ref List<BundleSnapshotItem> out_snapshot) { }
 
-        public void Upgrade()
-        {
-        }
+        public void Upgrade() { }
 
-        public void GetBundleInfoByAssets(List<string> asset_list, List<BundleInfo> out_bundle_info_list)
-        {
-            out_bundle_info_list.Clear();
-        }
+        public BundleManifest GetBundleManifest() { return null; }
 
-        public BundleInfo GetBundleInfoByAsset(string asset)
-        {
-            return new BundleInfo(null, EBundleFileStatus.None);
-        }
+        public void GetBundleInfoByAssets(List<string> asset_list, List<BundleInfo> out_bundle_info_list) { out_bundle_info_list.Clear(); }
+
+        public BundleInfo GetBundleInfoByAsset(string asset) { return new BundleInfo(null, EBundleFileStatus.None); }
     }
 }

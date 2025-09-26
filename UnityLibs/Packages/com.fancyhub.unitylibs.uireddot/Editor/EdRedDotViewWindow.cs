@@ -12,7 +12,7 @@ using FH.UI.Ed;
 
 namespace FH.UI.RedDot.Ed
 {
-    public class EdRedDotViewWindow : EditorWindow, IEdTreeViewData<UIRedDotTree.InnerNodeData>
+    public class EdRedDotViewWindow : EditorWindow, IEdTreeViewItem<UIRedDotTree.InnerNodeData>
     {
         public EdTreeViewWithToolBar<UIRedDotTree.InnerNodeData> _tree_view;
         public void OnEnable()
@@ -49,19 +49,9 @@ namespace FH.UI.RedDot.Ed
             return AssetPreview.GetMiniTypeThumbnail(typeof(GameObject));
         }
 
-        public string GetName(ValueTree<UIRedDotTree.InnerNodeData> node)
+        public string GetText(ValueTree<UIRedDotTree.InnerNodeData> node)
         {
-            switch (node.Data.NodeType)
-            {
-                case UIRedDotTree.ENodeType.AutoNode:
-                    return string.Format("{0} (A: {1}) ({2})", node.Key, node.Data.Value, node.Data.Path);
-                case UIRedDotTree.ENodeType.ManualNode:
-                    return string.Format("{0} (M: {1}) ({2})", node.Key, node.Data.Value, node.Data.Path);
-                case UIRedDotTree.ENodeType.VirtualNode:
-                    return string.Format("{0} (V: {1}) ({2})", node.Key, node.Data.Value,node.Data.Path);
-                default:
-                    return "";
-            }
+            return string.Format($"{node.Key} (Type:{node.Data.NodeType}, Count:{node.Data.Value.Count}, IncreaseFlag:{node.Data.Value.IncrementFlag}, Path:{node.Data.Path})");            
         }
     }
 }

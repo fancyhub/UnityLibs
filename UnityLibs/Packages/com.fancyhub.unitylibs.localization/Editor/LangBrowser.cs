@@ -35,7 +35,7 @@ namespace FH
         }
 
 
-        private class Item : IEdTableItem<Item>
+        private class Item : IEdTableViewItem<Item>
         {
             public bool Enable;
             public string Lang;

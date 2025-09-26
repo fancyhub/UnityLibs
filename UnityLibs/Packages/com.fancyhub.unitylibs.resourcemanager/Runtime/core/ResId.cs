@@ -17,8 +17,6 @@ namespace FH
         Inst,
     }
 
-
-
     [Serializable]
     public readonly struct ResId : IEquatable<ResId>, IEqualityComparer<ResId>
     {

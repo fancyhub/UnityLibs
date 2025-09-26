@@ -23,85 +23,12 @@ namespace FH
 
     public partial interface IBundleMgr
     {
-        public enum EAssetStatus
+        public interface IExternalRef
         {
-
-        }
-
-        public sealed class ExternalBundle
-        {
-            private AssetBundle _Bundle;
-            private Stream _Stream;
-            public static ExternalBundle Create(UnityEngine.AssetBundle ab, Stream stream = null)
-            {
-                if (ab == null)
-                    return null;
-                ExternalBundle ret = new ExternalBundle();
-                ret._Bundle = ab;
-                ret._Stream = stream;
-                return ret;
-            }
-
-            public static ExternalBundle LoadFromFile(string file_path)
-            {
-                UnityEngine.AssetBundle ab = UnityEngine.AssetBundle.LoadFromFile(file_path);
-                if (ab == null)
-                    return null;
-                ExternalBundle ret = new ExternalBundle();
-                ret._Bundle = ab;
-                ret._Stream = null;
-                return ret;
-            }
-
-            public static ExternalBundle LoadFromStream(Stream stream)
-            {
-                UnityEngine.AssetBundle ab = UnityEngine.AssetBundle.LoadFromStream(stream);
-                if (ab == null)
-                    return null;
-                ExternalBundle ret = new ExternalBundle();
-                ret._Bundle = ab;
-                ret._Stream = stream;
-                return ret;
-            }
-
-            public AssetBundle Bundle => _Bundle;
-
-            public T LoadAsset<T>(string name) where T : UnityEngine.Object
-            {
-                return _Bundle.LoadAsset<T>(name);
-            }
-
-            public UnityEngine.Object LoadAsset(string name, Type unityAssetType)
-            {
-                return _Bundle.LoadAsset(name, unityAssetType);
-            }
-
-            public AssetBundleRequest LoadAssetAsync<T>(string name) where T : UnityEngine.Object
-            {
-                return _Bundle.LoadAssetAsync<T>(name);
-            }
-
-            public AssetBundleRequest LoadAssetAsync(string name, Type unityAssetType)
-            {
-                return _Bundle.LoadAssetAsync(name, unityAssetType);
-            }
-
-            public void Unload(bool unloadAllLoadedObjects)
-            {
-                if (_Bundle != null)
-                {
-                    var t = _Bundle;
-                    _Bundle = null;
-                    t.Unload(unloadAllLoadedObjects);
-                }
-
-                if (_Stream != null)
-                {
-                    var t = _Stream;
-                    _Stream = null;
-                    t.Close();
-                }
-            }
+            public AssetBundle UnityBundle { get; }
+            public UnityEngine.Object LoadAsset(string name, Type unityAssetType);
+            public AssetBundleRequest LoadAssetAsync(string name, Type unityAssetType);
+            public void UnloadBundle(bool unloadAllLoadedObjects);
         }
 
         public interface IExternalLoader : ICPtr
@@ -110,7 +37,7 @@ namespace FH
             /// 如果返回null, 使用 AssetBundle.LoadFromFile
             /// 如果返回正确的值, 使用 AssetBundle.LoadFromStream
             /// </summary>
-            public ExternalBundle LoadBundleFile(string name);
+            public IExternalRef LoadBundleFile(string name);
 
             public EBundleFileStatus GetBundleFileStatus(string name);
 
@@ -125,6 +52,13 @@ namespace FH
         public UnityEngine.Object LoadAsset(string path, Type unityAssetType);
         public AssetBundleRequest LoadAssetAsync(string path, Type unityAssetType);
     }
+    
+    public enum EBundleLoadStatus
+    {
+        None,
+        Loaded,
+        Error,
+    }
 
     public struct BundleInfo
     {
@@ -138,6 +72,13 @@ namespace FH
         }
     }
 
+    public struct BundleSnapshotItem
+    {
+        public string BundleName;
+        public EBundleLoadStatus BundleStatus;
+        public EBundleFileStatus FileStatus;
+    }
+
     public partial interface IBundleMgr : ICPtr
     {
         public ICSPtr<IBundle> LoadBundleByAsset(string asset);
@@ -147,6 +88,10 @@ namespace FH
         public BundleInfo GetBundleInfoByAsset(string asset);
 
         public void Upgrade();
+
+        public void Snapshot(ref List<BundleSnapshotItem> out_snapshot);
+
+        public BundleManifest GetBundleManifest();
     }
 
     public static class BundleMgr
@@ -236,6 +181,30 @@ namespace FH
                     out_bundle_names_list.Add(p.Name);
                 }
             }
+        }
+
+        public static void Snapshot(ref List<BundleSnapshotItem> out_snapshot)
+        {
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                BundleLog.E("BundleMgr is null");
+                return;
+            }
+
+            mgr.Snapshot(ref out_snapshot);
+        }
+
+        public static BundleManifest GetBundleManifest()
+        {
+            var mgr = _.Val;
+            if (mgr == null)
+            {
+                BundleLog.E("BundleMgr is null");
+                return null;
+            }
+
+            return mgr.GetBundleManifest();
         }
     }
 }

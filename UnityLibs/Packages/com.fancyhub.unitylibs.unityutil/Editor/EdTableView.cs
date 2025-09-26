@@ -13,7 +13,7 @@ using UnityEditor.IMGUI.Controls;
 
 namespace FH.Ed
 {
-    public interface IEdTableItem<T>
+    public interface IEdTableViewItem<T>
     {
         bool IsMatch(string search);
         void OnDrawField(Rect cellRect, int field_index);
@@ -21,7 +21,7 @@ namespace FH.Ed
         int CompareTo(T item, int field_index);
     }
 
-    public class EdTableView<T> : TreeView where T : class, IEdTableItem<T>
+    public class EdTableView<T> : TreeView where T : class, IEdTableViewItem<T>
     {
         private const float RowHeight = 20;
         private const float kToggleWidth = 18f;
@@ -29,10 +29,10 @@ namespace FH.Ed
 
         public Action<int, T> SelectionChangedCallback { get; set; }
 
-        sealed private class TableViewItem : TreeViewItem
+        sealed private class InnerTableViewItem : TreeViewItem
         {
             public readonly T Data;
-            public TableViewItem(int index, T data) : base(index, 0) { this.Data = data; }
+            public InnerTableViewItem(int index, T data) : base(index, 0) { this.Data = data; }
             public bool IsMatch(string search)
             {
                 return Data.IsMatch(search);
@@ -40,7 +40,7 @@ namespace FH.Ed
         }
 
         private TreeViewItem _Root;
-        private List<TableViewItem> _AllItemList = new List<TableViewItem>();
+        private List<InnerTableViewItem> _AllItemList = new List<InnerTableViewItem>();
         private List<TreeViewItem> _TempFilterItemViewList = new List<TreeViewItem>();
         private bool _ResizeColWidth = false;
         private SearchField _SearchField;
@@ -107,7 +107,7 @@ namespace FH.Ed
             _AllItemList.Clear();
             foreach (var p in data)
             {
-                _AllItemList.Add(new TableViewItem(_AllItemList.Count, p));
+                _AllItemList.Add(new InnerTableViewItem(_AllItemList.Count, p));
             }
 
             Reload();
@@ -157,7 +157,7 @@ namespace FH.Ed
 
         protected override void RowGUI(RowGUIArgs args)
         {
-            var item = (TableViewItem)args.item;
+            var item = (InnerTableViewItem)args.item;
             for (int i = 0; i < args.GetNumVisibleColumns(); ++i)
             {
                 Rect cellRect = args.GetCellRect(i);

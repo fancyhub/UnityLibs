@@ -14,15 +14,16 @@ namespace FH
         {
             bool IsDone { get; }
             UnityEngine.Object Asset { get; }
+            public string BundleName { get; }
         }
 
         /// <summary>
         /// 需要外部实现该接口
         /// </summary>
-        public interface IExternalAssetLoader : ICPtr
+        public interface IExternalLoader : ICPtr
         {
-            IExternalAssetRef Load(string path, Type unityAssetType);
-            IExternalAssetRef LoadAsync(string path, Type unityAssetType);
+            IExternalAssetRef LoadAsset(string path, Type unityAssetType);
+            IExternalAssetRef LoadAssetAsync(string path, Type unityAssetType);
 
             string AtlasTag2Path(string atlasName);
 
