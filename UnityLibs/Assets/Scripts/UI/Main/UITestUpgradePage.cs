@@ -11,7 +11,7 @@ namespace Game
         private bool _is_inprogress = false;
         protected override void OnUI2Open()
         {
-            base.OnUI2Open();
+            base.OnUI2Open();            
             BaseView._BtnClose.OnClick = _OnBtnCloseClick;
             BaseView._BtnUpgrade.OnClick = ()=> _UpgradeToVersion(BaseView._VersionInput.text.Trim()); 
             BaseView._BtnBackToBase.OnClick = ()=> _UpgradeToVersion(FileMgr.GetBaseVersionInfo().ToString());

@@ -60,6 +60,11 @@ namespace Game
             {
                 UIMgr.OpenUI<UITestScrollerPage>();
             };
+
+            BaseView._BtnWebView.OnClick = () =>
+            {
+                UIMgr.OpenUI<UITestWebViewPage>();
+            };
         }
 
         protected override void OnUI5Close()

@@ -113,3 +113,6 @@ MonoBehaviour:
     - name: TestUpgrade
       dir: 
       ext: .prefab
+    - name: TestWebView
+      dir: 
+      ext: .prefab

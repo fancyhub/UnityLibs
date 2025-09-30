@@ -24,6 +24,7 @@ namespace Game
 		public UIButtonView _BtnTime;
 		public UIButtonView _BtnPermission;
 		public UIButtonView _BtnScroller;
+		public UIButtonView _BtnWebView;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -46,6 +47,7 @@ namespace Game
 			_BtnTime = _CreateSub<UIButtonView>(refs.GetObj("_BtnTime"));
 			_BtnPermission = _CreateSub<UIButtonView>(refs.GetObj("_BtnPermission"));
 			_BtnScroller = _CreateSub<UIButtonView>(refs.GetObj("_BtnScroller"));
+			_BtnWebView = _CreateSub<UIButtonView>(refs.GetObj("_BtnWebView"));
 
         }
 
@@ -63,6 +65,7 @@ namespace Game
 			_BtnTime.Destroy();
 			_BtnPermission.Destroy();
 			_BtnScroller.Destroy();
+			_BtnWebView.Destroy();
 
         }
 

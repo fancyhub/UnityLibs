@@ -1,11 +1,14 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2025/09/28
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.InteropServices;
 using UnityEngine;
-using System.Security.Cryptography;
-using System.Text.RegularExpressions;
+
 
 #if UNITY_ANDROID || UNITY_EDITOR  
 namespace FH.WV
@@ -31,26 +34,32 @@ namespace FH.WV
             Application.OpenURL("http://play.google.com/store/apps/details?id=com.google.android.webview");
         }
 
-        public void Init(WebViewConfig config)
+        public void SetEnv(WebViewEnv config)
         {
             if (_Inited)
                 return;
 
             _Inited = true;
-            WebViewManager.CallStatic("Init", config.UnityHandlerName);            
+            //WebViewManager.CallStatic("Init", config.UnityHandlerName);            
             WebViewManager.CallStatic("extraLog", true);
         }
 
 
-        public int Open(string url, Rect pos, WebViewParameters parameters)
+        public int Open(string url, Rect normalizedRect, WebViewParameters parameters)
         {
             string parameterString = string.Empty;
-            if (parameters != null) 
+            if (parameters != null)
                 parameterString = JsonUtility.ToJson(parameters);
-            var ret = WebViewManager.CallStatic<int>("open", url, pos.x, pos.y, pos.width, pos.height, parameterString);
+            var ret = WebViewManager.CallStatic<int>("open", url, normalizedRect.x, normalizedRect.y, normalizedRect.width, normalizedRect.height, parameterString);
 
             return ret;
         }
+
+        public void Resize(int webViewId, Rect normalizedRect)
+        {
+
+        }
+
 
         public static bool Test()
         {
@@ -107,7 +116,7 @@ namespace FH.WV
             WebViewManager.CallStatic("canGoForward", webViewId);
         }
 
-        public void GoBackward(int webViewId)
+        public void GoBack(int webViewId)
         {
             WebViewManager.CallStatic("goBackward", webViewId);
         }
@@ -135,6 +144,11 @@ namespace FH.WV
         public void SetNameInJavaScript(string name)
         {
             WebViewManager.CallStatic("setNameInJavaScript", name);
+        }
+
+        public void RunJavaScript(int webViewId, string jsCode)
+        {
+            RunJavaScript(webViewId, jsCode, null, null);
         }
 
         public string RunJavaScript(int webViewId, string jsCode, string callback, string id)
@@ -167,14 +181,17 @@ namespace FH.WV
             WebViewManager.CallStatic("webStorage_DeleteAllData");
         }
 
-        public void Show(int webViewId)
+        public void SetVisible(int webViewId, bool visible)
         {
-            WebViewManager.CallStatic("show", webViewId);
+            if (visible)
+                WebViewManager.CallStatic("show", webViewId);
+            else
+                WebViewManager.CallStatic("hide", webViewId);
         }
 
-        public void Hide(int webViewId)
+        public bool IsVisible(int webViewId)
         {
-            WebViewManager.CallStatic("hide", webViewId);
+            return false;
         }
 
         public bool CanCaptureScreenshot()

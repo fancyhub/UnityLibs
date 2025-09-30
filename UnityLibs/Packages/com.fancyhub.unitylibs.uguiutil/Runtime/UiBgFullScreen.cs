@@ -15,6 +15,8 @@ namespace FH.UI
     [RequireComponent(typeof(RectTransform))]
     public class UIBgFullScreen : UnityEngine.EventSystems.UIBehaviour
     {
+        public ScaleMode ScaleMode= ScaleMode.ScaleAndCrop;
+
         public void Adjust()
         {
             //1.先获取根节点 & size
@@ -34,7 +36,7 @@ namespace FH.UI
             }
 
             //3. 如果有RawImg,调整RawImg的scale            
-            GetComponent<RawImage>().ExtScaleUV(ScaleMode.ScaleAndCrop);
+            GetComponent<RawImage>().ExtScaleUV(ScaleMode);
         }
 
 #if UNITY_EDITOR

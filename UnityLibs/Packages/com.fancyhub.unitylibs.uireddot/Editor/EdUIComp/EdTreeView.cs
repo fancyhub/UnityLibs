@@ -19,7 +19,7 @@ namespace FH.UI.Ed
         Texture2D GetIcon(ValueTree<T> node);
     }
 
-    public class EdTreeView<T> : TreeView
+    public class EdTreeView<T> : TreeView 
     {
         public InnerEdTreeViewItem _root;
         public Action<ValueTree<T>> EvtItemClick;

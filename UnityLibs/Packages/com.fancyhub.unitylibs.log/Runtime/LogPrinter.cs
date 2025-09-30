@@ -57,7 +57,14 @@ namespace FH
             if ((unity_mask & lvl_mask) != ELogMask.None)
             {
                 log_msg = sb.ToString();
-                UnityEngine.Debug.LogFormat(_ToUnityLogType(log_lvl), with_trace ? LogOption.None : LogOption.NoStacktrace, context, log_msg);
+                LogType logType = _ToUnityLogType(log_lvl);
+                LogOption logOption = with_trace ? LogOption.None : LogOption.NoStacktrace;
+                //UnityEngine.Debug.LogFormat(logType, logOption, context, log_msg); // 如果log_msg 里面含有{}, 就会报错
+                var unityLogger = UnityEngine.Debug.unityLogger;
+                if (unityLogger != null && unityLogger.IsLogTypeAllowed(logType))
+                {
+                    unityLogger.Log(logType, (object)log_msg, context);
+                }
             }
 
             if (log_msg != null)

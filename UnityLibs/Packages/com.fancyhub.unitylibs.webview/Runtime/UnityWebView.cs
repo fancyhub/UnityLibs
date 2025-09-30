@@ -1,81 +1,92 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2025/09/28
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
+
 using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
-using System.Text.RegularExpressions;
-using WebViewImplement = FH.WV.WebView_Android;
+
+
+#if UNITY_EDITOR 
+    #if UNITY_STANDALONE_WIN
+        using WebViewImplement = FH.WV.WebView_Windows;
+#elif UNITY_STANDALONE_MAC
+        using WebViewImplement = FH.WV.WebView_IOS;
+#else
+        using WebViewImplement = FH.WV.WebView_Empty;
+#endif
+#elif UNITY_STANDALONE_WIN
+    using WebViewImplement = FH.WV.WebView_Windows;
+#elif UNITY_ANDROID
+    using WebViewImplement = FH.WV.WebView_Android;
+#elif UNITY_IOS
+    using WebViewImplement = FH.WV.WebView_IOS;
+#else 
+    using WebViewImplement = FH.WV.WebView_Empty;
+#endif
 
 namespace FH
 {
     [Serializable]
-    public struct WebViewConfig
+    public struct WebViewEnv
     {
-        public string JSName;
-        public string UserAgentName;
-        public string UnityHandlerName;
+        public string JavascriptHostObjName;
+        public string UserAgent;
         public bool UseMediaManipulationOnHideAndShowByJavaScript;
-    }
-
-    [Serializable]
-    public struct WebViewMsg
-    {
-        public int WebViewId;
-        public string MethodName;
-        public string Parameters;
     }
 
     [Serializable]
     public class WebViewParameters
     {
         public bool Scaling;
-        public bool UseCookie;
-        public bool DeferredDisplay;
-        public bool AutoPlayMedia;
-        public int BGColor;
-
-        public string IOSApplicationNameForUserAgent;
-        public bool AndroidExtraLog;
+        public Color32 BGColor;
     }
 
     internal static class WebViewDef
     {
         public const string HandlerName = "UnityWebViewHandler";
-        public const string JSName = "FH";
+        public const string JsHostObjName = "FH";
     }
 
-    internal interface IWebView
+    public interface IWebView
     {
-        public void Init(WebViewConfig config);
+        public void SetEnv(WebViewEnv config);
 
-        public int Open(string url, Rect pos, WebViewParameters parameters);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="normalizedRect">normalized rect, [0,1], LeftTop is (0,0), RightBottom is (1,1)</param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public int Open(string url, Rect normalizedRect, WebViewParameters parameters);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="normalizedRect">normalized rect, [0,1], LeftTop is (0,0), RightBottom is (1,1)</param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public void Resize(int webViewId, Rect normalizedRect);
         public void Close(int webViewId);
-        public string RunJavaScript(int webViewId, string jsCode, string callback, string id);
-
+        public void RunJavaScript(int webViewId, string jsCode);
 
         public string GetURL(int webViewId);
         public void Reload(int webViewId);
 
-        //public void CanGoBackward(int webViewId);
-        //public void CanGoForward(int webViewId);
-        public void GoBackward(int webViewId);
+        public void GoBack(int webViewId);
         public void GoForward(int webViewId);
-
-        public float GetLoadingProgress(int webViewId);
         public bool IsLoading(int webViewId);
 
+        public void SetVisible(int webViewId, bool visible);
+        public bool IsVisible(int webViewId);
+
         public void CloseAll();
-
-        public bool CanClearCookies();
-        public void ClearCookies();
-        public bool CanClearCache();
-        public void ClearCache();
-
-        public void DeleteLocalStorage();
-
-        public void Show(int webViewId);
-        public void Hide(int webViewId);
-
-        public void SetUserAgentString(int webViewId, string userAgentString);
     }
 
     public static class UnityWebView
@@ -92,25 +103,49 @@ namespace FH
             }
         }
 
-        public static void Init()
+        private static bool _HasSetEnv = false;
+        public static bool HasSetEnv()
         {
-            Inst.Init(new WebViewConfig()
-            {
-                JSName = WebViewDef.JSName,
-                UnityHandlerName = WebViewDef.HandlerName,
-            });
-            UnityWebViewHandler.Init();
+            return _HasSetEnv;
         }
 
-        // x, y, width, height should be normalized
-        public static int Open(string url, Rect pos, WebViewParameters parameters)
+        public static void SetEnv(WebViewEnv env)
         {
-            return Inst.Open(url, pos, parameters);
+            _HasSetEnv = true;
+            Inst.SetEnv(env);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="rect">x, y, width, height should be normalized</param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public static int Open(string url, Rect normalizedRect, WebViewParameters parameters)
+        {
+            return Inst.Open(url, normalizedRect, parameters);
+        }
+
+        public static void Resize(int webViewId, Rect normalizedRect)
+        {
+            Inst.Resize(webViewId, normalizedRect);
         }
 
         public static void Close(int webViewId)
         {
+            if (webViewId == 0)
+                return;
             Inst.Close(webViewId);
+        }
+
+        public static void Close(ref int webViewId)
+        {
+            if (webViewId == 0)
+                return;
+            int t = webViewId;
+            webViewId = 0;
+            Inst.Close(t);
         }
 
         public static void CloseAll()
@@ -123,14 +158,9 @@ namespace FH
             Inst.Reload(webViewId);
         }
 
-        public static void SetUserAgentString(int webViewId, string userAgentString)
-        {
-            Inst.SetUserAgentString(webViewId, userAgentString);
-        }
-
         public static void GoBackward(int webViewId)
         {
-            Inst.GoBackward(webViewId);
+            Inst.GoBack(webViewId);
         }
 
         public static void GoForward(int webViewId)
@@ -143,51 +173,23 @@ namespace FH
             return Inst.GetURL(webViewId);
         }
 
-        public static float GetLoadingProgress(int webViewId)
-        {
-            return Inst.GetLoadingProgress(webViewId);
-        }
-
         public static bool IsLoading(int webViewId)
         {
             return Inst.IsLoading(webViewId);
         }
 
-
-        public static bool CanClearCookies()
+        public static void SetVisible(int webViewId, bool visible)
         {
-            return Inst.CanClearCookies();
-
+            Inst.SetVisible(webViewId, visible);
+        }
+        public static bool IsVisible(int webViewId)
+        {
+            return Inst.IsVisible(webViewId);
         }
 
-        public static void ClearCookies()
+        public static void RunJavaScript(int webViewId, string jsCode)
         {
-            Inst.ClearCookies();
-        }
-
-        public static bool CanClearCache()
-        {
-            return Inst.CanClearCache();
-        }
-
-        public static void ClearCache()
-        {
-            Inst.ClearCache();
-        }
-
-        public static void DeleteLocalStorage()
-        {
-            Inst.DeleteLocalStorage();
-        }
-
-        public static void ShowWebView(int webViewId)
-        {
-            Inst.Show(webViewId);
-        }
-
-        public static void HideWebView(int webViewId)
-        {
-            Inst.Hide(webViewId);
+            Inst.RunJavaScript(webViewId, jsCode);
         }
     }
 
@@ -247,17 +249,6 @@ namespace FH
         {
             if (string.IsNullOrEmpty(content))
                 return;
-
-            try
-            {
-                WebViewLog._.D(content);
-
-                var msg = UnityEngine.JsonUtility.FromJson<WebViewMsg>(content);
-            }
-            catch (Exception e)
-            {
-                WebViewLog._.E(e);
-            }
         }
 
         public void OnWebViewLog(string log)

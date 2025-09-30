@@ -269,7 +269,7 @@ namespace FH.UI
             final_ratio = final_ratio.Clamp(0, 0.4f);
 
             //3. 判断变化
-            bool is_changed = final_ratio.IsEqual(_FinalRatioSafeArea);
+            bool is_changed = !final_ratio.IsEqual(_FinalRatioSafeArea);
 
 
             //4. 赋值

@@ -1,3 +1,10 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2025/09/28
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +17,7 @@ using System.Text.RegularExpressions;
 #if UNITY_IOS || UNITY_EDITOR
 namespace FH.WV
 {
-    /*
+    
     public class WebView_IOS : IWebView
     {
         private static partial class _
@@ -82,9 +89,9 @@ namespace FH.WV
             public static extern void closeSafari(bool animated);
         }
 
-        private WebViewConfig _Config;
+        private WebViewEnv _Config;
         private bool _Inited = false;
-        public void Init(WebViewConfig config)
+        public void SetEnv(WebViewEnv config)
         {
             if (_Inited)
                 return;
@@ -106,7 +113,7 @@ namespace FH.WV
         private bool _SendConsoleMessagesToUnity = false;
         public void SetSendConsoleMessagesToUnity(bool send)
         {
-            if (!string.IsNullOrEmpty(_Config.JSName) && (_SendConsoleMessagesToUnity != send))
+            if (!string.IsNullOrEmpty(_Config.JavascriptHostObjName) && (_SendConsoleMessagesToUnity != send))
             {
                 string key = UNITY_LOGGER;
                 if (!send)
@@ -267,7 +274,7 @@ window.addEventListener('error', function(e) {
         {
             _.showWebView(webViewId);
 
-            if (!string.IsNullOrEmpty(_Config.JSName) && _Config.UseMediaManipulationOnHideAndShowByJavaScript)
+            if (!string.IsNullOrEmpty(_Config.JavascriptHostObjName) && _Config.UseMediaManipulationOnHideAndShowByJavaScript)
             {
                 _.runJavaScript_WebView(webViewId,
 @"
@@ -294,7 +301,7 @@ for( var i = 0; i < audios.length; i++ )
         }
         public void Hide(int webViewId)
         {
-            if (!string.IsNullOrEmpty(_Config.JSName) && _Config.UseMediaManipulationOnHideAndShowByJavaScript)
+            if (!string.IsNullOrEmpty(_Config.JavascriptHostObjName) && _Config.UseMediaManipulationOnHideAndShowByJavaScript)
             {
                 _.runJavaScript_WebView(webViewId,
 @"
@@ -353,6 +360,36 @@ for( var i = 0; i < audios.length; i++ )
         }
 
         public void SetUserAgentString(int webViewId, string userAgentString)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int Open(string url, Rect normalizedRect, WebViewParameters parameters)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Resize(int webViewId, Rect normalizedRect)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RunJavaScript(int webViewId, string jsCode)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void GoBack(int webViewId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetVisible(int webViewId, bool visible)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsVisible(int webViewId)
         {
             throw new NotImplementedException();
         }
