@@ -14,7 +14,7 @@ namespace FH.UI
     /// <summary>
     /// 管理所有虚拟节点
     /// </summary>
-    public sealed class UIRedDotVirual
+    internal sealed class UIRedDotVirual
     {
         static UIRedDotVirual()
         {

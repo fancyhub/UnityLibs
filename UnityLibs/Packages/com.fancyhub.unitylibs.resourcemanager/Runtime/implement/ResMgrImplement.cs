@@ -67,7 +67,7 @@ namespace FH.ResManagement
             _gc._gobj_pre_data = _gobj_pre_data;
             _gc._gobj_stat = _gobj_stat;
 
-            _worker_go_async = new GameObjectCreatorAsync(conf.MaxAsyncGameObjectStep);
+            _worker_go_async = new GameObjectCreatorAsync(conf.MaxAsyncGameObjectSlot);
             _worker_go_async._asset_pool = _asset_pool;
             _worker_go_async._gobj_pool = _gobj_pool;
             _worker_go_async._job_db = _job_db;

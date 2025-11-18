@@ -21,16 +21,16 @@ namespace FH.FileManagement
 
         private FileCollection _FileCollection;
 
-        private HashSet<string> _Tags = new HashSet<string>() { };
+        private HashSet<string> _BaseTags = new HashSet<string>() { };
         private string _AndroidExtractTag;
         private AndroidExtractStreamingAssetsOp _ExtractOp;
 
         public FileMgrImplement(IFileMgr.Config config)
         {
-            _Tags.Clear();
+            _BaseTags.Clear();
             foreach (var p in config.BaseTags)
             {
-                _Tags.Add(p);
+                _BaseTags.Add(p);
             }
 
             _FileCollection = new FileCollection();
@@ -53,7 +53,7 @@ namespace FH.FileManagement
             //2. 收集文件
             if (_Manifest_Local != null)
             {
-                if (_IsAllTagsReady(_FileCollection, _Manifest_Local, true, _Tags))
+                if (_IsAllTagsReady(_FileCollection, _Manifest_Local, true, _BaseTags))
                 {
                     FileLog._.D("使用缓存里面的FileManifest,Version: {0}", _Manifest_Local.Version);
                     _Manifest_Current = _Manifest_Local;
@@ -67,7 +67,7 @@ namespace FH.FileManagement
             if (_Manifest_Current == null && _Manifest_Base != null)
             {
                 List<FileManifest.FileItem> list = new();
-                if (!_IsAllTagsReady(_FileCollection, _Manifest_Base, true, _Tags, list))
+                if (!_IsAllTagsReady(_FileCollection, _Manifest_Base, true, _BaseTags, list))
                 {
                     FileLog._.E("Base Manifest, 有文件不存在, 打包出错了?");
                     for (int i = 0; i < list.Count; i++)
@@ -136,8 +136,8 @@ namespace FH.FileManagement
             //4. 新的
             if (new_manifest != null)
             {
-                foreach (var p in new_manifest.Files)                
-                    _SetFileUsed(all_file_dict, p);                
+                foreach (var p in new_manifest.Files)
+                    _SetFileUsed(all_file_dict, p);
             }
 
             //返回
@@ -175,8 +175,8 @@ namespace FH.FileManagement
             return new VersionInfo(_Manifest_Current.Version);
         }
 
-      
-        public void RefreshFileList()
+
+        public void RefreshAllFileStatus()
         {
             _FileCollection.CollectLocalDir();
         }
@@ -193,13 +193,13 @@ namespace FH.FileManagement
             }
 
             _FileCollection.CollectLocalDir();
-            if (!_IsAllTagsReady(_FileCollection, new_manifest, false, _Tags, out_need_download_list))
+            if (!_IsAllTagsReady(_FileCollection, new_manifest, false, _BaseTags, out_need_download_list))
             {
                 FileLog._.D("new FileManifest Is Not Ready");
                 return false;
             }
 
-            new_manifest.GetFilesWithTags(_Tags, _STempFileList);
+            new_manifest.GetFilesWithTags(_BaseTags, FileManifest.ETagRelation.Or, _STempFileList);
             foreach (var p in _STempFileList)
             {
                 if (string.IsNullOrEmpty(p.RelativePath))
@@ -220,7 +220,7 @@ namespace FH.FileManagement
             return true;
         }
 
-        public void OnFileDownload(FileManifest.FileItem item)
+        public void RefreshFileStatus(FileManifest.FileItem item)
         {
             if (item == null)
             {
@@ -279,7 +279,7 @@ namespace FH.FileManagement
 
         public byte[] ReadAllBytes(string name)
         {
-            var status = FindFile(name, out string full_path, out var file_location);
+            var status = GetFileStatusWithName(name, out string full_path, out var file_location);
             if (status != EFileStatus.Ready || file_location == EFileLocation.None)
             {
                 FileLog._.E("read file failed, Status:{0}, Location:{1}, {2}", status, file_location, name);
@@ -302,7 +302,7 @@ namespace FH.FileManagement
 
         public System.IO.Stream OpenRead(string name)
         {
-            var status = FindFile(name, out string full_path, out var file_location);
+            var status = GetFileStatusWithName(name, out string full_path, out var file_location);
             if (status != EFileStatus.Ready || file_location == EFileLocation.None)
             {
                 FileLog._.E("read file failed:  Status:{0}, Location:{1}, {2}", status, file_location, name);
@@ -323,7 +323,7 @@ namespace FH.FileManagement
             return null;
         }
 
-        public EFileStatus FindFile(string name, out string full_path, out EFileLocation file_location)
+        public EFileStatus GetFileStatusWithName(string name, out string full_path, out EFileLocation file_location)
         {
             if (_Manifest_Current == null)
             {
@@ -342,10 +342,10 @@ namespace FH.FileManagement
                 return EFileStatus.None;
             }
 
-            return FindFile(item, out full_path, out file_location);
+            return GetFileStatus(item, out full_path, out file_location);
         }
 
-        public EFileStatus FindFile(FileManifest.FileItem file, out string full_path, out EFileLocation file_location)
+        public EFileStatus GetFileStatus(FileManifest.FileItem file, out string full_path, out EFileLocation file_location)
         {
             if (file == null)
             {
@@ -416,7 +416,7 @@ namespace FH.FileManagement
             if (tags == null)
                 _STempFileList.AddRange(manifest.Files);
             else
-                manifest.GetFilesWithTags(tags, _STempFileList);
+                manifest.GetFilesWithTags(tags, FileManifest.ETagRelation.Or, _STempFileList);
 
             return _IsAllFilesReady(file_collection, _STempFileList, should_in_relative, out_not_ready_list);
         }

@@ -86,7 +86,7 @@ namespace FH.ResManagement
                 _msg_queue.SendJobNext(job);
                 return;
             }
-            GameObjectPoolUtil.InstActive(inst);
+            GameObjectPoolUtil.InstRename(inst, prefab);
             bool succ = _gobj_pool.AddInst(new ResRef(job.AssetId, job.Path.Path, _asset_pool), inst, out job.InstId);
             ResLog._.Assert(succ, "严重错误 {0}", job.Path);
 

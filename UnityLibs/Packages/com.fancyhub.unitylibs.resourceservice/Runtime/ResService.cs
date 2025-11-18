@@ -34,7 +34,6 @@ namespace FH
         protected virtual void Awake()
         {
             GConfig = Config;
-            GameObject.DontDestroyOnLoad(gameObject);
             UnityEngine.Application.targetFrameRate = 30;
             StartCoroutine(_Init());
         }

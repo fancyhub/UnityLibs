@@ -411,12 +411,12 @@ MonoBehaviour:
       - base
       AndroidExtractTag: android
     BundleMgrConfig:
-      LogLvl: 0
+      LogLvl: 1
       UnloadAllLoadedObjects: 1
     ResMgrConfig:
-      LogLevel: 1
+      LogLevel: 0
       MaxAsyncResLoaderSlot: 5
-      MaxAsyncGameObjectStep: 1
+      MaxAsyncGameObjectSlot: 1
       PreInst:
         Priority: -1000
         DefaultMaxCount: 5

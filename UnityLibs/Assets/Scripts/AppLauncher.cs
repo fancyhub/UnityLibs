@@ -15,7 +15,7 @@ namespace Game
             new MyUISceneMgr().Init();
             FH.UI.UIMgr.ChangeScene<UISceneExtractAsset>();
 
-            FH.TaskQueue.Init(10);
+            FH.TaskQueue.Init();
 
             FH.UI.UIRedDotMgr.Init(FH.ELogLvl.Info);
             FH.UI.UIMgr.UpdateList += FH.UI.UIRedDotMgr.Update;

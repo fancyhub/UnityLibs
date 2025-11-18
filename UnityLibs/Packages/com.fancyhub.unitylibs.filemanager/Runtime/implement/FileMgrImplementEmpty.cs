@@ -51,14 +51,14 @@ namespace FH.FileManagement
             return false;
         }
 
-        public EFileStatus FindFile(string name, out string full_path, out EFileLocation file_location)
+        public EFileStatus GetFileStatusWithName(string name, out string full_path, out EFileLocation file_location)
         {
             full_path = default;
             file_location = EFileLocation.None;
             return EFileStatus.None;
         }
 
-        public EFileStatus FindFile(FileManifest.FileItem file, out string full_path, out EFileLocation file_location)
+        public EFileStatus GetFileStatus(FileManifest.FileItem file, out string full_path, out EFileLocation file_location)
         {
             full_path = default;
             file_location = EFileLocation.None;
@@ -75,11 +75,11 @@ namespace FH.FileManagement
             return true;
         }
 
-        public void OnFileDownload(FileManifest.FileItem item)
+        public void RefreshFileStatus(FileManifest.FileItem item)
         {
         }
 
-        public void RefreshFileList()
+        public void RefreshAllFileStatus()
         {
         }
 

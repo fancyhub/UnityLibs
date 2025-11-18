@@ -61,7 +61,7 @@ namespace FH
         public List<TagItem> Tags = new List<TagItem>();
 
         private static List<FileItem> _SharedFileList = new List<FileItem>();
-        private static HashSet<int> _SharedSet = new HashSet<int>();
+        private static Dictionary<int, int> _SharedSet = new();
         public List<FileItem> GetFilesWithTag(string tag)
         {
             _SharedFileList.Clear();
@@ -69,33 +69,89 @@ namespace FH
             return _SharedFileList;
         }
 
-        public List<FileItem> GetFilesWithTags(HashSet<string> tags)
+        public enum ETagRelation
+        {
+            Or, //该文件只需要包含指定tags里面的任意一个就行
+            And, //该文件要包含所有指定的tags
+            InverseOr, //该文件不能包含指定tags里面的任意一个
+            InverseAnd, //该文件不能包含所有指定的tags
+        }
+
+        public List<FileItem> GetFilesWithTags(HashSet<string> tags, ETagRelation tag_relation = ETagRelation.Or)
         {
             _SharedFileList.Clear();
-            GetFilesWithTags(tags, _SharedFileList);
+            GetFilesWithTags(tags, tag_relation, _SharedFileList);
             return _SharedFileList;
         }
 
-        public void GetFilesWithTags(HashSet<string> tags, List<FileItem> out_file_list)
+        public void GetFilesWithTags(HashSet<string> tags, ETagRelation tag_relation, List<FileItem> out_file_list)
         {
             if (tags == null)
                 return;
 
             _SharedSet.Clear();
-            foreach (var tag in tags)
+            int total_tags_count = 0;
+            switch (tag_relation)
             {
-                TagItem item = FindTag(tag);
-                if (item == null)
-                    continue;
-                foreach (var p in item.Files)
+                default:
+                    break;
+                case ETagRelation.Or:
+                case ETagRelation.InverseOr:
+                    total_tags_count = 1;
+                    foreach (var tag in tags)
+                    {
+                        TagItem item = FindTag(tag);
+                        if (item == null)
+                            continue;
+                        foreach (var p in item.Files)
+                            _SharedSet[p] = 1;
+                    }
+                    break;
+
+                case ETagRelation.And:
+                case ETagRelation.InverseAnd:
+                    total_tags_count = tags.Count;
+                    foreach (var tag in tags)
+                    {
+                        TagItem item = FindTag(tag);
+                        if (item == null || item.Files.Length == 0)
+                        {
+                            _SharedSet.Clear();
+                            break;
+                        }
+
+                        foreach (var p in item.Files)
+                        {
+                            if (_SharedSet.TryGetValue(p, out var t))
+                                _SharedSet[p] = t + 1;
+                            else
+                                _SharedSet.Add(p, 1);
+                        }
+                    }
+                    break;
+            }
+
+            //反向选择
+            if (tag_relation == ETagRelation.InverseAnd || tag_relation == ETagRelation.InverseOr)
+            {
+                for (int i = 0; i < Files.Count; i++)
                 {
-                    _SharedSet.Add(p);
+                    if (_SharedSet.TryGetValue(i, out var t) && t == total_tags_count)
+                    {
+                        _SharedSet.Remove(i);
+                    }
+                    else
+                    {
+                        _SharedSet[i] = total_tags_count;
+                    }
                 }
             }
 
+
             foreach (var p in _SharedSet)
             {
-                out_file_list.Add(Files[p]);
+                if (p.Value == total_tags_count)
+                    out_file_list.Add(Files[p.Key]);
             }
         }
 

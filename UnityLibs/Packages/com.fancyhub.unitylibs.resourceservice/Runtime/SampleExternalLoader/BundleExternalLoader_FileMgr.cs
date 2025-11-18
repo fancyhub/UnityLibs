@@ -28,7 +28,7 @@ namespace FH.SampleExternalLoader
             var mgr = _FileMgr.Val;
             if (mgr == null)
                 return EBundleFileStatus.None;
-            switch (mgr.FindFile(name, out var _, out var _))
+            switch (mgr.GetFileStatusWithName(name, out var _, out var _))
             {
                 case EFileStatus.None:
                     return EBundleFileStatus.None;
@@ -46,7 +46,7 @@ namespace FH.SampleExternalLoader
             var mgr = _FileMgr.Val;
             if (mgr == null)
                 return null;
-            mgr.FindFile(name, out var ret, out var _);
+            mgr.GetFileStatusWithName(name, out var ret, out var _);
             return ret;
         }
 
@@ -55,7 +55,7 @@ namespace FH.SampleExternalLoader
             var mgr = _FileMgr.Val;
             if (mgr == null)
                 return null;
-            mgr.FindFile(name, out var file_path, out var file_location);
+            mgr.GetFileStatusWithName(name, out var file_path, out var file_location);
             if (file_path == null)
                 return null;
 

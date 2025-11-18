@@ -30,12 +30,10 @@ namespace FH
             public int MaxAsyncResLoaderSlot = 5;
 
             /// <summary>
-            /// 一个GameObject 实例化, 分为2个步骤
-            /// 第一步: 实例化到 Disable的节点下面
-            /// 第二步: 先移动到 Enable的节点下面, 再移回Disable的节点下面
+            /// 同时异步创建gameobject的数量
             /// </summary>
             [Range(1, 10)]
-            public int MaxAsyncGameObjectStep = 1;
+            public int MaxAsyncGameObjectSlot = 1;
 
             public GameObjectPreInstConfig PreInst = new GameObjectPreInstConfig();
 
@@ -52,7 +50,7 @@ namespace FH
                 [Serializable]
                 public struct Item
                 {
-                    [AssetPath(typeof(GameObject),true)]
+                    [AssetPath(typeof(GameObject), true)]
                     public string Path;
                     public int MaxCount;
                 }
@@ -113,5 +111,5 @@ namespace FH
             }
         }
     }
-    
+
 }

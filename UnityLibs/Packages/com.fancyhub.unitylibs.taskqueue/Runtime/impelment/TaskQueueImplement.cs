@@ -26,18 +26,18 @@ namespace FH
         private ThreadPriority _priority = ThreadPriority.Normal;
 
         //子线程的数量
-        public void Start(int thread_count)
+        public void Start(int max_thread_count)
         {
             if (_status != ETaskQueueStatus.None)
                 return;
 
-            if (thread_count < 1)
+            if (max_thread_count < 1)
                 return;
 
-            _max_thread_count = thread_count;
+            _max_thread_count = max_thread_count;
             _status = ETaskQueueStatus.Running;
-            _thread_pool = new List<TaskWorker>(thread_count);
-            for (int i = 0; i < thread_count; ++i)
+            _thread_pool = new List<TaskWorker>(max_thread_count);
+            for (int i = 0; i < max_thread_count; ++i)
             {
                 _thread_pool.Add(new TaskWorker(i));
             }

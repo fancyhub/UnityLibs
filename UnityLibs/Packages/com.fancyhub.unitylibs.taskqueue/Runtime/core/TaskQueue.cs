@@ -101,7 +101,7 @@ namespace FH
     {
         private static CPtr<ITaskQueue> _;
         private static bool _ManualUpdate;
-        public static void Init(int thread_count, bool manual_update = false)
+        public static void Init(int max_thread_count = 0, bool manual_update = false)
         {
             if (!_.Null)
             {
@@ -110,7 +110,11 @@ namespace FH
             }
 
             TaskQueueImple task_queue = new TaskQueueImple();
-            task_queue.Start(thread_count);
+            if (max_thread_count <= 0)
+            {
+                max_thread_count = System.Environment.ProcessorCount * 2;
+            }
+            task_queue.Start(max_thread_count);
             _ = new CPtr<ITaskQueue>(task_queue);
             _ManualUpdate = manual_update;
             TaskQueueUpdater.CreateInst(task_queue, manual_update);

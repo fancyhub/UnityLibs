@@ -17,17 +17,22 @@ namespace FH
         public void Awake()
         {
             if (string.IsNullOrEmpty(KeyName))
-                return;
-
-            _Dict.TryGetValue(KeyName, out var oldV);
-            if (oldV != null && oldV != this)
             {
-                Destroy(gameObject);
-                return;
+                GameObject.DontDestroyOnLoad(gameObject);
             }
-
-            _Dict[KeyName] = this;
-            GameObject.DontDestroyOnLoad(gameObject);
+            else
+            {
+                _Dict.TryGetValue(KeyName, out var oldV);
+                if (oldV != null && oldV != this)
+                {
+                    Destroy(gameObject);
+                }
+                else
+                {
+                    _Dict[KeyName] = this;
+                    GameObject.DontDestroyOnLoad(gameObject);
+                }
+            }
         }
     }
 }

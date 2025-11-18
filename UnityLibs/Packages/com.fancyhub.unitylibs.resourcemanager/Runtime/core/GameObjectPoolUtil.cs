@@ -13,15 +13,7 @@ namespace FH
     {
         public void OnDynamicRelease();
     }
-     
 
-    public sealed class DynamicCoroutineComp : MonoBehaviour, IDynamicComponent
-    {
-        void IDynamicComponent.OnDynamicRelease()
-        {
-            this.StopAllCoroutines();
-        }
-    }
 
     //GameObject pool 相关的操作
     public static class GameObjectPoolUtil
@@ -87,24 +79,33 @@ namespace FH
             Transform dummy = GetDummyInactive();
             GameObject obj_inst = GameObject.Instantiate(prefab, dummy, false);
 
-#if DEBUG
-            obj_inst.name = prefab.name + "_" + obj_inst.GetInstanceID();
-#endif
 
             return obj_inst;
         }
 
-        internal static void InstActive(GameObject obj)
+        internal static AsyncInstantiateOperation<GameObject> InstNewAsync(string path, GameObject prefab)
         {
-            if (obj == null)
+            //1. check
+            if (null == prefab || string.IsNullOrEmpty(path))
+            {
+                Log.Assert(null != prefab, "prefab 为空");
+                Log.Assert(!string.IsNullOrEmpty(path), "路径为空");
+                return null;
+            }
+
+            Transform dummy = GetDummyInactive();
+            return GameObject.InstantiateAsync(prefab, dummy);
+
+        }
+
+        internal static void InstRename(GameObject obj_inst, GameObject prefab)
+        {
+#if DEBUG
+            if (obj_inst == null || prefab == null)
                 return;
 
-            Transform active_dummy = GetDummyActive();
-            obj.transform.SetParent(active_dummy, false);
-
-            Transform inactive_dummy = GetDummyInactive();
-            obj.transform.SetParent(inactive_dummy, false);
-
+            obj_inst.name = prefab.name + "_" + obj_inst.GetInstanceID();
+#endif
         }
 
         internal static void Push2Pool(GameObject obj)

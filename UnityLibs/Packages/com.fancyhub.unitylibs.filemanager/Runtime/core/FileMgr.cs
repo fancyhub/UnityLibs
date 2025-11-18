@@ -39,9 +39,9 @@ namespace FH
 
         public bool Upgrade(FileManifest new_manifest, List<FileManifest.FileItem> out_need_download_list = null);
 
-        public EFileStatus FindFile(string name, out string full_path, out EFileLocation file_location);
+        public EFileStatus GetFileStatus(FileManifest.FileItem file, out string full_path, out EFileLocation file_location);
 
-        public EFileStatus FindFile(FileManifest.FileItem file, out string full_path, out EFileLocation file_location);
+        public EFileStatus GetFileStatusWithName(string name, out string full_path, out EFileLocation file_location);        
 
         public bool IsAllTagsReady(FileManifest manifest, HashSet<string> tags = null, List<FileManifest.FileItem> out_need_download_list = null);
 
@@ -49,9 +49,9 @@ namespace FH
 
         public ExtractStreamingAssetsOperation GetExtractOperation();
 
-        public void OnFileDownload(FileManifest.FileItem item);
+        public void RefreshFileStatus(FileManifest.FileItem item);
 
-        public void RefreshFileList();
+        public void RefreshAllFileStatus();
 
         public System.IO.Stream OpenRead(string name);
         public byte[] ReadAllBytes(string name);
@@ -118,7 +118,7 @@ namespace FH
                 FileLog._.E("FileMgr Is Null");
                 return;
             }
-            mgr.RefreshFileList();
+            mgr.RefreshAllFileStatus();
         }
 
         public static VersionInfo GetBaseVersionInfo()
@@ -234,7 +234,7 @@ namespace FH
                 return EFileStatus.None;
             }
 
-            return mgr.FindFile(name, out full_path, out file_location);
+            return mgr.GetFileStatusWithName(name, out full_path, out file_location);
         }
 
         public static bool GetFilesByTags(List<string> tags, List<FileInfo> out_file_list)
@@ -267,7 +267,7 @@ namespace FH
             {
                 FileInfo file_info = new FileInfo();
                 file_info.Base = p;
-                file_info.Status = mgr.FindFile(p, out file_info.FullPath, out file_info.Location);
+                file_info.Status = mgr.GetFileStatus(p, out file_info.FullPath, out file_info.Location);
                 out_file_list.Add(file_info);
             }
 
@@ -305,7 +305,7 @@ namespace FH
                 return;
             }
 
-            mgr.OnFileDownload(item);
+            mgr.RefreshFileStatus(item);
         }
 
         public static FileManifest GetCurrentManifest()
@@ -356,7 +356,7 @@ namespace FH
                     }
                 }
             }
-            mgr.RefreshFileList();
+            mgr.RefreshAllFileStatus();
         }
 
         public static void Destroy()
