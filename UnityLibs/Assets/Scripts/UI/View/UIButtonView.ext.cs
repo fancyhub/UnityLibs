@@ -12,6 +12,7 @@ namespace Game
     public partial class UIButtonView // : FH.UI.UIBaseView 
     {
         public Action OnClick;
+        public Action<UIButtonView> OnClick2;
         public override void OnCreate()
         {
             base.OnCreate();
@@ -23,8 +24,9 @@ namespace Game
             this._Button.onClick.RemoveListener(_OnClick);
             base.OnDestroy();
             OnClick = null;
+            OnClick2 = null;
         }
-         
+
         public string ButtonName
         {
             get
@@ -57,12 +59,13 @@ namespace Game
             }
             set
             {
-                _Button.enabled = value;            
+                _Button.enabled = value;
             }
-        }         
+        }
 
         private void _OnClick()
         {
+            OnClick2?.Invoke(this);
             OnClick?.Invoke();
         }
     }

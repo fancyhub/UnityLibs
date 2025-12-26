@@ -41,7 +41,6 @@ namespace FH
     {
         bool Start(out TState start_state);
         bool Next(TState state, TResult result, out TState next_state);
-        void Reset();
     }
 
     /// <summary>

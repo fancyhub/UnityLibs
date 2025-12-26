@@ -14,8 +14,9 @@ using UnityEngine;
 namespace FH.WV
 {
     //TODO: Higher unity version, can use Microsoft.Web.WebView2.Core.dll directly, it use the async 
-    public class WebView_Windows : IWebView
+    internal class PlatformWebViewMgr_Windows : IPlatformWebViewMgr
     {
+
         private static class Cpp
         {
             public const int LogLevel_Debug = 0;
@@ -30,6 +31,9 @@ namespace FH.WV
             public delegate void WebViewJsLogCallBack(int webViewId, [MarshalAs(UnmanagedType.BStr)] string message);
             [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
             public delegate void WebViewInnerLogCallBack(int logLevel, [MarshalAs(UnmanagedType.BStr)] string message);
+
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            public delegate void WebViewEventCallBack(int webViewId, int eventType);
 
             private const string PluginName = "WebView2UnityPlugin";
 
@@ -46,6 +50,10 @@ namespace FH.WV
             public static extern void WebViewSetInnerLogCallBack(WebViewInnerLogCallBack callback, int maxLogLevel);
 
             [DllImport(PluginName, CallingConvention = CallingConvention.Cdecl)]
+            public static extern void WebViewSetEventCallBack(WebViewEventCallBack callback);
+
+
+            [DllImport(PluginName, CallingConvention = CallingConvention.Cdecl)]
             public static extern void WebViewSetHostObjName(string hostObjName);
 
 
@@ -53,7 +61,10 @@ namespace FH.WV
             private static extern int WebViewCreate(IntPtr parentWindow, string url, float posX, float posY, float width, float height);
 
             [DllImport(PluginName, CharSet = CharSet.Unicode)]
-            public static extern void WebViewSetParam(int webViewId, byte bgR, byte bgG, byte bgB, byte bgA, bool scaling);
+            public static extern void WebViewSetBGColor(int webViewId, byte bgR, byte bgG, byte bgB, byte bgA);
+
+            [DllImport(PluginName, CharSet = CharSet.Unicode)]
+            public static extern void WebViewSetScaling(int webViewId, bool scaling);
 
 
             [DllImport(PluginName)]
@@ -218,12 +229,16 @@ namespace FH.WV
         }
 #endif
 
-        public WebView_Windows()
+        public PlatformWebViewMgr_Windows()
         {
-            Cpp.WebViewSetMessageCallback(_OnMessageCallBack);
+            var handler = UnityWebViewHandler.Init(this);
+
             Cpp.WebViewSetInnerLogCallBack(_OnInnerLogCallBack, Cpp.LogLevel_Debug);
             Cpp.WebViewJsLogCallBack callback = _OnJsLogCallBack;
             Cpp.WebViewSetJsLogCallBack(callback);
+
+            Cpp.WebViewSetMessageCallback(handler.OnWebViewMsg);
+            Cpp.WebViewSetEventCallBack(handler.OnWebViewEvent);
         }
 
         public void SetEnv(WebViewEnv config)
@@ -235,19 +250,24 @@ namespace FH.WV
                 Cpp.WebViewSetHostObjName(config.JavascriptHostObjName);
         }
 
-
-        public int Open(string url, Rect normalizedRect, WebViewParameters parameters)
+        public int Create(string url, Rect normalizedRect)
         {
 #if UNITY_EDITOR
             normalizedRect = UnityEditorGameViewHelper.ReCalcRect(normalizedRect);
 #endif
-            int ret = Cpp.WebViewCreate(url, normalizedRect.x, normalizedRect.y, normalizedRect.width, normalizedRect.height);
-            if (parameters != null && ret != 0)
-            {
-                Cpp.WebViewSetParam(ret, parameters.BGColor.r, parameters.BGColor.g, parameters.BGColor.b, parameters.BGColor.a, parameters.Scaling);
-            }
-            Debug.Log($"=====Open: {url}, {normalizedRect}, {ret}");
-            return ret;
+            int webviewId = Cpp.WebViewCreate(url, normalizedRect.x, normalizedRect.y, normalizedRect.width, normalizedRect.height);
+            Debug.Log($"=====Open: {url}, {normalizedRect}, {webviewId}");
+            return webviewId;
+        }
+
+        public void SetScaling(int webViewId, bool scaling)
+        {
+            Cpp.WebViewSetScaling(webViewId, scaling);
+        }
+
+        public void SetBGColor(int webViewId, Color32 color)
+        {
+            Cpp.WebViewSetBGColor(webViewId, color.r, color.g, color.b, color.a);
         }
 
         public void Resize(int webViewId, Rect normalizedRect)
@@ -261,6 +281,30 @@ namespace FH.WV
         public void Close(int webViewId)
         {
             Cpp.WebViewClose(webViewId);
+        }
+
+        private IPlatformWebViewMgr.OnWebViewEvent _EventCallBack;
+        public void SetEventCallBack(IPlatformWebViewMgr.OnWebViewEvent eventCallBack)
+        {
+            _EventCallBack = eventCallBack;
+        }
+
+        public void OnEvent(int webViewId, int eventType)
+        {
+            switch (eventType)
+            {
+                case 1:
+                    _EventCallBack?.Invoke(webViewId, EWebViewEventType.DocumentReady);
+                    break;
+
+                case 2:
+                    _EventCallBack?.Invoke(webViewId, EWebViewEventType.Destroyed);
+                    break;
+
+                default:
+                    WebViewLog._.E("unkown event type {0}", eventType);
+                    break;
+            }
         }
 
         public void CloseAll()
@@ -339,9 +383,14 @@ namespace FH.WV
         {
         }
 
-        private static void _OnMessageCallBack(int webViewId, string msg)
+        public void OnMessage(int webViewId, string msg)
         {
             Debug.Log($"{msg}");
+        }
+
+        public void Fix()
+        {
+            Application.OpenURL("https://winstall.app/apps/Microsoft.EdgeWebView2Runtime");
         }
 
         [System.Serializable]
@@ -450,6 +499,8 @@ namespace FH.WV
         {
             return Cpp.WebViewIsLoading(webViewId);
         }
+
+
     }
     //*/
 }

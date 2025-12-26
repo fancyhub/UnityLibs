@@ -14,11 +14,8 @@ namespace FH
     [RequireComponent(typeof(RectTransform))]
     public class UIWebView : UnityEngine.EventSystems.UIBehaviour
     {
-        private int _WebViewId;
+        private WebView _WebView;
         public string Url;
-
-        public bool EnableWebViewParameters = false;
-        public WebViewParameters WebViewParameters;
 
         private RectTransform _RectTransform;
         private RectTransform GetRectTran()
@@ -30,22 +27,42 @@ namespace FH
 
         protected override void OnEnable()
         {
-            if(!GetRectTran().ExtToScreenNormalize(RectTransformExt.EModeY.Top_Zero, out var size, out var _))
-                return;
+            if (_WebView == null)            
+                Open(Url);            
 
-            _WebViewId = UnityWebView.Open(Url, size, EnableWebViewParameters? WebViewParameters:null);
+            _WebView?.SetVisible(true);            
         }
 
         protected override void OnDisable()
         {
-            UnityWebView.Close(ref _WebViewId);
+            _WebView?.SetVisible(false);
+        }
+
+        public void Open(string url)
+        {
+            if (_WebView == null || !_WebView.IsValid())
+            {
+                if (!GetRectTran().ExtToScreenNormalize(RectTransformExt.EModeY.Top_Zero, out var size, out var _))
+                    return;
+                _WebView = WebViewMgr.Create(Url, size);
+            }
+            else
+            {
+                _WebView.Navigate(url);
+            }
+        }
+
+        public void Close()
+        {
+            _WebView?.Close();
+            _WebView = null;
         }
 
         protected override void OnRectTransformDimensionsChange()
         {
             if (!GetRectTran().ExtToScreenNormalize(RectTransformExt.EModeY.Top_Zero, out var size, out var _))
                 return;
-            UnityWebView.Resize(_WebViewId, size);
+            _WebView?.Resize(size);
         }
     }
 }

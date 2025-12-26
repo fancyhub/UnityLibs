@@ -113,6 +113,11 @@ void OnJsLogCallBack(INT32 webViewId, BSTR msg)
 }
 
 
+void OnWebViewEventCallBack(INT32 webViewId, EWebViewEvent eventType)
+{
+
+}
+
 
 //
 //   FUNCTION: InitInstance(HINSTANCE, int)
@@ -144,6 +149,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	WebViewSetUserAgent(L"MyAgent");
 	WebViewSetMessageCallback(OnMessageCallBack);
 	WebViewSetJsLogCallBack(OnJsLogCallBack);
+	WebViewSetEventCallBack(OnWebViewEventCallBack);
 
 	globalWebViewID = WebViewCreate(hWnd, url, 0, 0, 1, 1);
 	return TRUE;

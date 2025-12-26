@@ -18,7 +18,7 @@ using System.Text.RegularExpressions;
 namespace FH.WV
 {
     
-    public class WebView_IOS : IWebView
+    public class PlatformWebViewMgr_IOS : IPlatformWebViewMgr
     {
         private static partial class _
         {
@@ -390,6 +390,111 @@ for( var i = 0; i < audios.length; i++ )
         }
 
         public bool IsVisible(int webViewId)
+        {
+            throw new NotImplementedException();
+        } 
+
+        public void Navigate(int webviewId, string url)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetBGColor(int webviewId, Color32 color)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int Create(string url, Rect normalizedRect)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPlatformWebViewMgr.SetEventCallBack(IPlatformWebViewMgr.OnWebViewEvent eventCallBack)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPlatformWebViewMgr.SetEnv(WebViewEnv config)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IPlatformWebViewMgr.Create(string url, Rect normalizedRect)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPlatformWebViewMgr.Navigate(int webviewId, string url)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPlatformWebViewMgr.SetBGColor(int webviewId, Color32 color)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPlatformWebViewMgr.Resize(int webViewId, Rect normalizedRect)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPlatformWebViewMgr.Close(int webViewId)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPlatformWebViewMgr.RunJavaScript(int webViewId, string jsCode)
+        {
+            throw new NotImplementedException();
+        }
+
+        string IPlatformWebViewMgr.GetURL(int webViewId)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPlatformWebViewMgr.Reload(int webViewId)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPlatformWebViewMgr.GoBack(int webViewId)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPlatformWebViewMgr.GoForward(int webViewId)
+        {
+            throw new NotImplementedException();
+        }
+
+        bool IPlatformWebViewMgr.IsLoading(int webViewId)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPlatformWebViewMgr.SetVisible(int webViewId, bool visible)
+        {
+            throw new NotImplementedException();
+        }
+
+        bool IPlatformWebViewMgr.IsVisible(int webViewId)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPlatformWebViewMgr.CloseAll()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnMessage(int webViewId, string message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnEvent(int webViewId, int eventType)
         {
             throw new NotImplementedException();
         }

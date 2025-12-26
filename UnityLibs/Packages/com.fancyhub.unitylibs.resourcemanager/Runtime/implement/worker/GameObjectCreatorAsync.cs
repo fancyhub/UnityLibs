@@ -14,20 +14,13 @@ namespace FH.ResManagement
     //异步加载的task
     internal class GoAsyncCreateTask
     {
-        public enum EStatus
-        {
-            Idle,
-            InProcess,
-            Done,
-        }
-
-        public GameObject prefab;
-        public ResJob job;
-
-        private AsyncInstantiateOperation<GameObject> _operation;
         private AssetPool _asset_pool;
         private GameObjectInstPool _gobj_pool;
         private ResMsgQueue _msg_queue;
+
+        private ResJob _job;
+        private GameObject _prefab;
+        private AsyncInstantiateOperation<GameObject> _operation;
 
         public GoAsyncCreateTask(AssetPool asset_pool, GameObjectInstPool gobj_pool, ResMsgQueue msg_queue)
         {
@@ -36,40 +29,52 @@ namespace FH.ResManagement
             _msg_queue = msg_queue;
         }
 
-        public EStatus GetStatus()
+        public bool IsIdle()
         {
-            if (_operation == null)
-                return EStatus.Idle;
-
-            if (_operation.isDone)
-                return EStatus.Done;
-
-            return EStatus.InProcess;
+            return _operation == null;
         }
 
-        public void Start()
+        public void Start(ResJob job, GameObject prefab)
         {
-            //1. 如果不是preinst的job, 需要判断 当前pool是否有空余的
-            if (!job.PreInstJob)
+            //1. check
+            if (job == null || prefab == null)
             {
-                var err = _gobj_pool.PopInst(job.Path.Path, out job.InstId);
+                throw new Exception("params is null");
+            }
+            if (_operation != null)
+            {
+                throw new Exception("cur operation is not done");
+            }
+
+            //2. 如果不是preinst的job, 需要判断 当前pool是否有空余的
+            _job = job;
+            _prefab = prefab;
+            if (!_job.PreInstJob)
+            {
+                var err = _gobj_pool.PopInst(_job.Path.Path, out _job.InstId);
                 if (err == EResError.OK)
                 {
-                    _asset_pool.RemoveUser(job.AssetId, job);
-                    _msg_queue.SendJobNext(job);
+                    _asset_pool.RemoveUser(_job.AssetId, _job);
+                    _msg_queue.SendJobNext(_job);
+
+                    _job = null;
+                    _prefab = null;
                     return;
                 }
             }
 
-            //2. 真正的实例化第一步
-            _operation = GameObjectPoolUtil.InstNewAsync(job.Path.Path, prefab);
+            //3. 真正的实例化第一步
+            _operation = GameObjectPoolUtil.InstNewAsync(_job.Path.Path, _prefab);
             if (null == _operation)
             {
-                job.ErrorCode = (EResError)EResError.GameObjectCreatorAsync_inst_error_unkown;
-                ResLog._.Assert(false, "实例化的时候， 未知错误 {0}", job.Path.Path);
+                _job.ErrorCode = (EResError)EResError.GameObjectCreatorAsync_inst_error_unkown;
+                ResLog._.Assert(false, "instance game object， unkown error {0}", _job.Path.Path);
 
-                _asset_pool.RemoveUser(job.AssetId, job);
-                _msg_queue.SendJobNext(job);
+                _asset_pool.RemoveUser(_job.AssetId, _job);
+                _msg_queue.SendJobNext(_job);
+
+                _job = null;
+                _prefab = null;
                 return;
             }
         }
@@ -77,28 +82,27 @@ namespace FH.ResManagement
         public void Update()
         {
             //1. 检查operation
-            if (_operation == null || !_operation.isDone)
+            if (_operation == null)
                 return;
-
 
             //2. 获取实例
             GameObject inst = _GetResult();
 
             //3. 激活实例
-            GameObjectPoolUtil.InstRename(inst, prefab);
+            GameObjectPoolUtil.InstRename(inst, _prefab);
 
             //4. 添加到pool
-            bool succ = _gobj_pool.AddInst(new ResRef(job.AssetId, job.Path.Path, _asset_pool), inst, out job.InstId);
-            ResLog._.Assert(succ, "添加go inst 到 pool 失败 {0}", job.Path.Path);
+            bool succ = _gobj_pool.AddInst(new ResRef(_job.AssetId, _job.Path.Path, _asset_pool), inst, out _job.InstId);
+            ResLog._.Assert(succ, "add go inst to pool failed {0}", _job.Path.Path);
 
             //5. 把当前任务发送给下一个
-            _asset_pool.RemoveUser(job.AssetId, job);
-            _msg_queue.SendJobNext(job);
+            _asset_pool.RemoveUser(_job.AssetId, _job);
+            _msg_queue.SendJobNext(_job);
 
             //6. 清除
-            prefab = null;
+            _prefab = null;
             _operation = null;
-            job = null;
+            _job = null;
         }
 
         public void Destroy()
@@ -107,25 +111,9 @@ namespace FH.ResManagement
                 return;
 
             if (_operation.isDone)
-            {
-                foreach (var p in _operation.Result)
-                {
-                    if (p != null)
-                        GameObject.Destroy(p);
-                }
-                return;
-            }
+                _OnOpCompleted(null);
             else
-            {
-                _operation.completed += (op) =>
-                {
-                    foreach (var p in _operation.Result)
-                    {
-                        if (p != null)
-                            GameObject.Destroy(p);
-                    }
-                };
-            }
+                _operation.completed += _OnOpCompleted;
         }
 
         private GameObject _GetResult()
@@ -138,6 +126,22 @@ namespace FH.ResManagement
             if (objs == null || objs.Length == 0)
                 return null;
             return objs[0];
+        }
+
+        private void _OnOpCompleted(AsyncOperation _)
+        {
+            if (_operation == null)
+                return;
+
+            foreach (var p in _operation.Result)
+            {
+                if (p != null)
+                    GameObject.Destroy(p);
+            }
+
+            _operation = null;
+            _job = null;
+            _prefab = null;
         }
     }
 
@@ -234,8 +238,7 @@ namespace FH.ResManagement
                 p.Update();
 
                 //2. 获取状态
-                var status = p.GetStatus();
-                if (status != GoAsyncCreateTask.EStatus.Idle)
+                if (!p.IsIdle())
                     continue;
 
                 //3. 找到任务                    
@@ -243,23 +246,23 @@ namespace FH.ResManagement
                     _job_queue
                     , _job_db
                     , _asset_pool
-                    , out p.job
-                    , out p.prefab
+                    , out var job
+                    , out var prefab
                     , ref _temp_list);
 
-                //4. 清除过期的job
+                //4. 开始异步实例化
+                if (succ)
+                    p.Start(job, prefab);
+
+                //5. 清除过期的job
                 for (int j = 0; j < _temp_list.Count; ++j)
                 {
-                    ResJob job = _temp_list[j];
+                    ResJob temp_job = _temp_list[j];
 
-                    _asset_pool.RemoveUser(job.AssetId, job);
-                    _msg_queue.SendJobNext(job);
+                    _asset_pool.RemoveUser(temp_job.AssetId, temp_job);
+                    _msg_queue.SendJobNext(temp_job);
                 }
                 _temp_list.Clear();
-
-                //5. 开始异步实例化
-                if (succ)
-                    p.Start();
             }
         }
 

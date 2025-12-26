@@ -13,7 +13,7 @@ using UnityEngine;
 #if UNITY_ANDROID || UNITY_EDITOR  
 namespace FH.WV
 {
-    internal class WebView_Android : IWebView
+    internal class PlatformWebViewMgr_Android : IPlatformWebViewMgr
     {
         private static bool _Inited = false;
         private static AndroidJavaClass _WebViewManager;
@@ -40,19 +40,20 @@ namespace FH.WV
                 return;
 
             _Inited = true;
-            //WebViewManager.CallStatic("Init", config.UnityHandlerName);            
+            //WebViewManager.CallStatic("Init", config.UnityHandlerName);
             WebViewManager.CallStatic("extraLog", true);
         }
 
 
-        public int Open(string url, Rect normalizedRect, WebViewParameters parameters)
+        public int Create(string url, Rect normalizedRect)
         {
             string parameterString = string.Empty;
-            if (parameters != null)
-                parameterString = JsonUtility.ToJson(parameters);
-            var ret = WebViewManager.CallStatic<int>("open", url, normalizedRect.x, normalizedRect.y, normalizedRect.width, normalizedRect.height, parameterString);
+            //if (parameters != null)
+            //    parameterString = JsonUtility.ToJson(parameters);
+            //var ret = WebViewManager.CallStatic<int>("open", url, normalizedRect.x, normalizedRect.y, normalizedRect.width, normalizedRect.height, parameterString);
 
-            return ret;
+            //return ret;
+            return 0;
         }
 
         public void Resize(int webViewId, Rect normalizedRect)
@@ -222,6 +223,36 @@ namespace FH.WV
         public void SetUserAgentString(int webViewId, string userAgentString)
         {
             WebViewManager.CallStatic("setUserAgentString", webViewId, userAgentString);
+        }
+
+        public int Create(Rect normalizedRect)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Navigate(int webviewId, string url)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetBGColor(int webviewId, Color32 color)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetEventCallBack(IPlatformWebViewMgr.OnWebViewEvent eventCallBack)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnMessage(int webViewId, string message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnEvent(int webViewId, int eventType)
+        {
+            throw new NotImplementedException();
         }
     }
 }

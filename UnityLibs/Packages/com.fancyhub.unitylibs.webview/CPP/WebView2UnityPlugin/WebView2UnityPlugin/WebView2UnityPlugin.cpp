@@ -47,6 +47,7 @@ static std::wstring globalHostObjName;
 static WebViewMessageCallback globalMessageCallback = nullptr;
 static WebViewJsLogCallBack globalJsLogCallback = nullptr;
 static WebViewInnerLogCallBack globalInnerLogCallback = nullptr;
+static WebViewEventCallBack globalEventCallBack = nullptr;
 static ELogLevel globalInnerLogLevel = ELogLevel::ELogLevel_Debug;
 
 
@@ -59,6 +60,11 @@ WEBVIEW2UNITYPLUGIN_API void  WebViewSetUserAgent(const wchar_t* userAgent)
 WEBVIEW2UNITYPLUGIN_API void  WebViewSetMessageCallback(WebViewMessageCallback callback)
 {
 	globalMessageCallback = callback;
+}
+
+WEBVIEW2UNITYPLUGIN_API void  WebViewSetEventCallBack(WebViewEventCallBack callback)
+{
+	globalEventCallBack = callback;
 }
 
 WEBVIEW2UNITYPLUGIN_API void  WebViewSetJsLogCallBack(WebViewJsLogCallBack callback)
@@ -237,11 +243,22 @@ public:
 	}
 };
 
-
+template<typename T>
 struct MyWebViewParam
 {
-	bool Scaling;
-	COREWEBVIEW2_COLOR BGColor;	
+public:
+	bool HasValue;
+	T Value;
+
+	MyWebViewParam() :HasValue(false)
+	{
+	}
+
+	void SetValue(const T& value)
+	{
+		this->Value = value;
+		this->HasValue = true;
+	}
 };
 
 class MyWebView
@@ -256,8 +273,8 @@ public:
 	HWND ParentWindow;
 	RECT LastRect;
 	bool Visible;
-	bool ParamSetted;
-	MyWebViewParam Param;
+	MyWebViewParam<bool> ParamScaling;
+	MyWebViewParam<COREWEBVIEW2_COLOR> ParamBGColor;
 
 	ComPtr<ICoreWebView2> pWebView2;
 	ComPtr<ICoreWebView2Controller> pController;
@@ -277,7 +294,7 @@ public:
 	MyWebView(HWND parentWindow, const wchar_t* url, const WebViewSize& size)
 		:WebViewId(WebViewIdGen++), ParentWindow(parentWindow),
 		URL(url), Size(size), LastRect({ 0,0,0,0 }),
-		IsLoading(false), Visible(true), ParamSetted(false)
+		IsLoading(false), Visible(true), ParamScaling(), ParamBGColor()
 	{
 		pHostObj = Make<WebViewHostObject>();
 		pHostObj->HostObjName = globalHostObjName;
@@ -390,6 +407,11 @@ void _DestroyWebView(INT32 webViewId)
 
 	pWebView->Destroy();
 	delete pWebView;
+
+	if (globalEventCallBack != nullptr)
+	{
+		globalEventCallBack(webViewId, EWebViewEvent_Destroyed);
+	}
 }
 
 // WebView消息接收处理
@@ -419,6 +441,11 @@ void _OnNavCompleted(INT32 webViewId, ICoreWebView2* sender, ICoreWebView2Naviga
 	if (pWebView == nullptr)
 		return;
 	pWebView->IsLoading = false;
+
+	if (globalEventCallBack != nullptr)
+	{
+		globalEventCallBack(webViewId, EWebViewEvent_DocumentReady);
+	}
 }
 
 // 新窗口请求事件处理
@@ -501,27 +528,25 @@ void _SetHostObj(ICoreWebView2* pWebView, const ComPtr<WebViewHostObject>& pHost
 
 void _AppWebViewParams(MyWebView* pWebView)
 {
-	if (pWebView == nullptr || !pWebView->ParamSetted || pWebView->pWebView2 == nullptr)
+	if (pWebView == nullptr || pWebView->pWebView2 == nullptr)
 		return;
 
-	auto param = &pWebView->Param;
 
 	ComPtr<ICoreWebView2Controller2> controller2;
-	if (pWebView->pController != nullptr && SUCCEEDED(pWebView->pController.As(&controller2)))
-	{		
-		controller2->put_DefaultBackgroundColor(pWebView->Param.BGColor);
+	if (pWebView->ParamBGColor.HasValue && pWebView->pController != nullptr && SUCCEEDED(pWebView->pController.As(&controller2)))
+	{
+		controller2->put_DefaultBackgroundColor(pWebView->ParamBGColor.Value);
 	}
 
 	ComPtr<ICoreWebView2Settings> settings;
-	if (SUCCEEDED(pWebView->pWebView2->get_Settings(&settings)))
+	if (pWebView->ParamScaling.HasValue && SUCCEEDED(pWebView->pWebView2->get_Settings(&settings)))
 	{
-
-		settings->put_IsZoomControlEnabled(param->Scaling);
+		settings->put_IsZoomControlEnabled(pWebView->ParamScaling.Value);
 
 		ComPtr<ICoreWebView2Settings5> settings5;
 		if (SUCCEEDED(settings.As(&settings5)))
 		{
-			settings5->put_IsPinchZoomEnabled(param->Scaling);
+			settings5->put_IsPinchZoomEnabled(pWebView->ParamScaling.Value);
 		}
 	}
 }
@@ -716,23 +741,30 @@ WEBVIEW2UNITYPLUGIN_API INT32 WebViewCreate(HWND parentWindow, const wchar_t* ur
 	return  pWebView->WebViewId;
 }
 
-WEBVIEW2UNITYPLUGIN_API void  WebViewSetParam(INT32 webViewId, BYTE bgR, BYTE bgG, BYTE bgB, BYTE bgA, bool scaling)
+WEBVIEW2UNITYPLUGIN_API void  WebViewSetBGColor(INT32 webViewId, BYTE bgR, BYTE bgG, BYTE bgB, BYTE bgA)
 {
-	MyWebViewParam param;
-	param.BGColor.R = bgR;
-	param.BGColor.G = bgG;
-	param.BGColor.B = bgB;
-	param.BGColor.A = bgA;
-
-	param.Scaling = scaling;
-
-
 	auto pWebView = _FindWebView(webViewId, L"WebViewSetParam");
 	if (pWebView == nullptr)
 		return;
 
-	pWebView->Param = param;
-	pWebView->ParamSetted = true;
+	COREWEBVIEW2_COLOR color;
+
+	color.R = bgR;
+	color.G = bgG;
+	color.B = bgB;
+	color.A = bgA;
+
+	pWebView->ParamBGColor.SetValue(color);
+	_AppWebViewParams(pWebView);
+}
+
+WEBVIEW2UNITYPLUGIN_API void WebViewSetScaling(INT32 webViewId, bool scaling)
+{
+	auto pWebView = _FindWebView(webViewId, L"WebViewSetParam");
+	if (pWebView == nullptr)
+		return;
+
+	pWebView->ParamScaling.SetValue(scaling);
 	_AppWebViewParams(pWebView);
 }
 

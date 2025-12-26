@@ -14,7 +14,11 @@ namespace Game
         public  const string CPath = "Assets/Res/UI/Prefab/TestWebView.prefab";
 
 		public UnityEngine.UI.Image _TestWebView;
+		public UnityEngine.UI.ToggleGroup _Tabs;
+		public UIButtonView _BtnAddTab;
+		public UnityEngine.RectTransform _Url;
 		public UIButtonView _BtnClose;
+		public UnityEngine.UI.Image _WebViewDummy;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -27,7 +31,11 @@ namespace Game
                 return;
 
 			_TestWebView = refs.GetComp<UnityEngine.UI.Image>("_TestWebView");
+			_Tabs = refs.GetComp<UnityEngine.UI.ToggleGroup>("_Tabs");
+			_BtnAddTab = _CreateSub<UIButtonView>(refs.GetObj("_BtnAddTab"));
+			_Url = refs.GetComp<UnityEngine.RectTransform>("_Url");
 			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
+			_WebViewDummy = refs.GetComp<UnityEngine.UI.Image>("_WebViewDummy");
 
         }
 
@@ -35,6 +43,7 @@ namespace Game
         {
             base._AutoDestroy();
 
+			_BtnAddTab.Destroy();
 			_BtnClose.Destroy();
 
         }

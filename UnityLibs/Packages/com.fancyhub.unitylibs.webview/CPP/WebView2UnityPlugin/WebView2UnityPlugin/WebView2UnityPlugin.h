@@ -32,15 +32,28 @@ extern "C" {
 		ELogLevel_Off = 4,
 	};
 
+	enum EWebViewEvent
+	{
+		EWebViewEvent_DocumentReady= 1,
+		EWebViewEvent_Destroyed = 2,
+
+		EWebViewEvent_Visible = 3,
+		EWebViewEvent_InVisible = 4,
+	};
+
 	typedef WEBVIEW2UNITYPLUGIN_API void(*WebViewJsLogCallBack)(INT32 webViewId, BSTR message);
 
 	typedef WEBVIEW2UNITYPLUGIN_API void(*WebViewInnerLogCallBack)(ELogLevel logLevel, BSTR message);
+
+	typedef WEBVIEW2UNITYPLUGIN_API void(*WebViewEventCallBack)(INT32 webViewId, EWebViewEvent eventType);
 
 	WEBVIEW2UNITYPLUGIN_API void  WebViewSetUserAgent(const wchar_t* userAgent);
 	// 设置消息回调函数
 	WEBVIEW2UNITYPLUGIN_API void  WebViewSetMessageCallback(WebViewMessageCallback callback);
 
 	WEBVIEW2UNITYPLUGIN_API void  WebViewSetJsLogCallBack(WebViewJsLogCallBack callback);
+
+	WEBVIEW2UNITYPLUGIN_API void  WebViewSetEventCallBack(WebViewEventCallBack callback);
 
 	WEBVIEW2UNITYPLUGIN_API void  WebViewSetInnerLogCallBack(WebViewInnerLogCallBack callback, ELogLevel maxLogLvl);
 
@@ -51,7 +64,9 @@ extern "C" {
 	// 创建WebView实例
 	WEBVIEW2UNITYPLUGIN_API INT32  WebViewCreate(HWND parentWindow, const wchar_t* url, float posX, float posY, float width, float height);
 
-	WEBVIEW2UNITYPLUGIN_API void  WebViewSetParam(INT32 webViewId, BYTE bgR, BYTE bgG, BYTE bgB, BYTE bgA, bool scaling);
+	WEBVIEW2UNITYPLUGIN_API void  WebViewSetBGColor(INT32 webViewId, BYTE bgR, BYTE bgG, BYTE bgB, BYTE bgA);
+
+	WEBVIEW2UNITYPLUGIN_API void  WebViewSetScaling(INT32 webViewId, bool scaling);
 
 	// 销毁WebView实例
 	WEBVIEW2UNITYPLUGIN_API void  WebViewClose(INT32 webViewId);
