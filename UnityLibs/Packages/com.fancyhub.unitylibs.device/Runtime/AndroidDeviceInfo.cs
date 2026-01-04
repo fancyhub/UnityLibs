@@ -5,6 +5,8 @@
  * Desc    : 
 *************************************************************************************/
 
+
+using System;
 using System.Text;
 using UnityEngine;
 
@@ -23,6 +25,8 @@ namespace FH
         {
             try
             {
+                if (self == null) return default(T);//for c++ assert
+
                 return self.Call<T>(name);
             }
             catch (System.Exception ex)
@@ -38,6 +42,7 @@ namespace FH
         {
             try
             {
+                if (self == null) return default(T);//for c++ assert
                 return self.Call<T>(name, arg0);
             }
             catch (System.Exception ex)
@@ -53,6 +58,8 @@ namespace FH
         {
             try
             {
+                if (self == null) return default(T);//for c++ assert
+
                 return self.Call<T>(name, arg0, arg1);
             }
             catch (System.Exception ex)
@@ -68,6 +75,8 @@ namespace FH
         {
             try
             {
+                if (self == null) return default(T);//for c++ assert
+
                 return self.Get<T>(name);
             }
             catch (System.Exception ex)
@@ -83,6 +92,8 @@ namespace FH
         {
             try
             {
+                if (self == null) return default(T);//for c++ assert
+
                 return self.CallStatic<T>(name);
             }
             catch (System.Exception ex)
@@ -98,6 +109,8 @@ namespace FH
         {
             try
             {
+                if (self == null) return default(T);//for c++ assert
+
                 return self.GetStatic<T>(name);
             }
             catch (System.Exception ex)
@@ -244,8 +257,9 @@ namespace FH
         //ref https://developer.android.google.cn/reference/android/content/pm/PackageManager.PackageInfoFlags
         public enum EPackageInfoFlag
         {
-            GET_PERMISSIONS = 4096,
             GET_SIGNATURES = 64,
+            GET_META_DATA = 128,
+            GET_PERMISSIONS = 4096,
         }
         public static AndroidJavaObject GetPackageInfo(string package_name, EPackageInfoFlag flag)
         {
@@ -264,6 +278,20 @@ namespace FH
                 return System.Array.Empty<string>();
             return signatures;
         }
+
+        public static bool IsPackageInstalled(string package_name)
+        {
+            try
+            {
+                var info = GetPackageInfo(package_name, EPackageInfoFlag.GET_META_DATA);
+                return info != null;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
 
         public sealed class ApkSignature
         {
@@ -355,11 +383,13 @@ namespace FH
         }
         #endregion
 
+
         //https://developer.android.google.cn/reference/android/os/StatFs
         //https://developer.android.google.cn/reference/android/os/Environment
         #region Storage StateFS
-        private static AndroidJavaObject _DataStorage;
-        private static AndroidJavaObject _ExternalStorage;
+        private static AndroidJavaObject _DataStorage; //android.os.StatFs
+        private static AndroidJavaObject _ExternalStorage; //android.os.StatFs
+        private static AndroidJavaObject _PersistentStorage; //android.os.StatFs
         private static bool _ExternalStorageInited = false;
         private static AndroidJavaObject _GetDataStorage()
         {
@@ -369,6 +399,8 @@ namespace FH
                 {
                     var env_class = new AndroidJavaClass("android.os.Environment");
                     var data_dir = env_class.CallStatic<AndroidJavaObject>("getDataDirectory");
+                    if (data_dir == null) return default;
+
                     string path = data_dir.Call<string>("getPath");
 
                     _DataStorage = new AndroidJavaObject("android.os.StatFs", path);
@@ -409,11 +441,112 @@ namespace FH
             }
         }
 
-        public static long Storage_AvailableBytes => _GetDataStorage()._ExtCall<long>("getAvailableBytes");
-        public static long Storage_TotalBytes => _GetDataStorage()._ExtCall<long>("getTotalBytes");
+        private static AndroidJavaObject _GetPersistentStorage()
+        {
+            try
+            {
+                _PersistentStorage = new AndroidJavaObject("android.os.StatFs", Application.persistentDataPath);
+            }
+            catch (Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+            }
+            return _PersistentStorage;
+        }
+
+        private static long _GetStorageAvailableBytes(AndroidJavaObject target)
+        {
+            if (target == null)
+                return 0;
+
+            try
+            {
+                int sdkVersion = BuildVersion_SDK_INT;
+
+                // Android 8.0 (API 26) 及以上：直接获取可用字节数
+                if (sdkVersion >= 26)
+                    return target.Call<long>("getAvailableBytes");
+
+
+                // 兼容旧版本（API 18 ~ 25）
+                long blockSize;
+                long availableBlocks;
+
+                if (sdkVersion >= 18)
+                {
+                    blockSize = target.Call<long>("getBlockSizeLong");
+                    availableBlocks = target.Call<long>("getAvailableBlocksLong");
+                }
+                else
+                {
+                    // 非常老的设备（API < 18），使用 int（最大约 2GB）
+                    blockSize = target.Call<int>("getBlockSize");
+                    availableBlocks = target.Call<int>("getAvailableBlocks");
+                }
+                return blockSize * availableBlocks;
+
+            }
+            catch (Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+                return 0;
+            }
+        }
+
+        private static long _GetStorageTotalBytes(AndroidJavaObject target)
+        {
+            if (target == null)
+                return 0;
+
+            try
+            {
+                int sdkVersion = BuildVersion_SDK_INT;
+
+                // Android 8.0 (API 26) 及以
+                if (sdkVersion >= 26)
+                    return target.Call<long>("getTotalBytes");
+
+
+                // 兼容旧版本（API 18 ~ 25）
+                long blockSize;
+                long totalBlocks;
+
+                if (sdkVersion >= 18)
+                {
+                    blockSize = target.Call<long>("getBlockSizeLong");
+                    totalBlocks = target.Call<long>("getBlockCountLong");
+                }
+                else
+                {
+                    // 非常老的设备（API < 18），使用 int（最大约 2GB）
+                    blockSize = target.Call<int>("getBlockSize");
+                    totalBlocks = target.Call<int>("getBlockCount");
+                }
+                return blockSize * totalBlocks;
+
+            }
+            catch (Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+                return 0;
+            }
+        }
+
+        public static long Storage_AvailableBytes => _GetStorageAvailableBytes(_GetDataStorage());
+        public static long Storage_TotalBytes => _GetStorageTotalBytes(_GetDataStorage());
+
         public static bool ExternalStorage_Exist => _GetExternalStorage() != null;
-        public static long ExternalStorage_AvailableBytes => _GetExternalStorage()._ExtCall<long>("getAvailableBytes");
-        public static long ExternalStorage_TotalBytes => _GetExternalStorage()._ExtCall<long>("getTotalBytes");
+        public static long ExternalStorage_AvailableBytes => _GetStorageAvailableBytes(_GetExternalStorage());
+        public static long ExternalStorage_TotalBytes => _GetStorageTotalBytes(_GetExternalStorage());
+
+        public static long Persistent_AvailableBytes => _GetStorageAvailableBytes(_GetPersistentStorage());
+        public static long Persistent_TotalBytes => _GetStorageTotalBytes(_GetPersistentStorage());
         #endregion
 
         //https://developer.android.google.cn/reference/android/os/Build
@@ -463,6 +596,7 @@ namespace FH
 
         #endregion
 
+
         //https://developer.android.google.cn/reference/android/os/Build.VERSION
         #region BuildVersion
         private static AndroidJavaClass _BuildVersion;
@@ -488,6 +622,7 @@ namespace FH
         public static int BuildVersion_SDK_INT => _GetBuildVersion()._ExtGetStatic<int>("SDK_INT");
         public static string BuildVersion_Release => _GetBuildVersion()._ExtGetStatic<string>("RELEASE");
         #endregion
+
 
 
         //https://developer.android.google.cn/reference/android/view/WindowManager
@@ -527,8 +662,7 @@ namespace FH
         public static int Screen_HeightPixels => _GetDefaultRealMetrics()._ExtGet<int>("heightPixels");
         #endregion
 
-
-
+        
 
         #region AndroidDeviceInfo
         private static AndroidJavaClass _AndroidDeviceInfo;
@@ -553,6 +687,7 @@ namespace FH
             }
         }
 
+
         public static bool AdvertisingIdReady
         {
             get
@@ -571,7 +706,6 @@ namespace FH
             }
         }
         #endregion
-
 
 
         //adb shell getprop
@@ -692,12 +826,6 @@ namespace FH
             }
 
         }
-
-        // public static string SystemProperties_TesT1 => SystemProperties_GetString("ro.vendor.build.version.sdk");
-        // public static string SystemProperties_TesT2 => SystemProperties_GetString("ro.vendor.build.version.sdk", "test");
-        // public static int SystemProperties_TesT3 => SystemProperties_GetInt("ro.vendor.build.version.sdk", 0);
-        // public static long SystemProperties_TesT4 => SystemProperties_GetLong("ro.vendor.build.version.sdk", 0);
-        // public static bool SystemProperties_TesT5 => SystemProperties_GetBool("ro.vendor.build.version.sdk", false);
         #endregion
     }
 }
