@@ -67,6 +67,10 @@ namespace Game
                 case 3:
                     _ShowAndroidDeviceInfo();
                     break;
+
+                    case 4:
+                    _ShowIosDeviceInfo();
+                    break;
             }
         }
 
@@ -179,5 +183,34 @@ namespace Game
             }
         }
 
+        private void _ShowIosDeviceInfo()
+        {
+            StringBuilder sb = new StringBuilder();
+            var all_props = typeof(IosDeviceInfo).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            foreach (var p in all_props)
+            {
+                Debug.Log(p.Name);
+
+                try
+                {
+                    var value = p.GetValue(null, null);
+                    if (value != null)
+                    {
+                        sb.Append(p.Name + ": " + value.ToString());
+                    }
+                    else
+                    {
+                        sb.Append(p.Name + ": Null");
+                    }
+                    sb.Append("\n");
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            }
+
+            _SetContent(sb.ToString());           
+        }
     }
 }

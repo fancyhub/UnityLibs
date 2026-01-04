@@ -116,3 +116,12 @@ MonoBehaviour:
     - name: TestWebView
       dir: 
       ext: .prefab
+    - name: WebView
+      dir: 
+      ext: .prefab
+    - name: WebViewTab
+      dir: 
+      ext: .prefab
+    - name: WebViewUrl
+      dir: 
+      ext: .prefab
