@@ -15,7 +15,7 @@ namespace FH.WV
 
     internal interface IPlatformWebViewMgr
     {
-        public delegate void OnWebViewEvent(WebViewId webviewId, EWebViewEventType eventType);
+        public delegate void OnWebViewEvent(WebViewId webViewId, EWebViewEventType eventType);
 
         public void SetEventCallBack(OnWebViewEvent eventCallBack);
 
@@ -30,9 +30,9 @@ namespace FH.WV
         /// <returns></returns>
         public WebViewId Create(string url, Rect normalizedRect);
 
-        public void Navigate(WebViewId webviewId, string url);
+        public void Navigate(WebViewId webViewId, string url);
 
-        public void SetBGColor(WebViewId webviewId, Color32 color);
+        public void SetBGColor(WebViewId webViewId, Color32 color);
 
 
         /// <summary>

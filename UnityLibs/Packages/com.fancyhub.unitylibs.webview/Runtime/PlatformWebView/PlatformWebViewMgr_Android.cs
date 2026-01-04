@@ -15,6 +15,131 @@ namespace FH.WV
 {
     internal class PlatformWebViewMgr_Android : IPlatformWebViewMgr
     {
+        private static AndroidJavaClass _WebViewManager;
+        private static AndroidJavaClass WebViewManager
+        {
+            get
+            {
+                if (_WebViewManager == null)
+                    _WebViewManager = new AndroidJavaClass("com.fancyhub.webview.WebViewManager");
+                return _WebViewManager;
+            }
+        }
+
+        public PlatformWebViewMgr_Android()
+        {
+            WebViewManager.CallStatic("Init");
+        }
+
+        public void Close(int webViewId)
+        {
+            WebViewManager.CallStatic("Close", webViewId);
+        }
+
+        public void CloseAll()
+        {
+            WebViewManager.CallStatic("CloseAll");
+        }
+
+        public int Create(string url, Rect normalizedRect)
+        {
+            return WebViewManager.CallStatic<int>("Create", url, normalizedRect.x, normalizedRect.y, normalizedRect.width, normalizedRect.height);
+        }
+
+        public string GetURL(int webViewId)
+        {
+            return WebViewManager.CallStatic<string>("GetURL", webViewId);
+        }
+
+        public void GoBack(int webViewId)
+        {
+            WebViewManager.CallStatic("GoBack", webViewId);
+        }
+
+        public void GoForward(int webViewId)
+        {
+            WebViewManager.CallStatic("GoForward", webViewId);
+        }
+
+        public bool IsLoading(int webViewId)
+        {
+            return WebViewManager.CallStatic<bool>("IsLoading", webViewId);
+        }
+
+        public bool IsVisible(int webViewId)
+        {
+            return WebViewManager.CallStatic<bool>("IsVisible", webViewId);
+        }
+
+        public void Navigate(int webViewId, string url)
+        {
+            WebViewManager.CallStatic("Navigate", webViewId, url);
+        }
+
+        public void SetVisible(int webViewId, bool visible)
+        {
+            WebViewManager.CallStatic("SetVisible", webViewId, visible);
+        }
+
+        public void Reload(int webViewId)
+        {
+            WebViewManager.CallStatic("Reload", webViewId);
+        }
+
+        public void Resize(int webViewId, Rect normalizedRect)
+        {
+            WebViewManager.CallStatic("Resize", webViewId, normalizedRect.x, normalizedRect.y, normalizedRect.width, normalizedRect.height);
+        }
+
+        public void RunJavaScript(int webViewId, string jsCode)
+        {
+            WebViewManager.CallStatic("RunJavaScript", webViewId, jsCode);
+        }
+
+        public void SetBGColor(int webViewId, Color32 color)
+        {
+            WebViewManager.CallStatic("SetBGColor", webViewId, (int)color.r, (int)color.g, (int)color.b, (int)color.a);
+        }
+
+        public void SetEnv(WebViewEnv config)
+        {
+            
+        }
+
+
+        private IPlatformWebViewMgr.OnWebViewEvent _EventCallBack;
+        public void SetEventCallBack(IPlatformWebViewMgr.OnWebViewEvent eventCallBack)
+        {
+            _EventCallBack = eventCallBack;
+        }
+
+        public void OnEvent(int webViewId, int eventType)
+        {
+            switch (eventType)
+            {
+                case 1:
+                    _EventCallBack?.Invoke(webViewId, EWebViewEventType.DocumentReady);
+                    break;
+
+                case 2:
+                    _EventCallBack?.Invoke(webViewId, EWebViewEventType.Destroyed);
+                    break;
+
+                default:
+                    WebViewLog._.E("unkown event type {0}", eventType);
+                    break;
+            }
+        }
+         
+        public void OnMessage(int webViewId, string message)
+        {
+            WebViewLog._.I($"{message}");
+        }
+
+    }
+
+    internal class PlatformWebViewMgr_Android2
+    {
         private static bool _Inited = false;
         private static AndroidJavaClass _WebViewManager;
         private static AndroidJavaClass WebViewManager

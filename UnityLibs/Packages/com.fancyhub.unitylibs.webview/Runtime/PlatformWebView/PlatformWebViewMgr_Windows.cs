@@ -385,7 +385,7 @@ namespace FH.WV
 
         public void OnMessage(int webViewId, string msg)
         {
-            Debug.Log($"{msg}");
+            WebViewLog._.I($"{msg}");
         }
 
         public void Fix()
