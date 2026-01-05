@@ -1,4 +1,4 @@
-﻿/*************************************************************************************
+/*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2026/1/4
  * Title   : 
@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace FH
 {
-    public static partial class IosDeviceInfo
+    public static partial class DeviceInfoIOS
     {
         private static partial class _
         {
@@ -27,18 +27,19 @@ namespace FH
 
    
     #if UNITY_EDITOR
-    public static  class IosDeviceInfo_AddAdSupportFramework
+    public static  class DeviceInfoIOS_PostBuilder
     {
         private const string CTrackingUsageDescription = "We use your advertising identifier to deliver personalized ads and measure ad performance.";
 
         [UnityEditor.Callbacks.PostProcessBuild(100)]
         public static void OnPostProcessBuild(UnityEditor.BuildTarget buildTarget, string path)
         {
+            //1. check target
             if (buildTarget != UnityEditor.BuildTarget.iOS)
                 return;
             
             
-            
+            //2. Add framework to the project
             {
                 string projPath = path + "/Unity-iPhone.xcodeproj/project.pbxproj";
                 UnityEditor.iOS.Xcode.PBXProject proj = new UnityEditor.iOS.Xcode.PBXProject();
@@ -60,8 +61,9 @@ namespace FH
 
                 proj.WriteToFile(projPath);                     
             }
-            
 
+
+            //3. Add NSUserTrackingUsageDescription to Info.Plist if need
             {
                 string plistPath = System.IO.Path.Combine(path, "Info.plist");
                 UnityEditor.iOS.Xcode.PlistDocument plist = new UnityEditor.iOS.Xcode.PlistDocument();

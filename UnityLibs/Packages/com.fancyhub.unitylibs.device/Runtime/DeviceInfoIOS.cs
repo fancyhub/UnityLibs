@@ -1,4 +1,4 @@
-﻿/*************************************************************************************
+/*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2026/1/4
  * Title   : 
@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace FH
 {
-    public static partial class IosDeviceInfo
+    public static partial class DeviceInfoIOS
     {
         #region Base
         private const bool ReturnExcpetion = false;

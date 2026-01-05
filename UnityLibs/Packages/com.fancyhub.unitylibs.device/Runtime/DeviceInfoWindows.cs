@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace FH
 {
-    public static class WindowsDeviceInfo
+    public static class DeviceInfoWindows
     {
         private const bool ReturnExcpetion = false;
         private static void _PrintException(System.Exception e)
@@ -40,5 +40,13 @@ namespace FH
         [DllImport("kernel32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GetPhysicallyInstalledSystemMemory(out long TotalMemoryInKilobytes);
+
+        public static (long free, long total) Persistent_DiskSpace => _GetDiskSpace(Application.persistentDataPath);
+
+        private static (long free, long total) _GetDiskSpace(string path)
+        {
+            var drive = new System.IO.DriveInfo(System.IO.Path.GetPathRoot(path));
+            return (drive.AvailableFreeSpace,drive.TotalSize); //not TotalFreeSpace
+        }
     }
 }

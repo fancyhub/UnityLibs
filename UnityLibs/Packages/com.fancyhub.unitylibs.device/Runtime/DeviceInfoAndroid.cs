@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace FH
 {
-    public static class AndroidDeviceInfo
+    public static class DeviceInfoAndroid
     {
         #region Base
         private const bool ReturnExcpetion = false;
@@ -389,7 +389,6 @@ namespace FH
         #region Storage StateFS
         private static AndroidJavaObject _DataStorage; //android.os.StatFs
         private static AndroidJavaObject _ExternalStorage; //android.os.StatFs
-        private static AndroidJavaObject _PersistentStorage; //android.os.StatFs
         private static bool _ExternalStorageInited = false;
         private static AndroidJavaObject _GetDataStorage()
         {
@@ -440,12 +439,13 @@ namespace FH
                 return default;
             }
         }
+ 
 
-        private static AndroidJavaObject _GetPersistentStorage()
+        private static long _GetStorageAvailableBytes(string path)
         {
             try
             {
-                _PersistentStorage = new AndroidJavaObject("android.os.StatFs", Application.persistentDataPath);
+                return _GetStorageAvailableBytes(new AndroidJavaObject("android.os.StatFs", path));
             }
             catch (Exception ex)
             {
@@ -453,7 +453,7 @@ namespace FH
                     throw ex;
                 _PrintException(ex);
             }
-            return _PersistentStorage;
+            return 0;
         }
 
         private static long _GetStorageAvailableBytes(AndroidJavaObject target)
@@ -497,6 +497,20 @@ namespace FH
             }
         }
 
+        private static long _GetStorageTotalBytes(string path)
+        {            
+            try
+            {
+                return _GetStorageTotalBytes(new AndroidJavaObject("android.os.StatFs", path));
+            }
+            catch (Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+            }
+            return 0;
+        }
         private static long _GetStorageTotalBytes(AndroidJavaObject target)
         {
             if (target == null)
@@ -538,15 +552,42 @@ namespace FH
             }
         }
 
+        private static long? _Storage_TotalBytes = null;
         public static long Storage_AvailableBytes => _GetStorageAvailableBytes(_GetDataStorage());
-        public static long Storage_TotalBytes => _GetStorageTotalBytes(_GetDataStorage());
+        public static long Storage_TotalBytes
+        {
+            get
+            {
+                if (_Storage_TotalBytes == null)
+                    _Storage_TotalBytes = _GetStorageTotalBytes(_GetDataStorage());
+                return _Storage_TotalBytes.Value;
+            }
+        }
 
+        private static long? _ExternalStorage_TotalBytes = null;
         public static bool ExternalStorage_Exist => _GetExternalStorage() != null;
         public static long ExternalStorage_AvailableBytes => _GetStorageAvailableBytes(_GetExternalStorage());
-        public static long ExternalStorage_TotalBytes => _GetStorageTotalBytes(_GetExternalStorage());
+        public static long ExternalStorage_TotalBytes
+        {
+            get
+            {
+                if (_ExternalStorage_TotalBytes == null)
+                    _ExternalStorage_TotalBytes = _GetStorageTotalBytes(_GetExternalStorage());
+                return _ExternalStorage_TotalBytes.Value;
+            }
+        }
 
-        public static long Persistent_AvailableBytes => _GetStorageAvailableBytes(_GetPersistentStorage());
-        public static long Persistent_TotalBytes => _GetStorageTotalBytes(_GetPersistentStorage());
+        private static long? _Persistent_TotalBytes = null;
+        public static long Persistent_AvailableBytes => _GetStorageAvailableBytes(Application.persistentDataPath);
+        public static long Persistent_TotalBytes
+        {
+            get
+            {
+                if (_Persistent_TotalBytes == null)
+                    _Persistent_TotalBytes = _GetStorageTotalBytes(Application.persistentDataPath);
+                return _Persistent_TotalBytes.Value;
+            }
+        }
         #endregion
 
         //https://developer.android.google.cn/reference/android/os/Build
@@ -619,7 +660,16 @@ namespace FH
             }
         }
 
-        public static int BuildVersion_SDK_INT => _GetBuildVersion()._ExtGetStatic<int>("SDK_INT");
+        private static int? _BuildVersion_SDK_INT = null;
+        public static int BuildVersion_SDK_INT
+        {
+            get
+            {
+                if (_BuildVersion_SDK_INT == null)
+                    _BuildVersion_SDK_INT = _GetBuildVersion()._ExtGetStatic<int>("SDK_INT");
+                return _BuildVersion_SDK_INT.Value;
+            }
+        }
         public static string BuildVersion_Release => _GetBuildVersion()._ExtGetStatic<string>("RELEASE");
         #endregion
 
@@ -662,7 +712,7 @@ namespace FH
         public static int Screen_HeightPixels => _GetDefaultRealMetrics()._ExtGet<int>("heightPixels");
         #endregion
 
-        
+
 
         #region AndroidDeviceInfo
         private static AndroidJavaClass _AndroidDeviceInfo;

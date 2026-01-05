@@ -69,67 +69,7 @@ namespace FH
         {
             UnityEngine.Debug.LogException(e);
         }
-
-        private static T _ExtCall<T>(this AndroidJavaObject self, string name)
-        {
-            try
-            {
-                return self.Call<T>(name);
-            }
-            catch (System.Exception ex)
-            {
-                if (ReturnExcpetion)
-                    throw ex;
-                _PrintException(ex);
-                return default(T);
-            }
-        }
-
-        private static T _ExtGet<T>(this AndroidJavaObject self, string name)
-        {
-            try
-            {
-                return self.Get<T>(name);
-            }
-            catch (System.Exception ex)
-            {
-                if (ReturnExcpetion)
-                    throw ex;
-                _PrintException(ex);
-                return default(T);
-            }
-        }
-
-        private static T _ExtCallStatic<T>(this AndroidJavaClass self, string name)
-        {
-            try
-            {
-                return self.CallStatic<T>(name);
-            }
-            catch (System.Exception ex)
-            {
-                if (ReturnExcpetion)
-                    throw ex;
-                _PrintException(ex);
-                return default(T);
-            }
-        }
-
-        private static T _ExtGetStatic<T>(this AndroidJavaClass self, string name)
-        {
-            try
-            {
-                return self.GetStatic<T>(name);
-            }
-            catch (System.Exception ex)
-            {
-                if (ReturnExcpetion)
-                    throw ex;
-                _PrintException(ex);
-                return default(T);
-            }
-        }
-
+         
         private static AndroidJavaClass _PermissionUtil;
         private static AndroidJavaClass _GetPermissionUtil()
         {
