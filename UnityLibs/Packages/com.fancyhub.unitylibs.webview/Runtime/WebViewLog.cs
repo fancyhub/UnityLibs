@@ -9,6 +9,7 @@ namespace FH
 {
     internal static class WebViewLog
     {
-        public static TagLog _ = TagLog.Create("WebView", ELogLvl.Debug);
+        public static TagLog _ = TagLog.Create("WebView", ELogLvl.Debug);        
+        public static TagLog JsLog = TagLog.Create("WebViewJS", ELogLvl.Debug);
     }
 }

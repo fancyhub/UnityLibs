@@ -1,2 +1,2 @@
 -keep class com.fancyhub.webview.WebViewManager { *; }
-
+-keep class com.fancyhub.webview.IWebViewManagerCallBack { *; }

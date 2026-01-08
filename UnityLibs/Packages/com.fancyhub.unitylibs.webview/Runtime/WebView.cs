@@ -51,8 +51,10 @@ namespace FH
 
         public void Close()
         {
+            WebViewLog._.D("Close Webview {0}", _WebViewId);
             if (_WebViewId == 0)
                 return;
+
             _PlatformWebViewMgr?.Close(_WebViewId);
             _PlatformWebViewMgr = null;
         }

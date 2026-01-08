@@ -7,11 +7,12 @@
 
 //在这里写控制宏定义
 #if UNITY_EDITOR
-#define ENABLE_LOG_Debug
 
+#endif
+
+#define ENABLE_LOG_Debug
 #define ENABLE_LOG_Warning 
 #define ENABLE_LOG_Assert
-#endif
 
 #define ENABLE_LOG_Info
 

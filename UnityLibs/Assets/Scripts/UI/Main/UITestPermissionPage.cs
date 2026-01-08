@@ -38,7 +38,7 @@ namespace Game
             _Data.Clear();
             if(Application.platform == RuntimePlatform.Android)
             {
-                string[] permissions = FH.AndroidDeviceInfo.GetSelfPackageInfoPermissions();
+                string[] permissions = FH.DeviceInfoAndroid.GetSelfPackageInfoPermissions();
                 foreach(var permission in permissions)
                 {
                     _Data.Add(new(permission, EPermissionItem.Android));

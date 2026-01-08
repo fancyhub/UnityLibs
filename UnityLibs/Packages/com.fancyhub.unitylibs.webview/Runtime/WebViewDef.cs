@@ -18,8 +18,7 @@ namespace FH
     }
 
     internal static class WebViewDef
-    {
-        public const string HandlerName = "UnityWebViewHandler";
+    {        
         public const string JsHostObjName = "FH";
     }   
 }

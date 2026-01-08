@@ -38,11 +38,50 @@ namespace FH
         private static partial class _
         {
             [DllImport("__Internal")] public static extern long FH_GetFreeDiskSpace();
-            [DllImport("__Internal")] public static extern long FH_GetTotalDiskSpace();    
+            [DllImport("__Internal")] public static extern long FH_GetTotalDiskSpace();
         }
 
         public static long FreeDiskSpace => _Call(_.FH_GetFreeDiskSpace);
         public static long TotalDiskSpace => _Call(_.FH_GetTotalDiskSpace);
-       
+
+        public static string SystemVersion
+        {
+            get
+            {
+#if UNITY_EDITOR || UNITY_IOS 
+                return UnityEngine.iOS.Device.systemVersion;
+#else
+                return default;
+#endif
+            }
+        }
+
+#if UNITY_EDITOR || UNITY_IOS 
+        public static UnityEngine.iOS.DeviceGeneration Generation => UnityEngine.iOS.Device.generation;
+#endif
+
+        public static string VendorIdentifier
+        {
+            get
+            {
+#if UNITY_EDITOR || UNITY_IOS 
+                return UnityEngine.iOS.Device.vendorIdentifier;
+#else
+                return default;
+#endif
+            }
+        }
+
+        public static string AdvertisingIdentifier
+        {
+            get
+            {
+#if UNITY_EDITOR || UNITY_IOS 
+                return UnityEngine.iOS.Device.advertisingIdentifier;
+#else
+                return default;
+#endif
+            }
+        }
     }
 }

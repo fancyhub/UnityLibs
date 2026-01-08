@@ -408,11 +408,7 @@ for( var i = 0; i < audios.length; i++ )
         {
             throw new NotImplementedException();
         }
-
-        void IPlatformWebViewMgr.SetEventCallBack(IPlatformWebViewMgr.OnWebViewEvent eventCallBack)
-        {
-            throw new NotImplementedException();
-        }
+         
 
         void IPlatformWebViewMgr.SetEnv(WebViewEnv config)
         {
@@ -495,6 +491,11 @@ for( var i = 0; i < audios.length; i++ )
         }
 
         public void OnEvent(int webViewId, int eventType)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPlatformWebViewMgr.SetWebViewCallBack(IPlatformWebViewMgrCallback webViewCallback)
         {
             throw new NotImplementedException();
         }

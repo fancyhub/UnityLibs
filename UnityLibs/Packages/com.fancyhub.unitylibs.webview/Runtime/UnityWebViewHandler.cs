@@ -8,11 +8,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using FH.WV;
 
-
-namespace FH.WV
+namespace FH
 {
-    internal class UnityWebViewHandler : MonoBehaviour
+    internal class UnityWebViewHandler : MonoBehaviour, IPlatformWebViewMgrCallback
     {
         public enum EEventType
         {
@@ -23,26 +23,26 @@ namespace FH.WV
         public struct MessageData
         {
             public EEventType type;
-            public int webviewId;
+            public int webViewId;
             public string message;
-            public int webviewEventType;
+            public EWebViewEventType webviewEventType;
         }
 
         private static UnityWebViewHandler _;
 
-        private static IPlatformWebViewMgr _platformWebViewMgr;
+
         private static List<MessageData> _MessageQueue = new List<MessageData>();
 
         private Queue<MessageData> _TempList = new Queue<MessageData>();
 
-        public static UnityWebViewHandler Init(IPlatformWebViewMgr mgr)
+        public static UnityWebViewHandler Init()
         {
             if (_ != null)
                 return _;
-            _platformWebViewMgr = mgr;
             GameObject handler = new GameObject();
             _ = handler.AddComponent<UnityWebViewHandler>();
-            handler.name = WebViewDef.HandlerName;
+            handler.name = "_UnityWebViewHandler";
+            handler.hideFlags= HideFlags.HideAndDontSave;
             GameObject.DontDestroyOnLoad(handler);
             return _;
         }
@@ -58,12 +58,6 @@ namespace FH.WV
                 _MessageQueue.Clear();
             }
 
-            if (_platformWebViewMgr == null)
-            {
-                _TempList.Clear();
-                return;
-            }
-
             for (; ; )
             {
                 if (_TempList.Count == 0)
@@ -74,32 +68,23 @@ namespace FH.WV
                 switch (msg.type)
                 {
                     case EEventType.Message:
-                        _platformWebViewMgr.OnMessage(msg.webviewId, msg.message);
+                        WebViewMgr.OnJsMsg(msg.webViewId, msg.message);
                         break;
 
                     case EEventType.Event:
-                        _platformWebViewMgr.OnEvent(msg.webviewId, msg.webviewEventType);
+                        WebViewMgr.OnWebViewEvent(msg.webViewId, msg.webviewEventType);
                         break;
                 }
             }
         }
 
-        public void OnWebViewEvent(int webviewId, int eventType)
-        {
-            lock (_MessageQueue)
-            {
-                _MessageQueue.Add(new MessageData()
-                {
-                    type = EEventType.Event,
-                    webviewId = webviewId,
-                    webviewEventType = eventType
-                });
-            }
-        }
 
-        public void OnWebViewMsg(int webviewId, string content)
+        void IPlatformWebViewMgrCallback.OnJsMsg(int webViewId, string message)
         {
-            if (string.IsNullOrEmpty(content))
+            if (this == null)
+                return;
+
+            if (string.IsNullOrEmpty(message))
                 return;
 
             lock (_MessageQueue)
@@ -107,25 +92,23 @@ namespace FH.WV
                 _MessageQueue.Add(new MessageData()
                 {
                     type = EEventType.Message,
-                    webviewId = webviewId,
-                    message = content
+                    webViewId = webViewId,
+                    message = message
                 });
             }
         }
 
-        public void OnWebViewLog(string log)
+        void IPlatformWebViewMgrCallback.OnWebViewEvent(int webViewId, EWebViewEventType eventType)
         {
-            WebViewLog._.D(log);
-        }
-
-        public void OnWebViewInfo(string log)
-        {
-            WebViewLog._.I(log);
-        }
-
-        public void OnWebViewError(string log)
-        {
-            WebViewLog._.E(log);
+            lock (_MessageQueue)
+            {
+                _MessageQueue.Add(new MessageData()
+                {
+                    type = EEventType.Event,
+                    webViewId = webViewId,
+                    webviewEventType = eventType
+                });
+            }
         }
     }
 }

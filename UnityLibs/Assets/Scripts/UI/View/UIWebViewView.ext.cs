@@ -12,10 +12,17 @@ namespace Game
     public partial class UIWebViewView // : FH.UI.UIBaseView 
     {
         private UIWebView _UnityWebView;
-        //public override void OnCreate()
-        //{
-        //    base.OnCreate();
-        //}
+        public override void OnCreate()
+        {
+            base.OnCreate();
+
+            if (_UnityWebView == null && _WebView!=null)
+            {
+                _UnityWebView = _WebView.GetComponent<UIWebView>();
+                if (_UnityWebView == null)
+                    _UnityWebView = _WebView.gameObject.AddComponent<UIWebView>();
+            }
+        }
 
         public UIWebView UnityWebView
         {

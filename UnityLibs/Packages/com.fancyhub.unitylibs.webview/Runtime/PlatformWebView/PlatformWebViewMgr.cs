@@ -10,14 +10,17 @@ using UnityEngine;
 
 namespace FH.WV
 {
-    using WebViewId = System.Int32;
+    using WebViewId = System.Int32;    
 
+    internal interface IPlatformWebViewMgrCallback
+    {
+        public void OnWebViewEvent(WebViewId webViewId, EWebViewEventType eventType);
+        public void OnJsMsg(WebViewId webViewId, string message);
+    }
 
     internal interface IPlatformWebViewMgr
     {
-        public delegate void OnWebViewEvent(WebViewId webViewId, EWebViewEventType eventType);
-
-        public void SetEventCallBack(OnWebViewEvent eventCallBack);
+        public void SetWebViewCallBack(IPlatformWebViewMgrCallback webViewCallback);
 
         public void SetEnv(WebViewEnv config);
 
@@ -57,10 +60,7 @@ namespace FH.WV
         public void SetVisible(WebViewId webViewId, bool visible);
         public bool IsVisible(WebViewId webViewId);
 
-        public void CloseAll();
-
-        public void OnMessage(WebViewId webViewId, string message);
-        public void OnEvent(WebViewId webViewId,int eventType);
+        public void CloseAll();        
 
     }
 }

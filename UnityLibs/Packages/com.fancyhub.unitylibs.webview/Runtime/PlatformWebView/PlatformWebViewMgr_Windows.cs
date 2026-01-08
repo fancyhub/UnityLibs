@@ -231,14 +231,24 @@ namespace FH.WV
 
         public PlatformWebViewMgr_Windows()
         {
-            var handler = UnityWebViewHandler.Init(this);
-
             Cpp.WebViewSetInnerLogCallBack(_OnInnerLogCallBack, Cpp.LogLevel_Debug);
             Cpp.WebViewJsLogCallBack callback = _OnJsLogCallBack;
             Cpp.WebViewSetJsLogCallBack(callback);
 
-            Cpp.WebViewSetMessageCallback(handler.OnWebViewMsg);
-            Cpp.WebViewSetEventCallBack(handler.OnWebViewEvent);
+            Cpp.WebViewSetMessageCallback(_OnJsMsg);
+            Cpp.WebViewSetEventCallBack(_OnEvent);
+
+            Cpp.WebViewCloseAll();
+        }
+
+        private void _OnJsMsg(int webViewId, string msg)
+        {
+            _CallBack?.OnJsMsg(webViewId, msg);
+        }
+
+        private void _OnEvent(int webViewId, int eventType)
+        {
+            _CallBack?.OnWebViewEvent(webViewId, (EWebViewEventType)eventType);
         }
 
         public void SetEnv(WebViewEnv config)
@@ -283,10 +293,10 @@ namespace FH.WV
             Cpp.WebViewClose(webViewId);
         }
 
-        private IPlatformWebViewMgr.OnWebViewEvent _EventCallBack;
-        public void SetEventCallBack(IPlatformWebViewMgr.OnWebViewEvent eventCallBack)
+        private IPlatformWebViewMgrCallback _CallBack;
+        public void SetWebViewCallBack(IPlatformWebViewMgrCallback eventCallBack)
         {
-            _EventCallBack = eventCallBack;
+            _CallBack = eventCallBack;
         }
 
         public void OnEvent(int webViewId, int eventType)
@@ -294,11 +304,11 @@ namespace FH.WV
             switch (eventType)
             {
                 case 1:
-                    _EventCallBack?.Invoke(webViewId, EWebViewEventType.DocumentReady);
+                    _CallBack?.OnWebViewEvent(webViewId, EWebViewEventType.DocumentReady);
                     break;
 
                 case 2:
-                    _EventCallBack?.Invoke(webViewId, EWebViewEventType.Destroyed);
+                    _CallBack?.OnWebViewEvent(webViewId, EWebViewEventType.Destroyed);
                     break;
 
                 default:
@@ -383,11 +393,6 @@ namespace FH.WV
         {
         }
 
-        public void OnMessage(int webViewId, string msg)
-        {
-            WebViewLog._.I($"{msg}");
-        }
-
         public void Fix()
         {
             Application.OpenURL("https://winstall.app/apps/Microsoft.EdgeWebView2Runtime");
@@ -444,25 +449,25 @@ namespace FH.WV
                 switch (data.type)
                 {
                     case "debug":
-                        WebViewLog._.D("JSLog, WebviewId: {0}, {1} @ {2} -> {3}", webViewId, data.type, sourceUrl, messageContent);
+                        WebViewLog.JsLog.D("WebviewId: {0}, {1} @ {2} -> {3}", webViewId, data.type, sourceUrl, messageContent);
                         break;
 
                     case "log":
                     case "info":
-                        WebViewLog._.I("JSLog, WebviewId: {0}, {1} @ {2} -> {3}", webViewId, data.type, sourceUrl, messageContent);
+                        WebViewLog.JsLog.I("WebviewId: {0}, {1} @ {2} -> {3}", webViewId, data.type, sourceUrl, messageContent);
                         break;
 
                     case "warning":
-                        WebViewLog._.W("JSLog, WebviewId: {0}, {1} @ {2} -> {3}", webViewId, data.type, sourceUrl, messageContent);
+                        WebViewLog.JsLog.W("WebviewId: {0}, {1} @ {2} -> {3}", webViewId, data.type, sourceUrl, messageContent);
                         break;
 
                     case "error":
                     case "assert":
-                        WebViewLog._.E("JSLog, WebviewId: {0}, {1} @ {2} -> {3}", webViewId, data.type, sourceUrl, messageContent);
+                        WebViewLog.JsLog.E("WebviewId: {0}, {1} @ {2} -> {3}", webViewId, data.type, sourceUrl, messageContent);
                         break;
 
                     default:
-                        WebViewLog._.E("JSLog, WebviewId: {0}, {1} @ {2} -> {3}", webViewId, data.type, sourceUrl, messageContent);
+                        WebViewLog.JsLog.E("WebviewId: {0}, {1} @ {2} -> {3}", webViewId, data.type, sourceUrl, messageContent);
                         break;
                 }
             }

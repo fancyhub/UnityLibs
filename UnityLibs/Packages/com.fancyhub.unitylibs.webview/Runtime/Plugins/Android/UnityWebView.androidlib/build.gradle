@@ -35,6 +35,5 @@ android {
 
 dependencies {
     implementation fileTree(dir: '../libs', includes: ['unity-classes.jar'])
-    implementation 'com.google.code.gson:gson:2.8.2'    
     implementation 'androidx.appcompat:appcompat:1.1.0'
 }

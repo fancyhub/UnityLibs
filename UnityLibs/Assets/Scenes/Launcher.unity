@@ -414,7 +414,7 @@ MonoBehaviour:
       LogLvl: 1
       UnloadAllLoadedObjects: 1
     ResMgrConfig:
-      LogLevel: 0
+      LogLevel: 1
       MaxAsyncResLoaderSlot: 5
       MaxAsyncGameObjectSlot: 1
       PreInst:
@@ -439,7 +439,7 @@ MonoBehaviour:
       ServerUrl: http://127.0.0.1:5000/
       MaxRetryCount: 3
     TableLogLvl: 1
-    LocLogLvl: 0
+    LocLogLvl: 1
 --- !u!114 &1811144038
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-
+using FH.WV;
 
 #if UNITY_EDITOR && UNITY_EDITOR_WIN
 using PlatformWebViewMgr = FH.WV.PlatformWebViewMgr_Windows;
@@ -54,7 +54,7 @@ namespace FH
                 if (_ != null)
                     return _;
                 _ = new PlatformWebViewMgr();
-                _.SetEventCallBack(_OnWebViewEventCallBack);
+                _.SetWebViewCallBack(UnityWebViewHandler.Init());
                 return _;
             }
         }
@@ -90,8 +90,15 @@ namespace FH
             return ret;
         }
 
-        private static void _OnWebViewEventCallBack(int webViewId, EWebViewEventType eventType)
+        internal static void OnJsMsg(int webViewId, string message)
         {
+            WebViewLog._.I($"{message}");
+        }
+
+        internal static void OnWebViewEvent(int webViewId, EWebViewEventType eventType)
+        {
+            WebViewLog._.D($"OnWebViewEvent {webViewId} {eventType}");
+
             _Dict.TryGetValue(webViewId, out WebView webView);
             if (webView == null)
                 return;

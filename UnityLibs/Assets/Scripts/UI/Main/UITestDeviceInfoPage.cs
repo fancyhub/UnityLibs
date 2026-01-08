@@ -119,7 +119,7 @@ namespace Game
         private void _ShowWindowsDeviceInfo()
         {
             StringBuilder sb = new StringBuilder();
-            var all_props = typeof(WindowsDeviceInfo).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            var all_props = typeof(DeviceInfoWindows).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
             foreach (var p in all_props)
             {
                 Debug.Log(p.Name);
@@ -149,7 +149,7 @@ namespace Game
         private void _ShowAndroidDeviceInfo()
         {
             StringBuilder sb = new StringBuilder();
-            var all_props = typeof(AndroidDeviceInfo).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            var all_props = typeof(DeviceInfoAndroid).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
             foreach (var p in all_props)
             {
                 Debug.Log(p.Name);
@@ -176,7 +176,7 @@ namespace Game
             _SetContent(sb.ToString());
 
 
-            string v = AndroidDeviceInfo.GetAllSystemProperties();
+            string v = DeviceInfoAndroid.GetAllSystemProperties();
             foreach (var p in v.Split('\n'))
             {
                 Debug.Log(p);
@@ -186,7 +186,7 @@ namespace Game
         private void _ShowIosDeviceInfo()
         {
             StringBuilder sb = new StringBuilder();
-            var all_props = typeof(IosDeviceInfo).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            var all_props = typeof(DeviceInfoIOS).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
             foreach (var p in all_props)
             {
                 Debug.Log(p.Name);

@@ -166,14 +166,14 @@ namespace FH.WV
         void IPlatformWebViewMgr.SetEnv(WebViewEnv config)
         {
             throw new NotImplementedException();
-        }
+        }         
 
-        void IPlatformWebViewMgr.SetEventCallBack(IPlatformWebViewMgr.OnWebViewEvent eventCallBack)
+        void IPlatformWebViewMgr.SetVisible(int webViewId, bool visible)
         {
             throw new NotImplementedException();
         }
 
-        void IPlatformWebViewMgr.SetVisible(int webViewId, bool visible)
+        void IPlatformWebViewMgr.SetWebViewCallBack(IPlatformWebViewMgrCallback webViewCallback)
         {
             throw new NotImplementedException();
         }
