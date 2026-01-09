@@ -97,4 +97,7 @@ extern "C" {
 	WEBVIEW2UNITYPLUGIN_API bool WebViewIsValid(INT32 webViewId);
 
 	WEBVIEW2UNITYPLUGIN_API bool  WebViewIsLoading(INT32 webViewId);
+
+
+	WEBVIEW2UNITYPLUGIN_API long long  WebViewGetLoadTime();
 }

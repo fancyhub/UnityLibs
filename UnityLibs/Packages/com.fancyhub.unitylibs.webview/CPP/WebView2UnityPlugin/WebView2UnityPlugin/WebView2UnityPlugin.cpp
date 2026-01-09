@@ -334,6 +334,17 @@ public:
 			pDevToolReceiver = nullptr;
 		}
 
+		if (pController != nullptr)
+		{
+			// 可选：清除父窗口关联
+			pController->put_ParentWindow(nullptr);
+
+			pController->Close();
+
+			// 释放控制器接口
+			pController = nullptr;
+		}
+
 		if (pWebView2 != nullptr)
 		{
 			if (Token_NavStarting.value != 0)pWebView2->remove_NavigationStarting(Token_NavStarting);
@@ -345,14 +356,7 @@ public:
 			pWebView2 = nullptr;
 		}
 
-		if (pController != nullptr)
-		{
-			// 可选：清除父窗口关联
-			pController->put_ParentWindow(nullptr);
 
-			// 释放控制器接口
-			pController = nullptr;
-		}
 
 		if (pEnv != nullptr)
 		{
@@ -951,5 +955,25 @@ WEBVIEW2UNITYPLUGIN_API bool  WebViewIsLoading(INT32 webViewId)
 	if (pWebView == nullptr)
 		return false;
 	return pWebView->IsLoading;
+}
+
+static unsigned  long long _LoadedTime = 0;
+
+WEBVIEW2UNITYPLUGIN_API long long  WebViewGetLoadTime()
+{
+	if (_LoadedTime == 0)
+	{
+		FILETIME ft;
+		ULARGE_INTEGER ull;
+
+		GetSystemTimeAsFileTime(&ft);
+
+		ull.LowPart = ft.dwLowDateTime;
+		ull.HighPart = ft.dwHighDateTime;
+
+		_LoadedTime = (ull.QuadPart - 116444736000000000ULL) / 10000ULL; // 毫秒
+	}
+
+	return (long long)_LoadedTime;	
 }
 

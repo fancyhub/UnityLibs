@@ -96,18 +96,16 @@ namespace FH.WV
 
 
             [DllImport(PluginName)]
-            [return: MarshalAs(UnmanagedType.BStr)] public static extern string WebViewGetUrl(int webViewId);
+            [return: MarshalAs(UnmanagedType.BStr)]
+            public static extern string WebViewGetUrl(int webViewId);
 
             [DllImport(PluginName, CharSet = CharSet.Unicode)]
             public static extern void WebViewExecuteScript(int webViewId, string javaScript);
 
-            [DllImport(PluginName)]
-            public static extern void WebViewClose(int webViewId);
-            [DllImport(PluginName)]
-            public static extern void WebViewCloseAll();
+            [DllImport(PluginName)] public static extern void WebViewClose(int webViewId);
+            [DllImport(PluginName)] public static extern void WebViewCloseAll();
 
-            [DllImport(PluginName)]
-            public static extern bool WebViewIsLoading(int webViewId);
+            [DllImport(PluginName)] public static extern bool WebViewIsLoading(int webViewId);
 
             public static int WebViewCreate(string url, float posX, float posY, float width, float height)
             {
@@ -130,6 +128,8 @@ namespace FH.WV
 #endif
             }
 
+            [DllImport(PluginName)]
+            public static extern long WebViewGetLoadTime();
         }
 
 #if UNITY_EDITOR
@@ -236,6 +236,9 @@ namespace FH.WV
 
         public PlatformWebViewMgr_Windows()
         {
+
+            WebViewLog._.I($"WebViewDll Loaded Time : {System.DateTimeOffset.FromUnixTimeMilliseconds(Cpp.WebViewGetLoadTime())}");
+
             _InnerLogCallBack = _OnInnerLogCallBack;
             Cpp.WebViewSetInnerLogCallBack(_InnerLogCallBack, Cpp.LogLevel_Debug);
 
@@ -248,10 +251,31 @@ namespace FH.WV
             _EventCallBack = _OnEvent;
             Cpp.WebViewSetEventCallBack(_EventCallBack);
 
-            Cpp.WebViewCloseAll();
 
             Cpp.WebViewSetHostObjName(WebViewDef.JsHostObjName);
+
+#if UNITY_EDITOR 
+            Cpp.WebViewCloseAll();
+            UnityEditor.EditorApplication.quitting += () =>
+            {
+                WebViewLog._.I("WebViewCloseAll1");
+                Cpp.WebViewCloseAll();
+            };
+
+            UnityEditor.EditorApplication.playModeStateChanged += (st) =>
+            {
+                WebViewLog._.I("WebViewCloseAll2");
+                Cpp.WebViewCloseAll();
+            };
+#endif
+
+            AppDomain.CurrentDomain.ProcessExit += (_, __) =>
+            {
+                WebViewLog._.I("WebViewCloseAll3");
+                Cpp.WebViewCloseAll();
+            };
         }
+
 
         private void _OnJsMsg(int webViewId, string msg)
         {
