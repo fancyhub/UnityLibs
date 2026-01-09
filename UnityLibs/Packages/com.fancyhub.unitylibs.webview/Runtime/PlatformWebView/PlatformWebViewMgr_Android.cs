@@ -117,79 +117,74 @@ namespace FH.WV
             WebViewManager.CallStatic("Init", WebViewDef.JsHostObjName, _CallBack);
         }
 
-        public void Close(int webViewId)
+        void IPlatformWebViewMgr.Close(int webViewId)
         {
             WebViewManager.CallStatic("Close", webViewId);
         }
 
-        public void CloseAll()
+        void IPlatformWebViewMgr.CloseAll()
         {
             WebViewManager.CallStatic("CloseAll");
         }
 
-        public int Create(string url, Rect normalizedRect)
+        int IPlatformWebViewMgr.Create(string url, Rect normalizedRect)
         {
             return WebViewManager.CallStatic<int>("Create", url, normalizedRect.x, normalizedRect.y, normalizedRect.width, normalizedRect.height);
         }
 
-        public string GetURL(int webViewId)
+        string IPlatformWebViewMgr.GetURL(int webViewId)
         {
             return WebViewManager.CallStatic<string>("GetURL", webViewId);
         }
 
-        public void GoBack(int webViewId)
+        void IPlatformWebViewMgr.GoBack(int webViewId)
         {
             WebViewManager.CallStatic("GoBack", webViewId);
         }
 
-        public void GoForward(int webViewId)
+        void IPlatformWebViewMgr.GoForward(int webViewId)
         {
             WebViewManager.CallStatic("GoForward", webViewId);
         }
 
-        public bool IsLoading(int webViewId)
+        bool IPlatformWebViewMgr.IsLoading(int webViewId)
         {
             return WebViewManager.CallStatic<bool>("IsLoading", webViewId);
         }
 
-        public bool IsVisible(int webViewId)
+        bool IPlatformWebViewMgr.IsVisible(int webViewId)
         {
             return WebViewManager.CallStatic<bool>("IsVisible", webViewId);
         }
 
-        public void Navigate(int webViewId, string url)
+        void IPlatformWebViewMgr.Navigate(int webViewId, string url)
         {
             WebViewManager.CallStatic("Navigate", webViewId, url);
         }
 
-        public void SetVisible(int webViewId, bool visible)
+        void IPlatformWebViewMgr.SetVisible(int webViewId, bool visible)
         {
             WebViewManager.CallStatic("SetVisible", webViewId, visible);
         }
 
-        public void Reload(int webViewId)
+        void IPlatformWebViewMgr.Reload(int webViewId)
         {
             WebViewManager.CallStatic("Reload", webViewId);
         }
 
-        public void Resize(int webViewId, Rect normalizedRect)
+        void IPlatformWebViewMgr.Resize(int webViewId, Rect normalizedRect)
         {
             WebViewManager.CallStatic("Resize", webViewId, normalizedRect.x, normalizedRect.y, normalizedRect.width, normalizedRect.height);
         }
 
-        public void RunJavaScript(int webViewId, string jsCode)
+        void IPlatformWebViewMgr.RunJavaScript(int webViewId, string jsCode)
         {
             WebViewManager.CallStatic("RunJavaScript", webViewId, jsCode);
         }
 
-        public void SetBGColor(int webViewId, Color32 color)
+        void IPlatformWebViewMgr.SetBGColor(int webViewId, Color32 color)
         {
             WebViewManager.CallStatic("SetBGColor", webViewId, _ConvertColor(color));
-        }
-
-        public void SetEnv(WebViewEnv config)
-        {
-
         }
 
         private static int _ConvertColor(Color32 color)
@@ -203,9 +198,24 @@ namespace FH.WV
             return (int)final_c;
         }
 
-        public void SetWebViewCallBack(IPlatformWebViewMgrCallback webViewCallback)
+        void IPlatformWebViewMgr.SetWebViewCallBack(IPlatformWebViewMgrCallback webViewCallback)
         {
             _CallBack?.SetCallBack(webViewCallback);
+        }
+
+        void IPlatformWebViewMgr.SetGlobalBGColor(Color32 color)
+        {
+            WebViewManager.CallStatic("SetGlobalBGColor", _ConvertColor(color));
+        }
+
+        void IPlatformWebViewMgr.SetGlobalUserAgent(string userAgent)
+        {
+            WebViewManager.CallStatic("SetGlobalUserAgent", userAgent);
+        }
+
+        void IPlatformWebViewMgr.SetGlobalScaling(bool scaling)
+        {
+            WebViewManager.CallStatic("SetGlobalScaling", scaling);
         }
     }
 }

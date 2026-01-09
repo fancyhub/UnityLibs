@@ -223,8 +223,11 @@ namespace FH
                 var task = TaskQueue.AddTask(() =>
                 {
                     byte[] content = HttpDownloader.RequestFileContent(full_path);
-                    string text = System.Text.Encoding.UTF8.GetString(content);
-                    file_manifest = FileManifest.ReadFromText(text);
+                    if (content != null)
+                    {
+                        string text = System.Text.Encoding.UTF8.GetString(content);
+                        file_manifest = FileManifest.ReadFromText(text);
+                    }
                 });
 
 

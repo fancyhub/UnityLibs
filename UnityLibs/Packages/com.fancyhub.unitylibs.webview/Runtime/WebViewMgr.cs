@@ -27,22 +27,7 @@ using PlatformWebViewMgr = FH.WV.PlatformWebViewMgr_Windows;
 #endif
 
 namespace FH
-{
-    [Serializable]
-    public struct WebViewEnv
-    {
-        public string JavascriptHostObjName;
-        public string UserAgent;
-        public bool UseMediaManipulationOnHideAndShowByJavaScript;
-    }
-
-    [Serializable]
-    public class WebViewParameters
-    {
-        public bool Scaling;
-        public Color32 BGColor;
-    }
-
+{  
     public static class WebViewMgr
     {
         private static Dictionary<int, WebView> _Dict = new();
@@ -57,19 +42,8 @@ namespace FH
                 _.SetWebViewCallBack(UnityWebViewHandler.Init());
                 return _;
             }
-        }
-
-        private static bool _HasSetEnv = false;
-        public static bool HasSetEnv()
-        {
-            return _HasSetEnv;
-        }
-
-        public static void SetEnv(WebViewEnv env)
-        {
-            _HasSetEnv = true;
-            Inst.SetEnv(env);
-        }
+        }         
+ 
 
         /// <summary>
         /// 

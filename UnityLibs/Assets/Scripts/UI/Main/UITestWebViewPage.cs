@@ -46,14 +46,6 @@ namespace Game
         public int _CurrentIndex = 0;
         protected override void OnUI2Open()
         {
-            if (!WebViewMgr.HasSetEnv())
-            {
-                WebViewMgr.SetEnv(new WebViewEnv()
-                {
-                    JavascriptHostObjName = "FH",
-                });
-            }
-
             base.OnUI2Open();
             BaseView._BtnClose.OnClick = _OnBtnCloseClick;
             _CurrentIndex = -1;

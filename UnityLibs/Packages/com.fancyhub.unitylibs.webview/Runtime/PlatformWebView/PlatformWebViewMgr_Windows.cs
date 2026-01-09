@@ -229,16 +229,28 @@ namespace FH.WV
         }
 #endif
 
+        private Cpp.WebViewInnerLogCallBack _InnerLogCallBack;
+        private Cpp.WebViewJsLogCallBack _JsLogCallBack;
+        private Cpp.WebViewMessageCallBack _JsMessageCallBack;
+        private Cpp.WebViewEventCallBack _EventCallBack;
+
         public PlatformWebViewMgr_Windows()
         {
-            Cpp.WebViewSetInnerLogCallBack(_OnInnerLogCallBack, Cpp.LogLevel_Debug);
-            Cpp.WebViewJsLogCallBack callback = _OnJsLogCallBack;
-            Cpp.WebViewSetJsLogCallBack(callback);
+            _InnerLogCallBack = _OnInnerLogCallBack;
+            Cpp.WebViewSetInnerLogCallBack(_InnerLogCallBack, Cpp.LogLevel_Debug);
 
-            Cpp.WebViewSetMessageCallback(_OnJsMsg);
-            Cpp.WebViewSetEventCallBack(_OnEvent);
+            _JsLogCallBack = _OnJsLogCallBack;
+            Cpp.WebViewSetJsLogCallBack(_JsLogCallBack);
+
+            _JsMessageCallBack = _OnJsMsg;
+            Cpp.WebViewSetMessageCallback(_JsMessageCallBack);
+
+            _EventCallBack = _OnEvent;
+            Cpp.WebViewSetEventCallBack(_EventCallBack);
 
             Cpp.WebViewCloseAll();
+
+            Cpp.WebViewSetHostObjName(WebViewDef.JsHostObjName);
         }
 
         private void _OnJsMsg(int webViewId, string msg)
@@ -251,16 +263,22 @@ namespace FH.WV
             _CallBack?.OnWebViewEvent(webViewId, (EWebViewEventType)eventType);
         }
 
-        public void SetEnv(WebViewEnv config)
+        void IPlatformWebViewMgr.SetGlobalBGColor(Color32 color)
         {
-            if (!string.IsNullOrEmpty(config.UserAgent))
-                Cpp.WebViewSetUserAgent(config.UserAgent);
-
-            if (!string.IsNullOrEmpty(config.JavascriptHostObjName))
-                Cpp.WebViewSetHostObjName(config.JavascriptHostObjName);
+            //WebViewManager.CallStatic("SetGlobalBGColor", _ConvertColor(color));
         }
 
-        public int Create(string url, Rect normalizedRect)
+        void IPlatformWebViewMgr.SetGlobalUserAgent(string userAgent)
+        {
+            Cpp.WebViewSetUserAgent(userAgent);
+        }
+
+        void IPlatformWebViewMgr.SetGlobalScaling(bool scaling)
+        {
+            //WebViewManager.CallStatic("SetGlobalScaling", scaling);
+        }
+
+        int IPlatformWebViewMgr.Create(string url, Rect normalizedRect)
         {
 #if UNITY_EDITOR
             normalizedRect = UnityEditorGameViewHelper.ReCalcRect(normalizedRect);
@@ -270,17 +288,17 @@ namespace FH.WV
             return webviewId;
         }
 
-        public void SetScaling(int webViewId, bool scaling)
+        public void _SetScaling(int webViewId, bool scaling)
         {
             Cpp.WebViewSetScaling(webViewId, scaling);
         }
 
-        public void SetBGColor(int webViewId, Color32 color)
+        void IPlatformWebViewMgr.SetBGColor(int webViewId, Color32 color)
         {
             Cpp.WebViewSetBGColor(webViewId, color.r, color.g, color.b, color.a);
         }
 
-        public void Resize(int webViewId, Rect normalizedRect)
+        void IPlatformWebViewMgr.Resize(int webViewId, Rect normalizedRect)
         {
 #if UNITY_EDITOR
             normalizedRect = UnityEditorGameViewHelper.ReCalcRect(normalizedRect);
@@ -288,109 +306,76 @@ namespace FH.WV
             Cpp.WebViewResize(webViewId, normalizedRect.x, normalizedRect.y, normalizedRect.width, normalizedRect.height);
         }
 
-        public void Close(int webViewId)
+        void IPlatformWebViewMgr.Close(int webViewId)
         {
             Cpp.WebViewClose(webViewId);
         }
 
         private IPlatformWebViewMgrCallback _CallBack;
-        public void SetWebViewCallBack(IPlatformWebViewMgrCallback eventCallBack)
+        void IPlatformWebViewMgr.SetWebViewCallBack(IPlatformWebViewMgrCallback eventCallBack)
         {
             _CallBack = eventCallBack;
         }
 
-        public void OnEvent(int webViewId, int eventType)
-        {
-            switch (eventType)
-            {
-                case 1:
-                    _CallBack?.OnWebViewEvent(webViewId, EWebViewEventType.DocumentReady);
-                    break;
 
-                case 2:
-                    _CallBack?.OnWebViewEvent(webViewId, EWebViewEventType.Destroyed);
-                    break;
-
-                default:
-                    WebViewLog._.E("unkown event type {0}", eventType);
-                    break;
-            }
-        }
-
-        public void CloseAll()
+        void IPlatformWebViewMgr.CloseAll()
         {
             Cpp.WebViewCloseAll();
         }
 
-        public void Navigate(int webViewId, string url)
+        bool IPlatformWebViewMgr.IsLoading(int webViewId)
+        {
+            return Cpp.WebViewIsLoading(webViewId);
+        }
+
+        void IPlatformWebViewMgr.Navigate(int webViewId, string url)
         {
             Cpp.WebViewNavigate(webViewId, url);
         }
 
-        public void Reload(int webViewId)
+        void IPlatformWebViewMgr.Reload(int webViewId)
         {
             Cpp.WebViewReload(webViewId);
         }
 
-        public void RunJavaScript(int webViewId, string jsCode)
+        void IPlatformWebViewMgr.RunJavaScript(int webViewId, string jsCode)
         {
             Cpp.WebViewExecuteScript(webViewId, jsCode);
         }
 
-        public string GetURL(int webViewId)
+        string IPlatformWebViewMgr.GetURL(int webViewId)
         {
             return Cpp.WebViewGetUrl(webViewId);
         }
 
-        public bool CanGoBack(int webViewId)
+        public bool _CanGoBack(int webViewId)
         {
             return Cpp.WebViewCanGoBack(webViewId);
         }
 
-        public void GoBack(int webViewId)
+        void IPlatformWebViewMgr.GoBack(int webViewId)
         {
             Cpp.WebViewGoBack(webViewId);
         }
 
-        public bool CanGoForward(int webViewId)
+        public bool _CanGoForward(int webViewId)
         {
             return Cpp.WebViewCanGoForward(webViewId);
         }
 
-        public void GoForward(int webViewId)
+        void IPlatformWebViewMgr.GoForward(int webViewId)
         {
             Cpp.WebViewGoForward(webViewId);
         }
 
-        public void SetVisible(int webViewId, bool visible)
+        void IPlatformWebViewMgr.SetVisible(int webViewId, bool visible)
         {
             Cpp.WebViewSetVisible(webViewId, visible);
         }
 
-        public bool IsVisible(int webViewId)
+        bool IPlatformWebViewMgr.IsVisible(int webViewId)
         {
             return Cpp.WebViewIsVisible(webViewId);
-        }
-
-        public bool CanClearCache()
-        {
-            return false;
-        }
-
-        public bool CanClearCookies()
-        {
-            return false;
-        }
-
-        public void ClearCache()
-        {
-        }
-
-        public void ClearCookies()
-        {
-        }
-        public void DeleteLocalStorage()
-        {
         }
 
         public void Fix()
@@ -500,10 +485,7 @@ namespace FH.WV
             }
         }
 
-        public bool IsLoading(int webViewId)
-        {
-            return Cpp.WebViewIsLoading(webViewId);
-        }
+
 
 
     }

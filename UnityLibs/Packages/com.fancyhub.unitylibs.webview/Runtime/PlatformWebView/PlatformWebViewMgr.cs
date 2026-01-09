@@ -22,7 +22,10 @@ namespace FH.WV
     {
         public void SetWebViewCallBack(IPlatformWebViewMgrCallback webViewCallback);
 
-        public void SetEnv(WebViewEnv config);
+
+        public void SetGlobalBGColor(Color32 color);
+        public void SetGlobalUserAgent(string userAgent);
+        public void SetGlobalScaling(bool scaling);
 
         /// <summary>
         /// 
@@ -36,6 +39,8 @@ namespace FH.WV
         public void Navigate(WebViewId webViewId, string url);
 
         public void SetBGColor(WebViewId webViewId, Color32 color);
+
+        
 
 
         /// <summary>

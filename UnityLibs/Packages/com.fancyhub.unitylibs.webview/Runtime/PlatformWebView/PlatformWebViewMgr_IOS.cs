@@ -17,487 +17,182 @@ using System.Text.RegularExpressions;
 #if UNITY_IOS || UNITY_EDITOR
 namespace FH.WV
 {
-    
+
     public class PlatformWebViewMgr_IOS : IPlatformWebViewMgr
     {
-        private static partial class _
+        private  _.WebViewInternalLogCallBack _webViewInternalLogCallBack ;
+        private _.WebViewEventCallBack _webViewEventCallBack ;
+        private _.WebViewJsMessageCallBack _webViewJsMessageCallBack ;
+        private _.WebViewJsLogCallBack _webViewJsLogCallBack ;
+        public PlatformWebViewMgr_IOS()
         {
-            [DllImport("__Internal")]
-            public static extern string getWebViewDeviceSystemVersion();
-            [DllImport("__Internal")]
-            public static extern void setWebViewUnityGameObjectName(string name);
-            [DllImport("__Internal")]
-            public static extern void createUserScript(string key, string script, int injectionTime, bool mainFrameOnly);
-            [DllImport("__Internal")]
-            public static extern void deleteUserScript(string key);
-            [DllImport("__Internal")]
-            public static extern int openWebView(string url, float x, float y, float width, float height, string parameters);
-            [DllImport("__Internal")]
-            public static extern void closeWebView(int webViewId);
-            [DllImport("__Internal")]
-            public static extern void closeAllWebViews();
-            [DllImport("__Internal")]
-            public static extern void moveWebView(int webViewId, float x, float y, float width, float height);
-            [DllImport("__Internal")]
-            public static extern bool canWebViewGoBackward(int webViewId);
-            [DllImport("__Internal")]
-            public static extern bool canWebViewGoForward(int webViewId);
-            [DllImport("__Internal")]
-            public static extern void makeWebViewGoBackward(int webViewId);
-            [DllImport("__Internal")]
-            public static extern void makeWebViewGoForward(int webViewId);
-            [DllImport("__Internal")]
-            public static extern void reloadWebView(int webViewId);
-            [DllImport("__Internal")]
-            public static extern string getWebViewURL(int webViewId);
-            [DllImport("__Internal")]
-            public static extern double getWebViewLoadingProgress(int webViewId);
-            [DllImport("__Internal")]
-            public static extern bool isWebViewLoading(int webViewId);
-            [DllImport("__Internal")]
-            public static extern void setNameAndCallbackInJavaScript_WebView(string name, string callback);
-            [DllImport("__Internal")]
-            public static extern string runJavaScript_WebView(int webViewId, string code, string callback, string id);
-            [DllImport("__Internal")]
-            public static extern bool canClearWebViewCookies();
-            [DllImport("__Internal")]
-            public static extern void clearWebViewCookies();
-            [DllImport("__Internal")]
-            public static extern bool canClearWebViewCache();
-            [DllImport("__Internal")]
-            public static extern void clearWebViewCache();
-            [DllImport("__Internal")]
-            public static extern void showWebView(int webViewId);
-            [DllImport("__Internal")]
-            public static extern void hideWebView(int webViewId);
-            [DllImport("__Internal")]
-            public static extern bool canCaptureScreenshot();
-            [DllImport("__Internal")]
-            public static extern bool captureScreenshot(int webViewId, string fileName);
+            _webViewInternalLogCallBack = _OnInternalLog;
+            _.SetWebViewInternalLogCallBack(_webViewInternalLogCallBack);
 
-            [DllImport("__Internal")]
-            public static extern bool supportSafari();
-            [DllImport("__Internal")]
-            public static extern void setSafariUnityGameObjectName(string gameObjectName);
-            [DllImport("__Internal")]
-            public static extern void setSafariBarTintColor(float red, float green, float blue, float alpha);
-            [DllImport("__Internal")]
-            public static extern void setSafariControlTintColor(float red, float green, float blue, float alpha);
-            [DllImport("__Internal")]
-            public static extern void openSafari(string url, bool animated);
-            [DllImport("__Internal")]
-            public static extern void closeSafari(bool animated);
-        }
+            _webViewEventCallBack = _OnEvent;
+            _.SetWebViewEventCallBack(_webViewEventCallBack);
 
-        private WebViewEnv _Config;
-        private bool _Inited = false;
-        public void SetEnv(WebViewEnv config)
-        {
-            if (_Inited)
-                return;
-            _Inited = true;
-            _Config = config;
-        }
+            _webViewJsMessageCallBack = _OnJsMessage;
+            _.SetWebViewJsMessageCallBack(_webViewJsMessageCallBack);
 
-        public string GetWebViewDeviceSystemVersion()
-        {
-            return _.getWebViewDeviceSystemVersion();
-        }
-
-        public void SetUnitySendMessageGameObjectName(string name)
-        {
-            _.setWebViewUnityGameObjectName(name);
-            _.setSafariUnityGameObjectName(name);
-        }
-
-        private bool _SendConsoleMessagesToUnity = false;
-        public void SetSendConsoleMessagesToUnity(bool send)
-        {
-            if (!string.IsNullOrEmpty(_Config.JavascriptHostObjName) && (_SendConsoleMessagesToUnity != send))
-            {
-                string key = UNITY_LOGGER;
-                if (!send)
-                {
-                    _.deleteUserScript(key);
-                }
-                else
-                {
-                    _.setNameAndCallbackInJavaScript_WebView(UNITY_LOGGER, "OnConsoleMessage_iOS");
-                    _.createUserScript(key,
-@"
-function logToUnity(type, args)
-{
-    window.webkit.messageHandlers." + UNITY_LOGGER + @".postMessage(JSON.stringify({
-        type: type,
-        message: Array.from(args)
-    }));
-}
-
-let __consoleDebug = console.debug
-let __consoleLog = console.log
-let __consoleWarn = console.warn
-let __consoleError = console.error
-
-console.debug = function() { logToUnity('debug', arguments); __consoleDebug.apply(null, arguments) }
-console.log   = function() { logToUnity('log',   arguments); __consoleLog.apply(null, arguments) }
-console.warn  = function() { logToUnity('warn',  arguments); __consoleWarn.apply(null, arguments) }
-console.error = function() { logToUnity('error', arguments); __consoleError.apply(null, arguments) }
-
-window.addEventListener('error', function(e) {
-    logToUnity('uncaught', [`${e.message} at ${e.filename}:${e.lineno}:${e.colno}`])
-})
-",
-                        USER_SCRIPT_INJECTION_TIME_DOC_START, false);
-
-                }
-                _SendConsoleMessagesToUnity = send;
-            }
-        }
-
-        private const int USER_SCRIPT_INJECTION_TIME_DOC_START = 0;
-        private const int USER_SCRIPT_INJECTION_TIME_DOC_END = 1;
-
-
-        private const string UNITY_LOGGER = "unityLogger";
-        private const string USER_SCRIPT_KEY_DISABLE_SCALING = "DisableScaling";
-        public int Open(string url, float x, float y, float width, float height, WebViewParameters parameters)
-        {
-            string parameterString = string.Empty;
-            if (parameters != null) parameterString = JsonUtility.ToJson(parameters);
-
-            if (parameters != null)
-            {
-                if (parameters.Scaling)
-                {
-                    _.deleteUserScript(USER_SCRIPT_KEY_DISABLE_SCALING);
-                }
-                else
-                {
-                    _.createUserScript(USER_SCRIPT_KEY_DISABLE_SCALING, @"
-                        var meta = document.createElement('meta');
-                        meta.setAttribute('name', 'viewport');
-                        meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-                        document.getElementsByTagName('head')[0].appendChild(meta);"
-                        , USER_SCRIPT_INJECTION_TIME_DOC_END, true);
-                }
-            }
-
-
-
-            return _.openWebView(url, x, 1 - y - height, width, height, parameterString);
-        }
-
-        public void Close(int webViewId)
-        {
-            _.closeWebView(webViewId);
-        }
-
-        public void CloseAll()
-        {
-            _.closeAllWebViews();
-        }
-
-        public void Move(int webViewId, float x, float y, float width, float height)
-        {
-            _.moveWebView(webViewId, x, 1 - y - height, width, height);
-        }
-
-        public bool CanGoBackward(int webViewId)
-        {
-            return _.canWebViewGoBackward(webViewId);
-        }
-
-        public bool CanGoForward(int webViewId)
-        {
-            return _.canWebViewGoForward(webViewId);
-        }
-
-        public void GoBackward(int webViewId)
-        {
-            _.makeWebViewGoBackward(webViewId);
-        }
-        public void GoForward(int webViewId)
-        {
-            _.makeWebViewGoForward(webViewId);
-        }
-
-        public void Reload(int webViewId)
-        {
-            _.reloadWebView(webViewId);
-        }
-
-        public string GetURL(int webViewId)
-        {
-            return _.getWebViewURL(webViewId);
-        }
-
-        public float GetLoadingProgress(int webViewId)
-        {
-            return (float)_.getWebViewLoadingProgress(webViewId);
-        }
-
-        public bool IsLoading(int webViewId)
-        {
-            return _.isWebViewLoading(webViewId);
-        }
-
-        public void SetNameInJavaScript(string name)
-        {
-            _.setNameAndCallbackInJavaScript_WebView(name, "OnJavaScriptPostMessage");
-        }
-
-        public string RunJavaScript(int webViewId, string jsCode, string callback, string id)
-        {
-            return _.runJavaScript_WebView(webViewId, jsCode, callback, id);
-        }
-
-        public bool CanClearCookies()
-        {
-            return _.canClearWebViewCookies();
-        }
-        public void ClearCookies()
-        {
-            _.clearWebViewCookies();
-        }
-
-        public bool CanClearCache()
-        {
-            return _.canClearWebViewCache();
-        }
-
-        public void ClearCache()
-        {
-            _.clearWebViewCache();
-        }
-
-        public void Show(int webViewId)
-        {
-            _.showWebView(webViewId);
-
-            if (!string.IsNullOrEmpty(_Config.JavascriptHostObjName) && _Config.UseMediaManipulationOnHideAndShowByJavaScript)
-            {
-                _.runJavaScript_WebView(webViewId,
-@"
-var videos = document.getElementsByTagName('video');
-for( var i = 0; i < videos.length; i++ )
-{
-    if(videos.item(i).getAttribute('_paused_during_hidden_') == 1)
-    {
-        videos.item(i).removeAttribute('_paused_during_hidden_');
-        videos.item(i).play();
-    }
-}
-var audios = document.getElementsByTagName('audio');
-for( var i = 0; i < audios.length; i++ )
-{
-    if(audios.item(i).getAttribute('_paused_during_hidden_') == 1)
-    {
-        audios.item(i).removeAttribute('_paused_during_hidden_');
-        audios.item(i).play();
-    }
-}",
-                     string.Empty, string.Empty);
-            }
-        }
-        public void Hide(int webViewId)
-        {
-            if (!string.IsNullOrEmpty(_Config.JavascriptHostObjName) && _Config.UseMediaManipulationOnHideAndShowByJavaScript)
-            {
-                _.runJavaScript_WebView(webViewId,
-@"
-var videos = document.getElementsByTagName('video');
-for( var i = 0; i < videos.length; i++ )
-{
-    if(!videos.item(i).paused)
-    {
-        videos.item(i).setAttribute('_paused_during_hidden_', 1); 
-        videos.item(i).pause();
-    }
-}
-var audios = document.getElementsByTagName('audio');
-for( var i = 0; i < audios.length; i++ )
-{
-    if(!audios.item(i).paused)
-    {
-        audios.item(i).setAttribute('_paused_during_hidden_', 1); 
-        audios.item(i).pause();
-    }
-}",
-                     string.Empty, string.Empty);
-            }
-
-            _.hideWebView(webViewId);
-        }
-
-        public bool CanCaptureScreenshot()
-        {
-            return _.canCaptureScreenshot();
-        }
-
-        public bool CaptureScreenshot(int webViewId, string fileName)
-        {
-            return _.captureScreenshot(webViewId, fileName);
-        }
-
-        public bool SupportSafari()
-        {
-            return _.supportSafari();
-        }
-
-        public void OpenSafari(string url, bool animated)
-        {
-            _.openSafari(url, animated);
-        }
-
-        public void CloseSafari(bool animated)
-        {
-            _.closeSafari(animated);
-        }
-
-        public void DeleteLocalStorage()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SetUserAgentString(int webViewId, string userAgentString)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int Open(string url, Rect normalizedRect, WebViewParameters parameters)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Resize(int webViewId, Rect normalizedRect)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void RunJavaScript(int webViewId, string jsCode)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void GoBack(int webViewId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SetVisible(int webViewId, bool visible)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsVisible(int webViewId)
-        {
-            throw new NotImplementedException();
-        } 
-
-        public void Navigate(int webviewId, string url)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SetBGColor(int webviewId, Color32 color)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int Create(string url, Rect normalizedRect)
-        {
-            throw new NotImplementedException();
-        }
-         
-
-        void IPlatformWebViewMgr.SetEnv(WebViewEnv config)
-        {
-            throw new NotImplementedException();
+            _webViewJsLogCallBack = _OnJsLog;
+            _.SetWebViewJSLogCallBack(_webViewJsLogCallBack);
         }
 
         int IPlatformWebViewMgr.Create(string url, Rect normalizedRect)
         {
-            throw new NotImplementedException();
-        }
-
-        void IPlatformWebViewMgr.Navigate(int webviewId, string url)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IPlatformWebViewMgr.SetBGColor(int webviewId, Color32 color)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IPlatformWebViewMgr.Resize(int webViewId, Rect normalizedRect)
-        {
-            throw new NotImplementedException();
+            return _.Create(url, normalizedRect.x, normalizedRect.y, normalizedRect.width, normalizedRect.height);
         }
 
         void IPlatformWebViewMgr.Close(int webViewId)
         {
-            throw new NotImplementedException();
-        }
-
-        void IPlatformWebViewMgr.RunJavaScript(int webViewId, string jsCode)
-        {
-            throw new NotImplementedException();
-        }
-
-        string IPlatformWebViewMgr.GetURL(int webViewId)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IPlatformWebViewMgr.Reload(int webViewId)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IPlatformWebViewMgr.GoBack(int webViewId)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IPlatformWebViewMgr.GoForward(int webViewId)
-        {
-            throw new NotImplementedException();
-        }
-
-        bool IPlatformWebViewMgr.IsLoading(int webViewId)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IPlatformWebViewMgr.SetVisible(int webViewId, bool visible)
-        {
-            throw new NotImplementedException();
-        }
-
-        bool IPlatformWebViewMgr.IsVisible(int webViewId)
-        {
-            throw new NotImplementedException();
+            _.Close(webViewId);
         }
 
         void IPlatformWebViewMgr.CloseAll()
         {
-            throw new NotImplementedException();
+            _.CloseAll();
         }
 
-        public void OnMessage(int webViewId, string message)
+        string IPlatformWebViewMgr.GetURL(int webViewId)
+        {
+            return _.GetUrl(webViewId);
+        }
+
+        void IPlatformWebViewMgr.GoBack(int webViewId)
+        {
+            _.GoBack(webViewId);
+        }
+
+        void IPlatformWebViewMgr.GoForward(int webViewId)
+        {
+            _.GoForward(webViewId);
+        }
+
+        bool IPlatformWebViewMgr.IsLoading(int webViewId)
+        {
+            return _.IsLoading(webViewId);
+        }
+
+        bool IPlatformWebViewMgr.IsVisible(int webViewId)
+        {
+            return _.IsVisible(webViewId);
+        }
+
+        void IPlatformWebViewMgr.Navigate(int webViewId, string url)
+        {
+            _.Navigate(webViewId, url);
+        }
+
+        void IPlatformWebViewMgr.Reload(int webViewId)
+        {
+            _.Reload(webViewId);
+        }
+
+        void IPlatformWebViewMgr.Resize(int webViewId, Rect normalizedRect)
+        {
+            _.Resize(webViewId, normalizedRect.x, normalizedRect.y, normalizedRect.width, normalizedRect.height);
+        }
+
+        void IPlatformWebViewMgr.RunJavaScript(int webViewId, string jsCode)
+        {
+            _.RunJsCode(webViewId, jsCode);
+        }
+
+        void IPlatformWebViewMgr.SetBGColor(int webViewId, Color32 color)
         {
             throw new NotImplementedException();
         }
 
-        public void OnEvent(int webViewId, int eventType)
+        void IPlatformWebViewMgr.SetGlobalBGColor(Color32 color)
         {
-            throw new NotImplementedException();
+            Color c = color;
+            _.SetGlobalBGColor(c.r, c.g, c.b, c.a);
         }
 
+        void IPlatformWebViewMgr.SetGlobalScaling(bool scaling)
+        {
+            _.SetGlobalScaling(scaling);
+        }
+
+        void IPlatformWebViewMgr.SetGlobalUserAgent(string userAgent)
+        {
+            _.SetGlobalUserAgent(userAgent);
+        }
+
+        void IPlatformWebViewMgr.SetVisible(int webViewId, bool visible)
+        {
+            _.SetVisible(webViewId, visible);
+        }
+
+        private IPlatformWebViewMgrCallback _CallBack;
         void IPlatformWebViewMgr.SetWebViewCallBack(IPlatformWebViewMgrCallback webViewCallback)
         {
-            throw new NotImplementedException();
+            _CallBack = webViewCallback;
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(_.WebViewInternalLogCallBack))]
+        private void _OnInternalLog(int logLvl, IntPtr msgPtr)
+        {
+            string msg = Marshal.PtrToStringAnsi(msgPtr);
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(_.WebViewEventCallBack))]
+        private void _OnEvent(int webViewId, int eventType)
+        {
+            _CallBack?.OnWebViewEvent(webViewId, (EWebViewEventType)eventType);
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(_.WebViewJsLogCallBack))]
+        private void _OnJsLog(int webViewId, int logLvl, IntPtr msgPtr)
+        {
+            string msg = Marshal.PtrToStringAnsi(msgPtr);
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(_.WebViewJsMessageCallBack))]
+        private void _OnJsMessage(int webViewId, IntPtr msgPtr)
+        {
+            string msg = Marshal.PtrToStringAnsi(msgPtr);
+            _CallBack?.OnJsMsg(webViewId, msg);
+        }
+
+        private static partial class _
+        {
+            public delegate void WebViewInternalLogCallBack(int logLvl, IntPtr msg);
+            [DllImport("__Internal")] public static extern void SetWebViewInternalLogCallBack(WebViewInternalLogCallBack callBack);
+
+            public delegate void WebViewEventCallBack(int webViewId, int eventType);
+            [DllImport("__Internal")] public static extern void SetWebViewEventCallBack(WebViewEventCallBack callback);
+
+            public delegate void WebViewJsLogCallBack(int webViewId, int logLvl, IntPtr msg);
+            [DllImport("__Internal")] public static extern void SetWebViewJSLogCallBack(WebViewJsLogCallBack callBack);
+
+            public delegate void WebViewJsMessageCallBack(int webViewId, IntPtr msg);
+            [DllImport("__Internal")] public static extern void SetWebViewJsMessageCallBack(WebViewJsMessageCallBack callBack);
+
+            [DllImport("__Internal")] public static extern void SetGlobalBGColor(float r, float g, float b, float a);
+            [DllImport("__Internal")] public static extern void SetGlobalUserAgent(string userAgent);
+            [DllImport("__Internal")] public static extern void SetGlobalScaling(bool scaling);
+            [DllImport("__Internal")] public static extern void Init(string jsHostName);
+
+            [DllImport("__Internal")] public static extern int Create(string url, float x, float y, float width, float height);
+            [DllImport("__Internal")] public static extern void Close(int webViewId);
+            [DllImport("__Internal")] public static extern void CloseAll();
+
+            [DllImport("__Internal")] public static extern string GetUrl(int webViewId);
+            [DllImport("__Internal")] public static extern void GoBack(int webViewId);
+            [DllImport("__Internal")] public static extern void GoForward(int webViewId);
+
+            [DllImport("__Internal")] public static extern void Navigate(int webViewId, string url);
+            [DllImport("__Internal")] public static extern bool IsLoading(int webViewId);
+            [DllImport("__Internal")] public static extern void Reload(int webViewId);
+
+            [DllImport("__Internal")] public static extern void Resize(int webViewId, float x, float y, float width, float height);
+            [DllImport("__Internal")] public static extern void SetVisible(int webViewId, bool visible);
+            [DllImport("__Internal")] public static extern bool IsVisible(int webViewId);
+            [DllImport("__Internal")] public static extern void SetBGColor(int webViewId, float r, float g, float b, float a);
+
+            [DllImport("__Internal")] public static extern void RunJsCode(int webViewId, string jsCode);            
         }
     }
     //*/
