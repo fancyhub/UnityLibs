@@ -13,7 +13,7 @@ namespace FH.DI.Ed
     public class IOSPlistModifier : ScriptableObject
     {
         [SerializeField] public UnityEditor.DefaultAsset CustomInfoPlistForAdd; //Need plist asset
-        [SerializeField] public UnityEditor.DefaultAsset CustInfoPlistForDelete; //Need plist asset
+        [SerializeField] public UnityEditor.DefaultAsset CustomInfoPlistForDelete; //Need plist asset
 
 #if UNITY_IOS
         [PostProcessBuild(1)]
@@ -57,9 +57,9 @@ namespace FH.DI.Ed
 
 
             //delete
-            if (modifier.CustInfoPlistForDelete != null)
+            if (modifier.CustomInfoPlistForDelete != null)
             {
-                string plistDeletePath = UnityEditor.AssetDatabase.GetAssetPath(modifier.CustInfoPlistForDelete);
+                string plistDeletePath = UnityEditor.AssetDatabase.GetAssetPath(modifier.CustomInfoPlistForDelete);
                 if (plistDeletePath.EndsWith(".plist"))
                 {
                     var targetDict = rootDict.values;

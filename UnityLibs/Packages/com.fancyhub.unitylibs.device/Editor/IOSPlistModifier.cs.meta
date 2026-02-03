@@ -5,7 +5,7 @@ MonoImporter:
   serializedVersion: 2
   defaultReferences:
   - CustomInfoPlistForAdd: {fileID: 102900000, guid: dd10696e533671d4db4f8c4c55885d5a, type: 3}
-  - CustInfoPlistForDelete: {fileID: 102900000, guid: 53d62c4dfc9272149ae86481f6b9a53d, type: 3}
+  - CustomInfoPlistForDelete: {fileID: 102900000, guid: 53d62c4dfc9272149ae86481f6b9a53d, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
