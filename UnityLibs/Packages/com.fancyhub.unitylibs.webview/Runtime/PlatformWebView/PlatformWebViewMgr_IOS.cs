@@ -6,13 +6,8 @@
 *************************************************************************************/
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Runtime.InteropServices;
 using UnityEngine;
-using System.Security.Cryptography;
-using System.Text.RegularExpressions;
 
 #if UNITY_IOS || UNITY_EDITOR
 namespace FH.WV
@@ -20,23 +15,17 @@ namespace FH.WV
 
     public class PlatformWebViewMgr_IOS : IPlatformWebViewMgr
     {
-        private  _.WebViewInternalLogCallBack _webViewInternalLogCallBack ;
-        private _.WebViewEventCallBack _webViewEventCallBack ;
-        private _.WebViewJsMessageCallBack _webViewJsMessageCallBack ;
-        private _.WebViewJsLogCallBack _webViewJsLogCallBack ;
+        private static readonly _.WebViewInternalLogCallBack _webViewInternalLogCallBack = _OnInternalLog;
+        private static readonly _.WebViewEventCallBack _webViewEventCallBack = _OnEvent;
+        private static readonly _.WebViewJsMessageCallBack _webViewJsMessageCallBack = _OnJsMessage;
+        private static readonly _.WebViewJsLogCallBack _webViewJsLogCallBack = _OnJsLog;
+
         public PlatformWebViewMgr_IOS()
         {
-            _webViewInternalLogCallBack = _OnInternalLog;
             _.SetWebViewInternalLogCallBack(_webViewInternalLogCallBack);
-
-            _webViewEventCallBack = _OnEvent;
             _.SetWebViewEventCallBack(_webViewEventCallBack);
-
-            _webViewJsMessageCallBack = _OnJsMessage;
             _.SetWebViewJsMessageCallBack(_webViewJsMessageCallBack);
-
-            _webViewJsLogCallBack = _OnJsLog;
-            _.SetWebViewJSLogCallBack(_webViewJsLogCallBack);
+            _.SetWebViewJsLogCallBack(_webViewJsLogCallBack);
         }
 
         int IPlatformWebViewMgr.Create(string url, Rect normalizedRect)
@@ -125,34 +114,34 @@ namespace FH.WV
             _.SetVisible(webViewId, visible);
         }
 
-        private IPlatformWebViewMgrCallback _CallBack;
+        private static IPlatformWebViewMgrCallback _CallBack;
         void IPlatformWebViewMgr.SetWebViewCallBack(IPlatformWebViewMgrCallback webViewCallback)
         {
             _CallBack = webViewCallback;
         }
 
         [AOT.MonoPInvokeCallback(typeof(_.WebViewInternalLogCallBack))]
-        private void _OnInternalLog(int logLvl, IntPtr msgPtr)
+        private static void _OnInternalLog(int logLvl, IntPtr msgPtr)
         {
-            string msg = Marshal.PtrToStringAnsi(msgPtr);
+            string msg = Marshal.PtrToStringUTF8(msgPtr);
         }
 
         [AOT.MonoPInvokeCallback(typeof(_.WebViewEventCallBack))]
-        private void _OnEvent(int webViewId, int eventType)
+        private static void _OnEvent(int webViewId, int eventType)
         {
             _CallBack?.OnWebViewEvent(webViewId, (EWebViewEventType)eventType);
         }
 
         [AOT.MonoPInvokeCallback(typeof(_.WebViewJsLogCallBack))]
-        private void _OnJsLog(int webViewId, int logLvl, IntPtr msgPtr)
+        private static void _OnJsLog(int webViewId, int logLvl, IntPtr msgPtr)
         {
-            string msg = Marshal.PtrToStringAnsi(msgPtr);
+            string msg = Marshal.PtrToStringUTF8(msgPtr);
         }
 
         [AOT.MonoPInvokeCallback(typeof(_.WebViewJsMessageCallBack))]
-        private void _OnJsMessage(int webViewId, IntPtr msgPtr)
+        private static void _OnJsMessage(int webViewId, IntPtr msgPtr)
         {
-            string msg = Marshal.PtrToStringAnsi(msgPtr);
+            string msg = Marshal.PtrToStringUTF8(msgPtr);
             _CallBack?.OnJsMsg(webViewId, msg);
         }
 
@@ -165,7 +154,7 @@ namespace FH.WV
             [DllImport("__Internal")] public static extern void SetWebViewEventCallBack(WebViewEventCallBack callback);
 
             public delegate void WebViewJsLogCallBack(int webViewId, int logLvl, IntPtr msg);
-            [DllImport("__Internal")] public static extern void SetWebViewJSLogCallBack(WebViewJsLogCallBack callBack);
+            [DllImport("__Internal")] public static extern void SetWebViewJsLogCallBack(WebViewJsLogCallBack callBack);
 
             public delegate void WebViewJsMessageCallBack(int webViewId, IntPtr msg);
             [DllImport("__Internal")] public static extern void SetWebViewJsMessageCallBack(WebViewJsMessageCallBack callBack);
@@ -192,7 +181,7 @@ namespace FH.WV
             [DllImport("__Internal")] public static extern bool IsVisible(int webViewId);
             [DllImport("__Internal")] public static extern void SetBGColor(int webViewId, float r, float g, float b, float a);
 
-            [DllImport("__Internal")] public static extern void RunJsCode(int webViewId, string jsCode);            
+            [DllImport("__Internal")] public static extern void RunJsCode(int webViewId, string jsCode);
         }
     }
     //*/

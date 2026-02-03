@@ -20,6 +20,8 @@ namespace FH
             [DllImport("__Internal")] public static extern bool FH_IsIDFAReady();
         }
 
+        //UnityEngine.iOS.Device.advertisingIdentifier
+        //https://docs.unity3d.com/ScriptReference/iOS.Device.advertisingIdentifier.html
         public static string IDFA => _Call(_.FH_GetIDFA);
         public static bool IsIDFAReady => _Call(_.FH_IsIDFAReady);
     }
