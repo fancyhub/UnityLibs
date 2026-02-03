@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: c644860a484de6547aca3d637138a6a2
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - CustomInfoPlistForAdd: {fileID: 102900000, guid: dd10696e533671d4db4f8c4c55885d5a, type: 3}
+  - CustInfoPlistForDelete: {fileID: 102900000, guid: 53d62c4dfc9272149ae86481f6b9a53d, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
