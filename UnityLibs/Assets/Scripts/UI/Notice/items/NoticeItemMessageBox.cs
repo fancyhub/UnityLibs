@@ -70,7 +70,7 @@ namespace Game
             _view._txt.text = _Text;
             _view._btn.onClick.RemoveAllListeners();
             _view._btn.onClick.AddListener(_OnBtnClick);
-            _view._txt_btn.text = _BtnName;
+            _view._txt_btn.text = _BtnName;            
         }
 
         private void _OnBtnClick()

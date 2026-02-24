@@ -14,15 +14,12 @@ namespace FH
     public enum ENoticeEffect
     {
         None,
-        FadeIn,
-        FadeOut,
-        MoveUp,
-        RightSlideIn,
-        RightSlideOut,
-        LeftSlideIn,
-        LeftSlideOut,
-        ScaleIn,
-        ScaleOut,
+        Alpha,
+        OffsetY,
+        RightSlide,
+        LeftSlide,
+        ScaleY,
+        ScaleX,
     }
 
     /// <summary>

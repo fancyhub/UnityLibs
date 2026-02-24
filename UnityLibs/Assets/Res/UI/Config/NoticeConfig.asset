@@ -20,22 +20,22 @@ MonoBehaviour:
       PosX: 0.5
       PosY: 0.3
     Container:
-      ContainerType: 1
+      ContainerType: 2
       Immediate: 0
       Multi:
         MaxShowCount: 3
         StepMoveDuration: 0.3
         DirUp: 1
       Time:
-        ShowUpDuration: 0.3
+        ShowUpDuration: 0.5
         HideOutDuration: 0.3
       Effect:
         ShowUp:
         - EffectType: 1
-          MoveDistance: 0
+          Offset: 0
         HideOut:
-        - EffectType: 2
-          MoveDistance: 0
+        - EffectType: 1
+          Offset: 0
     Channel:
       Visible:
         VisiblePattern: 0

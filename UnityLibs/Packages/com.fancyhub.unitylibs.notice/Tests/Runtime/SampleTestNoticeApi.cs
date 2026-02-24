@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace FH.NoticeSample
 {
-    public class TestNoticeApi : MonoBehaviour
+    public class SampleTestNoticeApi : MonoBehaviour
     {
         public enum ENoticeViewType
         {
@@ -59,14 +59,14 @@ namespace FH.NoticeSample
             {
                 for (int i = 0; i < count; i++)
                 {
-                    NoticeApi.ShowNotice(data, _CreateItem(view_type, txt + " " + i.ToString()));
+                    SampleNoticeApi.ShowNotice(data, _CreateItem(view_type, txt + " " + i.ToString()));
                 }
             }
             else
             {
                 for (int i = 0; i < count; i++)
                 {
-                    NoticeApi.ShowNotice(data, _CreateItem(view_type, txt + " " + i.ToString()));
+                    SampleNoticeApi.ShowNotice(data, _CreateItem(view_type, txt + " " + i.ToString()));
                     yield return new WaitForSeconds(time);
                 }
             }
@@ -77,11 +77,11 @@ namespace FH.NoticeSample
             switch (view_type)
             {
                 case ENoticeViewType.text:
-                    return NoticeItemText.Create(NoticeApi.ResHolder, txt);
+                    return SampleNoticeItemText.Create(SampleNoticeApi.ResHolder, txt);
                 case ENoticeViewType.marquee:
-                    return NoticeItemTextMarquee.Create(NoticeApi.ResHolder, txt);
+                    return SampleNoticeItemTextMarquee.Create(SampleNoticeApi.ResHolder, txt);
                 case ENoticeViewType.message_box:
-                    return NoticeItemMessageBox.Create(NoticeApi.ResHolder, txt);
+                    return SampleNoticeItemMessageBox.Create(SampleNoticeApi.ResHolder, txt);
 
                 default:
                     Debug.LogErrorFormat("未实现格式 {0}", view_type);

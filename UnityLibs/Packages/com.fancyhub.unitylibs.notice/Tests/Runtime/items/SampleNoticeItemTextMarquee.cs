@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace FH.NoticeSample
 {
-    public sealed class NoticeItemTextMarquee : CPoolItemBase, INoticeItem
+    public sealed class SampleNoticeItemTextMarquee : CPoolItemBase, INoticeItem
     {
         private const string CPath = "Packages/com.fancyhub.unitylibs.notice/Tests/Runtime/Res/UINoticeMarquee.prefab";
 
@@ -23,9 +23,9 @@ namespace FH.NoticeSample
         public NoticeItemDummy _dummy;
         public CPtr<IResHolder> _ResHolder;
 
-        public static NoticeItemTextMarquee Create(IResHolder resholder, string text)
+        public static SampleNoticeItemTextMarquee Create(IResHolder resholder, string text)
         {
-            NoticeItemTextMarquee ret = GPool.New<NoticeItemTextMarquee>();
+            SampleNoticeItemTextMarquee ret = GPool.New<SampleNoticeItemTextMarquee>();
             ret._Text = text;
             ret._ResHolder = new CPtr<IResHolder>(resholder);
             return ret;
@@ -33,7 +33,7 @@ namespace FH.NoticeSample
 
         protected override void OnPoolRelease()
         {
-            NoticeFactory.ReleaseView(_ResHolder, ref _view);
+            SampleNoticeFactory.ReleaseView(_ResHolder, ref _view);
             _dummy = default;
             _TxtComp = null;
         }
@@ -56,7 +56,7 @@ namespace FH.NoticeSample
         {
             _dummy = dummy;
 
-            _view = NoticeFactory.CreateView(_ResHolder, CPath, _dummy.Dummy);
+            _view = SampleNoticeFactory.CreateView(_ResHolder, CPath, _dummy.Dummy);
             if (_view == null)
                 return;
             var child = _view.Find("_txt");
@@ -75,14 +75,14 @@ namespace FH.NoticeSample
             _SetProgress(progress);
         }
 
-        public void FadeOut(float progress, NoticeEffectConfig effect)
-        {
-            NoticeEffectPlayer.Play(_view, progress, effect.HideOut);
-        }
-
         public void FadeIn(float progress, NoticeEffectConfig effect)
         {
-            NoticeEffectPlayer.Play(_view, progress, effect.ShowUp);
+            NoticeEffectPlayer.Play(_view, progress, true, effect.ShowUp);
+        }
+
+        public void FadeOut(float progress, NoticeEffectConfig effect)
+        {
+            NoticeEffectPlayer.Play(_view, progress, false, effect.HideOut);
         }
 
         private void _SetProgress(float progoress)

@@ -23,8 +23,7 @@ namespace Game
             _ResHolder = ResMgr.CreateHolder(false, false).CPtr();
             _Clock = new ClockDecorator(new ClockUnityTime(ClockUnityTime.EType.Time));
 
-            var res_ref = ResMgr.Load(NoticeConfigAsset.CPath);
-            NoticeConfigAsset config = res_ref.Get<NoticeConfigAsset>();
+            var config = _ResHolder.Val.Load(NoticeConfigAsset.CPath) as NoticeConfigAsset;
             NoticeLog.SetMasks(config.LogLvl);
             _Mgr = new NoticeManager(_Clock);
 

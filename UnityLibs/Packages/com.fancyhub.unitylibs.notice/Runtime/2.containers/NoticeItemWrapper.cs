@@ -94,7 +94,7 @@ namespace FH
         public void Show(NoticeItemTime notice_time)
         {
             _time = notice_time;
-            _time.SetTimeNow(_clock.Time);
+            //_time.SetTimeNow(_clock.Time);
             _move_obj.ExtSetGameObjectActive(false);
         }
 
@@ -128,9 +128,11 @@ namespace FH
                 case ENoticeItemPhase.Wait:
                     return;
 
-                case ENoticeItemPhase.ShowIn:
+                case ENoticeItemPhase.FadeIn:
                     if (last_phase != _time.Phase)
+                    {
                         _move_obj.ExtSetGameObjectActive(true);
+                    }
 
                     _item.FadeIn(_time.GetCurPhaseProgress(), _effectConfig);
                     break;
@@ -145,9 +147,11 @@ namespace FH
                     _item.Update(_time.GetCurPhaseProgress());
                     break;
 
-                case ENoticeItemPhase.HideOut:
+                case ENoticeItemPhase.FadeOut:
                     if (last_phase != _time.Phase)
+                    {
                         _move_obj.ExtSetGameObjectActive(true);
+                    }
                     _item.FadeOut(_time.GetCurPhaseProgress(), _effectConfig);
                     break;
 

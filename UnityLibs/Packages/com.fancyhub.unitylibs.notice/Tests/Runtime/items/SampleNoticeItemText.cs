@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace FH.NoticeSample
 {
-    public sealed class NoticeItemText : CPoolItemBase, INoticeItem
+    public sealed class SampleNoticeItemText : CPoolItemBase, INoticeItem
     {
         public const float C_FADE_OUT_PERCENT = 0.8f;
         private const string CPath = "Packages/com.fancyhub.unitylibs.notice/Tests/Runtime/Res/UINoticeText.prefab";
@@ -23,9 +23,9 @@ namespace FH.NoticeSample
         public NoticeItemDummy _dummy;
         public CPtr<IResHolder> _ResHolder;
 
-        public static NoticeItemText Create(IResHolder resHolder, string text)
+        public static SampleNoticeItemText Create(IResHolder resHolder, string text)
         {
-            NoticeItemText ret = GPool.New<NoticeItemText>();
+            SampleNoticeItemText ret = GPool.New<SampleNoticeItemText>();
             ret._Text = text;
             ret._ResHolder = new CPtr<IResHolder>(resHolder);
             return ret;
@@ -55,7 +55,7 @@ namespace FH.NoticeSample
         {
             _dummy = dummy;
 
-            _view = NoticeFactory.CreateView(_ResHolder, CPath, dummy.Dummy);
+            _view = SampleNoticeFactory.CreateView(_ResHolder, CPath, dummy.Dummy);
             if (_view == null)
                 return;
             _view.Find("_txt").GetComponent<Text>().text = _Text;
@@ -65,12 +65,12 @@ namespace FH.NoticeSample
 
         public void FadeIn(float progress, NoticeEffectConfig effect)
         {
-            NoticeEffectPlayer.Play(_view, progress, effect.ShowUp);
+            NoticeEffectPlayer.Play(_view, progress, true, effect.ShowUp);
         }
 
         public void FadeOut(float progress, NoticeEffectConfig effect)
         {
-            NoticeEffectPlayer.Play(_view, progress, effect.HideOut);
+            NoticeEffectPlayer.Play(_view, progress, false, effect.HideOut);
         }
 
 
@@ -80,7 +80,7 @@ namespace FH.NoticeSample
 
         protected override void OnPoolRelease()
         {
-            NoticeFactory.ReleaseView(_ResHolder, ref _view);
+            SampleNoticeFactory.ReleaseView(_ResHolder, ref _view);
             _dummy = default;
         }
     }

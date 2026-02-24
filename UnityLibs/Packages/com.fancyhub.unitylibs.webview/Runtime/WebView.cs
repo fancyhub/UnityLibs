@@ -17,7 +17,7 @@ namespace FH
         public void OnWebViewClosed(WebView webView);
     }
 
-    public class WebView
+    public partial class WebView
     {
         private FH.WV.IPlatformWebViewMgr _PlatformWebViewMgr;
         private int _WebViewId;

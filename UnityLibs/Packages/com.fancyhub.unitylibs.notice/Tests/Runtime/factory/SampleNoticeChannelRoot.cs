@@ -15,7 +15,7 @@ namespace FH.NoticeSample
     /// <summary>
     /// 不同的框架,修改这个内容
     /// </summary>
-    public sealed class NoticeChannelRoot : INoticeChannelRoot
+    public sealed class SampleNoticeChannelRoot : INoticeChannelRoot
     {
         private static SimpleGameObjectInstPool _ItemDummyPool = new SimpleGameObjectInstPool();
         private static RectTransform _UIRootCanvas;
@@ -27,7 +27,7 @@ namespace FH.NoticeSample
 
         private IResHolder _ResHolder;
 
-        public NoticeChannelRoot(NoticeDummyConfig config, string dummy_name, IResHolder holder)
+        public SampleNoticeChannelRoot(NoticeDummyConfig config, string dummy_name, IResHolder holder)
         {
             _Config = config;
             _DummyName = dummy_name;

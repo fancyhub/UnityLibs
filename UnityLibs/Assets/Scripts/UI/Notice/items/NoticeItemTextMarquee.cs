@@ -58,8 +58,8 @@ namespace Game
             if (_view == null)
                 return;
             _view._txt.text = _Text;
+            NoticeEffectPlayer.Reset(_view.SelfRootTran);
             UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(_view.SelfRootTran);
-            _SetProgress(0);
         }
 
         public void Update(float progress)
@@ -67,16 +67,16 @@ namespace Game
             _SetProgress(progress);
         }
 
-        public void FadeOut(float progress, NoticeEffectConfig effect)
-        {
-            if (_view != null)
-                NoticeEffectPlayer.Play(_view.SelfRootTran, progress, effect.HideOut);
-        }
-
         public void FadeIn(float progress, NoticeEffectConfig effect)
         {
             if (_view != null)
-                NoticeEffectPlayer.Play(_view.SelfRootTran, progress, effect.ShowUp);
+                NoticeEffectPlayer.Play(_view.SelfRootTran, progress, true, effect.ShowUp);
+        }
+
+        public void FadeOut(float progress, NoticeEffectConfig effect)
+        {
+            if (_view != null)
+                NoticeEffectPlayer.Play(_view.SelfRootTran, progress, false, effect.HideOut);
         }
 
         private void _SetProgress(float progoress)

@@ -39,7 +39,11 @@ namespace Game
 
         [SerializeField] public TestConfig _testData = new TestConfig();
 
+
+
+
         [FH.Omi.Button]
+        [UnityEngine.ContextMenu("Show")]
         public void Show()
         {
             if (!Application.isPlaying)

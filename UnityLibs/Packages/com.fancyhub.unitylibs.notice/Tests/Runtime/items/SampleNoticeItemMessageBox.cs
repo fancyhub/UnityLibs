@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace FH.NoticeSample
 {
-    public sealed class NoticeItemMessageBox : CPoolItemBase, INoticeItem
+    public sealed class SampleNoticeItemMessageBox : CPoolItemBase, INoticeItem
     {
         public const float C_FADE_OUT_PERCENT = 0.8f;
         private const string CPath = "Packages/com.fancyhub.unitylibs.notice/Tests/Runtime/Res/UINoticeMessageBox.prefab";
@@ -24,9 +24,9 @@ namespace FH.NoticeSample
         public NoticeItemDummy _dummy;
         public CPtr<IResHolder> _ResHolder;
 
-        public static NoticeItemMessageBox Create(IResHolder resHolder, string text, string btn_name = null)
+        public static SampleNoticeItemMessageBox Create(IResHolder resHolder, string text, string btn_name = null)
         {
-            NoticeItemMessageBox ret = GPool.New<NoticeItemMessageBox>();
+            SampleNoticeItemMessageBox ret = GPool.New<SampleNoticeItemMessageBox>();
             ret._Text = text;
             ret._BtnName = btn_name;
             ret._ResHolder = new CPtr<IResHolder>(resHolder);
@@ -61,7 +61,7 @@ namespace FH.NoticeSample
         {
             _dummy = dummy;
 
-            _view = NoticeFactory.CreateView(_ResHolder, CPath, dummy.Dummy);
+            _view = SampleNoticeFactory.CreateView(_ResHolder, CPath, dummy.Dummy);
             if (_view == null)
                 return;
 
@@ -76,7 +76,7 @@ namespace FH.NoticeSample
 
         private void _OnBtnClick()
         {
-            NoticeFactory.ReleaseView(_ResHolder, ref _view);
+            SampleNoticeFactory.ReleaseView(_ResHolder, ref _view);
             _dummy = default;
         }
 
@@ -97,7 +97,7 @@ namespace FH.NoticeSample
 
         protected override void OnPoolRelease()
         {
-            NoticeFactory.ReleaseView(_ResHolder, ref _view);
+            SampleNoticeFactory.ReleaseView(_ResHolder, ref _view);
             _dummy = default;
         }
     }

@@ -12,9 +12,9 @@ namespace FH
     public enum ENoticeItemPhase
     {
         Wait,
-        ShowIn,   //出现动画
+        FadeIn,   //出现动画
         Showing,  //展示中  
-        HideOut,  //Hide 动画
+        FadeOut,  //Hide 动画
         End
     }
 
@@ -68,7 +68,7 @@ namespace FH
             }
             else if (time_now >= _hide_time)
             {
-                _phase = ENoticeItemPhase.HideOut;
+                _phase = ENoticeItemPhase.FadeOut;
                 _phase_total = _end_time - _hide_time;
                 _phase_elapsed = time_now - _hide_time;
             }
@@ -80,7 +80,7 @@ namespace FH
             }
             else if (time_now >= _start_time)
             {
-                _phase = ENoticeItemPhase.ShowIn;
+                _phase = ENoticeItemPhase.FadeIn;
                 _phase_total = _show_time - _start_time;
                 _phase_elapsed = time_now - _start_time;
             }
@@ -97,9 +97,9 @@ namespace FH
             {
                 case ENoticeItemPhase.Wait:
                     return 0.0f;
-                case ENoticeItemPhase.ShowIn:
+                case ENoticeItemPhase.FadeIn:
                 case ENoticeItemPhase.Showing:
-                case ENoticeItemPhase.HideOut:
+                case ENoticeItemPhase.FadeOut:
                     return Range64.GetClampPercent(0, _phase_total, _phase_elapsed);
                 case ENoticeItemPhase.End:
                     return 1.0f;

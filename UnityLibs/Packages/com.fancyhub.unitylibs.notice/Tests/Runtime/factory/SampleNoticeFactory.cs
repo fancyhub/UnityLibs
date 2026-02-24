@@ -13,7 +13,7 @@ namespace FH.NoticeSample
     /// <summary>
     /// container的工厂, 自己实现
     /// </summary>
-    internal static class NoticeFactory
+    internal static class SampleNoticeFactory
     {
         public static INoticeChannel CreateChannel(NoticeConfig config, IClock clock, IResHolder holder)
         {
@@ -34,7 +34,7 @@ namespace FH.NoticeSample
             //1. 创建Root
             string name = string.Format("ch_{0}_{1}", config.ChannelType, config.Container.ContainerType);
 
-            return new NoticeChannelRoot(config.Dummy, name, holder);
+            return new SampleNoticeChannelRoot(config.Dummy, name, holder);
         }
 
         private static INoticeContainer _CreateContainer(NoticeConfig config)

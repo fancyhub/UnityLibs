@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace FH.NoticeSample
 {
-    public static partial class NoticeApi
+    public static partial class SampleNoticeApi
     {
         private static NoticeManager _Mgr;
         private static IResHolder _ResHolder;
@@ -40,7 +40,7 @@ namespace FH.NoticeSample
 
             foreach (var p in config.Channels)
             {
-                var channel = NoticeFactory.CreateChannel(p, _Clock, _ResHolder);
+                var channel = SampleNoticeFactory.CreateChannel(p, _Clock, _ResHolder);
                 if (channel == null)
                     continue;
                 _Mgr.AddChannel(p.ChannelType, channel);

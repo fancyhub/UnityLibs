@@ -16,7 +16,7 @@ namespace FH.DI.Ed
         [SerializeField] public UnityEditor.DefaultAsset CustomInfoPlistForDelete; //Need plist asset
 
 #if UNITY_IOS
-        [PostProcessBuild(1)]
+        [PostProcessBuild(1000)]
         public static void OnPostProcessBuild(BuildTarget buildTarget, string pathToBuildProject)
         {
             if (buildTarget != BuildTarget.iOS)
