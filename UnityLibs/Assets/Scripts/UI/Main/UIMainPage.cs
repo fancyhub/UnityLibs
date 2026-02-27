@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using FH.UI;
+using FH;
 
 namespace Game
 {
@@ -65,6 +66,12 @@ namespace Game
             {
                 UIMgr.OpenUI<UITestWebViewPage>();
             };
+
+
+            ShareUtil.StartScreenshotListen(() =>
+            {
+                NoticeApi.ShowCommon("Screen Shot");
+            });
         }
 
         protected override void OnUI5Close()

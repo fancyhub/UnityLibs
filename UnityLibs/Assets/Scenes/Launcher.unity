@@ -532,6 +532,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2098590055}
   - component: {fileID: 2098590056}
+  - component: {fileID: 2098590057}
   m_Layer: 0
   m_Name: AppLauncher
   m_TagString: Untagged
@@ -570,6 +571,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da01d32c1e41b8d4d819cd194b997cb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2098590057
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2098590053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18ab6ca7092152842b8e8cc8d715a44e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _testData:
+    _channel: 1
+    _view_type: 0
+    _priority: 0
+    _duration: 2
+    _img_name: Props_icon_1
+    _text: Hello World
+    _count: 10
+    _interval: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

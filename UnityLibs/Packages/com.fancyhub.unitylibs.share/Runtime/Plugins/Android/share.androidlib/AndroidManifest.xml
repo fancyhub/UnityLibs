@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <uses-permission android:name="android.permission.DETECT_SCREEN_CAPTURE" />
+
+
+	<!-- 下面都是分享需要的 -->
+	<uses-permission android:name="android.permission.INTERNET" />
+	<application>
+		<!-- FileProvider配置（Android 7.0+分享文件必须） -->
+		<provider
+			android:name="androidx.core.content.FileProvider"
+			android:authorities="${applicationId}.fileprovider"
+			android:exported="false"
+			android:grantUriPermissions="true">			
+			 <meta-data
+			 	android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+		</provider>
+	</application>
+</manifest>
