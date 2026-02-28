@@ -54,6 +54,14 @@ namespace FH.UI
             img_loader.SetTexture(path, sync);
         }
 
+        public static void ExtSetOverrideTexture(this RawImage img, Texture texture)
+        {
+            UIRawImageSetter img_loader = img.GetComponent<UIRawImageSetter>();
+            if (img_loader == null)
+                img_loader = img.gameObject.AddComponent<UIRawImageSetter>();
+            img_loader.SetOverrideTexture(texture);
+        }
+
         [RequireComponent(typeof(RawImage))]
         private sealed class UIRawImageSetter : MonoBehaviour
         {
@@ -66,14 +74,14 @@ namespace FH.UI
             private int _JobId;
             private string _Path;
 
-            public void Awake()
+            private void Awake()
             {
                 _Image = GetComponent<RawImage>();
                 _Base = _Image.texture;
                 _OverrideTexture = null;
             }
 
-            public Texture OverrideTexture
+            private Texture OverrideTexture
             {
                 get { return _OverrideTexture; }
                 set
@@ -86,13 +94,21 @@ namespace FH.UI
             }
 
 
-            public void OnDestroy()
+            private void OnDestroy()
             {
                 _ResRef.RemoveUser(this);
                 _ResRef = default;
                 _Path = null;
 
                 _CancelJob();
+            }
+
+            public void SetOverrideTexture(Texture texture)
+            {
+                _CancelJob();
+                _Path = null;
+
+                OverrideTexture = texture;
             }
 
             public void SetTexture(string path, bool sync)

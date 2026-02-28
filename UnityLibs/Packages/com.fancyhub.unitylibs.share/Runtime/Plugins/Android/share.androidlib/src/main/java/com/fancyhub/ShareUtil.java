@@ -72,33 +72,59 @@ public class ShareUtil {
         }
     }
 
-    public static void ShareImage(String title, String imagePath) {
+    public static void Share(String choserTitle, String contentSubject, String contentText, String contentImageFilePath, String targetAppPackageId) {
         Activity activity = UnityPlayer.currentActivity;
         if(activity==null)
             return;
 
-
-        File imageFile = new File(imagePath);
-        if (!imageFile.exists()) {
-            Log.e(TAG, "截图文件不存在：" + imagePath);
-            return;
-        }
-
-        // 获取文件Uri（Android 7.0+必须使用FileProvider）
-        Uri imageUri = FileProvider.getUriForFile(
-            activity,
-            activity.getPackageName() + ".fileprovider",
-            imageFile
-        );
-
         // 构建分享Intent
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType("image/png");
-        shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
-        // 授予临时访问权限
-        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        boolean hasContent = false;
+        if(contentText!=null && contentText.length()>0)
+        {
+            hasContent=true;
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, contentText);
+        }
+
+        if(contentImageFilePath!=null && contentImageFilePath.length()>0)
+        {
+            File imageFile = new File(contentImageFilePath);
+            if (imageFile.exists()) 
+            {            
+                hasContent=true;
+                shareIntent.setType("image/*");
+
+                // 获取文件Uri（Android 7.0+必须使用FileProvider）
+                Uri imageUri = FileProvider.getUriForFile(
+                    activity,
+                    activity.getPackageName() + ".fileprovider",
+                    imageFile
+                );
+
+                shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+                // 授予临时访问权限
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                
+            }
+        }
+
+        if(!hasContent)
+            return;
+
+        if(contentSubject!=null && contentSubject.length()>0)
+        {
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT,contentSubject);
+        }
+
+        if(targetAppPackageId!=null && targetAppPackageId.length()>0)
+        {
+            shareIntent.setPackage(targetAppPackageId);
+        }
+
+        
         // 启动分享选择器
-        Intent chooser = Intent.createChooser(shareIntent, title);
+        Intent chooser = Intent.createChooser(shareIntent, choserTitle);
         chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         activity.startActivity(chooser);
     }
@@ -140,7 +166,7 @@ public class ShareUtil {
             values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/*");
             // 关键：指定相对路径，系统会自动创建文件夹
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/MyUnityGame"); 
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/"+activity.getPackageName()); 
             values.put(MediaStore.Images.Media.IS_PENDING, 1); // 标记为正在写入
 
             Uri uri = context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
@@ -162,19 +188,15 @@ public class ShareUtil {
                     values.put(MediaStore.Images.Media.IS_PENDING, 0);
                     context.getContentResolver().update(uri, values, null, null);
                     return SaveImageError_OK;
-
-                    // sendResultToUnity("Success: Saved to Pictures/MyUnityGame/" + fileName);
+                    
                 } else {
-                    // sendResultToUnity("Error: Failed to open output stream");
                     return SaveImageError_Unkown;
                 }
             } else {
-                // sendResultToUnity("Error: Failed to create MediaStore record");
                 return SaveImageError_Unkown;
             }
         } catch (Exception e) {
             Log.e(TAG, "MediaStore Error", e);
-            // sendResultToUnity("Error: " + e.getMessage());
             return SaveImageError_Unkown;
         }
     }
@@ -185,9 +207,9 @@ public class ShareUtil {
 
     private static int saveViaLegacyFileCopy(Activity activity, String sourcePath, String fileName) {
         try {
-            // 目标目录：/sdcard/Pictures/MyUnityGame/
+            // 目标目录：/sdcard/Pictures/+activity.getPackageName()
             File picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-            File albumDir = new File(picturesDir, "MyUnityGame");
+            File albumDir = new File(picturesDir, activity.getPackageName());
             if (!albumDir.exists()) {
                 albumDir.mkdirs();
             }
@@ -201,11 +223,9 @@ public class ShareUtil {
             scanFileLegacy(activity, destFile.getAbsolutePath());
 
             return SaveImageError_OK;
-            // sendResultToUnity("Success: Saved to " + destFile.getAbsolutePath());
         } catch (Exception e) {
             Log.e(TAG, "Legacy Copy Error", e);
             return SaveImageError_Unkown;
-            // sendResultToUnity("Error: " + e.getMessage());
         }
     }
 

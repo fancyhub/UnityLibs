@@ -38,6 +38,11 @@ namespace FH
             _.FHStartScreenShotListener(_FHScreenshotEventCallback);
         }
 
+        public void StopScreenshotListen()
+        {
+            _.FHStopScreenShotListener();
+        }
+
 
         public EShareCopyImageResult CopyLocalImage2Gallery(string srcFillePath, string destFileName)
         {
@@ -53,6 +58,11 @@ namespace FH
                 default:
                     return EShareCopyImageResult.Unkown;
             }
+        }
+
+        public void Share(string title, string text, string imageFilePath)
+        {
+            _.FHShare(title, text, imageFilePath);
         }
 
         [AOT.MonoPInvokeCallback(typeof(_.FHScreenshotEventCallback))]
@@ -158,6 +168,8 @@ namespace FH
             [DllImport("__Internal")] public static extern void FHLoadPhotoByAssetID(string assetId, FHPhotoDataCallback callBack);
 
             [DllImport("__Internal")] public static extern int FHSaveImageToPhotoAlbum(string imagePath);
+
+            [DllImport("__Internal")] public static extern void FHShare(string title, string text, string imageFilePath);
 
         }
     }

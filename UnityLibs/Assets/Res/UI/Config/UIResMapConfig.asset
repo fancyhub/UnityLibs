@@ -101,6 +101,9 @@ MonoBehaviour:
     - name: TestScrollItem
       dir: 
       ext: .prefab
+    - name: TestShare
+      dir: 
+      ext: .prefab
     - name: TestTime
       dir: 
       ext: .prefab

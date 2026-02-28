@@ -68,10 +68,10 @@ namespace Game
             };
 
 
-            ShareUtil.StartScreenshotListen(() =>
+            BaseView._BtnShare.OnClick = () =>
             {
-                NoticeApi.ShowCommon("Screen Shot");
-            });
+                UIMgr.OpenUI<UITestShare>();
+            };            
         }
 
         protected override void OnUI5Close()

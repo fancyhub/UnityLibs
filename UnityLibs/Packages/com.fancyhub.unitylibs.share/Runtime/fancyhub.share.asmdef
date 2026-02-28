@@ -2,7 +2,8 @@
     "name": "fancyhub.share",
     "rootNamespace": "",
     "references": [
-        "GUID:0b842a67cd8e4af44a402c6759714aed"
+        "GUID:0b842a67cd8e4af44a402c6759714aed",
+        "GUID:bc4775438d257cc41ae52051f2c39cdf"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

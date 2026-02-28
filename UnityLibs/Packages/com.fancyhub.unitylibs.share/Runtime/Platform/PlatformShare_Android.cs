@@ -29,8 +29,7 @@ namespace FH
             }
         }
 
-
-        public void StartScreenshotListen(Action callBack)
+        void IPlatformShareUtil.StartScreenshotListen(Action callBack)
         {
             if (callBack == null)
                 return;
@@ -38,16 +37,16 @@ namespace FH
             ShareUtil.CallStatic("RegisterScreenshotReceiver", new ScreenshotCallBack(callBack));
         }
 
-        public void ShareImage(string title, string image_file_path)
+        void IPlatformShareUtil.StopScreenshotListen()
         {
-            ShareUtil.CallStatic("ShareImage", title, image_file_path);
+            ShareUtil.CallStatic("UnregisterReceiver");
         }
 
-        public EShareCopyImageResult CopyLocalImage2Gallery(string srcFillePath, string destFileName)
+        EShareCopyImageResult IPlatformShareUtil.CopyLocalImage2Gallery(string srcFillePath, string destFileName)
         {
             int result = ShareUtil.CallStatic<int>("CopyImage2Gallery", srcFillePath, destFileName);
 
-            switch(result)
+            switch (result)
             {
                 case 0:
                     return EShareCopyImageResult.OK;
@@ -59,7 +58,17 @@ namespace FH
                 default:
                     return EShareCopyImageResult.Unkown;
             }
-            
+        }
+
+        void IPlatformShareUtil.Share(string title, string text, string imageFilePath)
+        {
+            _Share(null, title, text, imageFilePath, null);
+        }
+
+
+        private void _Share(string choserTitle, string contentSubject, string contentText, string contentImageFilePath, string targetAppPackageId)
+        {
+            ShareUtil.CallStatic("Share", choserTitle, contentSubject, contentText, contentImageFilePath, targetAppPackageId);
         }
 
         internal class ScreenshotCallBack : AndroidJavaProxy

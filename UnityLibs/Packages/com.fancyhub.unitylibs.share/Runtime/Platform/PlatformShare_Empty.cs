@@ -10,8 +10,7 @@ using System;
 #if UNITY_ANDROID || UNITY_EDITOR
 
 namespace FH
-{
-   
+{   
     internal class PlatformShare_Empty: IPlatformShareUtil
     {
         public EShareCopyImageResult CopyLocalImage2Gallery(string srcFillePath, string destFileName)
@@ -19,8 +18,17 @@ namespace FH
             return EShareCopyImageResult.Unkown;
         }
 
+        public void Share(string title, string text, string imageFilePath)
+        {
+        }
+
         public void StartScreenshotListen(Action callBack)
         {       
+        }
+
+        public void StopScreenshotListen()
+        {
+            
         }
     }
 }

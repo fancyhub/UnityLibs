@@ -8,6 +8,7 @@
 #import <UIKit/UIKit.h>
 #import <Photos/Photos.h>
 #import <Foundation/Foundation.h>
+#import <Unity/UnityInterface.h>
 #include <stdlib.h>
 
 typedef void (*FHPhotoDataCallback)(const unsigned char* dataPtr, int dataLength, const char* assetID);
@@ -18,6 +19,10 @@ typedef void (*FHPhotoDataCallback)(const unsigned char* dataPtr, int dataLength
 + (void)loadImageDataForAssetID:(NSString *)assetID callback:(FHPhotoDataCallback)callback
 @end
 
+
+@interface UnityShareManager : NSObject
++ (void)share:(NSString *)title text:(NSString *)text imagePath:(NSString *)imagePath;
+@end
  
 
 static id _notificationObserver = nil;
@@ -126,13 +131,25 @@ int FHSaveImageToPhotoAlbum(const char* imagePath) {
     return result;
 }
 
+/// Unity调用的分享函数
+/// @param title 标题（C字符串）
+/// @param text 文本（C字符串）
+/// @param imagePath 图片路径（C字符串）
+void FHShare(const char* title, const char* text, const char* imagePath) {
+    // 转换C字符串为OC字符串
+    NSString *ocTitle = title ? [NSString stringWithUTF8String:title] : @"";
+    NSString *ocText = text ? [NSString stringWithUTF8String:text] : @"";
+    NSString *ocImagePath = imagePath ? [NSString stringWithUTF8String:imagePath] : @"";
+    
+    // 调用分享逻辑
+    [UnityShareManager  shareWithTitle:ocTitle text:ocText imagePath:ocImagePath];
+}
+
 }
 
 
 
 @implementation FHPhotoLibraryHelper
-
-
 + (const char*)getLatestPhotoAssetIDSynchronous {
     PHAuthorizationStatus status = [PHPhotoLibrary authorizationStatus];
     if (status != PHAuthorizationStatusAuthorized) {
@@ -218,3 +235,99 @@ int FHSaveImageToPhotoAlbum(const char* imagePath) {
     }];
 } 
 @end
+
+
+@implementation UnityShareManager
++ (void)shareWithTitle:(NSString *)title text:(NSString *)text imagePath:(NSString *)imagePath {
+    // 1. 参数校验：都为空则直接返回
+    if ((text == nil || text.length == 0) && (imagePath == nil || imagePath.length == 0)) {
+        NSLog(@"UnityShare: 文字和图片都为空，不执行分享");
+        return;
+    }
+    
+    // 2. 组装分享内容数组
+    NSMutableArray *activityItems = [NSMutableArray array];
+    
+    // 添加文字（优先加text，title作为补充）
+    NSString *shareText = @"";
+    if (text.length > 0) {
+        shareText = text;
+        // 如果有title，拼接到文字开头
+        if (title.length > 0) {
+            shareText = [NSString stringWithFormat:@"%@\n%@", title, text];
+        }
+        [activityItems addObject:shareText];
+    }
+    
+    // 添加图片（从Unity沙盒读取图片）
+    UIImage *shareImage = nil;
+    if (imagePath.length > 0) {
+        // Unity的图片路径需要转换为iOS本地路径
+        NSString *fullImagePath = [self convertUnityPathToIosPath:imagePath];
+        NSData *imageData = [NSData dataWithContentsOfFile:fullImagePath];
+        if (imageData) {
+            shareImage = [UIImage imageWithData:imageData];
+            if (shareImage) {
+                [activityItems addObject:shareImage];
+            } else {
+                NSLog(@"UnityShare: 图片路径无效，无法加载图片: %@", fullImagePath);
+            }
+        } else {
+            NSLog(@"UnityShare: 图片文件不存在: %@", fullImagePath);
+        }
+    }
+    
+    // 3. 创建系统分享面板
+    UIActivityViewController *activityVC = [[UIActivityViewController alloc]
+                                          initWithActivityItems:activityItems
+                                          applicationActivities:nil];
+    
+    // 4. 适配iPad（必做）
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        UIViewController *rootVC = [UIApplication sharedApplication].keyWindow.rootViewController;
+        activityVC.popoverPresentationController.sourceView = rootVC.view;
+        activityVC.popoverPresentationController.sourceRect = CGRectMake(CGRectGetMidX(rootVC.view.bounds),
+                                                                        CGRectGetMidY(rootVC.view.bounds),
+                                                                        0, 0);
+        activityVC.popoverPresentationController.permittedArrowDirections = UIPopoverArrowDirectionNone;
+    }
+    
+    // 5. 切换到主线程弹出分享面板（Unity调用可能在子线程）
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIViewController *rootVC = [UIApplication sharedApplication].keyWindow.rootViewController;
+        [rootVC presentViewController:activityVC animated:YES completion:nil];
+    });
+    
+    // 6. 分享完成回调（可选，可通过UnitySendMessage回调给C#）
+    __weak typeof(self) weakSelf = self;
+    activityVC.completionWithItemsHandler = ^(UIActivityType  _Nullable activityType,
+                                             BOOL completed,
+                                             NSArray * _Nullable returnedItems,
+                                             NSError * _Nullable error) {
+        if (completed) {
+            NSLog(@"UnityShare: 分享成功");
+            // 回调给Unity（第二个参数是C#的回调方法名，第三个是参数）
+            // UnitySendMessage("ShareManager", "OnShareSuccess", "");
+        } else if (error) {
+            NSLog(@"UnityShare: 分享失败: %@", error.localizedDescription);
+            // UnitySendMessage("ShareManager", "OnShareFailed", error.localizedDescription.UTF8String);
+        } else {
+            NSLog(@"UnityShare: 用户取消分享");
+            // UnitySendMessage("ShareManager", "OnShareCancel", "");
+        }
+    };
+}
+
+/// 转换Unity路径为iOS本地路径
++ (NSString *)convertUnityPathToIosPath:(NSString *)unityPath {
+    // Unity的Application.persistentDataPath对应iOS的Documents目录
+    NSString *documentsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+    
+    // 如果Unity传的是相对路径，拼接Documents路径
+    if (![unityPath hasPrefix:@"/"]) {
+        return [documentsPath stringByAppendingPathComponent:unityPath];
+    }
+    return unityPath;
+}
+
+@end 

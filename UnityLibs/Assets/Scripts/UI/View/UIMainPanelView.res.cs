@@ -25,6 +25,7 @@ namespace Game
 		public UIButtonView _BtnPermission;
 		public UIButtonView _BtnScroller;
 		public UIButtonView _BtnWebView;
+		public UIButtonView _BtnShare;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -48,6 +49,7 @@ namespace Game
 			_BtnPermission = _CreateSub<UIButtonView>(refs.GetObj("_BtnPermission"));
 			_BtnScroller = _CreateSub<UIButtonView>(refs.GetObj("_BtnScroller"));
 			_BtnWebView = _CreateSub<UIButtonView>(refs.GetObj("_BtnWebView"));
+			_BtnShare = _CreateSub<UIButtonView>(refs.GetObj("_BtnShare"));
 
         }
 
@@ -66,6 +68,7 @@ namespace Game
 			_BtnPermission.Destroy();
 			_BtnScroller.Destroy();
 			_BtnWebView.Destroy();
+			_BtnShare.Destroy();
 
         }
 
