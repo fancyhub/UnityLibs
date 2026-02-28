@@ -68,9 +68,21 @@ namespace Game
             {
                 var date = DateTime.Now;
                 string file_name = $"screenshot_{date}.jpg";
-                ShareUtil.CopyLocalImage2Gallery(file_path, file_name);
+                var result = ShareUtil.CopyLocalImage2Gallery(file_path, file_name);
+                switch (result)
+                {
+                    case EShareCopyImageResult.OK:
+                        NoticeApi.ShowCommon("Download Succ");
+                        break;
 
-                NoticeApi.ShowCommon("Download");
+                    case EShareCopyImageResult.NoPermission:
+                        NoticeApi.ShowCommon("Download No Permission");
+                        break;                        
+
+                    case EShareCopyImageResult.Unkown:
+                        NoticeApi.ShowCommon("Download Unkown error");
+                        break;
+                }
             });
         }
 

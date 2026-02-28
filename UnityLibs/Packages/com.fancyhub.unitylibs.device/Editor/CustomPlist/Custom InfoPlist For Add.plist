@@ -4,7 +4,14 @@
 <dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	
 	<key>UIFileSharingEnabled</key>
 	<true/>
+
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Share </string>
+
+	<key>NSUserTrackingUsageDescription</key>
+	<string>We use your advertising identifier to deliver personalized ads and measure ad performance.</string>
 </dict>
 </plist>

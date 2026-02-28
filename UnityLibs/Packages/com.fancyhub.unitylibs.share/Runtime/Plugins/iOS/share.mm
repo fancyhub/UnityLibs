@@ -4,28 +4,20 @@
  * Time    : 2026/2/26
  * Title   :
  * Desc    :
-*************************************************************************************/
+ *************************************************************************************/
 
+#import <Foundation/Foundation.h>
+#import <Photos/Photos.h>
 #import <UIKit/UIKit.h>
 #import <UIKit/UIPopoverSupport.h>
-#import <Photos/Photos.h>
-#import <Foundation/Foundation.h>
 #import <Unity/UnityInterface.h>
 #include <stdlib.h>
 
-typedef void (*FHPhotoDataCallback)(const unsigned char* dataPtr, int dataLength, const char* assetID);
-
 // 内部辅助类
-@interface FHPhotoLibraryHelper : NSObject
+@interface FHShareUtil : NSObject
 + (const char*)getLatestPhotoAssetIDSynchronous;
-+ (void)loadImageDataForAssetID:(NSString *)assetID callback:(FHPhotoDataCallback)callback;
++ (void)share:(NSString*)title text:(NSString*)text imagePath:(NSString*)imagePath;
 @end
-
-
-@interface UnityShareManager : NSObject
-+ (void)share:(NSString *)title text:(NSString *)text imagePath:(NSString *)imagePath;
-@end
- 
 
 static id _notificationObserver = nil;
 
@@ -36,30 +28,28 @@ static FHScreenshotEventCallback s_ScreenshotEventCallback = NULL;
 
 void FHStartScreenShotListener(FHScreenshotEventCallback callBack)
 {
-    s_ScreenshotEventCallback=callBack;
+    s_ScreenshotEventCallback = callBack;
 
-    if (_notificationObserver)
-    {
+    if (_notificationObserver) {
         return;
     }
-    
+
     _notificationObserver = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification
-                                                                                  object:nil
-                                                                                   queue:nil
-                                                                              usingBlock:^(NSNotification * _Nonnull note) {
-            // 【关键】如果回调指针有效，则调用它
-            if (s_ScreenshotEventCallback != NULL) {
-                s_ScreenshotEventCallback();
-            } else {
-                NSLog(@"[ScreenShotListener] 警告：回调指针为空，无法通知 Unity");
-            }
-        }];
-    }
+                                                                              object:nil
+                                                                               queue:nil
+                                                                          usingBlock:^(NSNotification* _Nonnull note) {
+                                                                              // 【关键】如果回调指针有效，则调用它
+                                                                              if (s_ScreenshotEventCallback != NULL) {
+                                                                                  s_ScreenshotEventCallback();
+                                                                              } else {
+                                                                                  NSLog(@"[ScreenShotListener] 警告：回调指针为空，无法通知 Unity");
+                                                                              }
+                                                                          }];
 }
 
 void FHStopScreenShotListener()
 {
-    s_ScreenshotEventCallback=NULL;
+    s_ScreenshotEventCallback = NULL;
 
     if (_notificationObserver) {
         [[NSNotificationCenter defaultCenter] removeObserver:_notificationObserver];
@@ -70,13 +60,7 @@ void FHStopScreenShotListener()
 
 const char* FHGetLatestPhotoAssetID()
 {
-    return [FHPhotoLibraryHelper getLatestPhotoAssetIDSynchronous];
-}
-
-void FHLoadPhotoByAssetID(const char* cAssetID, FHPhotoDataCallback callBack)
-{
-    NSString *assetID = [NSString stringWithUTF8String:cAssetID];
-    [FHPhotoLibraryHelper loadImageDataForAssetID:assetID callback:callBack];
+    return [FHShareUtil getLatestPhotoAssetIDSynchronous];
 }
 
 // 保存图片到相册（返回值：0=成功，1=无权限，2=未知错误）
@@ -87,21 +71,21 @@ int FHSaveImageToPhotoAlbum(const char* imagePath)
         NSLog(@"保存失败：图片路径为空");
         return 2;
     }
-    
-    NSString *path = [NSString stringWithUTF8String:imagePath];
+
+    NSString* path = [NSString stringWithUTF8String:imagePath];
     if (!path) {
         NSLog(@"保存失败：图片路径编码转换失败");
         return 2;
     }
-    
+
     // 2. 检查相册权限
     PHAuthorizationStatus status;
     if (@available(iOS 14, *)) {
-        status = [PHPhotoLibrary authorizationStatusForAccessLevel:PHAccessLevelAddOnly];
+        status = [PHPhotoLibrary authorizationStatusForAccessLevel:PHAccessLevelAddOnly];        
     } else {
-        status = [PHPhotoLibrary authorizationStatus];
+        status = [PHPhotoLibrary authorizationStatus];        
     }
-    
+
     BOOL hasPermission = NO;
     if (status == PHAuthorizationStatusAuthorized) {
         hasPermission = YES;
@@ -110,33 +94,49 @@ int FHSaveImageToPhotoAlbum(const char* imagePath)
             hasPermission = YES;
         }
     }
-    
+     
+
     if (!hasPermission) {
         NSLog(@"保存失败：无相册写入权限，当前状态：%ld", (long)status);
+
+        if (status == PHAuthorizationStatusNotDetermined){            
+
+            if (@available(iOS 14, *)) {
+                [PHPhotoLibrary requestAuthorizationForAccessLevel:PHAccessLevelAddOnly handler:^(PHAuthorizationStatus status) {
+                    //Do nothing                    
+                }];
+            } else {
+                [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+                    //Do nothing
+                }];
+            }             
+        }
         return 1;
     }
-    
+
     // 3. 检查文件是否存在
     if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
         NSLog(@"保存失败：图片文件不存在 - %@", path);
         return 2;
     }
-    
+
     // 4. 同步写入相册 (使用 performChangesAndWait 简化逻辑)
-    NSError *error = nil;
-    BOOL success = [[PHPhotoLibrary sharedPhotoLibrary] performChangesAndWait:^{
-        // 尝试创建请求
-        NSURL *fileURL = [NSURL fileURLWithPath:path];
-        // 如果文件不是有效的图片，这里可能不会立即报错，但提交时会失败
-        [PHAssetCreationRequest creationRequestForAssetFromImageAtFileURL:fileURL];
-    } error:&error];
-    
+    NSError* error = nil;
+    BOOL success = [[PHPhotoLibrary sharedPhotoLibrary]
+        performChangesAndWait:^{
+            // 尝试创建请求
+            NSURL* fileURL = [NSURL fileURLWithPath:path];
+            // 如果文件不是有效的图片，这里可能不会立即报错，但提交时会失败
+            [PHAssetCreationRequest creationRequestForAssetFromImageAtFileURL:fileURL];
+        }
+                        error:&error];
+
     if (!success) {
         NSLog(@"保存失败：写入相册出错 - %@", error.localizedDescription);
         // 可以根据 error code 区分更多错误类型，这里统一返回 2
         return 2;
     }
-    
+
     NSLog(@"图片保存成功：%@", path);
     return 0; // 成功
 }
@@ -148,120 +148,145 @@ int FHSaveImageToPhotoAlbum(const char* imagePath)
 void FHShare(const char* title, const char* text, const char* imagePath)
 {
     // 转换C字符串为OC字符串
-    NSString *ocTitle = title ? [NSString stringWithUTF8String:title] : @"";
-    NSString *ocText = text ? [NSString stringWithUTF8String:text] : @"";
-    NSString *ocImagePath = imagePath ? [NSString stringWithUTF8String:imagePath] : @"";
-    
+    NSString* ocTitle = title ? [NSString stringWithUTF8String:title] : @"";
+    NSString* ocText = text ? [NSString stringWithUTF8String:text] : @"";
+    NSString* ocImagePath = imagePath ? [NSString stringWithUTF8String:imagePath] : @"";
+
     // 调用分享逻辑
-    [UnityShareManager  share:ocTitle text:ocText imagePath:ocImagePath];
+    [FHShareUtil share:ocTitle text:ocText imagePath:ocImagePath];
+}
 }
 
-
-
-@implementation FHPhotoLibraryHelper
-+ (const char*)getLatestPhotoAssetIDSynchronous {
+@implementation FHShareUtil
++ (const char*)getLatestPhotoAssetIDSynchronous
+{
     PHAuthorizationStatus status = [PHPhotoLibrary authorizationStatus];
     if (status != PHAuthorizationStatusAuthorized) {
         return NULL;
     }
 
-    PHFetchOptions *options = [[PHFetchOptions alloc] init];
-    options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
+    PHFetchOptions* options = [[PHFetchOptions alloc] init];
+    options.sortDescriptors = @[ [NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO] ];
     options.fetchLimit = 1;
     options.predicate = [NSPredicate predicateWithFormat:@"mediaType == %d", PHAssetMediaTypeImage];
 
-    PHFetchResult<PHAsset *> *result = [PHAsset fetchAssetsWithOptions:options];
-    
+    PHFetchResult<PHAsset*>* result = [PHAsset fetchAssetsWithOptions:options];
+
     if (result.count > 0) {
-        PHAsset *asset = [result firstObject];
-        NSString *assetID = asset.localIdentifier;
-        
-         
+        PHAsset* asset = [result firstObject];
+        NSString* assetID = asset.localIdentifier;
+
         return strdup([assetID UTF8String]);
     }
     return NULL;
 }
 
-+ (void)loadImageDataForAssetID:(NSString *)assetID callback:(FHPhotoDataCallback)callback {
-    
-}
-@end
-
-
-@implementation UnityShareManager
-+ (void)shareWithTitle:(NSString *)title text:(NSString *)text imagePath:(NSString *)imagePath {
-    // 1. 参数校验：都为空则直接返回
++ (void)share:(NSString*)title text:(NSString*)text imagePath:(NSString*)imagePath
+{    
+    // 1. 参数校验
     if ((text == nil || text.length == 0) && (imagePath == nil || imagePath.length == 0)) {
         NSLog(@"UnityShare: 文字和图片都为空，不执行分享");
         return;
     }
-    
-    // 2. 组装分享内容数组
-    NSMutableArray *activityItems = [NSMutableArray array];
-    
-    // 添加文字（优先加text，title作为补充）
-    NSString *shareText = @"";
+
+    // 2. 组装分享内容
+    NSMutableArray* activityItems = [NSMutableArray array];
+
+    // 处理文字
     if (text.length > 0) {
-        shareText = text;
-        // 如果有title，拼接到文字开头
+        NSString* shareText = text;
         if (title.length > 0) {
             shareText = [NSString stringWithFormat:@"%@\n%@", title, text];
         }
         [activityItems addObject:shareText];
     }
-    
-    // 添加图片（从Unity沙盒读取图片）
-    UIImage *shareImage = nil;
+
+    // 处理图片
+    UIImage* shareImage = nil;
     if (imagePath.length > 0) {
-        // Unity的图片路径需要转换为iOS本地路径
-        NSString *fullImagePath = [self convertUnityPathToIosPath:imagePath];
-        NSData *imageData = [NSData dataWithContentsOfFile:fullImagePath];
-        if (imageData) {
-            shareImage = [UIImage imageWithData:imageData];
+        // 【修正】Unity 传过来的通常是绝对路径 (Application.persistentDataPath/...)
+        // 如果 imagePath 已经是绝对路径，直接使用；如果是相对路径，可能需要拼接
+        NSString* fullImagePath = imagePath;
+        
+        // 简单判断：如果不是以 / 开头，可能是相对路径，尝试拼接 Documents (视你的 Unity 代码而定)
+        if (![imagePath hasPrefix:@"/"]) {
+            NSString* docsDir = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+            fullImagePath = [docsDir stringByAppendingPathComponent:imagePath];
+        }
+
+        if ([[NSFileManager defaultManager] fileExistsAtPath:fullImagePath]) {
+            shareImage = [UIImage imageWithContentsOfFile:fullImagePath];
             if (shareImage) {
                 [activityItems addObject:shareImage];
             } else {
-                NSLog(@"UnityShare: 图片路径无效，无法加载图片: %@", fullImagePath);
+                NSLog(@"UnityShare: 图片加载失败 (格式错误或损坏): %@", fullImagePath);
             }
         } else {
             NSLog(@"UnityShare: 图片文件不存在: %@", fullImagePath);
         }
     }
-    
-    // 3. 创建系统分享面板
-    UIActivityViewController *activityVC = [[UIActivityViewController alloc]
-                                          initWithActivityItems:activityItems
-                                          applicationActivities:nil];
-    
-    // 4. 适配iPad（必做）
-    
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-        UIViewController *rootVC = [UIApplication sharedApplication].keyWindow.rootViewController;
-        activityVC.popoverPresentationController.sourceView = rootVC.view;
-        activityVC.popoverPresentationController.sourceRect = CGRectMake(CGRectGetMidX(rootVC.view.bounds),
-                                                                        CGRectGetMidY(rootVC.view.bounds),
-                                                                        0, 0);
-        //activityVC.popoverPresentationController.permittedArrowDirections = UIPopoverArrowDirectionNone;
+
+    if (activityItems.count == 0) {
+        NSLog(@"UnityShare: 最终没有有效的内容可分享");
+        return;
     }
-    
-    
-    // 5. 切换到主线程弹出分享面板（Unity调用可能在子线程）
+
+    // 3. 创建分享控制器
+    UIActivityViewController* activityVC = [[UIActivityViewController alloc]
+                                            initWithActivityItems:activityItems
+                                            applicationActivities:nil];
+
+    // 4. 适配 iPad (Popover 设置) - 必须配置，否则 iPad 会崩溃
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+        activityVC.modalPresentationStyle = UIModalPresentationPopover;
+        
+        // 【核心修复】获取最顶层的 ViewController，兼容 iOS 13+ SceneDelegate
+        UIViewController* topVC = [self getTopViewController];
+        
+        if (topVC && topVC.view) {
+            UIPopoverPresentationController* popover = activityVC.popoverPresentationController;
+            popover.sourceView = topVC.view;
+            // 设置在屏幕中心弹出
+            popover.sourceRect = CGRectMake(CGRectGetMidX(topVC.view.bounds),
+                                            CGRectGetMidY(topVC.view.bounds),
+                                            0, 0);
+            popover.permittedArrowDirections = UIPopoverArrowDirectionAny;
+        } else {
+            NSLog(@"UnityShare: 警告 - 未能获取到有效的 Top ViewController，iPad 弹窗可能异常");
+        }
+    }
+
+    // 5. 在主线程弹出
     dispatch_async(dispatch_get_main_queue(), ^{
-        UIViewController *rootVC = [UIApplication sharedApplication].keyWindow.rootViewController;
-        [rootVC presentViewController:activityVC animated:YES completion:nil];
+        UIViewController* topVC = [self getTopViewController];
+        
+        if (!topVC) {
+            NSLog(@"UnityShare: 错误 - 无法获取 ViewController 来呈现分享面板");
+            return;
+        }
+
+        // 检查是否已经有其他 VC 正在呈现，如果有，尝试找到最上层的
+        while (topVC.presentedViewController) {
+            topVC = topVC.presentedViewController;
+        }
+
+        // 再次检查视图是否在窗口层级中 (防止场景切换导致的崩溃)
+        if (topVC.view.window) {
+            [topVC presentViewController:activityVC animated:YES completion:nil];
+        } else {
+            // 极端情况：视图不在窗口中，尝试回退到 root
+            UIViewController* rootVC = [self getTopViewController]; 
+            if(rootVC) {
+                 [rootVC presentViewController:activityVC animated:YES completion:nil];
+            }
+        }
     });
 }
 
-/// 转换Unity路径为iOS本地路径
-+ (NSString *)convertUnityPathToIosPath:(NSString *)unityPath {
-    // Unity的Application.persistentDataPath对应iOS的Documents目录
-    NSString *documentsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
-    
-    // 如果Unity传的是相对路径，拼接Documents路径
-    if (![unityPath hasPrefix:@"/"]) {
-        return [documentsPath stringByAppendingPathComponent:unityPath];
-    }
-    return unityPath;
-}
 
+// --- 核心工具方法：兼容 iOS 13+ 获取最顶层 ViewController ---
++ (UIViewController*)getTopViewController {    
+    extern UIViewController* UnityGetGLViewController();
+    return  UnityGetGLViewController();    
+}
 @end
