@@ -22,6 +22,15 @@ namespace Game
             BaseView._Img.ExtSetOverrideTexture(null);
 
             ShareUtil.StartScreenshotListen(_OnDetectedCapture);
+      
+            bool isAndroid = Application.platform == RuntimePlatform.Android;
+
+            // 满足下面任意一个，截图一定颠倒
+            bool isVulkan = SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Vulkan;
+            bool flipY = isAndroid && isVulkan;
+            BaseView._Info.text= $"isAndroid: {isAndroid} isVulkan:{SystemInfo.graphicsDeviceType} flipY:{flipY}";
+            
+        
         }
 
         protected override void OnUI5Close()

@@ -7,7 +7,6 @@
 
 using System;
 
-#if UNITY_ANDROID || UNITY_EDITOR
 
 namespace FH
 {   
@@ -32,4 +31,3 @@ namespace FH
         }
     }
 }
-#endif

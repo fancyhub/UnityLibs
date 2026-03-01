@@ -19,6 +19,7 @@ namespace Game
 		public UIButtonView _BtnDownload;
 		public UIButtonView _BtnShare;
 		public UIButtonView _BtnSimuateCapture;
+		public UnityEngine.UI.Text _Info;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -36,6 +37,7 @@ namespace Game
 			_BtnDownload = _CreateSub<UIButtonView>(refs.GetObj("_BtnDownload"));
 			_BtnShare = _CreateSub<UIButtonView>(refs.GetObj("_BtnShare"));
 			_BtnSimuateCapture = _CreateSub<UIButtonView>(refs.GetObj("_BtnSimuateCapture"));
+			_Info = refs.GetComp<UnityEngine.UI.Text>("_Info");
 
         }
 

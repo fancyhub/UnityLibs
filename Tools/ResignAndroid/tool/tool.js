@@ -14,6 +14,31 @@ class Config {
 }
 
 
+function exeCmd(args, name) {
+    const command = args.join(' ');
+    try {
+        console.log(`Exe ${name} Command: \n\t${command}\n`);
+        execSync(command, { stdio: 'inherit' });
+        return true;
+    } catch (error) {
+        console.error(`Exe ${name} Command Failed: ${error.message}`);
+        return false;
+    }
+}
+
+function exeCmdInDir(args, name, dir) {
+    const command = args.join(' ');
+    try {
+        console.log(`Exe ${name} Command: \n\t${command}\n`);
+        execSync(command, { stdio: 'inherit', cwd: dir });
+        return true;
+    } catch (error) {
+        console.error(`Exe ${name} Command Failed: ${error.message}`);
+        return false;
+    }
+}
+
+
 /**
  * signWithJarsigner https://docs.oracle.com/javase/8/docs/technotes/tools/windows/jarsigner.html
  * @param {Config} config 
@@ -30,16 +55,8 @@ function signWithJarsigner(config, filePath) {
         `-digestalg SHA-256`,
         `"${filePath}"`,
         `"${config.keyAlias}"`
-    ].join(' ');
-
-    try {
-        console.log(`Exe Sign Command: $\n\t${command}\n`);
-        execSync(command, { stdio: 'inherit' });
-        return true;
-    } catch (error) {
-        console.error(`Sign Failed: ${error.message}`);
-        return false;
-    }
+    ]
+    return exeCmd(command, 'Sign');
 }
 
 
@@ -62,16 +79,9 @@ function signWithApksigner(config, filePath) {
         `--v3-signing-enabled true`,
         `--v4-signing-enabled true`,
         `"${filePath}"`,
-    ].join(' ');
+    ]
 
-    try {
-        console.log(`Exe Sign Command:\n\t${command}\n`);
-        execSync(command, { stdio: 'inherit' });
-        return true;
-    } catch (error) {
-        console.error(`Sign Failed: ${error.message}`);
-        return false;
-    }
+    return exeCmd(command, 'Sign');
 }
 
 /**
@@ -90,32 +100,17 @@ function zipAlign(config, inputFilePath, outputFilePath) {
         `4`,
         `"${inputFilePath}"`,
         `"${outputFilePath}"`
-    ].join(' ');
+    ];
 
-    try {
-        console.log(`Exe zipalign: \n\t${command}\n`);
-        execSync(command, { stdio: 'inherit' });
-        return true;
-    } catch (error) {
-        console.error(`zipalign Failed: ${error.message}`);
-        return false;
-    }
+    return exeCmd(command, 'ZipAlign');
 }
 
 function installApk(inputFilePath) {
     const command = [
         `adb install -r "${inputFilePath}"`,
-    ].join(' ');
+    ];
 
-    try {
-
-        console.log(`Exe installApk: \n\t${command}\n`);
-        execSync(command, { stdio: 'inherit' });
-        return true;
-    } catch (error) {
-        console.error(`Exe installApk Failed: ${error.message}`);
-        return false;
-    }
+    return exeCmd(command, 'installApk');
 }
 
 
@@ -124,17 +119,8 @@ function installApks(config, inputFilePath) {
         `java -jar "${config.bundletoolPath}"`,
         `install-apks`,
         `--apks="${inputFilePath}"`,
-    ].join(' ');
-
-    try {
-
-        console.log(`Exe installApks: \n\t${command}\n`);
-        execSync(command, { stdio: 'inherit' });
-        return true;
-    } catch (error) {
-        console.error(`Exe installApks Failed: ${error.message}`);
-        return false;
-    }
+    ] ;
+    return exeCmd(command, 'installApks');     
 }
 
 
@@ -150,16 +136,9 @@ function replaceResources(apkFilePath, resourcesRootDir) {
         `"${apkFilePath}"`,
         `-C "${resourcesRootDir}"`,
         `./`
-    ].join(' ');
+    ];
 
-    try {
-        console.log(`Exe replaceResources: \n\t${command}\n`);
-        execSync(command, { stdio: 'inherit', cwd: resourcesRootDir });
-        return true;
-    } catch (error) {
-        console.error(`Exe replaceResources: ${error.message}`);
-        return false;
-    }
+    return exeCmdInDir(command, 'replaceResources', resourcesRootDir); 
 }
 
 /**
@@ -176,16 +155,8 @@ function printCertWithApksinger(config, inputFilePath) {
         `--verbose`,
         `--print-certs`,
         `"${inputFilePath}"`,
-    ].join(' ');
-
-    try {
-        console.log(`print cert Of Apk:\n\t${command}\n`);
-        execSync(command, { stdio: 'inherit' });
-        return true;
-    } catch (error) {
-        console.error(`print cert Of Apk Failed: ${error.message}`);
-        return false;
-    }
+    ];
+    return exeCmd(command, 'Print Cert Of Apk');       
 }
 
 /**
@@ -212,16 +183,9 @@ function aab2Apks(config, aabFilePath, apksFilePath, universal) {
         `--ks-key-alias "${config.keyAlias}"`,
         `--key-pass pass:${config.keyPassword}`,
         `--overwrite`
-    ].join(' ');
+    ];
 
-    try {
-        console.log(`aab2Apks Command:\n\t${command}\n`);
-        execSync(command, { stdio: 'inherit' });
-        return true;
-    } catch (error) {
-        console.error(`aab2Apks Failed: ${error.message}`);
-        return false;
-    }
+    return exeCmd(command, 'aab2Apks');   
 }
 
 
@@ -237,15 +201,12 @@ function printJarCert(inputFilePath) {
         `-verbose:signing`,
         `-certs`,
         `"${inputFilePath}"`,
-    ].join(' ');
+    ];
 
-    try {
-        console.log(`print cert with jarsigner:\n\t${command}\n`);
-        execSync(command, { stdio: 'inherit' });
-    } catch (error) {
-        console.error(`print cert with jarsigner Failed: ${error.message}`);
+    if (!exeCmd(command, 'print cert with jarsigner')){
         return false;
     }
+        
 
     unzipTargetMetaInf2Dir(inputFilePath, path.resolve("output/temp"));
 

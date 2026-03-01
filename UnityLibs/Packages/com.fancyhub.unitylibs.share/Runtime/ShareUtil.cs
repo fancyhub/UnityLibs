@@ -123,21 +123,13 @@ namespace FH
             }
 
             //3. calc texture size and crop area
-
             Vector2Int textureSize = new Vector2Int(Screen.width, Screen.height);
             Rect cropArea = new Rect(0, 0, textureSize.x, textureSize.y);
             if (targetArea != null)
             {
                 RectTransformExt.EModeY mode = RectTransformExt.EModeY.Botton_Zero;
-                if (!Application.isEditor)
-                {
-                    switch (Application.platform)
-                    {
-                        case RuntimePlatform.Android:
-                            mode = RectTransformExt.EModeY.Top_Zero;
-                            break;
-                    }
-                }
+                if (IsScreenTextureFlipped())
+                    mode = RectTransformExt.EModeY.Top_Zero;
 
                 targetArea.ExtToScreenNormalize(mode, out var normalized, out var _);
                 int width = (int)(Screen.width * normalized.width);
@@ -149,7 +141,6 @@ namespace FH
 
                 cropArea = new Rect(posX, posY, width, height);
             }
-
 
             //4. hide node
             if (_TempList.Count > 0)
@@ -163,7 +154,6 @@ namespace FH
                         _TempList[i] = null;
                         continue;
                     }
-
                     _TempList[i].SetActive(false);
                 }
             }
@@ -171,13 +161,10 @@ namespace FH
             //5. wait end of frame
             yield return new WaitForEndOfFrame();
 
-
             //6. capture
             Texture2D screenShotTexture = new Texture2D(textureSize.x, textureSize.y, TextureFormat.RGB24, false);
             screenShotTexture.ReadPixels(cropArea, 0, 0);
             screenShotTexture.Apply();
-
-
 
             //6. show the node
             if (_TempList.Count > 0)
@@ -188,13 +175,21 @@ namespace FH
                         continue;
                     _TempList[i].SetActive(true);
                 }
-
                 _TempList.Clear();
             }
 
-
             //7. 
             callBack(screenShotTexture);
+        }
+
+        private static bool IsScreenTextureFlipped()
+        {
+            bool isAndroid =Application.platform == RuntimePlatform.Android;
+            bool isVulkan = SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Vulkan;
+
+            bool flipY = isAndroid && isVulkan;
+            
+            return flipY;
         }
     }
 }
