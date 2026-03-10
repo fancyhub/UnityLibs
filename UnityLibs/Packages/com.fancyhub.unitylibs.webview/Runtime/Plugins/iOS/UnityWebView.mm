@@ -474,7 +474,6 @@ static void Log_Error2(NSString* msg)
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation
 {
-    // TODO: handle didFinishNavigation
     if(s_WebViewJsLogCallBack != NULL)
     {
         s_WebViewJsLogCallBack([self._Data.WebViewId intValue], 0, "didFinishNavigation");
@@ -488,7 +487,20 @@ static void Log_Error2(NSString* msg)
 
 - (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error
 {
-    // TODO: handle didFailNavigation
+    if(error != nil && s_WebViewJsLogCallBack != NULL)
+    {
+        NSString *errMsg = [NSString stringWithFormat:@"didFailNavigation: %@ (code:%ld)", error.localizedDescription, (long)error.code];
+        s_WebViewJsLogCallBack([self._Data.WebViewId intValue], LogLevel_Error, [errMsg UTF8String]);
+    }
+}
+
+- (void)webView:(WKWebView *)webView didFailProvisionalNavigation:(WKNavigation *)navigation withError:(NSError *)error
+{
+    if(error != nil && s_WebViewJsLogCallBack != NULL)
+    {
+        NSString *errMsg = [NSString stringWithFormat:@"didFailProvisionalNavigation: %@ (code:%ld)", error.localizedDescription, (long)error.code];
+        s_WebViewJsLogCallBack([self._Data.WebViewId intValue], LogLevel_Error, [errMsg UTF8String]);
+    }
 }
 @end
 
