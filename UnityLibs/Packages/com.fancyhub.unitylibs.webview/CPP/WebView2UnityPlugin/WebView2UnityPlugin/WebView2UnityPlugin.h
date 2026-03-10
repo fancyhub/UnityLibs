@@ -83,6 +83,8 @@ extern "C" {
 
 
 	WEBVIEW2UNITYPLUGIN_API BSTR WebViewGetUrl(INT32 webViewId);
+	WEBVIEW2UNITYPLUGIN_API BSTR WebViewGetTitle(INT32 webViewId);
+
 	WEBVIEW2UNITYPLUGIN_API void  WebViewReload(INT32 webViewId);
 
 	WEBVIEW2UNITYPLUGIN_API bool WebViewCanGoBack(INT32 webViewId);

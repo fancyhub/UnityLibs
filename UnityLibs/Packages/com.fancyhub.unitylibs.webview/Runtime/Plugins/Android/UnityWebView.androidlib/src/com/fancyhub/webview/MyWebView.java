@@ -112,6 +112,7 @@ class MyWebViewData {
     public final WebViewSharedData SharedData;
 
     public String URL;
+    public String Title;
     public boolean IsLoading;
 
     public int LoadProgress;
@@ -386,6 +387,13 @@ class MyWebView {
             return;
         _WebViewData.BGColor.SetValue(bgColor);
         _WebView.setBackgroundColor(bgColor);
+    }
+
+    public String GetTitle() {
+        if (_WebView == null)
+            return null;
+
+        return _WebViewData.Title;
     }
 
     public String GetUrl() {

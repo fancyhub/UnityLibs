@@ -64,5 +64,19 @@ namespace FH
                 return;
             _WebView?.Resize(size);
         }
+
+        public string GetUrl()
+        {
+            if(_WebView == null || !_WebView.IsValid())
+                return null;
+            return _WebView.GetURL();
+        }
+
+        public string GetTitle()
+        {
+            if (_WebView == null || !_WebView.IsValid())
+                return null;
+            return _WebView.GetTitle();
+        }
     }
 }

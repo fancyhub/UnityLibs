@@ -269,6 +269,7 @@ private:
 public:
 	INT32 WebViewId;
 	std::wstring URL;
+	std::wstring Title;
 	WebViewSize Size;
 	HWND ParentWindow;
 	RECT LastRect;
@@ -826,7 +827,6 @@ WEBVIEW2UNITYPLUGIN_API void  WebViewNavigate(INT32 webViewId, const wchar_t* ur
 	}
 }
 
-
 WEBVIEW2UNITYPLUGIN_API BSTR WebViewGetUrl(INT32 webViewId)
 {
 	auto pWebView = _FindWebView(webViewId, L"WebViewGetUrl");
@@ -848,6 +848,30 @@ WEBVIEW2UNITYPLUGIN_API BSTR WebViewGetUrl(INT32 webViewId)
 	pWebView->URL = url;
 	CoTaskMemFree(url);
 	return SysAllocString(pWebView->URL.c_str());
+}
+
+
+WEBVIEW2UNITYPLUGIN_API BSTR WebViewGetTitle(INT32 webViewId)
+{
+	auto pWebView = _FindWebView(webViewId, L"WebViewGetTitle");
+	if (pWebView == nullptr)
+	{
+		return nullptr;
+	}
+
+	if (pWebView->pWebView2 == nullptr)
+	{
+		return SysAllocString(pWebView->Title.c_str());
+	}
+
+	LPWSTR title;
+	HRESULT result = pWebView->pWebView2->get_DocumentTitle(&title);
+	if (!SUCCEEDED(result))
+		return  nullptr;
+
+	pWebView->Title = title;
+	CoTaskMemFree(title);
+	return SysAllocString(pWebView->Title.c_str());
 }
 
 

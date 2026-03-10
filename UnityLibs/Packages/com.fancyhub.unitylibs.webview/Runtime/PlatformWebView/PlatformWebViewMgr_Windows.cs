@@ -99,6 +99,11 @@ namespace FH.WV
             [return: MarshalAs(UnmanagedType.BStr)]
             public static extern string WebViewGetUrl(int webViewId);
 
+            [DllImport(PluginName)]
+            [return: MarshalAs(UnmanagedType.BStr)]
+            public static extern string WebViewGetTitle(int webViewId);
+            
+
             [DllImport(PluginName, CharSet = CharSet.Unicode)]
             public static extern void WebViewExecuteScript(int webViewId, string javaScript);
 
@@ -370,6 +375,11 @@ namespace FH.WV
         string IPlatformWebViewMgr.GetURL(int webViewId)
         {
             return Cpp.WebViewGetUrl(webViewId);
+        }
+
+        string IPlatformWebViewMgr.GetTitle(int webViewId)
+        {
+            return Cpp.WebViewGetTitle(webViewId);
         }
 
         public bool _CanGoBack(int webViewId)

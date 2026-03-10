@@ -81,6 +81,13 @@ namespace FH
             return _PlatformWebViewMgr.GetURL(_WebViewId);
         }
 
+        public string GetTitle()
+        {
+            if (_PlatformWebViewMgr == null)
+                return string.Empty;
+            return _PlatformWebViewMgr.GetTitle(_WebViewId);
+        }
+
         public bool IsLoading()
         {
             if (_PlatformWebViewMgr == null)

@@ -48,6 +48,11 @@ namespace FH.WV
             return _.GetUrl(webViewId);
         }
 
+        string IPlatformWebViewMgr.GetTitle(int webViewId)
+        {
+            return _.GetTitle(webViewId);
+        }
+
         void IPlatformWebViewMgr.GoBack(int webViewId)
         {
             _.GoBack(webViewId);
@@ -169,6 +174,8 @@ namespace FH.WV
             [DllImport("__Internal")] public static extern void CloseAll();
 
             [DllImport("__Internal")] public static extern string GetUrl(int webViewId);
+            [DllImport("__Internal")] public static extern string GetTitle(int webViewId);
+
             [DllImport("__Internal")] public static extern void GoBack(int webViewId);
             [DllImport("__Internal")] public static extern void GoForward(int webViewId);
 

@@ -46,4 +46,9 @@ class MyWebChromeClient extends WebChromeClient
         _Data.Debug("onHideCustomView");
     }
 
+    @Override
+    public void onReceivedTitle(WebView view, String title) {
+        _Data.Title = title;
+        // 如需通知 Unity 层，可在此调用回调
+    }
 }

@@ -5,10 +5,11 @@ using FH;
 using FH.UI;
 using System;
 using System.Globalization;
+using System.Reflection;
 
 namespace Game
 {
-    public class UITestWebViewPage : UIPageBase<UITestWebViewView>
+    public class UITestWebViewPage : UIPageBase<UITestWebViewView>, IUIUpdater
     {
         public class MyTab
         {
@@ -28,6 +29,7 @@ namespace Game
                 Tab._WebViewTab.group = null;
                 View.Destroy();
                 Tab.Destroy();
+                Url.Destroy();
             }
 
             private void _OnUrlSubmit(string url)
@@ -38,18 +40,34 @@ namespace Game
             private void _OnTabChanged(bool v)
             {
                 View.Active = v;
-                Url.Active = v;
+                Url.Active = v;                
+            }
+
+            public bool IsActive()
+            {
+                if (View == null)
+                    return false;
+                return View.Active;
+            }
+
+            public void Update()
+            {
+                string t = View.UnityWebView.GetTitle();
+                if (!string.IsNullOrEmpty(t))
+                    this.Tab._Name.text = t;
+                else
+                    this.Tab._Name.text = "";
             }
         }
 
-        public List<MyTab> _AllViews = new List<MyTab>();
-        public int _CurrentIndex = 0;
+        public List<MyTab> _AllViews = new List<MyTab>();        
         protected override void OnUI2Open()
         {
             base.OnUI2Open();
             BaseView._BtnClose.OnClick = _OnBtnCloseClick;
-            _CurrentIndex = -1;
             BaseView._BtnAddTab.OnClick = _OnBtnAddClick;
+
+            UIMgr.UpdateList += this;
         }
 
 
@@ -96,6 +114,24 @@ namespace Game
                 p.Close();
             }
             _AllViews.Clear();
+        }
+
+        public void OnUIUpdate(float dt)
+        {
+            MyTab tab = null;
+            foreach (var p in _AllViews)
+            {
+                if (p!=null && p.IsActive())
+                {
+                    tab = p;
+                    break;
+                }
+            }            
+            
+            if (tab == null) 
+                return;
+
+            tab.Update();
         }
     }
 }

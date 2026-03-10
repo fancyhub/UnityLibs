@@ -75,6 +75,7 @@
 -(void)RunJsCode:(NSString*)jsCode;
 -(void)Close;
 -(NSString*)GetUrl;
+-(NSString*)GetTitle;
 -(bool)IsLoading;
 
 @end
@@ -229,6 +230,22 @@ extern "C"
         const char *url = [[webView GetUrl] UTF8String];
         if (url == NULL) return NULL;
         return strdup(url);
+    }
+
+    const char *GetTitle(int webViewId)
+    {
+        MyWebView *webView = [MyWebView Get:webViewId];
+        if(webView == nil)
+        {
+            Log_Error("GetTitle: webView is nil");
+            return NULL;
+        }
+
+        NSString *title = [webView GetTitle];
+        if(title == nil) return NULL;
+        const char *titleCStr = [title UTF8String];
+        if(titleCStr == NULL) return NULL;
+        return strdup(titleCStr);
     }
 
     bool IsLoading(int webViewId)
@@ -741,4 +758,12 @@ static int s_NextWebViewId = 0;
     if(self._WebView == nil) return nil;
     return [self._WebView.URL absoluteString];
 }
+
+-(NSString*)GetTitle
+{
+    if(self._WebView == nil) return nil;
+    return self._WebView.title;
+}
+
+ 
 @end // MyWebView

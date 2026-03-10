@@ -158,6 +158,22 @@ public class WebViewManager {
         return view.GetUrl();
     }
 
+    public static String GetTitle(int webViewId)
+    {
+        if(_SharedData==null)
+        {
+            android.util.Log.e(WebViewDefine.LogTag,"GetTitle: sharedData null");
+            return null;
+        }
+
+        _SharedData.Debug("GetTitle");
+        MyWebView view= _WebViews.get(webViewId);
+        if(view==null)
+            return null;
+
+        return view.GetTitle();
+    }
+
     public static boolean IsLoading(int webViewId)
     {
         if(_SharedData==null)

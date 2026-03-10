@@ -128,7 +128,7 @@ class MyWebViewClient extends WebViewClient
     @Override
     public void onPageFinished(WebView view, String url) {
         _Data.Debug("onPageFinished: "+url);
-        _Data.URL=url;
+        _Data.URL=url;        
         _Data.IsLoading=true;
 
         try

@@ -20,6 +20,7 @@ namespace FH.WV
         int IPlatformWebViewMgr.Create(string url, Rect normalizedRect) { return 0; }
 
         string IPlatformWebViewMgr.GetURL(int webViewId) { return null; }
+        string IPlatformWebViewMgr.GetTitle(int webViewId) { return null; }
 
         void IPlatformWebViewMgr.GoBack(int webViewId) { }
 
@@ -46,7 +47,8 @@ namespace FH.WV
         void IPlatformWebViewMgr.SetGlobalUserAgent(string userAgent) { }
 
         void IPlatformWebViewMgr.SetVisible(int webViewId, bool visible) { }
-         
+        
+
 
         void IPlatformWebViewMgr.SetWebViewCallBack(IPlatformWebViewMgrCallback webViewCallback) { }
     }

@@ -56,6 +56,8 @@ namespace FH.WV
         public void RunJavaScript(WebViewId webViewId, string jsCode);
 
         public string GetURL(WebViewId webViewId);
+        public string GetTitle(WebViewId webViewId);
+
         public void Reload(WebViewId webViewId);
 
         public void GoBack(WebViewId webViewId);

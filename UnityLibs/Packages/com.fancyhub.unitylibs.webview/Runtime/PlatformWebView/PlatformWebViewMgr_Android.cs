@@ -137,6 +137,11 @@ namespace FH.WV
             return WebViewManager.CallStatic<string>("GetURL", webViewId);
         }
 
+        string IPlatformWebViewMgr.GetTitle(int webViewId)
+        {
+            return WebViewManager.CallStatic<string>("GetTitle", webViewId);
+        }
+
         void IPlatformWebViewMgr.GoBack(int webViewId)
         {
             WebViewManager.CallStatic("GoBack", webViewId);
