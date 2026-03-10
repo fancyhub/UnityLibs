@@ -1,5 +1,6 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
+//const tty = require('tty');
 const path = require('path');
 const os = require('os');
 const zlib = require('zlib');
@@ -169,31 +170,105 @@ class Config {
 }
 
 
+ 
 /**
- * readLineFromStdin 
- * @param {string} name 
- * @returns {string}
+ * 从 stdin 读取一行输入
+ * @param {string} name - 提示语前缀
+ * @param {boolean} isPassword - 是否为密码模式（隐藏输入）
+ * @returns {string} - 用户输入的字符串
  */
-function readLineFromStdin(name) {
-  process.stdout.write(`${name}:`);
-  const buffer = Buffer.alloc(2048);
-  const bytesRead = fs.readSync(process.stdin.fd, buffer, 0, buffer.length);
-  const input = buffer.toString('utf8', 0, bytesRead).trim();
-  return input;
-}
+function readLineFromStdin(name, isPassword = false) {
+  const isTTY = process.stdin.isTTY;
 
+  // 1. 如果是密码模式且是终端环境，关闭回显
+  if (isPassword && isTTY) {
+    // setRawMode(true) 会让终端进入原始模式，停止自动回显字符
+    // 注意：这也会停止自动处理 Ctrl+C 和退格键，需要手动处理或接受限制
+    process.stdin.setRawMode(true);
+    process.stdout.write(`${name}:`);
+  } else {
+    process.stdout.write(`${name}:`);
+  }
+
+  const buffer = Buffer.alloc(2048);
+  let input = '';
+  
+  try {
+    if (isPassword && isTTY) {
+      // --- 密码模式 (原始模式) ---
+      // 在原始模式下，readSync 会一次读取一个字节（或几个），我们需要循环读取直到遇到回车
+      let byteRead;
+      const singleCharBuffer = Buffer.alloc(1);
+
+      while (true) {
+        byteRead = fs.readSync(process.stdin.fd, singleCharBuffer, 0, 1);
+        
+        if (byteRead === 0) break; // EOF
+
+        const char = singleCharBuffer[0];
+
+        // 回车 (Enter): ASCII 13 (\r) 或 10 (\n)
+        if (char === 13 || char === 10) {
+          process.stdout.write('\n'); // 换行，美观
+          break;
+        }
+
+        // 退格 (Backspace): ASCII 127 (DEL) 或 8 (BS)
+        // 注意：setRawMode 下退格不会自动删除字符，需要手动处理
+        if (char === 127 || char === 8) {
+          if (input.length > 0) {
+            input = input.slice(0, -1);
+            // 终端控制序列: 后退一格 (\b), 覆盖空格 ( ), 再后退一格 (\b)
+            process.stdout.write('\b \b');
+          }
+          continue;
+        }
+
+        // Ctrl+C: ASCII 3
+        if (char === 3) {
+          console.log('\n操作取消');
+          process.exit(130);
+        }
+
+        // 其他可见字符
+        // 如果你想显示星号，取消下面这行的注释：
+        // process.stdout.write('*'); 
+        
+        input += String.fromCharCode(char);
+      }
+      
+      // 读取完成后，恢复终端正常模式（开启回显）
+      process.stdin.setRawMode(false);
+      
+    } else {
+      // --- 普通模式 ---
+      // 直接读取一行（直到遇到 \n）
+      const bytesRead = fs.readSync(process.stdin.fd, buffer, 0, buffer.length);
+      input = buffer.toString('utf8', 0, bytesRead).trim();
+    }
+  } catch (err) {
+    // 确保即使出错也恢复终端模式
+    if (isPassword && isTTY) {
+      process.stdin.setRawMode(false);
+      process.stdout.write('\n');
+    }
+    throw err;
+  }
+
+  return input.trim();
+}
 /**
  * getArg
  * @param {number} index 
  * @param {string} name 
  * @returns {string}
  */
-function getArg(index, name) {
+function getArg(index, name, isPassword = false) {
   if (process.argv.length <= index) {
-    return readLineFromStdin(name);
+    return readLineFromStdin(name, isPassword);
   }
   if (process.argv[index] === "") {
-    return readLineFromStdin(name);
+    return readLineFromStdin(name, isPassword);
   }
   return process.argv[index];
 }
@@ -343,11 +418,13 @@ function printPemInfoWithOpenSSL(pemFilePath) {
  */
 function printP12InfoWithOpenSSL(p12Path, password) {
   try {
-
     let tempPemPath = path.resolve("output/temp.pem");
     if (fs.existsSync(tempPemPath)) {
       fs.unlinkSync(tempPemPath);
+    } else {
+      fs.mkdirSync("output", { recursive: true });
     }
+      
 
     //p12 -> pem
     {
@@ -361,17 +438,18 @@ function printP12InfoWithOpenSSL(p12Path, password) {
         `-passin pass:${password}`,
         `-out "${tempPemPath}"`,
       ];
-      exeCmd(command, "p12 -> pem", false);
+
+      execSync(command.join(' '));
+      // exeCmd(command, "p12 -> pem", false);
     }
 
     printPemInfoWithOpenSSL(tempPemPath);
 
-  } catch (err) {
-    console.error('\n❌ 解析失败：');
+  } catch (err) {    
     if (err.message.includes('password')) {
-      console.error('→ 证书密码错误');
+        console.error('→ invalid password');
     } else {
-      console.error('→', err.message);
+       console.error('→', err.message);
     }
   }
 }
@@ -386,6 +464,8 @@ function printMobileProvisionInfoWithOpenSSL(mobileprovisionFilePath) {
     let tempPlistPath = path.resolve("output/temp.plist");
     if (fs.existsSync(tempPlistPath)) {
       fs.unlinkSync(tempPlistPath);
+    } else {
+      fs.mkdirSync("output", { recursive: true });
     }
 
     const command = [
@@ -536,7 +616,7 @@ function cmdPrintCert() {
       break;
 
     case ".p12":
-      let password = getArg(6, "password")
+      let password = getArg(4, "password", true)
       printP12InfoWithOpenSSL(inputFilePath, password);
       break
 
@@ -560,9 +640,10 @@ function printUsage() {
   console.log(`
 Usage: node ${selfName} cmd 
   cmd:
-      - printCert: print the cert info about the p12, 
+      - printCert: print the cert info about the p12/pem/mobileprovision/ipa, 
           example: node ${selfName} printCert inputFilePath           
-      - convertPlist: convert the (bplist/ipa) to plist
+
+      - convertPlist: convert the (bplist/ipa) to plist/ipa
           example: node ${selfName} convertPlist inputFilePath
       `);
 }
@@ -652,7 +733,7 @@ async function cmdConvertPlist() {
     console.error('→', err.message);
   }
 }
- 
+
 
 function main(args) {
 
@@ -686,7 +767,12 @@ function main(args) {
 
 if (require.main === module) {
   try {
-    // process.argv = ["node", "tool.js", "convertPlist", "C:\\Users\\cunyu.fan\\Desktop\\KD_ios_Dev_1053759_0.0.2443_ec_appVer2.1_debuggable_34064_ad-hoc.ipa"];
+    // process.argv = [
+    //   "node", 
+    //   "tool.js", 
+    //   "convertPlist", 
+    //   "C:\\Users\\cunyu.fan\\Desktop\\KD_ios_Dev_1053759_0.0.2443_ec_appVer2.1_debuggable_34064_ad-hoc.ipa"];
+
     main(process.argv);
   } catch (error) {
     console.error(`${error.message}`);
