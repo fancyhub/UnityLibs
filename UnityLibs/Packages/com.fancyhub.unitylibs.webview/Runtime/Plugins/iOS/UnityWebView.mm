@@ -297,7 +297,6 @@ extern "C"
         if(webView == nil) return false;
         if(webView._WebView == nil) return false;
         return ![webView._WebView isHidden];
-        return false;
     }
 
     void SetBGColor(int webViewId, float r, float g, float b, float a)
@@ -518,7 +517,7 @@ static int s_NextWebViewId = 0;
 + (void) CloseAll
 {
     NSArray<MyWebView *> *webViews = [s_WebViews allValues];
-    for(MyWebView *webView in s_WebViews)
+    for(MyWebView *webView in webViews)
     {
         [s_WebViews removeObjectForKey:webView._Data.WebViewId];
         [webView Close];

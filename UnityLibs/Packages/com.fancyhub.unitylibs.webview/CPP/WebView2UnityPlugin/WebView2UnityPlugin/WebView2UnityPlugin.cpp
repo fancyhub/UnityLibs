@@ -793,6 +793,7 @@ WEBVIEW2UNITYPLUGIN_API void  WebViewCloseAll()
 	for (auto it : all)
 	{
 		it->Destroy();
+		delete it;
 	}
 }
 

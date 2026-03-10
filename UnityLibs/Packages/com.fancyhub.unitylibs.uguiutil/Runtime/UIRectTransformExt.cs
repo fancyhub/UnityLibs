@@ -27,7 +27,7 @@ namespace FH.UI
         public enum EModeY
         {
             Top_Zero, //屏幕上方为0
-            Botton_Zero,//屏幕下方为0
+            Bottom_Zero,//屏幕下方为0
         }
 
         private static Vector3[] _SRectWorldCorners = new Vector3[4];
@@ -93,7 +93,7 @@ namespace FH.UI
         /// </summary>
         public static bool ExtToScreenNormalize2(this UnityEngine.RectTransform self, out Rect screenRectNormalize, out Vector2 screenSize)
         {
-            if (!self.ExtToScreenNormalize(EModeY.Botton_Zero, out screenRectNormalize, out screenSize))
+            if (!self.ExtToScreenNormalize(EModeY.Bottom_Zero, out screenRectNormalize, out screenSize))
                 return false;
 
             screenRectNormalize.y = 1.0f - (screenRectNormalize.y + screenRectNormalize.height);

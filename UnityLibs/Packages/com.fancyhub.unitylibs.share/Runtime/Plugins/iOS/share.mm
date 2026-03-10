@@ -274,10 +274,12 @@ void FHShare(const char* title, const char* text, const char* imagePath)
         if (topVC.view.window) {
             [topVC presentViewController:activityVC animated:YES completion:nil];
         } else {
-            // 极端情况：视图不在窗口中，尝试回退到 root
-            UIViewController* rootVC = [self getTopViewController]; 
-            if(rootVC) {
-                 [rootVC presentViewController:activityVC animated:YES completion:nil];
+            // 极端情况：Unity VC 不在窗口中（如场景切换中），从 KeyWindow 获取可用的顶层 VC 回退
+            UIViewController* fallbackVC = [self getFallbackViewControllerForPresent];
+            if (fallbackVC) {
+                [fallbackVC presentViewController:activityVC animated:YES completion:nil];
+            } else {
+                NSLog(@"UnityShare: 错误 - 无法获取可用的 ViewController 呈现分享面板（topVC 不在窗口中且 KeyWindow 回退失败）");
             }
         }
     });
@@ -288,5 +290,57 @@ void FHShare(const char* title, const char* text, const char* imagePath)
 + (UIViewController*)getTopViewController {    
     extern UIViewController* UnityGetGLViewController();
     return  UnityGetGLViewController();    
+}
+
+/// 当 Unity GL ViewController 不在窗口层级时，从 KeyWindow 获取可用的顶层 VC 作为回退
++ (UIViewController*)getFallbackViewControllerForPresent {
+    UIWindow* keyWindow = nil;
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 130000
+    if (@available(iOS 13.0, *)) {
+        NSSet<UIScene*>* scenes = [UIApplication sharedApplication].connectedScenes;
+        for (UIScene* scene in scenes) {
+            if ([scene isKindOfClass:[UIWindowScene class]]) {
+                UIWindowScene* windowScene = (UIWindowScene*)scene;
+                if (windowScene.activationState == UISceneActivationStateForegroundActive) {
+                    for (UIWindow* window in windowScene.windows) {
+                        if (window.isKeyWindow) {
+                            keyWindow = window;
+                            break;
+                        }
+                    }
+                    if (keyWindow) break;
+                }
+            }
+        }
+    }
+#endif
+    if (keyWindow == nil) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        keyWindow = [UIApplication sharedApplication].keyWindow;
+#pragma clang diagnostic pop
+    }
+    if (keyWindow == nil) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        NSArray<UIWindow*>* windows = [UIApplication sharedApplication].windows;
+        for (UIWindow* w in windows) {
+            if (w.isKeyWindow) {
+                keyWindow = w;
+                break;
+            }
+        }
+        if (keyWindow == nil && windows.count > 0) {
+            keyWindow = windows.firstObject;
+        }
+#pragma clang diagnostic pop
+    }
+    if (keyWindow == nil || keyWindow.rootViewController == nil)
+        return nil;
+    UIViewController* vc = keyWindow.rootViewController;
+    while (vc.presentedViewController) {
+        vc = vc.presentedViewController;
+    }
+    return vc;
 }
 @end

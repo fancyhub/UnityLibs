@@ -239,7 +239,7 @@ class MyWebView {
         return id;
     }
 
-    private final  int _webViweId;
+    private final  int _webViewId;
 
     private WebViewSharedData _SharedData;
 
@@ -253,12 +253,12 @@ class MyWebView {
 
     public MyWebView(WebViewSharedData sharedData) {
         _SharedData = sharedData;
-        _webViweId = _NewWebViewId();
-        _WebViewData = new MyWebViewData(_webViweId, _SharedData);
+        _webViewId = _NewWebViewId();
+        _WebViewData = new MyWebViewData(_webViewId, _SharedData);
     }
 
     public int GetId() {
-        return _webViweId;
+        return _webViewId;
     }
 
     //In UI Thread
@@ -350,6 +350,7 @@ class MyWebView {
 
             this._WebView.loadUrl(url);
         } catch (Throwable t) {
+            Log.e(WebViewDefine.LogTag,"Create: " + t);            
         }
     }
 

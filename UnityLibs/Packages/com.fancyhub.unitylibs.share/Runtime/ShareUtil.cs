@@ -119,7 +119,7 @@ namespace FH
             if (funcGetHideNodeList != null)
             {
                 try { funcGetHideNodeList?.Invoke(_TempList); }
-                catch (Exception e) { }
+                catch (Exception e) { Log.E(e); }
             }
 
             //3. calc texture size and crop area
@@ -127,7 +127,7 @@ namespace FH
             Rect cropArea = new Rect(0, 0, textureSize.x, textureSize.y);
             if (targetArea != null)
             {
-                RectTransformExt.EModeY mode = RectTransformExt.EModeY.Botton_Zero;
+                RectTransformExt.EModeY mode = RectTransformExt.EModeY.Bottom_Zero;
                 if (IsScreenTextureFlipped())
                     mode = RectTransformExt.EModeY.Top_Zero;
 

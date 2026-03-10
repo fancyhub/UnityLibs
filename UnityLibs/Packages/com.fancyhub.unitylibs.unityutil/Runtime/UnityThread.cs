@@ -72,18 +72,18 @@ namespace FH
                 return _Inst;
 
 
-            if (UnityEngine.Application.isPlaying)
+            if (Application.isPlaying)
             {
                 GameObject obj = new GameObject(Name);
                 _Inst = obj.AddComponent<UnityThreadBehaviour>();
                 obj.hideFlags = HideFlags.HideAndDontSave;
+                GameObject.DontDestroyOnLoad(obj);
             }
             else
             {
                 GameObject obj = new GameObject(Name);
                 _Inst = obj.AddComponent<UnityThreadBehaviour>();
                 obj.hideFlags = HideFlags.HideAndDontSave;
-                GameObject.DontDestroyOnLoad(obj);
             }
             return _Inst;
         }

@@ -73,7 +73,7 @@ public class JNIContext
            }
         }catch(Exception e)
         {
-
+            Log.e("NativeIO","_GetAllFolders: " , e);
         }         
     }
 }

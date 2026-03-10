@@ -92,16 +92,16 @@ namespace FH
             LogRecorderMgr.Init(new ILogRecorder[] { recorder_file });
         }
 
-        public static void Init(bool enable_file = true, string upd_address = null, int udp_port = 1000)
+        public static void Init(bool enable_file = true, string udp_address = null, int udp_port = 1000)
         {
             List<ILogRecorder> recorder_list = new List<ILogRecorder>();
             if (enable_file)
             {
                 recorder_list.Add(new LogRecorder_File(LogRecorder_File.GetLogFileDirPath()));
             }
-            if (!string.IsNullOrEmpty(upd_address))
+            if (!string.IsNullOrEmpty(udp_address))
             {
-                var remote = LogRecorder_Udp.CreateRemoteIP(upd_address, udp_port);
+                var remote = LogRecorder_Udp.CreateRemoteIP(udp_address, udp_port);
                 if (remote != null)
                 {
                     recorder_list.Add(new LogRecorder_Udp(remote));
@@ -127,6 +127,13 @@ namespace FH
             if ((lvl_mask & AllowMask) == ELogMask.None)
                 return false;
             return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool IsEnumErrorCodeOK<T>(T v) where T : Enum
+        {
+            return Convert.ToInt32(v) == 0;
+            //return v.GetHashCode() == 0;
         }
 
         /// <summary>
@@ -285,7 +292,7 @@ namespace FH
 
             if (format == null)
             {
-                format = "Asset Error";
+                format = "Assert Error";
                 args = null;
             }
             if (!_IsEnable(ELogLvl.Assert))
@@ -309,7 +316,7 @@ namespace FH
 
             if (format == null)
             {
-                format = "Asset Error";                                
+                format = "Assert Error";                                
             }
 
             if (!_IsEnable(ELogLvl.Assert))
@@ -333,7 +340,7 @@ namespace FH
 
             if (format == null)
             {
-                format = "Asset Error";
+                format = "Assert Error";
             }
 
             if (!_IsEnable(ELogLvl.Assert))
@@ -357,7 +364,7 @@ namespace FH
 
             if (format == null)
             {
-                format = "Asset Error";
+                format = "Assert Error";
                 args = null;
             }
             if (!_IsEnable(ELogLvl.Assert))
@@ -472,7 +479,7 @@ namespace FH
             if (!_IsEnable(ELogLvl.Error))
                 return;
 
-            if (code.GetHashCode() == 0)
+            if (IsEnumErrorCodeOK(code))
                 return;
 
             if (format == null)
@@ -489,7 +496,7 @@ namespace FH
 #if ENABLE_LOG_Error
             if (!_IsEnable(ELogLvl.Error))
                 return;
-            if (code.GetHashCode() == 0)
+            if (IsEnumErrorCodeOK(code))
                 return;
 
             LogPrinter.Print1(ELogLvl.Error, null, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0);
@@ -503,7 +510,7 @@ namespace FH
             if (!_IsEnable(ELogLvl.Error))
                 return;
 
-            if (code.GetHashCode() == 0)
+            if (IsEnumErrorCodeOK(code))
                 return;
 
             LogPrinter.Print2(ELogLvl.Error, null, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1);
@@ -517,7 +524,7 @@ namespace FH
 #if ENABLE_LOG_Error
             if (!_IsEnable(ELogLvl.Error))
                 return;
-            if (code.GetHashCode() == 0)
+            if (IsEnumErrorCodeOK(code))
                 return;
 
             LogPrinter.Print3(ELogLvl.Error, null, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1, arg2);
@@ -708,7 +715,7 @@ namespace FH
             if (cond) return;
             if (format == null)
             {
-                format = "Asset Error";
+                format = "Assert Error";
                 args = null;
             }
 
@@ -729,7 +736,7 @@ namespace FH
             if (cond) return;
             if (format == null)
             {
-                format = "Asset Error";
+                format = "Assert Error";
                 args = null;
             }
             if (!_IsEnable(ELogLvl.Assert))
@@ -1064,7 +1071,7 @@ namespace FH
             if (cond) return;
             if (format == null)
             {
-                format = "Asset Error";
+                format = "Assert Error";
                 args = null;
             }
             if (!_IsEnable(ELogLvl.Assert))
@@ -1084,7 +1091,7 @@ namespace FH
             if (cond) return;
             if (format == null)
             {
-                format = "Asset Error";
+                format = "Assert Error";
                 args = null;
             }
             if (!_IsEnable(ELogLvl.Assert))
@@ -1199,7 +1206,7 @@ namespace FH
 #if ENABLE_LOG_Error
             if (!_IsEnable(ELogLvl.Error))
                 return;
-            if (code.GetHashCode() == 0)
+            if (Log.IsEnumErrorCodeOK(code))
                 return;
             if (format == null)
                 format = string.Empty;
@@ -1215,7 +1222,7 @@ namespace FH
 #if ENABLE_LOG_Error
             if (!_IsEnable(ELogLvl.Error))
                 return;
-            if (code.GetHashCode() == 0)
+            if (Log.IsEnumErrorCodeOK(code))
                 return;
 
             LogPrinter.Print1(ELogLvl.Error, Tag, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0);
@@ -1228,7 +1235,7 @@ namespace FH
 #if ENABLE_LOG_Error
             if (!_IsEnable(ELogLvl.Error))
                 return;
-            if (code.GetHashCode() == 0)
+            if (Log.IsEnumErrorCodeOK(code))
                 return;
 
             LogPrinter.Print2(ELogLvl.Error, Tag, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1);
@@ -1242,7 +1249,7 @@ namespace FH
 #if ENABLE_LOG_Error
             if (!_IsEnable(ELogLvl.Error))
                 return;
-            if (code.GetHashCode() == 0)
+            if (Log.IsEnumErrorCodeOK(code))
                 return;
 
             LogPrinter.Print3(ELogLvl.Error, Tag, TraceMask, UnityMask, null, ZString.Format("ErrorCode: {0} {1}", code, format), arg0, arg1, arg2);

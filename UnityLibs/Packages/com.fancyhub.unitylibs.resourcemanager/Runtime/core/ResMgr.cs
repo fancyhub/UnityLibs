@@ -364,7 +364,7 @@ namespace FH
                 return default(ResRef);
 
             var (err1, res_ref) = await source.Awaitable;
-            ResLog._.ErrCode(err, path);
+            ResLog._.ErrCode(err1, path);
             if (err1 != EResError.OK)
                 return default(ResRef);
             return res_ref;

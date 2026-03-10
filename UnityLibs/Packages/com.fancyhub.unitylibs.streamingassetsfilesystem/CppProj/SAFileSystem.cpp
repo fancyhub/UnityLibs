@@ -440,13 +440,14 @@ int fh_native_io_get_file(int index,unsigned char* buff,int buff_size)
     }
 
     const MyString& file_name =  g_fh_file_list[index];
-    if(buff_size< file_name.size())
+    if(buff_size<= file_name.size())
     {
         LOGE("fh_native_io_get_file: buff size is less than file name len , %d < %d, %s",buff_size,(int)file_name.size(),file_name.c_str());
         return -1;
     }
 
     memcpy(buff,file_name.c_str(),file_name.size());    
+    buff[file_name.size()] = '\0';
     return (int)file_name.size();
 }
  
