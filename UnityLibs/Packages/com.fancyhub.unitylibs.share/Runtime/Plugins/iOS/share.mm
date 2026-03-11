@@ -19,6 +19,10 @@
 + (void)share:(NSString*)title text:(NSString*)text imagePath:(NSString*)imagePath;
 @end
 
+
+extern UIViewController* UnityGetGLViewController(); 
+  
+
 static id _notificationObserver = nil;
 
 extern "C" {
@@ -182,165 +186,89 @@ void FHShare(const char* title, const char* text, const char* imagePath)
 }
 
 + (void)share:(NSString*)title text:(NSString*)text imagePath:(NSString*)imagePath
-{    
-    // 1. 参数校验
-    if ((text == nil || text.length == 0) && (imagePath == nil || imagePath.length == 0)) {
-        NSLog(@"UnityShare: 文字和图片都为空，不执行分享");
-        return;
-    }
-
-    // 2. 组装分享内容
-    NSMutableArray* activityItems = [NSMutableArray array];
-
-    // 处理文字
-    if (text.length > 0) {
-        NSString* shareText = text;
-        if (title.length > 0) {
+{
+    //1. 处理文本	
+	 NSString* shareText = nil;
+	 if (text!=nil && text.length > 0) {
+        shareText = text;
+        if (title!=nil && title.length > 0) {
             shareText = [NSString stringWithFormat:@"%@\n%@", title, text];
-        }
-        [activityItems addObject:shareText];
+        }        
     }
-
-    // 处理图片
-    UIImage* shareImage = nil;
-    if (imagePath.length > 0) {
-        // 【修正】Unity 传过来的通常是绝对路径 (Application.persistentDataPath/...)
-        // 如果 imagePath 已经是绝对路径，直接使用；如果是相对路径，可能需要拼接
-        NSString* fullImagePath = imagePath;
-        
-        // 简单判断：如果不是以 / 开头，可能是相对路径，尝试拼接 Documents (视你的 Unity 代码而定)
-        if (![imagePath hasPrefix:@"/"]) {
+	 
+	//2. 处理图片
+    UIImage *shareImage=nil;
+	if( imagePath!=nil && imagePath.length > 0 )
+	{
+         NSString* fullImagePath = imagePath;
+         if (![imagePath hasPrefix:@"/"]) {
             NSString* docsDir = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
             fullImagePath = [docsDir stringByAppendingPathComponent:imagePath];
-        }
+         }
 
-        if ([[NSFileManager defaultManager] fileExistsAtPath:fullImagePath]) {
-            shareImage = [UIImage imageWithContentsOfFile:fullImagePath];
-            if (shareImage) {
-                [activityItems addObject:shareImage];
-            } else {
-                NSLog(@"UnityShare: 图片加载失败 (格式错误或损坏): %@", fullImagePath);
-            }
-        } else {
-            NSLog(@"UnityShare: 图片文件不存在: %@", fullImagePath);
-        }
+         if ([[NSFileManager defaultManager] fileExistsAtPath:fullImagePath]) {
+            shareImage = [UIImage imageWithContentsOfFile:fullImagePath];            
+         }	
+	}
+
+    //3. 处理分享内容
+    NSMutableArray *items = [NSMutableArray new];
+    if(shareText!=nil && shareImage==nil)//如果图片为空，则添加文本, 因为有些app,比如fb不支持两个一起
+    {
+        [items addObject:shareText];        
+    }
+    if(shareImage!=nil)    
+    {
+        [items addObject:shareImage];
     }
 
-    if (activityItems.count == 0) {
-        NSLog(@"UnityShare: 最终没有有效的内容可分享");
+	if( [items count] == 0 )
+	{
+		NSLog( @"Share canceled because there is nothing to share..." );
+		return;
+	}
+	
+    //4. 获取Top View Controller
+    UIViewController *rootViewController = UnityGetGLViewController();
+    if(rootViewController == nil)
+    {
+        NSLog( @"Share canceled: rootViewController is nil");
         return;
     }
 
-    // 3. 创建分享控制器
-    UIActivityViewController* activityVC = [[UIActivityViewController alloc]
-                                            initWithActivityItems:activityItems
-                                            applicationActivities:nil];
+    //5. 创建分享视图控制器
+	UIActivityViewController *activity = [[UIActivityViewController alloc] initWithActivityItems:items applicationActivities:nil];	    
 
-    // 4. 适配 iPad (Popover 设置) - 必须配置，否则 iPad 会崩溃
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-        activityVC.modalPresentationStyle = UIModalPresentationPopover;
-        
-        // 【核心修复】获取最顶层的 ViewController，兼容 iOS 13+ SceneDelegate
-        UIViewController* topVC = [self getTopViewController];
-        
-        if (topVC && topVC.view) {
-            UIPopoverPresentationController* popover = activityVC.popoverPresentationController;
-            popover.sourceView = topVC.view;
-            // 设置在屏幕中心弹出
-            popover.sourceRect = CGRectMake(CGRectGetMidX(topVC.view.bounds),
-                                            CGRectGetMidY(topVC.view.bounds),
-                                            0, 0);
-            popover.permittedArrowDirections = UIPopoverArrowDirectionAny;
-        } else {
-            NSLog(@"UnityShare: 警告 - 未能获取到有效的 Top ViewController，iPad 弹窗可能异常");
-        }
-    }
+    //5.1 ipad 设置分享视图控制器样式
+    if( [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad ) // iPad
+	{
+		activity.modalPresentationStyle = UIModalPresentationPopover;
+        UIPopoverPresentationController* popover = activity.popoverPresentationController;
+		popover.sourceRect = CGRectMake( 
+            CGRectGetMidX(rootViewController.view.bounds), 
+            CGRectGetMidX(rootViewController.view.bounds), 
+            0, 0 );
+		popover.sourceView = rootViewController.view;
+		popover.permittedArrowDirections = UIPopoverArrowDirectionAny;        
+	}	 
 
-    // 5. 在主线程弹出
-    dispatch_async(dispatch_get_main_queue(), ^{
-        UIViewController* topVC = [self getTopViewController];
-        
-        if (!topVC) {
-            NSLog(@"UnityShare: 错误 - 无法获取 ViewController 来呈现分享面板");
-            return;
-        }
+    //5.2 设置分享完成回调
+	activity.completionWithItemsHandler = ^( UIActivityType activityType, BOOL completed, NSArray *returnedItems, NSError *activityError )
+	{
+		if( activityError != nil )
+			NSLog( @"Share error: %@", activityError );		
+	};
 
-        // 检查是否已经有其他 VC 正在呈现，如果有，尝试找到最上层的
-        while (topVC.presentedViewController) {
-            topVC = topVC.presentedViewController;
-        }
+    //5.3 设置分享排除类型
+	activity.excludedActivityTypes = @[
+        @"com.apple.UIKit.activity.AirDrop",
+        @"com.apple.UIKit.activity.Print",  
+        @"com.apple.UIKit.activity.AssignToContact"
+    ];
 
-        // 再次检查视图是否在窗口层级中 (防止场景切换导致的崩溃)
-        if (topVC.view.window) {
-            [topVC presentViewController:activityVC animated:YES completion:nil];
-        } else {
-            // 极端情况：Unity VC 不在窗口中（如场景切换中），从 KeyWindow 获取可用的顶层 VC 回退
-            UIViewController* fallbackVC = [self getFallbackViewControllerForPresent];
-            if (fallbackVC) {
-                [fallbackVC presentViewController:activityVC animated:YES completion:nil];
-            } else {
-                NSLog(@"UnityShare: 错误 - 无法获取可用的 ViewController 呈现分享面板（topVC 不在窗口中且 KeyWindow 回退失败）");
-            }
-        }
-    });
+	
+    //6. 显示分享视图控制器
+    [rootViewController presentViewController:activity animated:YES completion:nil];
 }
-
-
-// --- 核心工具方法：兼容 iOS 13+ 获取最顶层 ViewController ---
-+ (UIViewController*)getTopViewController {    
-    extern UIViewController* UnityGetGLViewController();
-    return  UnityGetGLViewController();    
-}
-
-/// 当 Unity GL ViewController 不在窗口层级时，从 KeyWindow 获取可用的顶层 VC 作为回退
-+ (UIViewController*)getFallbackViewControllerForPresent {
-    UIWindow* keyWindow = nil;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 130000
-    if (@available(iOS 13.0, *)) {
-        NSSet<UIScene*>* scenes = [UIApplication sharedApplication].connectedScenes;
-        for (UIScene* scene in scenes) {
-            if ([scene isKindOfClass:[UIWindowScene class]]) {
-                UIWindowScene* windowScene = (UIWindowScene*)scene;
-                if (windowScene.activationState == UISceneActivationStateForegroundActive) {
-                    for (UIWindow* window in windowScene.windows) {
-                        if (window.isKeyWindow) {
-                            keyWindow = window;
-                            break;
-                        }
-                    }
-                    if (keyWindow) break;
-                }
-            }
-        }
-    }
-#endif
-    if (keyWindow == nil) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        keyWindow = [UIApplication sharedApplication].keyWindow;
-#pragma clang diagnostic pop
-    }
-    if (keyWindow == nil) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        NSArray<UIWindow*>* windows = [UIApplication sharedApplication].windows;
-        for (UIWindow* w in windows) {
-            if (w.isKeyWindow) {
-                keyWindow = w;
-                break;
-            }
-        }
-        if (keyWindow == nil && windows.count > 0) {
-            keyWindow = windows.firstObject;
-        }
-#pragma clang diagnostic pop
-    }
-    if (keyWindow == nil || keyWindow.rootViewController == nil)
-        return nil;
-    UIViewController* vc = keyWindow.rootViewController;
-    while (vc.presentedViewController) {
-        vc = vc.presentedViewController;
-    }
-    return vc;
-}
+ 
 @end
