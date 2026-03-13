@@ -59,7 +59,8 @@ WEBVIEW2UNITYPLUGIN_API void  WebViewSetUserAgent(const wchar_t* userAgent)
 // 设置消息回调
 WEBVIEW2UNITYPLUGIN_API void  WebViewSetMessageCallback(WebViewMessageCallback callback)
 {
-	globalMessageCallback = callback;
+	globalMessageCallback = callback;	
+
 }
 
 WEBVIEW2UNITYPLUGIN_API void  WebViewSetEventCallBack(WebViewEventCallBack callback)
@@ -91,7 +92,7 @@ void Log(ELogLevel logLvl, const wchar_t* fmt, ...)
 	va_list args;
 	va_start(args, fmt);
 
-	vswprintf(msgbuf, MAXCOUNT, fmt, args);
+	vswprintf_s(msgbuf, MAXCOUNT, fmt, args);
 	va_end(args);
 
 	t(logLvl, SysAllocString(msgbuf));
@@ -107,12 +108,12 @@ WEBVIEW2UNITYPLUGIN_API void  WebViewSetHostObjName(const wchar_t* hostObjName)
 	globalHostObjName = hostObjName;
 }
 
-struct WebViewHostObject : public RuntimeClass<RuntimeClassFlags<ClassicCom>, IDispatch >
+struct WebViewHostObject : public RuntimeClass<RuntimeClassFlags<ClassicCom>, IDispatch>
 {
 private:
 	static const DISPID Method_postMessage = 1;
 	static const WCHAR* MethodName_postMessage;
-	LONG m_lRefCount = 1;
+	//LONG m_lRefCount = 1;
 
 public:
 	INT32 WebViewId;
@@ -126,42 +127,17 @@ public:
 	WebViewHostObject(const WebViewHostObject&) = delete;
 	WebViewHostObject& operator=(const WebViewHostObject&) = delete;
 
-	STDMETHODIMP QueryInterface(REFIID riid, void** ppv)
-	{
-		if (riid == IID_IUnknown || riid == IID_IDispatch)
-		{
-			*ppv = static_cast<IDispatch*>(this);
-			AddRef();
-			return S_OK;
-		}
-		*ppv = nullptr;
-		return E_NOINTERFACE;
-	}
-
-	STDMETHODIMP_(ULONG) AddRef()
-	{
-		return InterlockedIncrement(&m_lRefCount);
-	}
-
-	STDMETHODIMP_(ULONG) Release()
-	{
-		LONG lCount = InterlockedDecrement(&m_lRefCount);
-		if (lCount == 0)
-		{
-			delete this;
-		}
-		return lCount;
-	}
+	 
 
 	STDMETHODIMP GetTypeInfoCount(UINT* pctinfo)
 	{
-		*pctinfo = 0;
+		if (pctinfo) *pctinfo = 0;
 		return S_OK;
 	}
 
 	STDMETHODIMP GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo** ppTInfo)
 	{
-		*ppTInfo = nullptr;
+		//*ppTInfo = nullptr;
 		return E_NOTIMPL;
 	}
 
@@ -194,16 +170,16 @@ public:
 
 		case Method_postMessage:
 			if (pDispParams->cArgs != 1)
-				return DISP_E_BADPARAMCOUNT; // 参数数量错误			
-
-			VARIANT* pArg = &pDispParams->rgvarg[0];
-			if (pArg->vt != VT_BSTR)
-				return DISP_E_TYPEMISMATCH; // 参数类型错误
+				return DISP_E_BADPARAMCOUNT;
 
 			if (globalMessageCallback == nullptr)
-				return DISP_E_UNKNOWNNAME;
+				return E_FAIL;
 
-			globalMessageCallback(WebViewId, SysAllocString(pArg->bstrVal));
+			VARIANT* pArg = &pDispParams->rgvarg[0];
+			if (pArg->vt != VT_BSTR || pArg->bstrVal == nullptr)
+				return DISP_E_TYPEMISMATCH;
+
+			globalMessageCallback(WebViewId, SysAllocString(pArg->bstrVal) );
 			return S_OK;
 		}
 	}
@@ -490,7 +466,7 @@ void _SetUserAgent(ICoreWebView2* pWebView, const std::wstring& userAgent)
 void _SetHostObj(ICoreWebView2* pWebView, const ComPtr<WebViewHostObject>& pHostObj)
 {
 	if (pHostObj->HostObjName.length() == 0)
-		return;
+	 	return;
 
 	ComPtr<ICoreWebView2Settings> settings;
 	HRESULT hrSetting = pWebView->get_Settings(&settings);
@@ -498,37 +474,27 @@ void _SetHostObj(ICoreWebView2* pWebView, const ComPtr<WebViewHostObject>& pHost
 		return;
 	hrSetting = settings->put_AreHostObjectsAllowed(TRUE);
 
+	// AddHostObjectToScript 需要 VARIANT*，使用标准 COM API 而非 ATL
+	IDispatch* pDisp = nullptr;
+	HRESULT hrQI = pHostObj->QueryInterface(IID_PPV_ARGS(&pDisp));
+	if (FAILED(hrQI) || !pDisp)
+	{
+		LOG_ERROR(L"QueryInterface IDispatch failed");
+		return;
+	}
+
 	VARIANT var;
 	VariantInit(&var);
 	var.vt = VT_DISPATCH;
-	var.pdispVal = nullptr;
+	var.pdispVal = pDisp;  // QueryInterface 已 AddRef，所有权交给 VARIANT
 
-	IDispatch* pDisp = nullptr;
-	HRESULT hrQI = pHostObj->QueryInterface(IID_PPV_ARGS(&pDisp)); // pDisp 会被 AddRef
-	if (SUCCEEDED(hrQI) && pDisp)
-	{
-		var.pdispVal = pDisp; // pDisp 已经 AddRef 过
-	}
-	else
-	{
-		// fallback：把 IUnknown 放入 VT_UNKNOWN
-		VariantClear(&var);
-		VariantInit(&var);
-		var.vt = VT_UNKNOWN;
-		var.punkVal = pHostObj.Get();
-		if (var.punkVal) var.punkVal->AddRef(); // 增加引用计数
-	}
+	HRESULT hr = pWebView->AddHostObjectToScript(pHostObj->HostObjName.c_str(), &var);	
+	VariantClear(&var);  // 释放本地引用，WebView2 内部已持有自己的引用
 
-	// 调用 AddHostObjectToScript（适用于接受 VARIANT* 的签名）
-	HRESULT hr = pWebView->AddHostObjectToScript(pHostObj->HostObjName.c_str(), &var);
 	if (FAILED(hr))
 	{
-		// 处理失败
-		OutputDebugString(L"AddHostObjectToScript failed\n");
+		LOG_ERROR(L"AddHostObjectToScript failed\n");
 	}
-
-	// 释放本地 VARIANT（会 Release 我们为 VARIANT 添加的引用）
-	VariantClear(&var);
 }
 
 void _AppWebViewParams(MyWebView* pWebView)
@@ -572,7 +538,7 @@ HRESULT _OnCreateWebViewCompleted(HRESULT result, ICoreWebView2Controller* contr
 		{
 			controller->Release();
 		}
-		return -1;
+		return E_POINTER;
 	}
 
 	if (FAILED(result))
@@ -878,7 +844,7 @@ WEBVIEW2UNITYPLUGIN_API BSTR WebViewGetTitle(INT32 webViewId)
 WEBVIEW2UNITYPLUGIN_API void  WebViewReload(INT32 webViewId)
 {
 	auto pWebView = _FindWebView(webViewId, L"WebViewReload");
-	if (pWebView == nullptr)
+	if (pWebView == nullptr || pWebView->pWebView2 == nullptr)
 		return;
 
 	pWebView->pWebView2->Reload();
@@ -887,7 +853,7 @@ WEBVIEW2UNITYPLUGIN_API void  WebViewReload(INT32 webViewId)
 WEBVIEW2UNITYPLUGIN_API bool WebViewCanGoBack(INT32 webViewId)
 {
 	auto pWebView = _FindWebView(webViewId, L"WebViewCanGoBack");
-	if (pWebView == nullptr)
+	if (pWebView == nullptr || pWebView->pWebView2 == nullptr)
 		return false;
 
 	BOOL ret;
@@ -898,7 +864,7 @@ WEBVIEW2UNITYPLUGIN_API bool WebViewCanGoBack(INT32 webViewId)
 WEBVIEW2UNITYPLUGIN_API void  WebViewGoBack(INT32 webViewId)
 {
 	auto pWebView = _FindWebView(webViewId, L"WebViewGoBack");
-	if (pWebView == nullptr)
+	if (pWebView == nullptr || pWebView->pWebView2 == nullptr)
 		return;
 
 	pWebView->pWebView2->GoBack();
@@ -907,7 +873,7 @@ WEBVIEW2UNITYPLUGIN_API void  WebViewGoBack(INT32 webViewId)
 WEBVIEW2UNITYPLUGIN_API bool WebViewCanGoForward(INT32 webViewId)
 {
 	auto pWebView = _FindWebView(webViewId, L"WebViewCanGoForward");
-	if (pWebView == nullptr)
+	if (pWebView == nullptr || pWebView->pWebView2 == nullptr)
 		return false;
 
 	BOOL ret;
@@ -918,7 +884,7 @@ WEBVIEW2UNITYPLUGIN_API bool WebViewCanGoForward(INT32 webViewId)
 WEBVIEW2UNITYPLUGIN_API void  WebViewGoForward(INT32 webViewId)
 {
 	MyWebView* pWebView = _FindWebView(webViewId, L"WebViewGoForward");
-	if (pWebView == nullptr)
+	if (pWebView == nullptr || pWebView->pWebView2 == nullptr)
 		return;
 
 	pWebView->pWebView2->GoForward();
@@ -927,7 +893,7 @@ WEBVIEW2UNITYPLUGIN_API void  WebViewGoForward(INT32 webViewId)
 WEBVIEW2UNITYPLUGIN_API void  WebViewSetVisible(INT32 webViewId, bool visible)
 {
 	auto pWebView = _FindWebView(webViewId, L"WebViewSetVisible");
-	if (pWebView == nullptr)
+	if (pWebView == nullptr )
 		return;
 
 	pWebView->Visible = visible;
@@ -942,7 +908,7 @@ WEBVIEW2UNITYPLUGIN_API void  WebViewSetVisible(INT32 webViewId, bool visible)
 WEBVIEW2UNITYPLUGIN_API bool WebViewIsVisible(INT32 webViewId)
 {
 	auto pWebView = _FindWebView(webViewId, L"WebViewIsVisible");
-	if (pWebView == nullptr)
+	if (pWebView == nullptr )
 		return false;
 
 	if (pWebView->pController != nullptr)
@@ -965,7 +931,7 @@ WEBVIEW2UNITYPLUGIN_API bool WebViewIsValid(INT32 webViewId)
 WEBVIEW2UNITYPLUGIN_API void  WebViewExecuteScript(INT32 webViewId, const wchar_t* script)
 {
 	auto pWebView = _FindWebView(webViewId, L"WebViewExecuteScript");
-	if (pWebView == nullptr)
+	if (pWebView == nullptr || pWebView->pWebView2 == nullptr)
 		return;
 
 	if (pWebView->pWebView2 != nullptr)
@@ -977,7 +943,7 @@ WEBVIEW2UNITYPLUGIN_API void  WebViewExecuteScript(INT32 webViewId, const wchar_
 WEBVIEW2UNITYPLUGIN_API bool  WebViewIsLoading(INT32 webViewId)
 {
 	auto pWebView = _FindWebView(webViewId, L"WebViewIsLoading");
-	if (pWebView == nullptr)
+	if (pWebView == nullptr || pWebView->pWebView2 == nullptr)
 		return false;
 	return pWebView->IsLoading;
 }

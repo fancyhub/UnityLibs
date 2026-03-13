@@ -21,7 +21,7 @@
 extern "C" {
 
 	// 消息接收回调函数类型
-	typedef WEBVIEW2UNITYPLUGIN_API void(*WebViewMessageCallback)(INT32 webViewId, BSTR message);
+	typedef WEBVIEW2UNITYPLUGIN_API void(*WebViewMessageCallback)(INT32 webViewId,BSTR msg);
 
 	enum ELogLevel
 	{
@@ -58,7 +58,7 @@ extern "C" {
 	WEBVIEW2UNITYPLUGIN_API void  WebViewSetInnerLogCallBack(WebViewInnerLogCallBack callback, ELogLevel maxLogLvl);
 
 	WEBVIEW2UNITYPLUGIN_API void  WebViewSetHostObjName(const wchar_t* hostObjName);
-	WEBVIEW2UNITYPLUGIN_API bool  WebViewIsLoading(INT32 webViewId);
+	
 
 
 	// 创建WebView实例

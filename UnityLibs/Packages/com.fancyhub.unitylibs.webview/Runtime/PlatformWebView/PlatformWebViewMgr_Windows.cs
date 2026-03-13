@@ -38,7 +38,7 @@ namespace FH.WV
             private const string PluginName = "WebView2UnityPlugin";
 
             [DllImport(PluginName, CallingConvention = CallingConvention.Cdecl)]
-            public static extern void WebViewSetUserAgent(string userAgent);
+            public static extern void WebViewSetUserAgent([MarshalAs(UnmanagedType.LPWStr)] string userAgent);
 
             [DllImport(PluginName, CallingConvention = CallingConvention.Cdecl)]
             public static extern void WebViewSetMessageCallback(WebViewMessageCallBack callback);
@@ -54,7 +54,7 @@ namespace FH.WV
 
 
             [DllImport(PluginName, CallingConvention = CallingConvention.Cdecl)]
-            public static extern void WebViewSetHostObjName(string hostObjName);
+            public static extern void WebViewSetHostObjName([MarshalAs(UnmanagedType.LPWStr)] string hostObjName);
 
 
             [DllImport(PluginName, CharSet = CharSet.Unicode)]
@@ -102,10 +102,10 @@ namespace FH.WV
             [DllImport(PluginName)]
             [return: MarshalAs(UnmanagedType.BStr)]
             public static extern string WebViewGetTitle(int webViewId);
-            
+
 
             [DllImport(PluginName, CharSet = CharSet.Unicode)]
-            public static extern void WebViewExecuteScript(int webViewId, string javaScript);
+            public static extern void WebViewExecuteScript(int webViewId, [MarshalAs(UnmanagedType.LPWStr)]  string javaScript);
 
             [DllImport(PluginName)] public static extern void WebViewClose(int webViewId);
             [DllImport(PluginName)] public static extern void WebViewCloseAll();
@@ -234,10 +234,10 @@ namespace FH.WV
         }
 #endif
 
-        private Cpp.WebViewInnerLogCallBack _InnerLogCallBack;
-        private Cpp.WebViewJsLogCallBack _JsLogCallBack;
-        private Cpp.WebViewMessageCallBack _JsMessageCallBack;
-        private Cpp.WebViewEventCallBack _EventCallBack;
+        private static Cpp.WebViewInnerLogCallBack _InnerLogCallBack;
+        private static Cpp.WebViewJsLogCallBack _JsLogCallBack;
+        private static Cpp.WebViewMessageCallBack _JsMessageCallBack;
+        private static Cpp.WebViewEventCallBack _EventCallBack;
 
         public PlatformWebViewMgr_Windows()
         {
@@ -282,12 +282,12 @@ namespace FH.WV
         }
 
 
-        private void _OnJsMsg(int webViewId, string msg)
-        {
+        private static void _OnJsMsg(int webViewId, string msg)
+        {   
             _CallBack?.OnJsMsg(webViewId, msg);
         }
 
-        private void _OnEvent(int webViewId, int eventType)
+        private static void _OnEvent(int webViewId, int eventType)
         {
             _CallBack?.OnWebViewEvent(webViewId, (EWebViewEventType)eventType);
         }
@@ -340,7 +340,7 @@ namespace FH.WV
             Cpp.WebViewClose(webViewId);
         }
 
-        private IPlatformWebViewMgrCallback _CallBack;
+        private static IPlatformWebViewMgrCallback _CallBack;
         void IPlatformWebViewMgr.SetWebViewCallBack(IPlatformWebViewMgrCallback eventCallBack)
         {
             _CallBack = eventCallBack;
@@ -444,11 +444,11 @@ namespace FH.WV
         [System.Serializable]
         public struct JsLogData
         {
-            public string type; // e.g., "log", "warning", "error"
-            public List<JsLogArgument> arguments;
+            public List<JsLogArgument> args;
             public int executionContextId;
             public JsLogStackTrace stackTrace;
             public double timestamp;
+            public string type; // e.g., "log", "warning", "error"
         }
 
 
@@ -456,14 +456,25 @@ namespace FH.WV
         {
             try
             {
+                //WebViewLog.JsLog.D(msg);
                 JsLogData data = UnityEngine.JsonUtility.FromJson<JsLogData>(msg);
                 string messageContent = "N/A";
-                if (data.arguments != null && data.arguments.Count > 0)
-                    messageContent = data.arguments[0].value ?? "[Empty Message Value]";
+                if (data.args != null && data.args.Count > 0)
+                    messageContent = data.args[0].value ?? "[Empty Message Value]";
 
                 string sourceUrl = "Unknown Source";
-                if (data.stackTrace.callFrames != null && data.stackTrace.callFrames.Count > 0)
-                    sourceUrl = data.stackTrace.callFrames[0].url;
+                if (data.stackTrace.callFrames != null)
+                {
+                    foreach (var p in data.stackTrace.callFrames)
+                    {
+                        if (!string.IsNullOrEmpty(p.url))
+                        {
+                            sourceUrl = p.url;
+                            break;
+                        }
+                    }
+                }
+                    
 
                 switch (data.type)
                 {
@@ -501,27 +512,27 @@ namespace FH.WV
             switch (lvl)
             {
                 case Cpp.LogLevel_Debug:
+                    _CallBack?.OnInnerlLog(ELogLvl.Debug, msg);
                     WebViewLog._.D(msg);
                     break;
 
                 case Cpp.LogLevel_Info:
+                    _CallBack?.OnInnerlLog(ELogLvl.Info, msg);
                     WebViewLog._.I(msg);
                     break;
 
                 case Cpp.LogLevel_Warn:
+                    _CallBack?.OnInnerlLog(ELogLvl.Warning, msg);
                     WebViewLog._.W(msg);
                     break;
 
                 default:
                 case Cpp.LogLevel_Error:
+                    _CallBack?.OnInnerlLog(ELogLvl.Error, msg);
                     WebViewLog._.E(msg);
                     break;
             }
         }
-
-
-
-
     }
     //*/
 }

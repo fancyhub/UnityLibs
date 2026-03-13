@@ -16,6 +16,7 @@ namespace Game
 		public UnityEngine.RectTransform _TestTime;
 		public UnityEngine.UI.Text _CurInfo;
 		public UIButtonView _BtnClose;
+		public UnityEngine.UI.Dropdown _DropDownCulture;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -30,6 +31,7 @@ namespace Game
 			_TestTime = refs.GetComp<UnityEngine.RectTransform>("_TestTime");
 			_CurInfo = refs.GetComp<UnityEngine.UI.Text>("_CurInfo");
 			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
+			_DropDownCulture = refs.GetComp<UnityEngine.UI.Dropdown>("_DropDownCulture");
 
         }
 

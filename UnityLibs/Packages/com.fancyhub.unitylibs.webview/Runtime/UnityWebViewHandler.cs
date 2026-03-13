@@ -18,6 +18,7 @@ namespace FH
         {
             Message,
             Event,
+            InnerLog,
         }
 
         public struct MessageData
@@ -26,6 +27,7 @@ namespace FH
             public int webViewId;
             public string message;
             public EWebViewEventType webviewEventType;
+            public ELogLvl logLvl;
         }
 
         private static UnityWebViewHandler _;
@@ -42,7 +44,7 @@ namespace FH
             GameObject handler = new GameObject();
             _ = handler.AddComponent<UnityWebViewHandler>();
             handler.name = "_UnityWebViewHandler";
-            handler.hideFlags= HideFlags.HideAndDontSave;
+            handler.hideFlags = HideFlags.HideAndDontSave;
             GameObject.DontDestroyOnLoad(handler);
             return _;
         }
@@ -73,6 +75,29 @@ namespace FH
 
                     case EEventType.Event:
                         WebViewMgr.OnWebViewEvent(msg.webViewId, msg.webviewEventType);
+                        break;
+
+                    case EEventType.InnerLog:
+                        switch (msg.logLvl)
+                        {
+                            case ELogLvl.Debug:
+                                WebViewLog._.D(msg.message);
+                                break;
+
+                            case ELogLvl.Info:
+                                WebViewLog._.I(msg.message);
+                                break;
+
+                            case ELogLvl.Warning:
+                                WebViewLog._.W(msg.message);
+                                break;
+
+
+                            default:
+                            case ELogLvl.Error:
+                                WebViewLog._.E(msg.message);
+                                break;
+                        }
                         break;
                 }
             }
@@ -107,6 +132,19 @@ namespace FH
                     type = EEventType.Event,
                     webViewId = webViewId,
                     webviewEventType = eventType
+                });
+            }
+        }
+
+        void IPlatformWebViewMgrCallback.OnInnerlLog(ELogLvl lvl, string msg)
+        {
+            lock (_MessageQueue)
+            {
+                _MessageQueue.Add(new MessageData()
+                {
+                    type = EEventType.InnerLog,
+                    logLvl = lvl,
+                    message = msg,
                 });
             }
         }

@@ -1,0 +1,15 @@
+{
+    admin off
+    #admin 127.0.0.1:8002
+}
+
+https://fancy.me:8443 {
+    tls internal
+    root * .
+    file_server browse
+}
+
+http://fancy.me:8080 {
+    root * .
+    file_server browse
+}

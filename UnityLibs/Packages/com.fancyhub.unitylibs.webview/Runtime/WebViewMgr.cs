@@ -27,8 +27,8 @@ using PlatformWebViewMgr = FH.WV.PlatformWebViewMgr_Windows;
 #endif
 
 namespace FH
-{  
-    public static class WebViewMgr
+{
+    public static partial class WebViewMgr
     {
         private static Dictionary<int, WebView> _Dict = new();
         private static FH.WV.IPlatformWebViewMgr _;
@@ -40,10 +40,11 @@ namespace FH
                     return _;
                 _ = new PlatformWebViewMgr();
                 _.SetWebViewCallBack(UnityWebViewHandler.Init());
+                _RegJsHandler();                
                 return _;
             }
-        }         
- 
+        }
+
 
         /// <summary>
         /// 
@@ -66,16 +67,28 @@ namespace FH
 
         internal static void OnJsMsg(int webViewId, string message)
         {
-            WebViewLog._.I($"{message}");
+            WebViewLog.JsLog.D(message);
+
+            _Dict.TryGetValue(webViewId, out WebView webView);
+            if (webView == null)
+            {
+                WebViewLog._.Assert(false, "can't find web view {0}", webViewId);
+                return;
+            }
+
+            webView.OnJsMsg(message);
         }
 
         internal static void OnWebViewEvent(int webViewId, EWebViewEventType eventType)
         {
-            WebViewLog._.D($"OnWebViewEvent {webViewId} {eventType}");
+            WebViewLog._.D("OnWebViewEvent {0} {1}", webViewId, eventType);
 
             _Dict.TryGetValue(webViewId, out WebView webView);
             if (webView == null)
+            {
+                WebViewLog._.Assert(false, "can't find web view {0}", webViewId);
                 return;
+            }
 
             if (eventType == EWebViewEventType.Destroyed)
                 _Dict.Remove(webViewId);

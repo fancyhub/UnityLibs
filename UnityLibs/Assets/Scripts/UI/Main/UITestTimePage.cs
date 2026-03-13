@@ -10,12 +10,53 @@ namespace Game
 {
     public class UITestTimePage : UIPageBase<UITestTimeView>, IUIUpdater
     {
-        private static DateTime _start_time = DateUtil.NowLocal.DateTime;
+        private List<CultureInfo> _AllCultures = new List<CultureInfo>();
         protected override void OnUI2Open()
         {
             base.OnUI2Open();
             BaseView._BtnClose.OnClick = _OnBtnCloseClick;
             UIMgr.UpdateList += this;
+
+
+            _AllCultures.Clear();
+            _AllCultures.AddRange(System.Globalization.CultureInfo.GetCultures(CultureTypes.AllCultures));
+
+            _AllCultures.Sort((a, b) =>
+            {
+                return a.Name.CompareTo(b.Name);
+            });
+
+            List<string> all_options = new List<string>(_AllCultures.Count);
+            string current_name = System.Globalization.CultureInfo.CurrentCulture.Name;
+            int index = -1;
+            for (int i = 0; i < _AllCultures.Count; i++)
+            {
+                string name = _AllCultures[i].Name;
+                all_options.Add(name);
+                if (name == current_name)
+                {
+                    index = i;
+                }
+            }
+
+            BaseView._DropDownCulture.options.Clear();
+            BaseView._DropDownCulture.AddOptions(all_options);
+
+            if (index >= 0)
+                BaseView._DropDownCulture.value = index;
+
+            BaseView._DropDownCulture.onValueChanged.AddListener(_OnDropwDownChanged);
+        }
+
+        protected override void OnUI5Close()
+        {
+            BaseView._DropDownCulture.onValueChanged.RemoveAllListeners();
+            base.OnUI5Close();
+        }
+
+        private void _OnDropwDownChanged(int index)
+        {
+            System.Globalization.CultureInfo.CurrentCulture = _AllCultures[index];
         }
 
         void IUIUpdater.OnUIUpdate(float dt)
@@ -27,9 +68,11 @@ namespace Game
             BaseView._CurInfo.text = @$"
 {DateUtil.NowLocal.DateTime.ToString()}
 Android: {GetAndroidCurrentCulture()}
+
 CurrentThread.CurrentCulture: {System.Threading.Thread.CurrentThread.CurrentCulture}
-CurrentThread.CurrentUICulture: {System.Threading.Thread.CurrentThread.CurrentUICulture}
 CultureInfo.CurrentCulture: {System.Globalization.CultureInfo.CurrentCulture}
+
+CurrentThread.CurrentUICulture: {System.Threading.Thread.CurrentThread.CurrentUICulture}
 CultureInfo.CurrentUICulture: {System.Globalization.CultureInfo.CurrentUICulture}";
         }
 
@@ -72,7 +115,6 @@ CultureInfo.CurrentUICulture: {System.Globalization.CultureInfo.CurrentUICulture
 
         private void _OnBtnCloseClick()
         {
-
             this.UIClose();
         }
     }

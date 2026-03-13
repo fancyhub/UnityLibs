@@ -43,30 +43,30 @@ namespace FH
         /// <summary>
         /// 从时间戳 秒/毫秒 转成 DateTime UTC
         /// </summary> 
-        public static DateTimeOffset ToDateTimeUtc(long time)
+        public static DateTimeOffset ToDateTimeUtc(long time_stamp)
         {
-            if (time <= 0)
+            if (time_stamp <= 0)
                 return DateTimeOffset.FromUnixTimeSeconds(0);
-            else if (time < int.MaxValue)
-                return DateTimeOffset.FromUnixTimeSeconds(time);
+            else if (time_stamp < int.MaxValue)
+                return DateTimeOffset.FromUnixTimeSeconds(time_stamp);
             else
-                return DateTimeOffset.FromUnixTimeMilliseconds(time);
+                return DateTimeOffset.FromUnixTimeMilliseconds(time_stamp);
         }
 
         /// <summary>
         /// 从时间戳 秒/毫秒 转成 DateTime Local
         /// </summary> 
-        public static DateTimeOffset ToDateTimeLocal(long time)
+        public static DateTimeOffset ToDateTimeLocal(long time_stamp)
         {
-            return ToDateTimeUtc(time).ToLocalTime();
+            return ToDateTimeUtc(time_stamp).ToLocalTime();
         }
 
         /// <summary>
         /// 从时间戳 秒/毫秒 转成 DateTime Svr
         /// </summary> 
-        public static DateTimeOffset ToDateTimeSvr(long time)
+        public static DateTimeOffset ToDateTimeSvr(long time_stamp)
         {
-            return ToDateTimeUtc(time).ToOffset(_svr_time_zone);
+            return ToDateTimeUtc(time_stamp).ToOffset(_svr_time_zone);
         }
 
         public static long ToUnix(this DateTimeOffset date)
@@ -102,6 +102,32 @@ namespace FH
         {
             return date.ToUniversalTime();
         }
+
+        /// <summary>
+        /// 把string格式的时间转换成服务器的时间
+        /// </summary>        
+        public static bool TryParseToSvrDateTime(string value, string format, out DateTimeOffset svr_time)
+        {            
+            IFormatProvider provider = System.Globalization.CultureInfo.InvariantCulture;
+            System.Globalization.DateTimeStyles style = System.Globalization.DateTimeStyles.None;
+            if (DateTime.TryParseExact(value, format, provider, style, out DateTime dt))
+            {
+                svr_time = new DateTimeOffset(dt, _svr_time_zone);
+                return true;
+            }
+            svr_time = default;
+            return false;
+        }
+
+        /// <summary>
+        /// 把string格式的时间转换成服务器的时间
+        /// </summary>
+        public static bool TryParseToSvrDateTime(string value, out DateTimeOffset svr_time)
+        {
+            const string format = "yyyy-MM-dd HH:mm:ss";
+            return TryParseToSvrDateTime(value, format, out svr_time);
+        }
+
         #endregion
 
 
@@ -175,17 +201,17 @@ namespace FH
         /// <summary>
         /// 是否为同一天, 这个函数不管时区, 由外部处理
         /// </summary>
-        public static bool IsSameDay(DateTime d1, DateTime d2)
+        public static bool IsSameDay(DateTime day1, DateTime day2)
         {
-            return d1.Date == d2.Date;
+            return day1.Date == day2.Date;
         }
 
         /// <summary>
         /// 是否为同一天, 这个函数不管时区, 由外部处理
         /// </summary>
-        public static bool IsSameDay(DateTimeOffset d1, DateTimeOffset d2)
+        public static bool IsSameDay(DateTimeOffset day1, DateTimeOffset day2)
         {
-            return d1.Date == d2.Date;
+            return day1.Date == day2.Date;
         }
     }
 }

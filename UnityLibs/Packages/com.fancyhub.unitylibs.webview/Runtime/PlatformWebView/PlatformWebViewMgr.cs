@@ -16,6 +16,7 @@ namespace FH.WV
     {
         public void OnWebViewEvent(WebViewId webViewId, EWebViewEventType eventType);
         public void OnJsMsg(WebViewId webViewId, string message);
+        public void OnInnerlLog(ELogLvl lvl, string msg);
     }
 
     internal interface IPlatformWebViewMgr

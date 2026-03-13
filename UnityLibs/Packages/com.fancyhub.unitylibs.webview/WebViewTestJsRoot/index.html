@@ -1,0 +1,228 @@
+<html>
+
+    <head>
+        <title>Test Webview Javascript</title>
+
+        <script lang="javascript" name="core">
+            (function (hostName, gameObjName) {
+                let gameObj = window[gameObjName];
+
+                //1. check has inited
+                if (gameObj?._Inited) //Inited
+                    return;
+
+                gameObj = {}
+                //2. init the window.GNG
+                if (window[hostName]) { //android        
+                    gameObj = window[hostName];
+                } else if (window?.webkit?.messageHandlers && window?.webkit?.messageHandlers[hostName]) { //ios                
+                    gameObj = window.webkit.messageHandlers[hostName];
+                } else if (window?.chrome?.webview?.hostObjects && window.chrome.webview.hostObjects[hostName]) { //windows webview2
+                    gameObj = window.chrome.webview.hostObjects[hostName];
+                }
+
+
+                //3. check the base function postMessage
+                if (gameObj.postMessage) {
+                    gameObj.IsInGame = true;
+                } else {
+                    gameObj.IsInGame = false;
+                    gameObj.postMessage = function (data) {
+                        console.error("is not in game, postMessage not implement");
+                    }
+                }
+
+                //4. set the inited flag
+                gameObj._Inited = true;
+                // 必须用纯 JS 对象存 promise：WebView2 的 hostObjects 是 C++ 代理，
+                // 无法正确存储/序列化 JS 函数(resolve/reject)，存到 gameObj 上会丢失
+                let _promises = {};
+                window[gameObjName] = gameObj;
+
+                //5. core functions
+                let generateUUID = function () {
+                    var d = new Date().getTime();
+                    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                        var r = (d + Math.random() * 16) % 16 | 0;
+                        d = Math.floor(d / 16);
+                        return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+                    });
+                    return uuid;
+                };               
+
+                window.callUnity = function (strKey, strData) {
+                    let msg = {};
+                    msg['key'] = strKey;
+                    msg['data'] = strData;
+                    gameObj.postMessage(JSON.stringify(msg));
+                }
+
+                window.callUnityWithPromise = function (strKey, strData) {
+                    var promiseId = generateUUID();
+
+                    let msg = {};
+                    msg['key'] = strKey;
+                    msg['promiseId'] = promiseId;
+                    msg['data'] = strData;
+
+                    var promise = new Promise(function (resFunc, rejFunc) {
+                        if(gameObj.IsInGame){
+                            _promises[promiseId] = { resolve: resFunc, reject: rejFunc };                            
+                        }                        
+                        gameObj.postMessage(JSON.stringify(msg));
+                    });
+                    return promise;
+                }
+
+                window.unityReturn2Js = function (promiseId, success, data) {
+                    let p = _promises[promiseId];             
+                    if (!p) {
+                        console.log("No promise " + promiseId);
+                        return;
+                    }
+                    if (success) {
+                        p.resolve(data);
+                    } else {
+                        p.reject(data);
+                    }
+                    delete _promises[promiseId];
+                }
+            })('FH', 'GameCore');
+
+        </script>
+
+        <script lang="javascript" name="game_functions">
+            Game = {}
+
+            //return bool
+            Game.isInGame = function () {
+                if (GameCore?.IsInGame)
+                    return true
+                return false
+            }
+
+            //return a promise
+            Game.promiseEcho = function (msg) {
+                return callUnityWithPromise("Echo", msg);
+            }
+
+            Game.promiseGetVersion = function (msg) {
+                return callUnityWithPromise("GetVersion", msg);
+            }
+
+            Game.promisGetNetworkType = function () {
+                return callUnityWithPromise("GetNetworkType", null);
+            }
+
+        </script>
+
+        <script lang="javascript">
+            function appendLog(msg) {
+                var element = document.getElementById('log');
+                element.value += msg + "\n";
+            }
+
+            function executeJS() {
+                var element = document.getElementById('input');
+                eval(element.value);
+            }
+
+            function clearLog() {
+                var element = document.getElementById('log');
+                element.value = "";
+            }
+
+            function testEcho() {
+                var element = document.getElementById("echoInput");
+                Game.promiseEcho(element.value).then(function (a) {                    
+                    appendLog("Echo Succ " + a);
+                }, function (b) {                    
+                    appendLog("Echo Fail " + b);
+                })
+            }
+
+            function testGetVersion() {
+                Game.promiseGetVersion().then(function (a) {
+                    appendLog("GetVersion Succ " + a);
+                }, function (b) {
+                    appendLog("GetVersion Fail " + b);
+                })
+            }
+
+            function testGetNetworkType() {
+                Game.promisGetNetworkType().then(function (a) {
+                    appendLog("GetNetworkType Succ " + a);
+                }, function (b) {
+                    appendLog("GetNetworkType Fail " + b);
+                })
+            }
+
+            function switchTab(index) {
+                var panels = document.getElementsByName("panel")
+                panels.forEach(element => {
+                    element.hidden = true;
+                });
+                panels[index].hidden = false;
+            }
+
+        </script>
+    </head>
+
+    <body>
+        <!-- Reload -->
+        <input type="button" onclick="javascript:location.reload();" value="↺"></input> <label id="inGameLabel" ></label>
+        <br />
+        <br />
+
+        <input type="button" onclick="switchTab(0)" value="Functions"> </input>
+        <input type="button" onclick="switchTab(1)" value="Input JS"> </input>
+        <br />
+        <br />
+
+        <div name="panel">
+            <label>Functions:</label><br />
+
+
+            <label>Echo: </label>
+            <input id="echoInput" type="text" value="hello" />
+            <input type="button" onclick="testEcho()" value="Run"> </input><br />
+            <br /><br />
+
+
+            <label>Get NetworkType :</label>
+            <input type="button" onclick="testGetNetworkType()" value="Run"> </input>
+            <br /><br />
+
+            <label>Get Version :</label>
+            <input type="button" onclick="testGetVersion()" value="Run"> </input>
+            <br /><br />
+
+        </div>
+
+        <div name="panel" hidden="true">
+            <!-- Js Input -->
+            <label for="input">Input JS: </label>
+            <input type="button" onclick="executeJS()" value="Execute JS"> </input>
+            <br />
+            <textarea id="input" style="width: 835px; height: 80px;"></textarea>
+        </div>
+        <br /><br />
+
+        <br /><br />
+
+        <!-- Log -->
+        <label for="log">Log </label>
+        <input type="button" onclick="clearLog()" value="clearLog"> </input>
+        <br />
+        <textarea id="log" style="width: 835px; height: 200px;"></textarea>
+    </body>
+
+    <script>
+        //update inGameLabel
+        if (Game.isInGame())
+            document.getElementById("inGameLabel").innerText = "IsInGame: true";
+        else
+            document.getElementById("inGameLabel").innerText = "IsInGame: false";
+    </script>
+
+</html>

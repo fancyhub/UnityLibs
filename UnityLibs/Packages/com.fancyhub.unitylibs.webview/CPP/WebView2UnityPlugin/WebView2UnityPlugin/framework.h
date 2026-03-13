@@ -4,6 +4,7 @@
 // Windows Header Files
 #include <windows.h>
 #include <ole2.h>               // 提供COM基础类型
+#include <oleauto.h>           // VariantInit, VariantClear
 #include <ocidl.h>              // 提供IStream等接
 #include <WebView2.h>
 #include <wrl.h>

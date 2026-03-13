@@ -15,6 +15,7 @@ namespace FH
     {
         public void OnWebViewLoaded(WebView webView);
         public void OnWebViewClosed(WebView webView);
+        public void OnWebViewJsMsg(string key, string promissId, string data);
     }
 
     public partial class WebView
@@ -111,7 +112,7 @@ namespace FH
         {
             _PlatformWebViewMgr?.RunJavaScript(_WebViewId, jsCode);
         }
-
+            
         internal void OnEvent(EWebViewEventType eventType)
         {
             WebViewLog._.D("WebView {0} Event {1}", _WebViewId, eventType);
