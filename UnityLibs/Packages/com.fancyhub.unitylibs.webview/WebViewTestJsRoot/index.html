@@ -34,9 +34,7 @@
 
                 //4. set the inited flag
                 gameObj._Inited = true;
-                // 必须用纯 JS 对象存 promise：WebView2 的 hostObjects 是 C++ 代理，
-                // 无法正确存储/序列化 JS 函数(resolve/reject)，存到 gameObj 上会丢失
-                let _promises = {};
+                let promises = {}; //can't store this in gameObj on windows WebView2
                 window[gameObjName] = gameObj;
 
                 //5. core functions
@@ -67,7 +65,7 @@
 
                     var promise = new Promise(function (resFunc, rejFunc) {
                         if(gameObj.IsInGame){
-                            _promises[promiseId] = { resolve: resFunc, reject: rejFunc };                            
+                            promises[promiseId] = { resolve: resFunc, reject: rejFunc };                            
                         }                        
                         gameObj.postMessage(JSON.stringify(msg));
                     });
@@ -75,7 +73,7 @@
                 }
 
                 window.unityReturn2Js = function (promiseId, success, data) {
-                    let p = _promises[promiseId];             
+                    let p = promises[promiseId];             
                     if (!p) {
                         console.log("No promise " + promiseId);
                         return;
@@ -85,7 +83,7 @@
                     } else {
                         p.reject(data);
                     }
-                    delete _promises[promiseId];
+                    delete promises[promiseId];
                 }
             })('FH', 'GameCore');
 
