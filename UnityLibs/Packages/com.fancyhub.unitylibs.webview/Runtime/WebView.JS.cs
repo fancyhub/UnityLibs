@@ -8,8 +8,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using FH.UI;
-using UnityEngine.Windows.Speech;
+
 
 namespace FH
 {
