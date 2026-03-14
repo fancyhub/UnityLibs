@@ -1,15 +1,15 @@
 {
     admin off
-    #admin 127.0.0.1:8002
+    #admin 127.0.0.1:2019
 }
 
-https://fancy.me:8443 {
+https://fancy.me:443 {
     tls internal
     root * .
     file_server browse
 }
 
-http://fancy.me:8080 {
+http://fancy.me:80 {
     root * .
     file_server browse
 }
