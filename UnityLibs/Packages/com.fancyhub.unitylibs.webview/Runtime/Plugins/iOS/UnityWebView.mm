@@ -48,6 +48,15 @@
 -(void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message;
 @end
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// MyWKScriptMessageHandler_JsConsole - 监听 JS console.log/warn/error
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+@interface MyWKScriptMessageHandler_JsConsole: NSObject<WKScriptMessageHandler>
+@property  MyWebViewData* _Nonnull _Data;
+-(instancetype)initWithData:(MyWebViewData*)data;
+-(void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message;
+@end
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // MyWebView
@@ -58,12 +67,14 @@
 @property (nonatomic, strong) MyWKNavigationDelegate* _NavigationDelegate;
 @property (nonatomic, strong) MyWKUIDelegate* _UIDelegate;
 @property (nonatomic, strong) MyWKScriptMessageHandler* _ScriptMessageHandler;
+@property (nonatomic, strong) MyWKScriptMessageHandler_JsConsole* _ScriptMessageHandler_JsConsole;
 
 +(MyWebView*) Get:(int)webViewId;
 +(MyWebView*) GetByNsWebView:(NSNumber*)webViewId;
 +(int) Create:(NSURL * _Nonnull)url WithArea:(CGRect)area;
 +(void) CloseWebView:(int)webViewId;
 +(void) CloseAll;
++ (WKUserScript*)GetJsConsoleScript;
 
 -(void)Navigate:(NSURL * _Nonnull)url;  
 -(void)GoBack;
@@ -105,42 +116,48 @@ extern "C"
     typedef void (*WebViewEventCallBack)(int webViewId, int eventType);
     static WebViewEventCallBack s_WebViewEventCallBack = NULL;
 
-    typedef void (*WebViewJsLogCallBack)(int webViewId, int logLvl, const char* msg);
+    typedef void (*WebViewJsLogCallBack)(int webViewId, const char* msg);
     static WebViewJsLogCallBack s_WebViewJsLogCallBack = NULL;
 
     typedef void (*WebViewJsMessageCallBack)(int webViewId, const char* msg);
     static WebViewJsMessageCallBack s_WebViewJsMessageCallBack = NULL;
 
-    static void Log_Debug(const char* msg)
+
+    static void _InnerLog(int webViewId, int logLvl, const char* msg)
     {
-        if(s_WebViewInternalLogCallBack != NULL)
+         if(s_WebViewInternalLogCallBack == NULL)
+            return;
+
+        if(webViewId == 0)
         {
             s_WebViewInternalLogCallBack(LogLevel_Debug, msg);
+            return;
         }
+
+        const int MAX_MSG_LEN = 1024;
+        char buf[MAX_MSG_LEN];
+        snprintf(buf, MAX_MSG_LEN, "WebViewId: %d %s", webViewId, msg);
+        s_WebViewInternalLogCallBack(logLvl, buf);      
     }
 
-    static void Log_Info(const char* msg)
+    static void Log_Debug(int webViewId, const char* msg)
     {
-        if(s_WebViewInternalLogCallBack != NULL)
-        {
-            s_WebViewInternalLogCallBack(LogLevel_Info, msg);
-        }
+        _InnerLog(webViewId, LogLevel_Debug, msg);          
     }
 
-    static void Log_Warning(const char* msg)
+    static void Log_Info(int webViewId, const char* msg)
     {
-        if(s_WebViewInternalLogCallBack != NULL)
-        {
-            s_WebViewInternalLogCallBack(LogLevel_Warning, msg);
-        }
+        _InnerLog(webViewId, LogLevel_Info, msg);          
     }
 
-    static void Log_Error(const char* msg)
+    static void Log_Warning(int webViewId, const char* msg)
     {
-        if(s_WebViewInternalLogCallBack != NULL)
-        {
-            s_WebViewInternalLogCallBack(LogLevel_Error, msg);
-        }
+        _InnerLog(webViewId, LogLevel_Warning, msg);          
+    }
+
+    static void Log_Error(int webViewId, const char* msg)
+    {
+        _InnerLog(webViewId, LogLevel_Error, msg); 
     }
 
 
@@ -223,7 +240,7 @@ extern "C"
         MyWebView *webView = [MyWebView Get:webViewId];
         if(webView == nil)
         {
-            Log_Error("GetUrl: webView is nil");
+            Log_Error(webViewId, "GetUrl: webView is nil");
             return NULL;
         } 
 
@@ -237,7 +254,7 @@ extern "C"
         MyWebView *webView = [MyWebView Get:webViewId];
         if(webView == nil)
         {
-            Log_Error("GetTitle: webView is nil");
+            Log_Error(webViewId, "GetTitle: webView is nil");
             return NULL;
         }
 
@@ -328,41 +345,45 @@ extern "C"
     }
 }
 
-static void Log_Debug2(NSString* msg)
-{
-    if(s_WebViewInternalLogCallBack != NULL)
-    {
-        if(msg == NULL) return;
-        s_WebViewInternalLogCallBack(LogLevel_Debug, [msg UTF8String]);
-    }
-}
 
-static void Log_Info2(NSString* msg)
-{
-    if(s_WebViewInternalLogCallBack != NULL)
+ static void _InnerLog2(int webViewId, int logLvl, NSString* msg)
     {
-        if(msg == NULL) return;
-        s_WebViewInternalLogCallBack(LogLevel_Info, [msg UTF8String]);
-    }
-}
+         if(s_WebViewInternalLogCallBack == NULL)
+            return;
 
-static void Log_Warning2(NSString* msg)
-{
-    if(s_WebViewInternalLogCallBack != NULL)
-    {
-        if(msg == NULL) return;
-        s_WebViewInternalLogCallBack(LogLevel_Warning, [msg UTF8String]);
-    }
-}
+        if(webViewId == 0)
+        {
+            s_WebViewInternalLogCallBack(LogLevel_Debug, [msg UTF8String]);
+            return;
+        }
 
-static void Log_Error2(NSString* msg)
-{
-    if(s_WebViewInternalLogCallBack != NULL)
-    {
-        if(msg == NULL) return;
-        s_WebViewInternalLogCallBack(LogLevel_Error, [msg UTF8String]);
+        s_WebViewInternalLogCallBack(logLvl, [[NSString stringWithFormat:@"WebViewId: %d, %@", webViewId, msg] UTF8String]);
     }
-}
+
+    static void Log_Debug2(int webViewId, NSString* msg)
+    {
+        _InnerLog2(webViewId, LogLevel_Debug, msg);          
+    }
+
+    static void Log_Info2(int webViewId, NSString* msg)
+    {
+        _InnerLog2(webViewId, LogLevel_Info, msg);          
+    }
+
+    static void Log_Warning2(int webViewId, NSString* msg)
+    {
+        _InnerLog2(webViewId, LogLevel_Warning, msg);          
+    }
+
+    static void Log_Error2(int webViewId, NSString* msg)
+    {
+        _InnerLog2(webViewId, LogLevel_Error, msg); 
+    }
+
+
+static NSString* s_jsConsoleHandlerName = @"UnityWebViewJsConsole";
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // MyWebViewData
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -398,6 +419,30 @@ static void Log_Error2(NSString* msg)
 
     // NSLog(@"MyWKScriptMessageHandler.didReceiveScriptMessage() name: %@", [message name]);    
     // NSLog(@"MyWKScriptMessageHandler.didReceiveScriptMessage() body: %@", [message body]);
+}
+@end
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// MyWKScriptMessageHandler_JsConsole
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+@implementation MyWKScriptMessageHandler_JsConsole
+-(instancetype)initWithData:(MyWebViewData*)data
+{
+    self = [super init];
+    if(self)
+    {
+        self._Data = data;
+    }
+    return self;
+}
+
+-(void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message
+{
+    if(message == nil || message.body == nil || s_WebViewJsLogCallBack == NULL) return;
+    
+    int webViewId = [self._Data.WebViewId intValue];
+    NSString *body = [message.body isKindOfClass:[NSString class]] ? (NSString *)message.body : [message.body description];
+    s_WebViewJsLogCallBack(webViewId, [body UTF8String]);
 }
 @end
 
@@ -474,10 +519,7 @@ static void Log_Error2(NSString* msg)
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation
 {
-    if(s_WebViewJsLogCallBack != NULL)
-    {
-        s_WebViewJsLogCallBack([self._Data.WebViewId intValue], 0, "didFinishNavigation");
-    }
+    Log_Debug([self._Data.WebViewId intValue], "didFinishNavigation");
 
     if (s_WebViewEventCallBack != NULL)
     {
@@ -487,19 +529,17 @@ static void Log_Error2(NSString* msg)
 
 - (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error
 {
-    if(error != nil && s_WebViewJsLogCallBack != NULL)
+    if(error != nil)
     {
-        NSString *errMsg = [NSString stringWithFormat:@"didFailNavigation: %@ (code:%ld)", error.localizedDescription, (long)error.code];
-        s_WebViewJsLogCallBack([self._Data.WebViewId intValue], LogLevel_Error, [errMsg UTF8String]);
+        Log_Error2([self._Data.WebViewId intValue], [NSString stringWithFormat:@"didFailNavigation error: %@ (code:%ld)", error.localizedDescription, (long)error.code]);
     }
 }
 
 - (void)webView:(WKWebView *)webView didFailProvisionalNavigation:(WKNavigation *)navigation withError:(NSError *)error
 {
-    if(error != nil && s_WebViewJsLogCallBack != NULL)
+    if(error != nil)
     {
-        NSString *errMsg = [NSString stringWithFormat:@"didFailProvisionalNavigation: %@ (code:%ld)", error.localizedDescription, (long)error.code];
-        s_WebViewJsLogCallBack([self._Data.WebViewId intValue], LogLevel_Error, [errMsg UTF8String]);
+        Log_Error2([self._Data.WebViewId intValue], [NSString stringWithFormat:@"didFailProvisionalNavigation: %@ (code:%ld)", error.localizedDescription, (long)error.code]);
     }
 }
 @end
@@ -510,6 +550,7 @@ static void Log_Error2(NSString* msg)
 @implementation MyWebView
 static NSMutableDictionary<NSNumber *, MyWebView *> *s_WebViews =[[NSMutableDictionary alloc] init];
 static int s_NextWebViewId = 0;
+static WKUserScript *s_JsConsoleScript = nil;
 
 +(MyWebView*) GetByNsWebView:(NSNumber*)webViewId
 {
@@ -521,6 +562,41 @@ static int s_NextWebViewId = 0;
 {
     NSNumber *nsWebViewId = [NSNumber numberWithInt:webViewId];
     return [s_WebViews objectForKey:nsWebViewId];
+}
+
+
++ (WKUserScript*)GetJsConsoleScript
+{
+    if(s_JsConsoleScript != nil) return s_JsConsoleScript;
+    NSString *consoleOverrideScript = [NSString stringWithFormat:
+        @"(function(){"
+        @"var h=window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.%@;"
+        @"if(!h)return;"
+        @"function s(l,a){"
+        @"try{"
+        @"var m=Array.prototype.slice.call(a).map(function(x){"
+        @"return typeof x==='object'?JSON.stringify(x):String(x);"
+        @"}).join(' ');"
+        @"h.postMessage(JSON.stringify({level:l,msg:m}));"
+        @"}catch(e){}"
+        @"}"
+        @"var d=console.debug;"
+        @"console.debug=function(){d.apply(console,arguments);s('debug',arguments);};"
+        @"var o=console.log;"
+        @"console.log=function(){o.apply(console,arguments);s('log',arguments);};"
+        @"var i=console.info;"
+        @"console.info=function(){i.apply(console,arguments);s('info',arguments);};"
+        @"var w=console.warn;"
+        @"console.warn=function(){w.apply(console,arguments);s('warn',arguments);};"
+        @"var e=console.error;"
+        @"console.error=function(){e.apply(console,arguments);s('error',arguments);};"
+        @"})();",
+        s_jsConsoleHandlerName];
+
+   
+    // consoleOverrideScript = [consoleOverrideScript stringByReplacingOccurrencesOfString:@"{LogHandlerName}" withString:s_jsConsoleHandlerName];
+    s_JsConsoleScript = [[WKUserScript alloc] initWithSource:consoleOverrideScript injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+    return s_JsConsoleScript;
 }
 
 +(int)NewWebViewId
@@ -558,6 +634,11 @@ static int s_NextWebViewId = 0;
     if(self._WebView != nil)
     {
         int webViewId = [self._Data.WebViewId intValue];
+        // 移除 script message handler 避免 dealloc 时崩溃
+        if(self._ScriptMessageHandler_JsConsole != nil && self._WebView.configuration != nil)
+        {
+            [self._WebView.configuration.userContentController removeScriptMessageHandlerForName:s_jsConsoleHandlerName];
+        }
         [self._WebView removeFromSuperview];
         self._WebView = nil;
 
@@ -577,7 +658,7 @@ static int s_NextWebViewId = 0;
 
     //1. create a new web view id
     int webViewId = [MyWebView NewWebViewId];    
-    Log_Debug2([NSString stringWithFormat:@"Create: webViewId = %d", webViewId]);
+    Log_Debug(webViewId, "Create WebView");
     NSNumber *nsWebViewId = [NSNumber numberWithInt:webViewId];
     
     MyWebViewData *data = [[MyWebViewData alloc] init];
@@ -631,7 +712,21 @@ static int s_NextWebViewId = 0;
         MyWKScriptMessageHandler *scriptMessageHandler = [[MyWKScriptMessageHandler alloc] initWithData:data];
         ret._ScriptMessageHandler = scriptMessageHandler;
         [webViewConfig.userContentController addScriptMessageHandler:scriptMessageHandler name:JavaScriptHostName];        
-    }   
+    }
+
+    // 注入脚本监听 JS console.log/warn/error，通过 s_WebViewJsLogCallBack 回调，msg 格式由 C# 解析
+    //不用检查回调是否存在, 真正触发的时候,再检查
+    //if(s_WebViewJsLogCallBack != NULL)
+    {
+        
+        MyWKScriptMessageHandler_JsConsole *jsConsoleHandler = [[MyWKScriptMessageHandler_JsConsole alloc] initWithData:data];
+        ret._ScriptMessageHandler_JsConsole = jsConsoleHandler;
+        [webViewConfig.userContentController addScriptMessageHandler:jsConsoleHandler name:s_jsConsoleHandlerName];
+        
+        
+        [webViewConfig.userContentController addUserScript:[MyWebView GetJsConsoleScript]];
+    }
+    
      
     
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
@@ -661,13 +756,12 @@ static int s_NextWebViewId = 0;
             }
         }
         
-        WKUserScript *cookieScript = [[WKUserScript alloc] initWithSource: cookiesString injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
-        
-        [webViewConfig.userContentController addUserScript:cookieScript];
-        
-        [request addValue:cookiesString forHTTPHeaderField:@"Cookie"];
-    }
-    
+        if (cookiesString != nil && cookiesString.length > 0) {
+            WKUserScript *cookieScript = [[WKUserScript alloc] initWithSource: cookiesString injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+            [webViewConfig.userContentController addUserScript:cookieScript];
+            [request addValue:cookiesString forHTTPHeaderField:@"Cookie"];
+        }
+    }   
     
     
     MyWKNavigationDelegate *navigationDelegate = [[MyWKNavigationDelegate alloc] initWithData:data];    
@@ -753,9 +847,9 @@ static int s_NextWebViewId = 0;
     //@try {
         [self._WebView evaluateJavaScript:jsCode completionHandler:nil];
     // } @catch (NSException *exception) {
-    //     Log_Error2([exception description]);
+    //     Log_Error2(webViewId, [exception description]);
     // } @catch (NSError *error) {
-    //     Log_Error2([error description]);
+    //     Log_Error2(webViewId, [error description]);
     // }
 }
 

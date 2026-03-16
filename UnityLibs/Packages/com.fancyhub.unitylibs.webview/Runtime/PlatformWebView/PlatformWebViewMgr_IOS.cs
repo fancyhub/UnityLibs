@@ -130,6 +130,7 @@ namespace FH.WV
         private static void _OnInternalLog(int logLvl, IntPtr msgPtr)
         {
             string msg = Marshal.PtrToStringUTF8(msgPtr);
+            _CallBack?.OnInnerlLog((ELogLvl)logLvl, msg);
         }
 
         [AOT.MonoPInvokeCallback(typeof(_.WebViewEventCallBack))]
@@ -139,10 +140,48 @@ namespace FH.WV
         }
 
         [AOT.MonoPInvokeCallback(typeof(_.WebViewJsLogCallBack))]
-        private static void _OnJsLog(int webViewId, int logLvl, IntPtr msgPtr)
+        private static void _OnJsLog(int webViewId, IntPtr msgPtr)
         {
-            string msg = Marshal.PtrToStringUTF8(msgPtr);
+            string raw = Marshal.PtrToStringUTF8(msgPtr);
+            if (string.IsNullOrEmpty(raw)) return;
+
+            string level = "";
+            string msg = raw;
+            try
+            {
+                var data = JsonUtility.FromJson<JsLogData>(raw);
+                level = data.level;
+                msg = data.msg ?? string.Empty;
+            }
+            catch { /* 解析失败则整条作为 msg */ }
+
+            switch (level)
+            {
+                case "debug":
+                    WebViewLog.JsLog.D("WebviewId: {0} -> {1}", webViewId, msg); 
+                    break;
+
+                case "log":
+                case "info":
+                    WebViewLog.JsLog.I("WebviewId: {0} -> {1}", webViewId, msg); 
+                    break;
+
+                case "warn": 
+                    WebViewLog.JsLog.W("WebviewId: {0} -> {1}", webViewId, msg); 
+                    break;
+
+                case "error": 
+                    WebViewLog.JsLog.E("WebviewId: {0} -> {1}", webViewId, msg); 
+                    break;
+
+                default: 
+                    WebViewLog.JsLog.E("WebviewId: {0} -> {1}", webViewId, msg); 
+                    break;
+            }
         }
+
+        [Serializable]
+        private struct JsLogData { public string level; public string msg; }
 
         [AOT.MonoPInvokeCallback(typeof(_.WebViewJsMessageCallBack))]
         private static void _OnJsMessage(int webViewId, IntPtr msgPtr)
@@ -159,7 +198,7 @@ namespace FH.WV
             public delegate void WebViewEventCallBack(int webViewId, int eventType);
             [DllImport("__Internal")] public static extern void SetWebViewEventCallBack(WebViewEventCallBack callback);
 
-            public delegate void WebViewJsLogCallBack(int webViewId, int logLvl, IntPtr msg);
+            public delegate void WebViewJsLogCallBack(int webViewId, IntPtr msg);
             [DllImport("__Internal")] public static extern void SetWebViewJsLogCallBack(WebViewJsLogCallBack callBack);
 
             public delegate void WebViewJsMessageCallBack(int webViewId, IntPtr msg);

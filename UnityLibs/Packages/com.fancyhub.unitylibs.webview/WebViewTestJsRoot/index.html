@@ -122,7 +122,13 @@
 
             function executeJS() {
                 var element = document.getElementById('input');
-                eval(element.value);
+                try{
+                    let code = element.value;
+                    code = code.replace(/[\u201c\u201d]/g, '"').replace(/[\u2018\u2019]/g, "'");
+                    eval(code);
+                }catch(e){
+                    appendLog("Execute JS Fail " + e);
+                }
             }
 
             function clearLog() {
@@ -153,6 +159,11 @@
                 }, function (b) {
                     appendLog("GetNetworkType Fail " + b);
                 })
+            }
+
+            function testConsoleLog() {
+                console.log("testConsoleLog");
+                appendLog("testConsoleLog");
             }
 
             function switchTab(index) {
@@ -193,6 +204,10 @@
 
             <label>Get Version :</label>
             <input type="button" onclick="testGetVersion()" value="Run"> </input>
+            <br /><br />
+
+            <label>Test Console Log :</label>
+            <input type="button" onclick="testConsoleLog()" value="Run"> </input>
             <br /><br />
 
         </div>

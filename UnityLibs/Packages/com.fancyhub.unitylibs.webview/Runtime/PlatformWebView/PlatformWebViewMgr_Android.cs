@@ -84,6 +84,7 @@ namespace FH.WV
                         break;
 
                     case "LOG":
+                    case "INFO":
                         WebViewLog.JsLog.I("WebviewId: {0}, {1} @ {2} -> {3}", webViewId, logType, source, msg);
                         break;
 
