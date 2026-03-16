@@ -66,8 +66,10 @@
                     var promise = new Promise(function (resFunc, rejFunc) {
                         if(gameObj.IsInGame){
                             promises[promiseId] = { resolve: resFunc, reject: rejFunc };                            
-                        }                        
-                        gameObj.postMessage(JSON.stringify(msg));
+                            gameObj.postMessage(JSON.stringify(msg));
+                        }else {
+                            rejFunc("not in game");
+                        }
                     });
                     return promise;
                 }
@@ -108,7 +110,7 @@
                 return callUnityWithPromise("GetVersion", msg);
             }
 
-            Game.promisGetNetworkType = function () {
+            Game.promiseGetNetworkType = function () {
                 return callUnityWithPromise("GetNetworkType", null);
             }
 
@@ -154,7 +156,7 @@
             }
 
             function testGetNetworkType() {
-                Game.promisGetNetworkType().then(function (a) {
+                Game.promiseGetNetworkType().then(function (a) {
                     appendLog("GetNetworkType Succ " + a);
                 }, function (b) {
                     appendLog("GetNetworkType Fail " + b);
