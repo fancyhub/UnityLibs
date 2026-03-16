@@ -26,6 +26,7 @@ namespace FH.WV
             _.SetWebViewEventCallBack(_webViewEventCallBack);
             _.SetWebViewJsMessageCallBack(_webViewJsMessageCallBack);
             _.SetWebViewJsLogCallBack(_webViewJsLogCallBack);
+            _.Init(WebViewDef.JsHostObjName);
         }
 
         int IPlatformWebViewMgr.Create(string url, Rect normalizedRect)
