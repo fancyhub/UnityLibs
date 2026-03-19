@@ -26,7 +26,7 @@ namespace FH
         private ulong _v3;
         private ulong _v4;
 
-        private static char[] S_SPLIT = new char[] { '.', '(', ')' };
+        private static readonly char[] S_SPLIT = new char[] { '.', '(', ')' };
 
         public VersionInfo(string name)
         {
@@ -67,19 +67,6 @@ namespace FH
 
             if (len <= 4 || !ulong.TryParse(tt[4], out _v4))
                 return;
-        }
-
-        public VersionInfo Clone()
-        {
-            VersionInfo ret = new VersionInfo(null);
-            ret._v0 = _v0;
-            ret._v1 = _v1;
-            ret._v2 = _v2;
-            ret._v3 = _v3;
-            ret._v4 = _v4;
-            ret._suffix = _suffix;
-            ret._validate = _validate;
-            return ret;
         }
 
         public static VersionInfo EdCreateResVersionInfo(string suffix = null)

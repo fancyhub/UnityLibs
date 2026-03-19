@@ -139,24 +139,24 @@ namespace FH
                 if (orig == null)
                     yield break;
 
-                System.Collections.Generic.Queue<IEnumerator> queue = new();
-                queue.Enqueue(orig);
+                System.Collections.Generic.Stack<IEnumerator> stack = new();
+                stack.Push(orig);
 
                 for (; ; )
                 {
-                    if (queue.Count == 0)
+                    if (stack.Count == 0)
                         break;
 
-                    var top = queue.Peek();
+                    var top = stack.Peek();
                     if (top == null)
                     {
-                        queue.Dequeue();
+                        stack.Pop();
                         continue;
                     }
 
                     if (!top.MoveNext())
                     {
-                        queue.Dequeue();
+                        stack.Pop();
                         continue;
                     }
 
@@ -196,7 +196,7 @@ namespace FH
                     }
                     else if (current is IEnumerator otherEnumerator)
                     {
-                        queue.Enqueue(otherEnumerator);
+                        stack.Push(otherEnumerator);
                         yield return otherEnumerator;
                     }
                     else if (current is AsyncOperation op)

@@ -17,9 +17,9 @@ namespace FH
     {
         private static void _RegJsHandler()
         {
-            WebView.RegGlobalJsMessageHandler("Echo", _JsHandler_Echo);
-            WebView.RegGlobalJsMessageHandler("GetVersion", _JsHandler_GetVersion);
-            WebView.RegGlobalJsMessageHandler("GetNetworkType", _JsHandler_GetNetworkType);
+            RegGlobalJsMessageHandler("Echo", _JsHandler_Echo);
+            RegGlobalJsMessageHandler("GetVersion", _JsHandler_GetVersion);
+            RegGlobalJsMessageHandler("GetNetworkType", _JsHandler_GetNetworkType);
         }
 
         private static void _JsHandler_Echo(WebView view, string key, string promissId, string data)
