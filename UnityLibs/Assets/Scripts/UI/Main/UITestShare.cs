@@ -125,7 +125,7 @@ namespace Game
                 Log.I("screenshot path: {0}", path);
                 GameObject.Destroy(t);
                 callBack(_FilePath);
-            }, null, BaseView._Img.rectTransform);
+            }, BaseView._Img.rectTransform);
         }
 
     }

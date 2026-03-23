@@ -50,6 +50,9 @@ MonoBehaviour:
       dir: 
       ext: .png
     prefab:
+    - name: 3DSceneMainPanel
+      dir: 
+      ext: .prefab
     - name: Button
       dir: Common
       ext: .prefab

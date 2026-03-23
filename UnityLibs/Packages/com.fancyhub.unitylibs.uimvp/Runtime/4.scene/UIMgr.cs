@@ -159,7 +159,7 @@ namespace FH.UI
             return OpenUI<T>(PageOpenInfo.Default);
         }
 
-        public static void ChangeScene<T>() where T : class, IUIScene
+        public static void ChangeScene<T>() where T : class, IUIScene,new()
         {
             if (_ == null)
                 return;
@@ -181,8 +181,11 @@ namespace FH.UI
             {
             }
         }
-         
-        protected abstract IUIScene CreateScene<T>();
+
+        protected virtual IUIScene CreateScene<T>() where T : class, IUIScene, new()
+        {
+            return new T();
+        }
 
 
         private void _Update()

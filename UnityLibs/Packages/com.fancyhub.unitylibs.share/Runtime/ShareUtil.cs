@@ -98,31 +98,23 @@ namespace FH
         }
 
         public static void Capture(Action<Texture2D> callBack,
-            Action<List<GameObject>> funcGetHideNodeList = null,
-            RectTransform targetArea = null)
+            RectTransform targetArea = null,
+            params GameObject[] nodesListToHided)
         {
-            GlobalCoroutine.StartCoroutine(_CaptureRoutine(callBack, funcGetHideNodeList, targetArea));
+            GlobalCoroutine.StartCoroutine(_CaptureRoutine(callBack, targetArea, nodesListToHided));
         }
 
         private static List<GameObject> _TempList = new();
         private static System.Collections.IEnumerator _CaptureRoutine(
             Action<Texture2D> callBack,
-            Action<List<GameObject>> funcGetHideNodeList,
-            RectTransform targetArea)
+            RectTransform targetArea,
+            GameObject[] nodesListToHided)
         {
             //1. check
             if (callBack == null)
                 yield break;
 
-            //2. get hide node list
-            _TempList.Clear();
-            if (funcGetHideNodeList != null)
-            {
-                try { funcGetHideNodeList?.Invoke(_TempList); }
-                catch (Exception e) { Log.E(e); }
-            }
-
-            //3. calc texture size and crop area
+            //2. calc texture size and crop area
             Vector2Int textureSize = new Vector2Int(Screen.width, Screen.height);
             Rect cropArea = new Rect(0, 0, textureSize.x, textureSize.y);
             if (targetArea != null)
@@ -142,26 +134,24 @@ namespace FH
                 cropArea = new Rect(posX, posY, width, height);
             }
 
-            //4. hide node
-            if (_TempList.Count > 0)
+            //3. hide nodes
+            _TempList.Clear();
+            if (nodesListToHided != null && nodesListToHided.Length > 0)
             {
-                for (int i = 0; i < _TempList.Count; i++)
+                foreach (var node in nodesListToHided)
                 {
-                    if (_TempList[i] == null)
+                    if (node == null || !node.activeSelf)
                         continue;
-                    if (!_TempList[i].activeSelf)
-                    {
-                        _TempList[i] = null;
-                        continue;
-                    }
-                    _TempList[i].SetActive(false);
+
+                    _TempList.Add(node);
+                    node.SetActive(false);
                 }
             }
 
-            //5. wait end of frame
+            //4. wait end of frame
             yield return new WaitForEndOfFrame();
 
-            //6. capture
+            //5. capture
             Texture2D screenShotTexture = new Texture2D(textureSize.x, textureSize.y, TextureFormat.RGB24, false);
             screenShotTexture.ReadPixels(cropArea, 0, 0);
             screenShotTexture.Apply();
@@ -169,11 +159,11 @@ namespace FH
             //6. show the node
             if (_TempList.Count > 0)
             {
-                for (int i = 0; i < _TempList.Count; i++)
+                foreach (var node in _TempList)
                 {
-                    if (_TempList[i] == null)
+                    if (node == null)
                         continue;
-                    _TempList[i].SetActive(true);
+                    node.SetActive(true);
                 }
                 _TempList.Clear();
             }
@@ -184,11 +174,11 @@ namespace FH
 
         private static bool IsScreenTextureFlipped()
         {
-            bool isAndroid =Application.platform == RuntimePlatform.Android;
+            bool isAndroid = Application.platform == RuntimePlatform.Android;
             bool isVulkan = SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Vulkan;
 
             bool flipY = isAndroid && isVulkan;
-            
+
             return flipY;
         }
     }

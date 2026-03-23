@@ -1,3 +1,4 @@
+using FH.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -27,18 +28,7 @@ namespace Game
 
 
     public class MyUISceneMgr : FH.UI.UIMgr
-    {
-        protected override FH.UI.IUIScene CreateScene<T>()
-        {
-            var sceneType = typeof(T);
-
-            if (sceneType == typeof(UISceneExtractAsset))
-                return new UISceneExtractAsset();
-            else if (sceneType == typeof(UISceneMain))
-                return new UISceneMain();
-
-            return null;
-        }
+    {        
     }
 
     public class UISceneExtractAsset : FH.UI.UISceneBase
@@ -60,11 +50,31 @@ namespace Game
         {
             NoticeApi.Init();
             this.OpenUI<UIMainPage>(Tag: FH.UI.EUITagIndex.BG);
-
         }
 
         public override void OnUpdate()
         {
+        }
+    }
+
+
+    public class UIScene3D : FH.UI.UISceneBase
+    {
+        private const string CScenePath = "Assets/Scenes/3DDemoScene.unity";
+        private FH.SceneRef _Scene;
+        public override void OnSceneEnter(IUIScene lastScene)
+        {
+            _Scene = FH.SceneMgr.LoadScene(CScenePath, UnityEngine.SceneManagement.LoadSceneMode.Single);
+            this.OpenUI<UI3DSceneMainPage>(Tag: EUITagIndex.BG);
+        }
+
+        public override void OnUpdate()
+        {
+        }
+
+        public override void OnSceneExit(IUIScene nextScene)
+        {
+            _Scene.Unload();
         }
     }
 }

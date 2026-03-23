@@ -51,7 +51,7 @@ namespace Game
             {
                 FH.UI.UIMgr.OpenUI<Game.UITestTimePage>();
             };
-            
+
             BaseView._BtnPermission.OnClick = () =>
             {
                 FH.UI.UIMgr.OpenUI<Game.UITestPermissionPage>();
@@ -71,7 +71,12 @@ namespace Game
             BaseView._BtnShare.OnClick = () =>
             {
                 UIMgr.OpenUI<UITestShare>();
-            };            
+            };
+
+            BaseView._Btn3DScene.OnClick = () =>
+            {
+                UIMgr.ChangeScene<UIScene3D>();
+            };
         }
 
         protected override void OnUI5Close()

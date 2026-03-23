@@ -67,3 +67,9 @@ MonoBehaviour:
     AddressMode: 0
     BundleName: scene_b
     Tags: scene_b
+  - Asset:
+      Path: Assets/Scenes/3DDemoScene.unity
+    SearchPattern: '*.*'
+    AddressMode: 0
+    BundleName: scene_3d
+    Tags: scene_3d
