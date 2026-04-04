@@ -5,10 +5,8 @@
  * Desc    : 
 *************************************************************************************/
 
-#if UNITY_EDITOR
-//#define BEHAVIOUR_DESIGNER
-//#define USE_ODIN
-using UnityEditor;
+#if UNITY_EDITOR && ODIN_INSPECTOR
+#define USE_ODIN
 #endif
 
 using System;
@@ -17,7 +15,7 @@ using UnityEngine;
 
 namespace FH
 {
- 
+
     /// <summary>
     /// 对应的枚举 不要本身就是 Flags类型的
     /// </summary>
@@ -187,10 +185,10 @@ namespace FH
     }
 
 #if UNITY_EDITOR
-    [CustomPropertyDrawer(typeof(BitEnum32<>), true)]
-    public class EdBitEnum32Drawer : PropertyDrawer
+    [UnityEditor.CustomPropertyDrawer(typeof(BitEnum32<>), true)]
+    public class EdBitEnum32Drawer : UnityEditor.PropertyDrawer
     {
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        public override void OnGUI(Rect position, UnityEditor.SerializedProperty property, GUIContent label)
         {
             var type_ref = fieldInfo.FieldType;
             if (typeof(System.Collections.IList).IsAssignableFrom(type_ref))
@@ -208,9 +206,9 @@ namespace FH
             int mask = Value2Mask(v, targetObjectType);
             int new_mask = mask;
             if (label != null)
-                new_mask = EditorGUI.MaskField(position, label, mask, targetObjectType.GetEnumNames());
+                new_mask = UnityEditor.EditorGUI.MaskField(position, label, mask, targetObjectType.GetEnumNames());
             else
-                new_mask = EditorGUI.MaskField(position, mask, targetObjectType.GetEnumNames());
+                new_mask = UnityEditor.EditorGUI.MaskField(position, mask, targetObjectType.GetEnumNames());
 
             if (mask == new_mask)
                 return;
@@ -251,7 +249,7 @@ namespace FH
 #endif
 
 #if USE_ODIN
-    public class EdOdinBitEnum32Drawer<T> : OdinValueDrawer<BitEnum32<T>> where T : struct, IConvertible
+    public class EdOdinBitEnum32Drawer<T> : Sirenix.OdinInspector.Editor.OdinValueDrawer<BitEnum32<T>> where T : struct, IConvertible
     {
         protected override void DrawPropertyLayout(GUIContent label)
         {
@@ -264,9 +262,9 @@ namespace FH
             int new_mask = mask;
 
             if (label != null)
-                new_mask = EditorGUI.MaskField(rect, label, mask, tar_type.GetEnumNames());
+                new_mask = UnityEditor.EditorGUI.MaskField(rect, label, mask, tar_type.GetEnumNames());
             else
-                new_mask = EditorGUI.MaskField(rect, mask, tar_type.GetEnumNames());
+                new_mask = UnityEditor.EditorGUI.MaskField(rect, mask, tar_type.GetEnumNames());
 
 
             if (new_mask != mask)
@@ -277,37 +275,4 @@ namespace FH
     }
 #endif
 
-#if BEHAVIOUR_DESIGNER
-    //这个类是解决 行为树的Inspector使用MaskField的功能
-    [AttributeUsage(AttributeTargets.Field)]
-    public sealed class BDBitEnum32Attribute : BehaviorDesigner.Runtime.Tasks.ObjectDrawerAttribute
-    {
-        public BDBitEnum32Attribute()
-        {
-        }
-    }
-
-    [BehaviorDesigner.Editor.CustomObjectDrawer(typeof(BDBitEnum32Attribute))]
-    public class EdBDBitEnum32AttributeDrawer : BehaviorDesigner.Editor.ObjectDrawer
-    {
-        public override void OnGUI(GUIContent label)
-        {
-            Type enum_type = FieldInfo.DeclaringType.GetGenericArguments()[0];
-
-            uint v = (uint)Value;
-            int mask = EdBitEnum32Drawer.Value2Mask(v, enum_type);
-            int new_mask = mask;
-            if (label != null)
-                new_mask = EditorGUILayout.MaskField(label, mask, enum_type.GetEnumNames());
-            else
-                new_mask = EditorGUILayout.MaskField(mask, enum_type.GetEnumNames());
-
-            if (mask == new_mask)
-                return;
-
-            uint new_v = EdBitEnum32Drawer.Mask2Value(new_mask, enum_type);
-            Value = new_v;
-        }
-    }
-#endif
 }
