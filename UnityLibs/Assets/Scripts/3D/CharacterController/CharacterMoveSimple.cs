@@ -12,20 +12,43 @@ public class CharacterMoveSimple : MonoBehaviour
 
     [Header("Animation(optional)")]
     public Animator targetAnimator;
+
+    public enum EAnimMoveMode
+    {
+        AnimMove_1D,
+        AnimMove_2D,
+    }
+
+    public EAnimMoveMode animMoveMode = EAnimMoveMode.AnimMove_1D;
     public string animMove1DParamName = "";
+    public string animMove2DParamXName = "";
+    public string animMove2DParamYName = "";
+
+    public string animMoveTriggerName = "";
+
     [Min(0.1f)]
     public float animMoveParamMaxValue = 1;
 
     private Transform _mainCameraTrans;
     private int _animMove1DParamNameId = 0;
+    private int _animMove2DParamXNameId = 0;
+    private int _animMove2DParamYNameId = 0;
+    private int _animMoveTriggerNameId = 0;
 
 
     private void Start()
     {
         if (!string.IsNullOrEmpty(animMove1DParamName))
-        {
             _animMove1DParamNameId = Animator.StringToHash(animMove1DParamName);
-        }
+
+        if (!string.IsNullOrEmpty(animMoveTriggerName))
+            _animMoveTriggerNameId = Animator.StringToHash(animMoveTriggerName);
+
+        if (!string.IsNullOrEmpty(animMove2DParamXName))
+            _animMove2DParamXNameId = Animator.StringToHash(animMove2DParamXName);
+
+        if (!string.IsNullOrEmpty(animMove2DParamYName))
+            _animMove2DParamYNameId = Animator.StringToHash(animMove2DParamYName);
     }
 
 
@@ -60,25 +83,54 @@ public class CharacterMoveSimple : MonoBehaviour
             // 转向移动方向
             Quaternion targetRot = Quaternion.LookRotation(moveDir);
             targetCharacterController.transform.rotation = Quaternion.Lerp(targetCharacterController.transform.rotation, targetRot, rotateSpeed * Time.deltaTime);
-
-            if (targetAnimator != null && _animMove1DParamNameId != 0)
-            {
-                targetAnimator.SetFloat(_animMove1DParamNameId, animMoveParamMaxValue);
-            }
+            _UpdateAnim(true, velocity);
         }
         else
         {
-            if (targetAnimator != null && _animMove1DParamNameId != 0)
-            {
+            _UpdateAnim(false, Vector3.zero);
+        }
+
+        // 应用重力
+        velocity.y += gravity * Time.deltaTime;
+        targetCharacterController.Move(velocity * Time.deltaTime);
+    }
+
+    private void _UpdateAnim(bool walking, Vector3 velocity)
+    {
+        if (targetAnimator == null)
+            return;
+
+        if (_animMoveTriggerNameId != 0)
+        {
+            targetAnimator.SetBool(_animMoveTriggerNameId, walking);
+        }
+
+
+        if (animMoveMode == EAnimMoveMode.AnimMove_1D && _animMove1DParamNameId != 0)
+        {
+            if (walking)
+                targetAnimator.SetFloat(_animMove1DParamNameId, animMoveParamMaxValue);
+            else
                 targetAnimator.SetFloat(_animMove1DParamNameId, 0);
+        }
+        else if (animMoveMode == EAnimMoveMode.AnimMove_2D && _animMove2DParamXNameId != 0 && _animMove2DParamYNameId != 0)
+        {
+            if (walking)
+            {
+                Vector3 localDir = targetCharacterController.transform.InverseTransformDirection(Vector3.Normalize(velocity));
+                localDir.y = 0;
+                localDir = Vector3.Normalize(localDir) * animMoveParamMaxValue;
+
+
+                targetAnimator.SetFloat(_animMove2DParamXNameId, localDir.x);
+                targetAnimator.SetFloat(_animMove2DParamYNameId, localDir.z);
+            }
+            else
+            {
+                targetAnimator.SetFloat(_animMove2DParamXNameId, 0);
+                targetAnimator.SetFloat(_animMove2DParamYNameId, 0);
             }
         }
-            // 应用重力
-            velocity.y += gravity * Time.deltaTime;
-        targetCharacterController.Move(velocity * Time.deltaTime);
-
-
-
     }
 
 

@@ -584,7 +584,11 @@ MonoBehaviour:
   rotateSpeed: 10
   gravity: -9.8
   targetAnimator: {fileID: 829823230}
+  animMoveMode: 0
   animMove1DParamName: Speed
+  animMove2DParamXName: 
+  animMove2DParamYName: 
+  animMoveTriggerName: 
   animMoveParamMaxValue: 6
 --- !u!143 &829823229 stripped
 CharacterController:
@@ -647,6 +651,10 @@ PrefabInstance:
     - target: {fileID: 4416926081852918481, guid: da7bb12be0721ff499b1d048e7c8c6cf, type: 3}
       propertyPath: m_Name
       value: PlayerArmature
+      objectReference: {fileID: 0}
+    - target: {fileID: 4416926081852918481, guid: da7bb12be0721ff499b1d048e7c8c6cf, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6982812146204527121, guid: da7bb12be0721ff499b1d048e7c8c6cf, type: 3}
       propertyPath: m_ApplyRootMotion
