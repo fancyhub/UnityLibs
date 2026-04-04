@@ -1,19 +1,32 @@
+using UnityEditor;
 using UnityEngine;
 
 public class CharacterMoveSimple : MonoBehaviour
 {
+    [Header("Move")]
     public CharacterController targetCharacterController;
-
-    [Header("移动速度")]
     public float moveSpeed = 5f;
-
-    [Header("旋转速度")]
     public float rotateSpeed = 10f;
-
-    [Header("重力强度")]
     public float gravity = -9.8f;
-     
+
+
+    [Header("Animation(optional)")]
+    public Animator targetAnimator;
+    public string animMove1DParamName = "";
+    [Min(0.1f)]
+    public float animMoveParamMaxValue = 1;
+
     private Transform _mainCameraTrans;
+    private int _animMove1DParamNameId = 0;
+
+
+    private void Start()
+    {
+        if (!string.IsNullOrEmpty(animMove1DParamName))
+        {
+            _animMove1DParamNameId = Animator.StringToHash(animMove1DParamName);
+        }
+    }
 
 
     private void Update()
@@ -47,11 +60,25 @@ public class CharacterMoveSimple : MonoBehaviour
             // 转向移动方向
             Quaternion targetRot = Quaternion.LookRotation(moveDir);
             targetCharacterController.transform.rotation = Quaternion.Lerp(targetCharacterController.transform.rotation, targetRot, rotateSpeed * Time.deltaTime);
-        }
 
-        // 应用重力
-        velocity.y += gravity * Time.deltaTime;
+            if (targetAnimator != null && _animMove1DParamNameId != 0)
+            {
+                targetAnimator.SetFloat(_animMove1DParamNameId, animMoveParamMaxValue);
+            }
+        }
+        else
+        {
+            if (targetAnimator != null && _animMove1DParamNameId != 0)
+            {
+                targetAnimator.SetFloat(_animMove1DParamNameId, 0);
+            }
+        }
+            // 应用重力
+            velocity.y += gravity * Time.deltaTime;
         targetCharacterController.Move(velocity * Time.deltaTime);
+
+
+
     }
 
 
@@ -66,7 +93,7 @@ public class CharacterMoveSimple : MonoBehaviour
 
         Vector3 moveDir = forward * inputDir.y + right * inputDir.x;
         return moveDir;
-    } 
+    }
 
     // 获取输入
     private static Vector2 _GetInputDir()

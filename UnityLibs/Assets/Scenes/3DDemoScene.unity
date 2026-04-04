@@ -583,9 +583,17 @@ MonoBehaviour:
   moveSpeed: 5
   rotateSpeed: 10
   gravity: -9.8
+  targetAnimator: {fileID: 829823230}
+  animMove1DParamName: Speed
+  animMoveParamMaxValue: 6
 --- !u!143 &829823229 stripped
 CharacterController:
   m_CorrespondingSourceObject: {fileID: 8928599635048881288, guid: da7bb12be0721ff499b1d048e7c8c6cf, type: 3}
+  m_PrefabInstance: {fileID: 1179113158}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &829823230 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 6982812146204527121, guid: da7bb12be0721ff499b1d048e7c8c6cf, type: 3}
   m_PrefabInstance: {fileID: 1179113158}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1179113158
