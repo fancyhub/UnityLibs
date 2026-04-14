@@ -32,6 +32,8 @@ namespace FH.FileDownload
         {
         }
 
+        public void OnUpdate(WorkerContext context) { }
+
         public EFsmProcResult OnMsg(WorkerContext context, EWorkerMsg msg, out int result)
         {
             switch (msg)

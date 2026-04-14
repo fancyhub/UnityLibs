@@ -25,6 +25,7 @@ namespace FH
         bool Start();
         bool IsRunning();
         int ProcAllMsgs();
+        bool Update();
         bool Stop();
     }
 

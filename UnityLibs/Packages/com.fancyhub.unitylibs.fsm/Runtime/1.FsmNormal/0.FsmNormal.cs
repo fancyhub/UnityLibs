@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 
 namespace FH
-{
+{   
     /// <summary>
     /// 状态的虚表结构
     /// 该虚表 包含了所有的状态节点
@@ -24,6 +24,8 @@ namespace FH
         EFsmProcResult OnFsmMsg(TState state, TMsg msg, out TResult result);
 
         void OnFsmChange(TState state, TState old_state);
+
+        bool OnFsmUpdate(TState state);
 
         /// <summary>
         /// 状态机销毁的时候调用
@@ -47,7 +49,6 @@ namespace FH
         private TState _State;
         private bool _InStack;
         public PtrList PtrList;
-
         public int ObjVersion { get; private set; }
 
         /// <summary>
@@ -135,12 +136,30 @@ namespace FH
             if (!_Running)
                 return 0;
 
-            //强制把 stack的标记位清除
-            _InStack = false;
-
             if (_Mode == EFsmMode.Async)
                 return _ProcAllMsgs();
             return 0;
+        }
+
+        public bool Update()
+        {
+            if (!_Running)
+                return false;
+
+            if (_InStack)
+                return false;
+            _InStack = true;
+
+            bool ret = false;
+            try
+            {
+                ret = _StateVt.OnFsmUpdate(_State);
+            }
+            catch (Exception)
+            {
+            }
+            _InStack = false;
+            return ret;
         }
 
         private int _ProcAllMsgs()
@@ -152,41 +171,43 @@ namespace FH
 
             //2. 开始循环处理
             int ret = 0;
-            for (; ; )
+            try
             {
-                if (ret > C_MAX_MSG_PER_FRAME)
+                for (; ; )
                 {
-                    _InStack = false;
-                    Log.Assert(false, "FSM 一次处理的消息太多了,超过了 {0}", C_MAX_MSG_PER_FRAME);
-                    return ret;
+                    if (ret > C_MAX_MSG_PER_FRAME)
+                    {
+                        Log.Assert(false, "FSM 一次处理的消息太多了,超过了 {0}", C_MAX_MSG_PER_FRAME);
+                        break;
+                    }
+
+                    //2.1 获取消息队列里面的第一个消息,并弹出
+                    bool succ = _MsgQueue.ExtPopFirst(out TMsg msg);
+                    if (!succ)
+                        break;
+
+                    //2.2 处理消息, 每个state node 需要返回是否产生Result
+                    ret++;
+                    EFsmProcResult change_result = _StateVt.OnFsmMsg(_State, msg, out TResult result);
+                    if (change_result != EFsmProcResult.Channged)
+                        continue;
+
+                    //2.3 到状态迁移表里面, 根据 当前状态 + 结果 -> 找到下一个状态
+                    bool changed = _StateTranMap.Next(_State, result, out TState next_state);
+                    if (!changed)
+                        continue;
+
+                    //2.4 切换状态
+                    TState old_state = _State;
+                    _State = next_state;
+                    //备注: 如果想要连续切换状态, 可以在context 里面把 fsm加进去,在node的OnEnter里面给自己发消息
+                    // 不过这种做法有一定的风险, 因为是异步的,你发送的消息,是在消息队列的末尾
+                    _StateVt.OnFsmChange(_State, old_state);
                 }
-
-                //2.1 获取消息队列里面的第一个消息,并弹出
-                bool succ = _MsgQueue.ExtPopFirst(out TMsg msg);
-                if (!succ)
-                    break;
-
-                //2.2 处理消息, 每个state node 需要返回是否产生Result
-                ret++;
-                EFsmProcResult change_result = _StateVt.OnFsmMsg(_State, msg, out TResult result);
-                if (change_result != EFsmProcResult.Channged)
-                    continue;
-
-                //2.3 到状态迁移表里面, 根据 当前状态 + 结果 -> 找到下一个状态
-                bool changed = _StateTranMap.Next(_State, result, out TState next_state);
-                if (!changed)
-                    continue;
-
-                //2.4 切换状态
-                TState old_state = _State;
-                _State = next_state;
-                //备注: 如果想要连续切换状态, 可以在context 里面把 fsm加进去,在node的OnEnter里面给自己发消息
-                // 不过这种做法有一定的风险, 因为是异步的,你发送的消息,是在消息队列的末尾
-                _StateVt.OnFsmChange(_State, old_state);
             }
+            catch (Exception) { }
             _InStack = false;
             return ret;
         }
     }
-
 }

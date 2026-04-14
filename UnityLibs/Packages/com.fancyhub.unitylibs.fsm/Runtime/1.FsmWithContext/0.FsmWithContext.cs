@@ -22,6 +22,8 @@ namespace FH
 
         void OnFsmChange(TContext context, TState state, TState old_state);
 
+        bool OnFsmUpdate(TContext context, TState state);
+
         /// <summary>
         /// 状态机销毁的时候调用
         /// </summary>
@@ -141,14 +143,31 @@ namespace FH
         public int ProcAllMsgs()
         {
             if (!_running)
-                return 0;
-
-            //强制把 stack的标记位清除
-            _InStack = false;
+                return 0;            
 
             if (_Mode == EFsmMode.Async)
                 return _ProcMsgs();
             return 0;
+        }
+
+        public bool Update()
+        {
+            if (!_running)
+                return false;
+
+            if (_InStack)
+                return false;
+            _InStack = true;
+
+            bool ret = false;
+            try
+            {
+                ret = _StateVT.OnFsmUpdate(_Context, _State);
+            }
+            catch (Exception) { }
+
+            _InStack = false;
+            return ret;
         }
 
         private int _ProcMsgs()
@@ -160,38 +179,44 @@ namespace FH
 
             //2. 开始循环处理
             int ret = 0;
-            for (; ; )
-            {
-                if (ret > C_MAX_MSG_PER_FRAME)
+            try
+            {                
+                for (; ; )
                 {
-                    _InStack = false;
-                    _Logger.Assert(false, "FSM 一次处理的消息太多了,超过了 {0}", C_MAX_MSG_PER_FRAME);
-                    return ret;
+                    if (ret > C_MAX_MSG_PER_FRAME)
+                    {
+                        _Logger.Assert(false, "FsmWithContext 一次处理的消息太多了,超过了 {0}", C_MAX_MSG_PER_FRAME);
+                        break;
+                    }
+
+                    //2.1 获取消息队列里面的第一个消息,并弹出
+                    bool succ = _MsgQueue.ExtPopFirst(out TMsg msg);
+                    if (!succ)
+                        break;
+
+                    //2.2 处理消息, 每个state node 需要返回是否产生Result
+                    ret++;
+                    EFsmProcResult has_result = _StateVT.OnFsmMsg(_Context, _State, msg, out TResult result);
+                    if (has_result != EFsmProcResult.Channged)
+                        continue;
+
+                    //2.3 到状态迁移表里面, 根据 当前状态 + 结果 -> 找到下一个状态
+                    bool changed = _StateTranMap.Next(_State, result, out TState next_state);
+                    if (!changed)
+                        continue;
+
+                    //2.4 切换状态
+                    TState old_state = _State;
+                    _State = next_state;
+                    //备注: 如果想要连续切换状态, 可以在context 里面把 fsm加进去,在node的OnEnter里面给自己发消息
+                    // 不过这种做法有一定的风险, 因为是异步的,你发送的消息,是在消息队列的末尾
+                    _StateVT.OnFsmChange(_Context, _State, old_state);
                 }
-
-                //2.1 获取消息队列里面的第一个消息,并弹出
-                bool succ = _MsgQueue.ExtPopFirst(out TMsg msg);
-                if (!succ)
-                    break;
-
-                //2.2 处理消息, 每个state node 需要返回是否产生Result
-                ret++;
-                EFsmProcResult has_result = _StateVT.OnFsmMsg(_Context, _State, msg, out TResult result);
-                if (has_result != EFsmProcResult.Channged)
-                    continue;
-
-                //2.3 到状态迁移表里面, 根据 当前状态 + 结果 -> 找到下一个状态
-                bool changed = _StateTranMap.Next(_State, result, out TState next_state);
-                if (!changed)
-                    continue;
-
-                //2.4 切换状态
-                TState old_state = _State;
-                _State = next_state;
-                //备注: 如果想要连续切换状态, 可以在context 里面把 fsm加进去,在node的OnEnter里面给自己发消息
-                // 不过这种做法有一定的风险, 因为是异步的,你发送的消息,是在消息队列的末尾
-                _StateVT.OnFsmChange(_Context, _State, old_state);
             }
+            catch (Exception)
+            {
+            }
+
             _InStack = false;
             return ret;
         }

@@ -17,6 +17,7 @@ namespace FH
     {
         void OnFsmStart(TState state);
         void OnFsmChange(TState cur, TMsg msg, TState old);
+        bool OnFsmUpdate(TState state);
         void OnFsmStop(TState state);
     }
 
@@ -110,13 +111,31 @@ namespace FH
             return _Running;
         }
 
+        public bool Update()
+        {
+            if (!_Running || _Listener==null)
+                return false;
+
+            if (_InStack)
+                return false;
+            _InStack = true;
+
+            bool ret = false;
+            try
+            {
+                ret = _Listener.OnFsmUpdate(_State);
+            }
+            catch (Exception)
+            {
+            }
+            _InStack = false;
+            return ret;
+        }
+
         public int ProcAllMsgs()
         {
             if (!_Running)
-                return 0;
-
-            //强制把 stack的标记位清除
-            _InStack = false;
+                return 0;            
 
             if (_Mode == EFsmMode.Async)
                 return _ProcMsgs();
@@ -132,27 +151,30 @@ namespace FH
 
             //2. 开始循环处理
             int ret = 0;
-            for (; ; )
+            try
             {
-                if (ret > C_MAX_MSG_PER_FRAME)
+                for (; ; )
                 {
-                    _InStack = false;
-                    Log.Assert(false, "StateTran 一次处理的消息太多了,超过了 {0}", C_MAX_MSG_PER_FRAME);
-                    return ret;
+                    if (ret > C_MAX_MSG_PER_FRAME)
+                    {                        
+                        Log.Assert(false, "FsmWithStateListener 一次处理的消息太多了,超过了 {0}", C_MAX_MSG_PER_FRAME);
+                        break;
+                    }
+
+                    bool succ = _MsgQueue.ExtPopFirst(out TMsg result);
+                    if (!succ)
+                        break;
+                    ret++;
+                    bool channged = _StateTranMap.Next(_State, result, out TState next);
+                    if (!channged)
+                        continue;
+
+                    TState old_state = _State;
+                    _State = next;
+                    _Listener?.OnFsmChange(_State, result, old_state);
                 }
-
-                bool succ = _MsgQueue.ExtPopFirst(out TMsg result);
-                if (!succ)
-                    break;
-                ret++;
-                bool channged = _StateTranMap.Next(_State, result, out TState next);
-                if (!channged)
-                    continue;
-
-                TState old_state = _State;
-                _State = next;
-                _Listener?.OnFsmChange(_State, result, old_state);
             }
+            catch (Exception) { }
 
             _InStack = false;
             return ret;

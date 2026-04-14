@@ -20,6 +20,8 @@ namespace FH
         /// </summary>
         EFsmProcResult OnMsg(TConext context, TMsg msg, out TResult result);
 
+        void OnUpdate(TConext context);
+
         void OnExit(TConext context);
     }
 
@@ -67,6 +69,16 @@ namespace FH
             }
 
             return node.OnMsg(context, msg, out result);
+        }
+
+        public virtual bool OnFsmUpdate(TContext context, TState state)
+        {
+            var node = GetNode(state);
+            if (node == null)            
+                return false;            
+
+            node.OnUpdate(context);
+            return true;
         }
 
         public virtual void OnFsmChange(TContext context, TState state, TState old_state)
