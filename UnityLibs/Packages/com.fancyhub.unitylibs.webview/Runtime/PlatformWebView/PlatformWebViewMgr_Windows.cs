@@ -105,7 +105,7 @@ namespace FH.WV
 
 
             [DllImport(PluginName, CharSet = CharSet.Unicode)]
-            public static extern void WebViewExecuteScript(int webViewId, [MarshalAs(UnmanagedType.LPWStr)]  string javaScript);
+            public static extern void WebViewExecuteScript(int webViewId, [MarshalAs(UnmanagedType.LPWStr)] string javaScript);
 
             [DllImport(PluginName)] public static extern void WebViewClose(int webViewId);
             [DllImport(PluginName)] public static extern void WebViewCloseAll();
@@ -122,12 +122,39 @@ namespace FH.WV
             }
 
             [DllImport("user32.dll")]
-            private static extern IntPtr GetActiveWindow();
+            private static extern bool EnumWindows(EnumWindowsProc enumProc, IntPtr lParam);
+
+            [DllImport("user32.dll")]
+            private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+            private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+            private static IntPtr _foundHwnd = IntPtr.Zero;
+            private static readonly uint _currentPid = (uint)System.Diagnostics.Process.GetCurrentProcess().Id;
+
+            private static bool EnumWindowCallback(IntPtr hWnd, IntPtr lParam)
+            {
+                GetWindowThreadProcessId(hWnd, out uint pid);
+
+                // 匹配当前进程
+                if (pid == _currentPid)
+                {
+                    _foundHwnd = hWnd;
+                    return false; // 找到就停止枚举
+                }
+                return true;
+            }
+
 
             private static IntPtr GetUnityWindowHandle()
             {
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
-                return GetActiveWindow();
+                 if(_foundHwnd != IntPtr.Zero)
+                    return _foundHwnd;
+                    
+                _foundHwnd = IntPtr.Zero;
+                EnumWindows(EnumWindowCallback, IntPtr.Zero);
+                return _foundHwnd;
 #else                
                 return UnityEditorGameViewHelper.FindGameViewHwnd();
 #endif
@@ -283,7 +310,7 @@ namespace FH.WV
 
 
         private static void _OnJsMsg(int webViewId, string msg)
-        {   
+        {
             _CallBack?.OnJsMsg(webViewId, msg);
         }
 
@@ -474,7 +501,7 @@ namespace FH.WV
                         }
                     }
                 }
-                    
+
 
                 switch (data.type)
                 {

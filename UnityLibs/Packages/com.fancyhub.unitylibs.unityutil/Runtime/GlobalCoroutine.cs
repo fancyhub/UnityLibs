@@ -63,158 +63,371 @@ namespace FH
         }
 
 #if UNITY_EDITOR
-        static class EdCoroutineRunner
+
+        private static EditorCoroutineInstructionProcessor _EditorInstructionProcessor = new EditorCoroutineInstructionProcessor();
+        private static CoroutineExecutor _EditorExecutor = new CoroutineExecutor(_EditorInstructionProcessor);
+
+        [UnityEditor.InitializeOnLoadMethod]
+        static void Initialize()
         {
-            internal struct RoutineData
-            {
-                public int _CoroutineId;
-                public IEnumerator _Enumerator;
-            }
+            UnityEditor.EditorApplication.update += _EdUpdate;
+        }
 
-            private static int _IdGen = 0;
-            private static Dictionary<int, RoutineData> _Dict = new();
-            private static List<int> _EdListCoroutineIds = new();
-            private static List<RoutineData> _EdRunningTempList = new();
+        public static void EditorStartCoroutine(IEnumerator enumerator)
+        {
+            _EditorExecutor.Start(enumerator);
+        }
 
-            [UnityEditor.InitializeOnLoadMethod]
-            static void Initialize()
-            {
-                UnityEditor.EditorApplication.update += _EdUpdate;
-            }
-
-            public static void StartCoroutine(IEnumerator enumerator)
-            {
-                RoutineData data = new RoutineData()
-                {
-                    _CoroutineId = ++_IdGen,
-                    _Enumerator = _CreateEdRoutineExecutor(enumerator),
-                };
-                _Dict.Add(data._CoroutineId, data);
-                _EdListCoroutineIds.Add(data._CoroutineId);
+        private static double _timer = 0;
+        internal static void _EdUpdate()
+        {
+            var dt = Time.realtimeSinceStartupAsDouble - _timer;
+            if (dt < 0.5f)
                 return;
-            }
-             
+            _timer = Time.realtimeSinceStartupAsDouble;
 
-            private static double _timer = 0;
-            internal static void _EdUpdate()
-            {
-                var dt = Time.realtimeSinceStartupAsDouble - _timer;
-                if (dt < 0.5f)
-                    return;
-                _timer = Time.realtimeSinceStartupAsDouble;
-
-
-                _EdRunningTempList.Clear();
-                for (int i = _EdListCoroutineIds.Count - 1; i >= 0; i--)
-                {
-                    var id = _EdListCoroutineIds[i];
-                    if (!_Dict.TryGetValue(id, out var data))
-                    {
-                        _EdListCoroutineIds.RemoveAt(i);
-                        continue;
-                    }
-
-                    _EdRunningTempList.Add(data);
-                }
-
-                foreach (var p in _EdRunningTempList)
-                {
-                    try
-                    {
-                        if (!p._Enumerator.MoveNext())
-                        {
-                            _Dict.Remove(p._CoroutineId);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                    }
-                }
-            }
-
-            private static IEnumerator _CreateEdRoutineExecutor(IEnumerator orig)
-            {
-
-                if (orig == null)
-                    yield break;
-
-                System.Collections.Generic.Stack<IEnumerator> stack = new();
-                stack.Push(orig);
-
-                for (; ; )
-                {
-                    if (stack.Count == 0)
-                        break;
-
-                    var top = stack.Peek();
-                    if (top == null)
-                    {
-                        stack.Pop();
-                        continue;
-                    }
-
-                    if (!top.MoveNext())
-                    {
-                        stack.Pop();
-                        continue;
-                    }
-
-                    object current = orig.Current;
-                    if (current == null)
-                    {
-                        yield return null;
-                    }
-                    else if (current is WaitForEndOfFrame waitForEndOfFrame)
-                    {
-                        yield return waitForEndOfFrame;
-                    }
-                    else if (current is WaitForFixedUpdate waitForFixedUpdate)
-                    {
-                        yield return waitForFixedUpdate;
-                    }
-                    else if (current is WaitForSeconds waitForSeconds)
-                    {
-                        //拿不到时间, 就直接写了
-                        double endTime = Time.realtimeSinceStartupAsDouble + 1;
-
-                        for (; ; )
-                        {
-                            if (endTime > Time.realtimeSinceStartupAsDouble)
-                                yield return waitForSeconds;
-                        }
-                    }
-                    else if (current is WaitForSecondsRealtime waitForSecondsRealtime)
-                    {
-                        double endTime = Time.realtimeSinceStartupAsDouble + waitForSecondsRealtime.waitTime;
-
-                        for (; ; )
-                        {
-                            if (endTime > Time.realtimeSinceStartupAsDouble)
-                                yield return waitForSecondsRealtime;
-                        }
-                    }
-                    else if (current is IEnumerator otherEnumerator)
-                    {
-                        stack.Push(otherEnumerator);
-                        yield return otherEnumerator;
-                    }
-                    else if (current is AsyncOperation op)
-                    {
-                        for (; ; )
-                        {
-                            if (!op.isDone)
-                                yield return null;
-                        }
-                    }
-                    else
-                    {
-                        yield return current;
-                    }
-                }
-            }
+            _EditorExecutor.Tick();
+            _EditorInstructionProcessor.Update();
         }
 #endif
 
+    }
+
+
+    public struct CoroutineExecutorHandler
+    {
+        public readonly int CoroutineId;
+        private readonly CoroutineExecutor _Executor;
+
+        public CoroutineExecutorHandler(CoroutineExecutor executor, int id)
+        {
+            CoroutineId = id;
+            _Executor = executor;
+        }
+
+        public void Pause()
+        {
+            _Executor?.Pause(this);
+        }
+
+        public void Resume()
+        {
+            _Executor?.Resume(this);
+        }
+
+        public void TickOnce()
+        {
+            _Executor?.TickOnce(this);
+        }
+    }
+
+    public enum ECoroutineInstructionResult
+    {
+        Continue,
+        Pause,
+    }
+
+    public interface ICoroutineInstructionProcessor
+    {
+        public ECoroutineInstructionResult Process(CoroutineExecutorHandler handler, System.Object obj);
+    }
+
+    public class EmptyCoroutineInstructionProcessor : ICoroutineInstructionProcessor
+    {
+        public ECoroutineInstructionResult Process(CoroutineExecutorHandler handler, System.Object obj)
+        {
+            return ECoroutineInstructionResult.Continue;
+        }
+    }
+
+#if UNITY_EDITOR 
+    public class EditorCoroutineInstructionProcessor : ICoroutineInstructionProcessor
+    {
+        public struct TimeItem
+        {
+            public CoroutineExecutorHandler Handler;
+            public double ExpireTime;
+            public bool ShouldTickOnce;
+        }
+
+        public struct OpItem
+        {
+            public CoroutineExecutorHandler Handler;
+            public AsyncOperation Op;
+        }
+
+        private LinkedList<TimeItem> _timeList = new LinkedList<TimeItem>();
+        private LinkedList<OpItem> _asyncOperations = new LinkedList<OpItem>();
+
+        public void Update()
+        {
+            {
+                var now = Time.realtimeSinceStartupAsDouble;
+
+                for (var node = _timeList.First; ;)
+                {
+                    if (node == null)
+                        break;
+
+                    if (now < node.Value.ExpireTime)
+                        continue;
+
+                    node.Value.Handler.Resume();
+                    if (node.Value.ShouldTickOnce)
+                        node.Value.Handler.TickOnce();
+                    var t = node;
+                    node = node.Next;
+                    _timeList.Remove(t);
+                }
+            }
+
+            {
+                for (var node = _asyncOperations.First; ;)
+                {
+                    if (node == null)
+                        break;
+                    if (!node.Value.Op.isDone)
+                        continue;
+
+                    node.Value.Handler.Resume();
+                    var t = node;
+                    node = node.Next;
+                    _asyncOperations.Remove(t);
+                }
+            }
+        }
+
+        public ECoroutineInstructionResult Process(CoroutineExecutorHandler handler, System.Object obj)
+        {
+            switch (obj)
+            {
+                case WaitForEndOfFrame waitForEndOfFrame:
+                    _timeList.AddLast(new TimeItem
+                    {
+                        Handler = handler,
+                        ExpireTime = Time.realtimeSinceStartupAsDouble + 0.0001f,
+                        ShouldTickOnce = true,
+                    });
+                    return ECoroutineInstructionResult.Pause;
+
+                case WaitForFixedUpdate waitForFixedUpdate:
+                    _timeList.AddLast(new TimeItem
+                    {
+                        Handler = handler,
+                        ExpireTime = Time.realtimeSinceStartupAsDouble + 0.0001f,
+                        ShouldTickOnce = true,
+                    });
+                    return ECoroutineInstructionResult.Pause;
+
+                case WaitForSeconds waitForSeconds:
+                    //拿不到时间, 就直接写了
+                    _timeList.AddLast(new TimeItem
+                    {
+                        Handler = handler,
+                        ExpireTime = Time.realtimeSinceStartupAsDouble + 1,
+                        ShouldTickOnce = false,
+                    });
+                    return ECoroutineInstructionResult.Pause;
+
+                case WaitForSecondsRealtime waitForSecondsRealtime:
+                    _timeList.AddLast(new TimeItem
+                    {
+                        Handler = handler,
+                        ExpireTime = Time.realtimeSinceStartupAsDouble + waitForSecondsRealtime.waitTime,
+                        ShouldTickOnce = false,
+                    });
+                    return ECoroutineInstructionResult.Pause;
+
+                case AsyncOperation op:
+                    _asyncOperations.AddLast(new OpItem()
+                    {
+                        Handler = handler,
+                        Op = op,
+                    });
+                    return ECoroutineInstructionResult.Pause;
+
+
+                default:
+                    return ECoroutineInstructionResult.Continue;
+            }
+        }
+    }
+#endif
+
+    /// <summary>
+    /// Coroutine 的执行器
+    /// </summary>
+    public class CoroutineExecutor
+    {
+        internal struct RoutineData
+        {
+            public int _CoroutineId;
+            public IEnumerator _Enumerator;
+            public bool _Pause;
+        }
+
+        private static int _IdGen = 0;
+        private Dictionary<int, RoutineData> _Dict = new();
+        private List<int> _ListCoroutineIds = new(); //添加的顺序
+        private List<RoutineData> _RunningTempList = new();
+        private ICoroutineInstructionProcessor _InstructionProcessor;
+
+        public CoroutineExecutor(ICoroutineInstructionProcessor instructionProcessor)
+        {
+            _InstructionProcessor = instructionProcessor;
+        }
+
+        public CoroutineExecutorHandler Start(IEnumerator enumerator)
+        {
+            if (enumerator == null)
+                return default;
+
+            var id = _IdGen++;
+            var handler = new CoroutineExecutorHandler(this, id);
+
+            RoutineData data = new RoutineData()
+            {
+                _CoroutineId = id,
+                _Pause = false,
+                _Enumerator = _CreateInnerRoutine(enumerator, handler),
+            };
+            _Dict.Add(data._CoroutineId, data);
+            _ListCoroutineIds.Add(data._CoroutineId);
+            return handler;
+        }
+
+        public bool Stop(CoroutineExecutorHandler handler)
+        {
+            return _Dict.Remove(handler.CoroutineId);
+        }
+
+        public bool IsRunning(CoroutineExecutorHandler handler)
+        {
+            return _Dict.ContainsKey(handler.CoroutineId);
+        }
+
+        public void Pause(CoroutineExecutorHandler handler)
+        {
+            if (!_Dict.TryGetValue(handler.CoroutineId, out var d))
+                return;
+            if (d._Pause)
+                return;
+
+            d._Pause = true;
+            _Dict[handler.CoroutineId] = d;
+        }
+
+        public void Resume(CoroutineExecutorHandler handler)
+        {
+            if (!_Dict.TryGetValue(handler.CoroutineId, out var d))
+                return;
+
+            if (!d._Pause)
+                return;
+            d._Pause = false;
+            _Dict[handler.CoroutineId] = d;
+        }
+
+        public void TickOnce(CoroutineExecutorHandler handler)
+        {
+            if (!_Dict.TryGetValue(handler.CoroutineId, out var d))
+                return;
+
+            try
+            {
+                if (!d._Enumerator.MoveNext())
+                {
+                    _Dict.Remove(d._CoroutineId);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
+
+        public void Tick()
+        {
+            _RunningTempList.Clear();
+            for (int i = _ListCoroutineIds.Count - 1; i >= 0; i--)
+            {
+                var id = _ListCoroutineIds[i];
+                if (!_Dict.TryGetValue(id, out var data))
+                {
+                    _ListCoroutineIds.RemoveAt(i);
+                    continue;
+                }
+
+                if (data._Pause)
+                    continue;
+
+                _RunningTempList.Add(data);
+            }
+
+            foreach (var p in _RunningTempList)
+            {
+                try
+                {
+                    if (!p._Enumerator.MoveNext())
+                    {
+                        _Dict.Remove(p._CoroutineId);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            }
+        }
+
+        private IEnumerator _CreateInnerRoutine(IEnumerator orig, CoroutineExecutorHandler handler)
+        {
+            if (orig == null)
+                yield break;
+
+            System.Collections.Generic.Stack<IEnumerator> stack = new();
+            stack.Push(orig);
+
+            for (; ; )
+            {
+                if (stack.Count == 0)
+                    break;
+
+                var top = stack.Peek();
+                if (top == null)
+                {
+                    stack.Pop();
+                    continue;
+                }
+
+                if (!top.MoveNext())
+                {
+                    stack.Pop();
+                    continue;
+                }
+
+                object current = orig.Current;
+                if (current == null)
+                {
+                    yield return current;
+                }
+                else if (current is IEnumerator otherEnumerator)
+                {
+                    stack.Push(otherEnumerator);
+                    yield return current;
+                }
+                else if (_InstructionProcessor != null)
+                {
+                    var result = _InstructionProcessor.Process(handler, current);
+                    if (result == ECoroutineInstructionResult.Pause)
+                        Pause(handler);
+                    yield return current;
+                }
+                else
+                {
+                    yield return current;
+                }
+            }
+        }
     }
 }
