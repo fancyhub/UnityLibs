@@ -31,8 +31,8 @@ namespace FH
             base.OnInspectorGUI();
             serializedObject.Update();
             EditorGUILayout.PropertyField(_StyleProperty);
-            serializedObject.ApplyModifiedProperties();
             _DrawArgs();
+            serializedObject.ApplyModifiedProperties();
         }
 
         private void _DrawArgs()
@@ -74,10 +74,9 @@ namespace FH
 
             EditorGUILayout.LabelField("Arguments");
             EditorGUI.indentLevel++;
-            for (int index = 0; index < _ArgsProperty.arraySize; ++index)
+            foreach (int formatIndex in lstPlaceholderIndex)
             {
-                var argument = _ArgsProperty.GetArrayElementAtIndex(index);
-                var formatIndex = lstPlaceholderIndex[index];
+                var argument = _ArgsProperty.GetArrayElementAtIndex(formatIndex);
                 EditorGUILayout.PropertyField(argument, new GUIContent("{" + formatIndex.ToString() + "}"));
             }
             EditorGUI.indentLevel--;
