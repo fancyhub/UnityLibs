@@ -222,8 +222,10 @@ namespace FH.FileDownload
 
                     {
                         using FileStream fs_in = File.OpenRead(temp_download_file_path);
+                        using var fs_in2 = new System.IO.Compression.GZipStream(fs_in, System.IO.Compression.CompressionMode.Decompress);
                         using FileStream fs_out = new FileStream(_DownloadFilePath, FileMode.OpenOrCreate, FileAccess.Write);
-                        fs_in.CopyTo(fs_out);
+
+                        fs_in2.CopyTo(fs_out);
                     }
 
                     File.Delete(temp_download_file_path);

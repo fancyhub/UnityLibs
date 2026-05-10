@@ -41,7 +41,7 @@ namespace FH.DayNightWeather
 
     public static class RDSUtil
     {
-        public static bool GetExt<T>(this IRenderDataSlot self, out T v)
+        public static bool ExtGet<T>(this IRenderDataSlot self, out T v)
         {
             if (self == null || !self.HasData)
             {
@@ -135,6 +135,11 @@ namespace FH.DayNightWeather
             return t < 0.5f ? from : to;
         }
         public static bool IsEuqal(bool x, bool y)
+        {
+            return x == y;
+        }
+
+        public static bool IsEuqal(UnityEngine.Object x, UnityEngine.Object y)
         {
             return x == y;
         }

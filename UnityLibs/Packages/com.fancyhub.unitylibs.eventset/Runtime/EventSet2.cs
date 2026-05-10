@@ -425,6 +425,7 @@ namespace FH
         public void Clear()
         {
             _key_map.Clear();
+            _id_map.Clear();
             _event_queue?.Clear();
         }
 

@@ -81,7 +81,7 @@ namespace FH
         public FsmStateTranMap(TState start, int cap)
         {
             _StartState = start;
-            _Dict = new Dictionary<InnerKey, TState>(cap);
+            _Dict = new Dictionary<InnerKey, TState>(cap, InnerKeyComparer._);
         }
 
         public bool Contains(TState state, TResult result)

@@ -222,6 +222,25 @@ namespace FH
             return true;
         }
 
+        public static bool ExtPeekLast<T>(this LinkedList<T> list, out T val)
+        {
+            if (list == null)
+            {
+                val = default(T);
+                return false;
+            }
+
+            LinkedListNode<T> node = list.Last;
+            if (node == null)
+            {
+                val = default(T);
+                return false;
+            }
+            val = node.Value;
+            return true;
+        }
+
+
         public static bool ExtPopFirst<T>(this LinkedList<T> list, out T val)
         {
             if (list == null)

@@ -107,7 +107,7 @@ namespace FH
                 return 1.0f;
             }
 
-            bool is_all_succ = false;
+            bool is_all_succ = true;
             foreach (var info in self)
             {
                 total_size += info.TotalSize;
