@@ -1,8 +1,8 @@
 /*************************************************************************************
  * Author  : cunyu.fan
- * Time    : 2021/5/8 
- * Title   : 
- * Desc    : 
+ * Time    : 2021/5/8
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 
 using System;
@@ -222,6 +222,25 @@ namespace FH
             return true;
         }
 
+        public static bool ExtPeekLast<T>(this LinkedList<T> list, out T val)
+        {
+            if (list == null)
+            {
+                val = default(T);
+                return false;
+            }
+
+            LinkedListNode<T> node = list.Last;
+            if (node == null)
+            {
+                val = default(T);
+                return false;
+            }
+            val = node.Value;
+            return true;
+        }
+
+
         public static bool ExtPopFirst<T>(this LinkedList<T> list, out T val)
         {
             if (list == null)
@@ -243,7 +262,7 @@ namespace FH
             LinkedListCache<T>._cache.AddLast(node);
             return true;
         }
- 
+
         public static bool ExtPopFirstNode<T>(this LinkedList<T> list, out LinkedListNode<T> node)
         {
             if (list == null)

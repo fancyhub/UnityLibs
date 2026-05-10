@@ -1,8 +1,8 @@
 /*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2023/12/21
- * Title   : 
- * Desc    : 
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 using System.Collections.Generic;
 using System.IO;
@@ -44,7 +44,7 @@ namespace FH.FileManagement
         public VersionInfo GetCurrentVersionInfo()
         {
             return default;
-        }      
+        }
 
         public bool Upgrade(FileManifest new_manifest, List<FileManifest.FileItem> out_need_download_list = null)
         {
@@ -105,6 +105,8 @@ namespace FH.FileManagement
             public override float Progress => 1.0f;
 
             public override bool keepWaiting => false;
+
+            public override bool HasError => false;
         }
     }
 }

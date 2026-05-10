@@ -1,8 +1,8 @@
 /*************************************************************************************
  * Author  : cunyu.fan
- * Time    : 2021/5/18 
- * Title   : 
- * Desc    : 
+ * Time    : 2021/5/18
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 
 using System;
@@ -36,6 +36,7 @@ namespace FH
 
         public override bool Start(out TState state)
         {
+            _StateStack.Clear();
             state = _StartState;
             Log.Assert(_StateStack.Count == 0);
             _StateStack.ExtAddLast(state);
@@ -52,7 +53,12 @@ namespace FH
         {
             if (_HasBackResult && MyEqualityComparer<TResult>.Default.Equals(result, _BackResult))
             {
-                return _StateStack.ExtPopLast(out next_state);
+                if (_StateStack.Count <= 1)
+                {
+                    next_state = default;
+                    return false;
+                }
+                return _StateStack.ExtPopLast(out next_state) && _StateStack.ExtPeekLast(out next_state);
             }
 
             bool ret = base.Next(state, result, out next_state);

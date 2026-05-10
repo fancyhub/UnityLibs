@@ -1,8 +1,8 @@
 /*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2023/09/01
- * Title   : 
- * Desc    : 
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 
 using System;
@@ -227,7 +227,7 @@ namespace FH
                         {
                             _dirty = true;
                             continue;
-                        }                       
+                        }
                         switch (cur.Type)
                         {
                             case 1:
@@ -378,7 +378,7 @@ namespace FH
 
         /// <summary>
         /// 只处理当前队列里面的消息，如果在这个过程中，又有新的消息来了，不处理
-        /// </summary>        
+        /// </summary>
         public int ProcessEvents(List<(TKey, TValue)> processed_events = null)
         {
             if (_event_queue == null)
@@ -425,6 +425,7 @@ namespace FH
         public void Clear()
         {
             _key_map.Clear();
+            _id_map.Clear();
             _event_queue?.Clear();
         }
 

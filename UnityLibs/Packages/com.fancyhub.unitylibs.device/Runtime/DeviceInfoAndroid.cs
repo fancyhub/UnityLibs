@@ -1,8 +1,8 @@
 /*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2024/2/2
- * Title   : 
- * Desc    : 
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 
 
@@ -263,7 +263,7 @@ namespace FH
         }
         public static AndroidJavaObject GetPackageInfo(string package_name, EPackageInfoFlag flag)
         {
-            return _GetPackageManager()._ExtCall<AndroidJavaObject, string, int>("getPackageInfo", UnityEngine.Application.identifier, (int)flag);
+            return _GetPackageManager()._ExtCall<AndroidJavaObject, string, int>("getPackageInfo", package_name, (int)flag);
         }
 
         public static AndroidJavaObject GetSelfPackageInfo(EPackageInfoFlag flag)
@@ -418,7 +418,7 @@ namespace FH
         private static AndroidJavaObject _GetExternalStorage()
         {
             if (_ExternalStorageInited)
-                return null;
+                return _ExternalStorage;
             _ExternalStorageInited = true;
             try
             {
@@ -439,7 +439,7 @@ namespace FH
                 return default;
             }
         }
- 
+
 
         private static long _GetStorageAvailableBytes(string path)
         {
@@ -498,7 +498,7 @@ namespace FH
         }
 
         private static long _GetStorageTotalBytes(string path)
-        {            
+        {
             try
             {
                 return _GetStorageTotalBytes(new AndroidJavaObject("android.os.StatFs", path));

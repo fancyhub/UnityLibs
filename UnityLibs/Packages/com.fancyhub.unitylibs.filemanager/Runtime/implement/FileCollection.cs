@@ -1,8 +1,8 @@
 /*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2023/12/21
- * Title   : 
- * Desc    : 
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 using System.Collections.Generic;
 
@@ -62,6 +62,8 @@ namespace FH.FileManagement
         {
             //1. 清除
             _FilesInLocalDir.Clear();
+            _RelativeFilesInLocalDir.Clear();
+
 
             //2.collect normal files
             string[] files = System.IO.Directory.GetFiles(_LocalDir, "*.*", System.IO.SearchOption.TopDirectoryOnly);
@@ -230,7 +232,7 @@ namespace FH.FileManagement
                 _FilesInStreamingAssets.Add(file_name, full_path);
             }
 
-            //4. collect relative files 
+            //4. collect relative files
             files.Clear();
             FH.SAFileSystem.GetFileList(FileSetting.StreamingAssetsRelativeFileDir, true, files);
             foreach (var full_path in files)

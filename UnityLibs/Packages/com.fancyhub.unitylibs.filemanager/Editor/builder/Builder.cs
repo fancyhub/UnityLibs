@@ -51,7 +51,7 @@ namespace FH.FileManagement.Ed
             file_manifest.Version = VersionInfo.EdCreateResVersionInfo().ToResVersion();
 
 
-            //3. 保存 File Manifest            
+            //3. 保存 File Manifest
             string file_manifest_path = System.IO.Path.Combine(cdn_dir, FileManifest.CDefaultFileName);
             file_manifest_path = _FileNameAppendHash(file_manifest_path, file_manifest.Version);
             file_manifest.SaveTo(file_manifest_path);
@@ -155,7 +155,7 @@ namespace FH.FileManagement.Ed
 
         private static void _SyncStreamingAssetsFolder(string cdn_dir, List<FileManifest.FileItem> file_names)
         {
-            //1. 建立文件dict 
+            //1. 建立文件dict
             Dictionary<string, FileManifest.FileItem> files_needed = new Dictionary<string, FileManifest.FileItem>(file_names.Count);
             foreach (var p in file_names)
             {
@@ -167,14 +167,14 @@ namespace FH.FileManagement.Ed
 
             //2 删除不需要的文件
             string[] file_list = Array.Empty<string>();
-            if(System.IO.Directory.Exists(FileSetting.StreamingAssetsDir))
-                file_list= System.IO.Directory.GetFiles(FileSetting.StreamingAssetsDir, "*.*", SearchOption.TopDirectoryOnly);
+            if (System.IO.Directory.Exists(FileSetting.StreamingAssetsDir))
+                file_list = System.IO.Directory.GetFiles(FileSetting.StreamingAssetsDir, "*.*", SearchOption.TopDirectoryOnly);
             foreach (var p in file_list)
             {
                 if (p.EndsWith(".meta"))
                     continue;
 
-                string file_name = System.IO.Path.GetFileName( p);
+                string file_name = System.IO.Path.GetFileName(p);
                 if (files_needed.ContainsKey(file_name))
                     continue;
                 System.IO.File.Delete(p);
@@ -202,14 +202,35 @@ namespace FH.FileManagement.Ed
             {
                 string src_file = System.IO.Path.Combine(cdn_dir, p.Value.FullName);
                 string dst_file = FileSetting.StreamingAssetsDir + p.Value.FullName;
-                if(!string.IsNullOrEmpty(p.Value.RelativePath))
+                if (string.IsNullOrEmpty(p.Value.RelativePath))
                 {
-                    dst_file = FileSetting.StreamingAssetsRelativeFileDir + p.Value.RelativePath;
+                    if (!System.IO.File.Exists(dst_file))
+                    {
+                        FileUtil.CreateFileDir(dst_file);
+                        System.IO.File.Copy(src_file, dst_file);
+                    }
                 }
-                if (!System.IO.File.Exists(dst_file))
+                else
                 {
-                    FileUtil.CreateFileDir(dst_file);
-                    System.IO.File.Copy(src_file, dst_file);
+                    System.IO.FileInfo src_file_info = new FileInfo(src_file);
+                    dst_file = FileSetting.StreamingAssetsRelativeFileDir + p.Value.RelativePath;
+                    if (!System.IO.File.Exists(dst_file))
+                    {
+                        FileUtil.CreateFileDir(dst_file);
+                        System.IO.File.Copy(src_file, dst_file);
+
+                        System.IO.FileInfo dst_file_info = new FileInfo(dst_file);
+                        dst_file_info.CreationTime = src_file_info.CreationTime;
+                    }
+                    else
+                    {
+                        System.IO.FileInfo dst_file_info = new FileInfo(dst_file);
+                        if (dst_file_info.CreationTime != src_file_info.CreationTime)
+                        {
+                            System.IO.File.Copy(src_file, dst_file, true);
+                            dst_file_info.CreationTime = src_file_info.CreationTime;
+                        }
+                    }
                 }
             }
         }

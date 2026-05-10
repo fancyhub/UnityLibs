@@ -1,8 +1,8 @@
 /*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2024/1/11
- * Title   : 
- * Desc    : 
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 
 using System;
@@ -12,7 +12,7 @@ using FH.FileDownload;
 
 namespace FH
 {
-    
+
     public struct FileDownloadStat
     {
         public long TotalSize;
@@ -107,7 +107,7 @@ namespace FH
                 return 1.0f;
             }
 
-            bool is_all_succ = false;
+            bool is_all_succ = true;
             foreach (var info in self)
             {
                 total_size += info.TotalSize;

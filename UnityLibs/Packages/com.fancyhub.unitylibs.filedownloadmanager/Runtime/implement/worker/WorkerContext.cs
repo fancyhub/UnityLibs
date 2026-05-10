@@ -1,8 +1,8 @@
 /*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2024/1/11
- * Title   : 
- * Desc    : 
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 
 using System;
@@ -35,9 +35,9 @@ namespace FH.FileDownload
         public TaskRef _Task;
 
 
-        public string _RemoteFileUri; // http://xxxx/Android/file_full_name 
-        public string _LocalFilePath; // Application.persistentDataPath/some_folder/file_full_name        
-        public string _DownloadFilePath; //Application.persistentDataPath/Download/file_full_name 
+        public string _RemoteFileUri; // http://xxxx/Android/file_full_name
+        public string _LocalFilePath; // Application.persistentDataPath/some_folder/file_full_name
+        public string _DownloadFilePath; //Application.persistentDataPath/Download/file_full_name
 
         public int _RetryCount;
         public System.Threading.CancellationTokenSource _CancellationTokenSource;
@@ -117,7 +117,7 @@ namespace FH.FileDownload
                 return false;
             }
 
-            //4. 
+            //4.
             TaskRef task = default;
             FileDownloadLog.D("添加Task {0} -> {1}", _RemoteFileUri, _LocalFilePath);
 
@@ -222,8 +222,10 @@ namespace FH.FileDownload
 
                     {
                         using FileStream fs_in = File.OpenRead(temp_download_file_path);
+                        using var fs_in2 = new System.IO.Compression.GZipStream(fs_in, System.IO.Compression.CompressionMode.Decompress);
                         using FileStream fs_out = new FileStream(_DownloadFilePath, FileMode.OpenOrCreate, FileAccess.Write);
-                        fs_in.CopyTo(fs_out);
+
+                        fs_in2.CopyTo(fs_out);
                     }
 
                     File.Delete(temp_download_file_path);

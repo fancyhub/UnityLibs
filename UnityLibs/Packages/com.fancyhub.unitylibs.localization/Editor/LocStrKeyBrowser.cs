@@ -1,8 +1,8 @@
 /*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2024/1/18
- * Title   : 
- * Desc    : 
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 using System;
 using System.Collections.Generic;
@@ -38,9 +38,9 @@ namespace FH.Localization
                 switch (field_index)
                 {
                     case 0:
-                        return Key.CompareTo(item.Key);
+                        return string.Compare(Key, item.Key, StringComparison.Ordinal);
                     case 1:
-                        return Translation.CompareTo(item.Translation);
+                        return string.Compare(Translation, item.Translation, StringComparison.Ordinal);
                     default:
                         return 0;
                 }
@@ -48,10 +48,10 @@ namespace FH.Localization
 
             public bool IsMatch(string search)
             {
-                if (Key.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (!string.IsNullOrEmpty(Key) && Key.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0)
                     return true;
 
-                if (Translation.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (!string.IsNullOrEmpty(Translation) && Translation.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0)
                     return true;
 
                 return false;
@@ -113,9 +113,13 @@ namespace FH.Localization
                 foreach (var p in LocMgr.EdAllData)
                 {
                     //只取第一个
-                    _Data.Add(new TableItem() { Key = p.Key, Translation = p.Value[0] });
+                    _Data.Add(new TableItem()
+                    {
+                        Key = p.Key ?? string.Empty,
+                        Translation = p.Value != null && p.Value.Length > 0 ? p.Value[0] ?? string.Empty : string.Empty,
+                    });
                 }
-                _Data.Sort((a, b) => a.Key.CompareTo(b.Key));
+                _Data.Sort((a, b) => string.Compare(a.Key, b.Key, StringComparison.Ordinal));
             }
 
             if (_TreeView == null)

@@ -1,8 +1,8 @@
 /*************************************************************************************
  * Author  : cunyu.fan
- * Time    : 2021/5/18 
- * Title   : 
- * Desc    : 
+ * Time    : 2021/5/18
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 
 using System;
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 
 namespace FH
-{    
+{
     /// <summary>
     /// 状态迁移表，无状态的
     /// </summary>
@@ -81,7 +81,7 @@ namespace FH
         public FsmStateTranMap(TState start, int cap)
         {
             _StartState = start;
-            _Dict = new Dictionary<InnerKey, TState>(cap);
+            _Dict = new Dictionary<InnerKey, TState>(cap, InnerKeyComparer._);
         }
 
         public bool Contains(TState state, TResult result)
@@ -105,7 +105,7 @@ namespace FH
 
         /// <summary>
         /// 完全按照表格,  不管 next_state 和 state是否相同, 由构建的时候决定的
-        /// </summary>        
+        /// </summary>
         public virtual bool Next(TState state, TResult result, out TState next_state)
         {
             InnerKey key = new InnerKey(state, result);
@@ -124,5 +124,5 @@ namespace FH
             return this;
         }
     }
-         
+
 }

@@ -1,15 +1,14 @@
 /*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2023/11/22
- * Title   : 
- * Desc    : 
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 
 using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.IO;
-
 namespace FH
 {
     public sealed class CsvWriter : IDisposable

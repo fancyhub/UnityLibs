@@ -1,8 +1,8 @@
 /*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2023/11/22
- * Title   : 
- * Desc    : 
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 
 using System;
@@ -11,16 +11,16 @@ using System.Collections;
 
 namespace FH
 {
-    internal enum ECsvTokenizer
+    public enum ECsvTokenizer
     {
-        Word, //后面跟着的是 ,
-        WordWithNewLine, //后面跟着的是 换行符
-        WordWithEnd, //后面跟着的结束符
+        Word,
+        CharDelimiter,
+        NewLine,
         End,
         Error,
     }
 
-    internal sealed class CsvTokenizer : IEnumerable<KeyValuePair<ECsvTokenizer, Str>>
+    internal sealed class CsvTokenizer
     {
         internal const char CNewLine = '\n';
         internal const char CReturn = '\r';
@@ -32,6 +32,7 @@ namespace FH
 
         private string _Buff;
         private int _Offset;
+        private bool _AfterQuotedWord;
 
         public CsvTokenizer(byte[] buff)
         {
@@ -51,7 +52,7 @@ namespace FH
 
         public CsvTokenizer(string buf)
         {
-            _Buff = buf;
+            _Buff = buf ?? String.Empty;
             _Offset = 0;
         }
 
@@ -65,6 +66,17 @@ namespace FH
             int buf_len = _Buff.Length;
             if (_Offset >= buf_len)
                 return ECsvTokenizer.End;
+
+            if (_AfterQuotedWord)
+            {
+                _AfterQuotedWord = false;
+                char c = _Buff[_Offset];
+                if (c != CCharDelimiter && c != CNewLine && c != CReturn)
+                {
+                    _Offset = buf_len;
+                    return ECsvTokenizer.Error;
+                }
+            }
 
             //2. 读取第一个字符
             char first_char = _Buff[_Offset];
@@ -87,8 +99,8 @@ namespace FH
                             word = word.StrVal.Replace(CStrDoubleQuote, CStrQuote);
 
                         _Offset = end_index + 1;
-
-                        return _AdvanceSplitSymb();
+                        _AfterQuotedWord = _Offset < buf_len;
+                        return ECsvTokenizer.Word;
                     }
 
                 case CNewLine: // 换行符号
@@ -111,16 +123,15 @@ namespace FH
                         int count = end_index - start;
                         _Offset = end_index;
                         word = new Str(_Buff, start, count);
-                        return _AdvanceSplitSymb();
+                        return ECsvTokenizer.Word;
                     }
             }
         }
 
-
         private ECsvTokenizer _AdvanceSplitSymb()
         {
             if (_Offset >= _Buff.Length)
-                return ECsvTokenizer.WordWithEnd;
+                return ECsvTokenizer.End;
 
             char c = _Buff[_Offset];
             switch (c)
@@ -128,33 +139,35 @@ namespace FH
                 case CCharDelimiter: // ,
                     {
                         _Offset++;
-                        return ECsvTokenizer.Word;
+                        return ECsvTokenizer.CharDelimiter;
                     }
                 case CNewLine:// \n
                     {
                         _Offset++;
                         if (_Offset >= _Buff.Length)
-                            return ECsvTokenizer.WordWithNewLine;
+                            return ECsvTokenizer.NewLine;
 
-                        if (_Buff[_Offset] == CReturn) // \n\r                
+                        if (_Buff[_Offset] == CReturn) // \n\r
                             _Offset++;
 
-                        return ECsvTokenizer.WordWithNewLine;
+                        return ECsvTokenizer.NewLine;
                     }
                 case CReturn: // \r
                     {
                         _Offset++;
                         if (_Offset >= _Buff.Length)
-                            return ECsvTokenizer.WordWithNewLine;
+                            return ECsvTokenizer.NewLine;
                         if (_Buff[_Offset] == CNewLine) // \r\n
                             _Offset++;
-                        return ECsvTokenizer.WordWithNewLine;
+                        return ECsvTokenizer.NewLine;
                     }
 
                 default:
+                    _Offset = _Buff.Length;
+                    _AfterQuotedWord = false;
                     return ECsvTokenizer.Error;
             }
-        }        
+        }
 
         private int _IndexOfStrEnd(string buf, int index)
         {
@@ -164,19 +177,19 @@ namespace FH
                 if (c == CCharDelimiter || c == CNewLine || c == CReturn)
                     return i;
             }
-            return -1;
+            return buf.Length;
         }
 
         private int _IndexOfNextQuote(string buf, int index, out bool contain_double_quotes)
         {
             contain_double_quotes = false;
-            for (int i = index; i < buf.Length - 1; i++)
+            for (int i = index; i < buf.Length; i++)
             {
                 char c = buf[i];
                 if (c != CCharQuote)
                     continue;
 
-                if (buf[i + 1] != CCharQuote)
+                if (i + 1 >= buf.Length || buf[i + 1] != CCharQuote)
                     return i;
 
                 contain_double_quotes = true;
@@ -184,56 +197,6 @@ namespace FH
             }
             return -1;
         }
-
-
-        #region Enumerator
-        public struct Enumerator : IEnumerator<KeyValuePair<ECsvTokenizer, Str>>
-        {
-            public CsvTokenizer _token;
-            public KeyValuePair<ECsvTokenizer, Str> _cur;
-            public Enumerator(CsvTokenizer reader)
-            {
-                _token = reader;
-                _cur = default;
-            }
-
-            public KeyValuePair<ECsvTokenizer, Str> Current => _cur;
-
-            object IEnumerator.Current => _cur;
-
-            public void Dispose()
-            {
-            }
-
-            public bool MoveNext()
-            {
-                var r = _token.Next(out Str v);
-                if (r == ECsvTokenizer.End)
-                    return false;
-                _cur = new KeyValuePair<ECsvTokenizer, Str>(r, v);
-                return true;
-            }
-
-            public void Reset()
-            {
-                _token._Offset = 0;
-            }
-        }
-
-        public Enumerator GetEnumerator()
-        {
-            return new Enumerator(this);
-        }
-
-        IEnumerator<KeyValuePair<ECsvTokenizer, Str>> IEnumerable<KeyValuePair<ECsvTokenizer, Str>>.GetEnumerator()
-        {
-            return new Enumerator(this);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return new Enumerator(this);
-        }
-        #endregion
     }
+
 }

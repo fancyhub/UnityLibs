@@ -1,8 +1,8 @@
 /*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2023/09/01
- * Title   : 
- * Desc    : 
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 
 using System;
@@ -203,10 +203,12 @@ namespace FH
                     if (node.Value.Action == null)
                     {
                         _has_invalid_nodes = true;
-                        continue;
                     }
                     else if (node.Value.Action == action)
+                    {
                         return node;
+                    }
+
                     node = node.Next;
                 }
             }
@@ -287,6 +289,7 @@ namespace FH
         public void Clear()
         {
             _key_map.Clear();
+            _id_map.Clear();
         }
 
         public void Destroy()

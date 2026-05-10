@@ -1,8 +1,8 @@
 /*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2023/12/21
- * Title   : 
- * Desc    : 
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 using FH.FileManagement;
 using System.Collections.Generic;
@@ -14,6 +14,7 @@ namespace FH
     {
         public abstract bool IsDone { get; }
         public abstract float Progress { get; }
+        public abstract bool HasError { get; }
     }
 
     public enum EFileStatus
@@ -41,7 +42,7 @@ namespace FH
 
         public EFileStatus GetFileStatus(FileManifest.FileItem file, out string full_path, out EFileLocation file_location);
 
-        public EFileStatus GetFileStatusWithName(string name, out string full_path, out EFileLocation file_location);        
+        public EFileStatus GetFileStatusWithName(string name, out string full_path, out EFileLocation file_location);
 
         public bool IsAllTagsReady(FileManifest manifest, HashSet<string> tags = null, List<FileManifest.FileItem> out_need_download_list = null);
 

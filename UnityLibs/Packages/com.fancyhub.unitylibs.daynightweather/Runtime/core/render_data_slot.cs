@@ -1,8 +1,8 @@
 /*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2021/11/18
- * Title   : 
- * Desc    : 
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 using System;
 using System.Collections.Generic;
@@ -41,7 +41,7 @@ namespace FH.DayNightWeather
 
     public static class RDSUtil
     {
-        public static bool GetExt<T>(this IRenderDataSlot self, out T v)
+        public static bool ExtGet<T>(this IRenderDataSlot self, out T v)
         {
             if (self == null || !self.HasData)
             {
@@ -79,7 +79,7 @@ namespace FH.DayNightWeather
                 return inout_dst.CopyFrom(src);
             }
 
-            //3. 情况3: 两个不为空 
+            //3. 情况3: 两个不为空
             if (inout_dst == null)
                 inout_dst = from.Clone();
             return inout_dst.Lerp(from, to, t);
@@ -128,13 +128,18 @@ namespace FH.DayNightWeather
         public static T LerpHalf<T>(T from, T to, float t)
         {
             return t < 0.5f ? from : to;
-        }   
+        }
 
         public static T Lerp<T>(T from, T to, float t) where T : class
         {
             return t < 0.5f ? from : to;
         }
         public static bool IsEuqal(bool x, bool y)
+        {
+            return x == y;
+        }
+
+        public static bool IsEuqal(UnityEngine.Object x, UnityEngine.Object y)
         {
             return x == y;
         }

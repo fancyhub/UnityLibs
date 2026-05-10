@@ -1,8 +1,8 @@
 /*************************************************************************************
  * Author  : cunyu.fan
  * Time    : 2021/11/18
- * Title   : 
- * Desc    : 
+ * Title   :
+ * Desc    :
 *************************************************************************************/
 using System;
 using System.Collections.Generic;
@@ -139,40 +139,42 @@ namespace FH.DayNightWeather
             if (from == null || to == null)
                 return;
 
-            Dictionary<RenderSlotKey, IRenderDataSlot> from_2 = from._slots;
-            Dictionary<RenderSlotKey, IRenderDataSlot> to_2 = to._slots;
-            foreach (var p in from_2)
+            Dictionary<RenderSlotKey, IRenderDataSlot> from_slots_dict = from._slots;
+            Dictionary<RenderSlotKey, IRenderDataSlot> to_slots_dict = to._slots;
+            foreach (var p in from_slots_dict)
             {
                 IRenderDataSlot slot_from = p.Value;
-                to_2.TryGetValue(p.Key, out IRenderDataSlot slot_to);
 
-                _slots.TryGetValue(p.Key, out var slot);
-                if (slot == null)
+                to_slots_dict.TryGetValue(p.Key, out IRenderDataSlot slot_to);
+
+                _slots.TryGetValue(p.Key, out var dest_slot);
+                if (dest_slot == null)
                 {
-                    slot = slot_from.Clone();
-                    _slots.Add(p.Key, slot);
+                    dest_slot = slot_from.Clone();
+                    _slots.Add(p.Key, dest_slot);
                 }
 
-                RDSUtil.LerpSlot(slot_from, slot_to, t, ref slot);
+                RDSUtil.LerpSlot(slot_from, slot_to, t, ref dest_slot);
 
-                if (slot.Dirty)
+                if (dest_slot.Dirty)
                     _dirty_flags[p.Key._type] = true;
             }
 
-            foreach (var p in to_2)
+            //处理from里面没有但是to里面有的slot 数据
+            foreach (var p in to_slots_dict)
             {
-                if (from_2.ContainsKey(p.Key))
+                if (from_slots_dict.ContainsKey(p.Key))
                     continue;
 
-                _slots.TryGetValue(p.Key, out var slot);
-                if (slot == null)
+                _slots.TryGetValue(p.Key, out var dest_slot);
+                if (dest_slot == null)
                 {
-                    slot = p.Value.Clone();
-                    _slots.Add(p.Key, slot);
+                    dest_slot = p.Value.Clone();
+                    _slots.Add(p.Key, dest_slot);
                 }
 
-                slot.CopyFrom(p.Value);
-                if (slot.Dirty)
+                dest_slot.CopyFrom(p.Value);
+                if (dest_slot.Dirty)
                     _dirty_flags[p.Key._type] = true;
             }
         }
@@ -186,6 +188,7 @@ namespace FH.DayNightWeather
             {
                 if (!p.Value.HasData)
                     continue;
+
                 _slots.TryGetValue(p.Key, out var slot);
                 if (slot == null)
                 {
