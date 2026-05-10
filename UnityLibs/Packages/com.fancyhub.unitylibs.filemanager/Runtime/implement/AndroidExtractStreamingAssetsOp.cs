@@ -17,7 +17,8 @@ namespace FH.FileManagement
         private string _Tag;
         private Thread _Thread;
         private int _TotalCount = 0;
-        private int _DoneCount = 0;
+        private int _DoneCount = 0;//这个是完成的数量, 和是否成功无关
+        private int _SuccCount = 0;//这个是成功的数量
         private string _Version;
 
         public AndroidExtractStreamingAssetsOp(FileCollection file_collection, string tag)
@@ -27,7 +28,7 @@ namespace FH.FileManagement
         }
         #region 继承的
         public override bool IsDone => _TotalCount <= _DoneCount;
-
+        public override bool HasError => _DoneCount != _SuccCount;
         public override float Progress
         {
             get
@@ -50,6 +51,7 @@ namespace FH.FileManagement
 
             _TotalCount = 0;
             _DoneCount = 0;
+            _SuccCount = 0;
             string path = FileSetting.LocalDir + FileSetting.CBaseResVersionFileName;
             _Version = manifest.Version;
             if (_Version == null)
@@ -94,10 +96,13 @@ namespace FH.FileManagement
             {
                 yield return operation;
 
-                string path = FileSetting.LocalDir + FileSetting.CBaseResVersionFileName;
-                if (System.IO.File.Exists(path))
-                    System.IO.File.Delete(path);
-                System.IO.File.WriteAllText(path, version);
+                if(!operation.HasError)
+                {
+                    string path = FileSetting.LocalDir + FileSetting.CBaseResVersionFileName;
+                    if (System.IO.File.Exists(path))
+                        System.IO.File.Delete(path);
+                    System.IO.File.WriteAllText(path, version);
+                }                
                 FileLog._.I("End Extra Android Streamign Assets");
                 file_collection.CollectLocalDir();
                 UnityEngine.GameObject.Destroy(obj);
@@ -143,6 +148,7 @@ namespace FH.FileManagement
                     if (is_relative_file)
                         File.WriteAllText(dest_file_path + FileSetting.CRelativeFileFullNameExt, p.FullName);
                     FileLog._.D("Done Extra Streaming Asset: {0}", p.FullName);
+                    _SuccCount++;
                 }
                 _DoneCount++;
             }

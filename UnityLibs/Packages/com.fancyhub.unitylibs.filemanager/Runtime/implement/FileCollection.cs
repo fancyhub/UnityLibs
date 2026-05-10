@@ -62,6 +62,8 @@ namespace FH.FileManagement
         {
             //1. 清除
             _FilesInLocalDir.Clear();
+            _RelativeFilesInLocalDir.Clear();
+
 
             //2.collect normal files
             string[] files = System.IO.Directory.GetFiles(_LocalDir, "*.*", System.IO.SearchOption.TopDirectoryOnly);

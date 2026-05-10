@@ -105,6 +105,8 @@ namespace FH.FileManagement
             public override float Progress => 1.0f;
 
             public override bool keepWaiting => false;
+
+            public override bool HasError => false;
         }
     }
 }

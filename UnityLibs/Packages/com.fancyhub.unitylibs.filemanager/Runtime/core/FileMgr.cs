@@ -14,6 +14,7 @@ namespace FH
     {
         public abstract bool IsDone { get; }
         public abstract float Progress { get; }
+        public abstract bool HasError { get; }
     }
 
     public enum EFileStatus

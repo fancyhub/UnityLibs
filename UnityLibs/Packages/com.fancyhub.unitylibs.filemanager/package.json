@@ -15,6 +15,7 @@
     "com.fancyhub.unitylibs.memorypool": "1.0.0",
     "com.fancyhub.unitylibs.collection": "1.0.0",
     "com.fancyhub.unitylibs.streamingassetsfilesystem": "1.0.0",
-    "com.fancyhub.unitylibs.unityutil": "1.0.0"
+    "com.fancyhub.unitylibs.unityutil": "1.0.0",
+    "com.fancyhub.unitylibs.bitutil": "1.0.0"
   }
 }
