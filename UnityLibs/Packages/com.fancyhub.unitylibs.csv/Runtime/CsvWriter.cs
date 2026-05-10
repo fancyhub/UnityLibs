@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.IO;
-
 namespace FH
 {
     public sealed class CsvWriter : IDisposable
