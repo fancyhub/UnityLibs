@@ -39,7 +39,7 @@ namespace FH.AssetBundleBuilder.Ed
 
             Match match_result = _Reg.Match(asset_path);
             GroupCollection groups = match_result.Groups;
-            if (groups.Count < (BundleNameParamCount + 1))
+            if (!match_result.Success || groups == null || groups.Count < (BundleNameParamCount + 1))
             {
                 string msg = string.Format("Rule: {0} \n Reg: {1} \nFilePath: {2}\nFormater: {3}\n取词数量: {4}\n"
                     , RulerName
@@ -48,7 +48,7 @@ namespace FH.AssetBundleBuilder.Ed
                     , BundleNameFormater
                     , groups.Count - 1);
 
-                for(int i=0;i<groups.Count; i++)
+                for (int i = 0; i < groups.Count; i++)
                 {
                     msg += $"\t第{i}: {groups[i].Value}\n";
                 }

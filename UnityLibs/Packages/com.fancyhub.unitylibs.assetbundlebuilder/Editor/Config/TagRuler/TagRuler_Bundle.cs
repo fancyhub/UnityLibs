@@ -17,7 +17,7 @@ namespace FH.AssetBundleBuilder.Ed
     public class TagRuler_Bundle : BuilderTagRuler
     {
         [Header("eg: base;tag_a;tag_b")]
-        public string Tags;
+        public string Tags = string.Empty;
         [Tooltip("false: 任何包都会添加该 tags")]
         public bool EnablePattern = true;
         public List<PatternSearch> PatternList = new List<PatternSearch>();

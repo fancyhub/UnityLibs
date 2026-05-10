@@ -43,7 +43,8 @@ namespace FH
         {
             if (BitConverter.IsLittleEndian)
                 CurEndian = Little;
-            CurEndian = Big;
+            else
+                CurEndian = Big;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -110,10 +111,10 @@ namespace FH
 
         public static ulong MakePair(uint hi, uint low)
         {
-            ulong ret = hi;
-            ret <<= 32;
-            ret |= low;
-            return ret;
+            LittleEndianBitUtil.ValUnion u = new LittleEndianBitUtil.ValUnion();
+            u._u32_0 = hi;
+            u._u32_1 = low;
+            return u._u64;            
         }
 
         public static void SplitPair(long value, out int hi, out int low)

@@ -118,7 +118,7 @@ namespace FH
     public struct ClockUnityTimeScaleable : IClock
     {
         public readonly ClockUnityTime BaseClock;
-        private readonly ClockDecorator.ClockData _data;
+        private ClockDecorator.ClockData _data;
         private ClockDecorator.ClockPauseScale _pause_scale;
         private ClockDecorator.ClockTransformer _transformer;
 
@@ -149,7 +149,10 @@ namespace FH
             get => (float)(_pause_scale.Scale * ClockDecorator.CScaleInt2Float);
             set
             {
-                Scale = (uint)(value * IClock.ScaleOne);
+                var t = value;
+                if (t < 0)
+                    t = 0;
+                Scale = (uint)(t * IClock.ScaleOne);
             }
         }
 

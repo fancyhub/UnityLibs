@@ -40,7 +40,7 @@ namespace FH
             for (int i = 0; i < arrays.Length; i++)
             {
                 int idx = BitUtil.Struct2Int(arrays[i]);
-                Value |= 1u << idx;
+                SetBit(idx, true);
             }
         }
 

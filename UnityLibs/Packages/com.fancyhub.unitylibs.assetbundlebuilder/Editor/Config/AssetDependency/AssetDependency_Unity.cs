@@ -63,7 +63,8 @@ namespace FH.AssetBundleBuilder.Ed
             {
                 var ret = _UnityDepCollection.CollectDirectDeps(asset_path, asset_type);
                 _ShaderDeps.TryGetValue(asset_path, out var list);
-                ret.AddRange(list);
+                if (list != null)
+                    ret.AddRange(list);
                 return ret;
             }
             else

@@ -128,7 +128,7 @@ namespace FH
             if (node.List == null) return false;
 
             var list = node.List;
-            if (node == list.First) return true;
+            if (node == list.Last) return true;
 
             list.Remove(node);
             list.AddLast(node);

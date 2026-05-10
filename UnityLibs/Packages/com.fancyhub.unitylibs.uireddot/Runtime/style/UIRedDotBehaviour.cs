@@ -12,7 +12,35 @@ using UnityEngine;
 namespace FH.UI
 {
     [RequireComponent(typeof(RectTransform))]
-    public abstract class UIRedDotBehaviour : MonoBehaviour, EventSet2<Str, UIRedDotValue>.IHandler
+    public abstract class UIRedDotBehaviour : MonoBehaviour
+    {
+        /// <summary>
+        /// 一旦调用,就是非自动的
+        /// </summary>
+        public abstract void BindWithParam(string param1, string param2);
+
+        /// <summary>
+        /// 一旦调用,就是非自动的
+        /// </summary>
+        public abstract void BindWithParam(string param);
+
+        /// <summary>
+        /// 一旦调用,就是非自动的
+        /// </summary>
+        public abstract void BindPath(string path);
+
+
+        /// <summary>
+        /// 一旦调用,就是非自动的
+        /// </summary>
+        public abstract void Bind();
+
+
+        public abstract void UnBind();
+    }
+
+
+    public abstract class UIRedDotBehaviourBase : UIRedDotBehaviour, EventSet2<Str, UIRedDotValue>.IHandler
     {
         public string _Path = "";
         public bool _AutoBind = false;
@@ -52,7 +80,7 @@ namespace FH.UI
         /// <summary>
         /// 一旦调用,就是非自动的
         /// </summary>
-        public void BindWithParam(string param1, string param2)
+        public override void BindWithParam(string param1, string param2)
         {
             UnBind();
             _CurrentBindPath = string.Format(_Path, param1, param2);
@@ -62,7 +90,7 @@ namespace FH.UI
         /// <summary>
         /// 一旦调用,就是非自动的
         /// </summary>
-        public void BindWithParam(string param)
+        public override void BindWithParam(string param)
         {
             UnBind();
             _CurrentBindPath = string.Format(_Path, param);
@@ -71,7 +99,7 @@ namespace FH.UI
         /// <summary>
         /// 一旦调用,就是非自动的
         /// </summary>
-        public void BindPath(string path)
+        public override void BindPath(string path)
         {
             UnBind();
             _CurrentBindPath = path;
@@ -81,16 +109,16 @@ namespace FH.UI
         /// <summary>
         /// 一旦调用,就是非自动的
         /// </summary>
-        public void Bind()
+        public override void Bind()
         {
             UnBind();
             _EventHandler = UIRedDotMgr.Reg(_CurrentBindPath, this);
-            if (_EventHandler.Valid)                
+            if (_EventHandler.Valid)
                 OnEvent(_CurrentBindPath, default);
             _AutoBind = false;
         }
 
-        public void UnBind()
+        public override void UnBind()
         {
             if (!_EventHandler.Valid)
                 return;
@@ -103,7 +131,7 @@ namespace FH.UI
         public void OnDestroy()
         {
             _EventHandler.Destroy();
-            _EventHandler = default;            
+            _EventHandler = default;
         }
 
         void EventSet2<Str, UIRedDotValue>.IHandler.HandleEvent(Str key, UIRedDotValue val)

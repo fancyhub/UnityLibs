@@ -8,13 +8,19 @@ namespace FH
     //1 对多的映射
     public class One2MultiMap<TKey, TVal>
     {
-        public Dictionary<TKey, LinkedList<TVal>> _dict_key;
-        public Dictionary<TVal, LinkedListNode<TVal>> _dict_val;
+        private struct InnerVal
+        {
+            public TKey Key;
+            public TVal Value;
+        }
+
+        private Dictionary<TKey, LinkedList<InnerVal>> _dict_key;
+        private Dictionary<TVal, LinkedListNode<InnerVal>> _dict_val;
 
         public One2MultiMap()
         {
-            _dict_key = new Dictionary<TKey, LinkedList<TVal>>();
-            _dict_val = new Dictionary<TVal, LinkedListNode<TVal>>();
+            _dict_key = new Dictionary<TKey, LinkedList<InnerVal>>();
+            _dict_val = new Dictionary<TVal, LinkedListNode<InnerVal>>();
         }
 
         public void Clear()
@@ -39,7 +45,7 @@ namespace FH
         public bool FindFirst(TKey key, out TVal val)
         {
             //1. 找到
-            LinkedList<TVal> list;
+            LinkedList<InnerVal> list;
             _dict_key.TryGetValue(key, out list);
 
             //2. 如果list 为空或者数量为0，返回false
@@ -51,7 +57,7 @@ namespace FH
             }
 
             //3. 赋值并返回            
-            val = list.First.Value;
+            val = list.First.Value.Value;
             //my.logT(ResConst.C_LOG_TAG, "One2Multi FindFirst {0} {1}", key, val);
             return true;
         }
@@ -59,7 +65,7 @@ namespace FH
         public bool FindLast(TKey key, out TVal val)
         {
             //1. 找到
-            LinkedList<TVal> list;
+            LinkedList<InnerVal> list;
             _dict_key.TryGetValue(key, out list);
 
             //2. 如果list 为空或者数量为0，返回false
@@ -70,14 +76,14 @@ namespace FH
             }
 
             //3. 赋值并返回
-            val = list.Last.Value;
+            val = list.Last.Value.Value;
             return true;
         }
 
         public int GetCount(TKey key)
         {
             //1. 找到
-            LinkedList<TVal> list;
+            LinkedList<InnerVal> list;
             _dict_key.TryGetValue(key, out list);
             if (list == null) return 0;
             return list.Count;
@@ -89,19 +95,19 @@ namespace FH
                 out_val_list.Clear();
 
             //1. 找到
-            LinkedList<TVal> list;
+            LinkedList<InnerVal> list;
             _dict_key.TryGetValue(key, out list);
             if (null == list)
                 return false;
 
             //2. 每个val 要从 dict_val 里面移除，并且添加到 out_val_list
-            LinkedListNode<TVal> node = list.First;
+            LinkedListNode<InnerVal> node = list.First;
             for (; ; )
             {
                 if (node == null)
                     break;
 
-                TVal v = node.Value;
+                TVal v = node.Value.Value;
                 _dict_val.Remove(v);
 
                 if (out_val_list != null)
@@ -117,12 +123,19 @@ namespace FH
 
         public bool RemoveVal(TVal val)
         {
-            LinkedListNode<TVal> node;
+            LinkedListNode<InnerVal> node;
             _dict_val.TryGetValue(val, out node);
             if (node == null)
                 return false;
+
+            var innerVal = node.Value;
+            var list = node.List;
             node.List.ExtRemove(node);
             _dict_val.Remove(val);
+            if (list.Count == 0)
+            {
+                _dict_key.Remove(innerVal.Key);
+            }
             return true;
         }
 
@@ -135,18 +148,22 @@ namespace FH
                 return false;
             }
             //1. 找到list
-            LinkedList<TVal> list = null;
+            LinkedList<InnerVal> list = null;
             _dict_key.TryGetValue(key, out list);
 
             //2. 如果不存在，添加一个
             if (null == list)
             {
-                list = new LinkedList<TVal>();
+                list = new LinkedList<InnerVal>();
                 _dict_key.Add(key, list);
             }
 
             //4. 添加
-            LinkedListNode<TVal> node = list.ExtAddLast(val);
+            LinkedListNode<InnerVal> node = list.ExtAddLast(new InnerVal()
+            {
+                Key = key,
+                Value = val
+            });
             _dict_val.Add(val, node);
             return true;
         }

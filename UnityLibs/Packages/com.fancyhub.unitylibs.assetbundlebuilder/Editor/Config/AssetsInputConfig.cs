@@ -145,8 +145,8 @@ namespace FH.AssetBundleBuilder.Ed
                     return System.IO.Path.GetFileNameWithoutExtension(path);
                 case EAddressMode.None:
                     return null;
-                case EAddressMode.FullPath:
-                    return null;
+                case EAddressMode.FullPath: 
+                    return null; //就说明不覆盖, unity会使用全路径的
                 default:
                     return null;
             }

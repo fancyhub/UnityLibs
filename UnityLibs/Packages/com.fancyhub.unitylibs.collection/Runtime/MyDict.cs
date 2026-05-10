@@ -240,41 +240,41 @@ namespace FH
             };
 
             //2. 获取val
-            _AllChildren.ExtRemove(inner_key, out LinkedListNode<InnerVal> node_val);
+            _AllChildren.TryGetValue(inner_key, out LinkedListNode<InnerVal> node_val);
 
             //3. 如果存在，并且不允许覆盖
             if (node_val != null && !can_override)
             {
                 return false;
             }
-
-            //4. 如果旧的节点存在，先销毁旧的节点
-            if (node_val != null)
+            else if (node_val == null) //如果不存在
             {
-                _count--;
-                //如果不在迭代中
-                if (_it_count == 0)
-                    _child_keys.ExtRemove(node_val);
-                else
-                    node_val.Value = new InnerVal()
-                    {
-                        Empty = true,
-                    };
+                //直接添加
+                InnerVal inner_val = new InnerVal()
+                {
+                    Key = key,
+                    Val = val,
+                    Empty = false
+                };
+                node_val = _child_keys.ExtAddLast(inner_val);
+                _AllChildren.Add(inner_key, node_val);
+                _count++;
+                return true;
             }
-
-            //5. 生成内部val
-            InnerVal inner_val = new InnerVal()
+            else //node_val !=null, 直接覆盖
             {
-                Key = key,
-                Val = val,
-                Empty = false
-            };
-
-            //6. 直接添加
-            node_val = _child_keys.ExtAddLast(inner_val);
-            _AllChildren.Add(inner_key, node_val);
-            _count++;
-            return true;
+                InnerVal inner_val = new InnerVal()
+                {
+                    Key = key,
+                    Val = val,
+                    Empty = false
+                };
+                if (node_val.Value.Empty)                
+                    _count++;                
+                node_val.Value = inner_val;
+                return true;
+            }
+            
         }
 
         public bool Remove(TKey key, out TVal val)
@@ -372,6 +372,12 @@ namespace FH
                 {
                     if (node == null)
                         break;
+                    InnerKey key = new InnerKey()
+                    {
+                        Id = _id,
+                        Key = node.Value.Key,
+                    };
+                    _AllChildren.Remove(key);
                     node.Value = new InnerVal()
                     {
                         Empty = true,

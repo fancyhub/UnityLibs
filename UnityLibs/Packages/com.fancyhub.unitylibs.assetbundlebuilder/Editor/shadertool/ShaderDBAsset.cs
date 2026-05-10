@@ -23,7 +23,7 @@ namespace FH.AssetBundleBuilder.Ed
 
         public static ShaderDBAsset Load()
         {
-            return AssetDatabase.LoadAssetAtPath<ShaderDBAsset>(CPath); 
+            return AssetDatabase.LoadAssetAtPath<ShaderDBAsset>(CPath);
         }
 
         public static ShaderDBAsset LoadOrCreate()
@@ -147,7 +147,9 @@ namespace FH.AssetBundleBuilder.Ed
                     ShaderKey key = ShaderKey.Create(mat.Material);
                     if (key == null || ret.ContainsKey(key))
                     {
-                        AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(mat.Material));
+                        var path = AssetDatabase.GetAssetPath(mat.Material);
+                        if (path.StartsWith(CMatDirs))
+                            AssetDatabase.DeleteAsset(path);
                         p.MaterialList.RemoveAt(i);
                         continue;
                     }

@@ -24,7 +24,7 @@ namespace FH
 
         public LruList(int capacity)
         {
-            _dict = new Dictionary<TKey, LinkedListNode<KeyValuePair<TKey, TVal>>>(capacity);
+            _dict = new Dictionary<TKey, LinkedListNode<KeyValuePair<TKey, TVal>>>(capacity, MyEqualityComparer<TKey>.Default);
             _list = new LinkedList<KeyValuePair<TKey, TVal>>();
         }
 

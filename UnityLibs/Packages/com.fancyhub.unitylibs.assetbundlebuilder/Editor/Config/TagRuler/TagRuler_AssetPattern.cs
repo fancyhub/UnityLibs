@@ -16,7 +16,7 @@ namespace FH.AssetBundleBuilder.Ed
     public class TagRuler_AssetPattern : BuilderTagRuler
     {
         [Header("eg: base;tag_a;tag_b")]
-        public string Tags;
+        public string Tags = string.Empty;
         public List<PatternSearch> PatternList = new List<PatternSearch>();
 
         private List<string> _Tags = new List<string>();

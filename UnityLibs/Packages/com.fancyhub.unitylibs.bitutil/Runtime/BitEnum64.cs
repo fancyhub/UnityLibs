@@ -36,7 +36,7 @@ namespace FH
             for (int i = 0; i < arrays.Length; i++)
             {
                 int idx = BitUtil.Struct2Int(arrays[i]);
-                Value |= 1u << idx;
+                SetBit(idx, true);
             }
         }
 
@@ -134,7 +134,7 @@ namespace FH
         /// </summary>
         public void Clear(bool state)
         {
-            Value = state ? uint.MaxValue : 0;
+            Value = state ? ulong.MaxValue : 0;
         }
 
         public int GetCount(bool v)
@@ -260,7 +260,7 @@ namespace FH
             bool is_all = true;
             foreach (var p in enum_name_values)
             {
-                bool on = (current & (1UL << p.value)) != 0 && p.value >= 0 && p.value < 63;
+                bool on = (current & (1UL << p.value)) != 0 && p.value >= 0 && p.value < 64;
                 if (!on)
                 {
                     is_all = false;
@@ -276,10 +276,10 @@ namespace FH
             // 每一位            
             foreach (var p in enum_name_values)
             {
-                bool on = (current & (1UL << p.value)) != 0 && p.value >= 0 && p.value < 63;
+                bool on = (current & (1UL << p.value)) != 0 && p.value >= 0 && p.value < 64;
                 menu.AddItem(new GUIContent(p.name), on, () =>
                 {
-                    if (p.value >= 0 && p.value < 63)
+                    if (p.value >= 0 && p.value < 64)
                     {
                         ulong newValue = current ^ (1UL << p.value);
                         onChanged(newValue);

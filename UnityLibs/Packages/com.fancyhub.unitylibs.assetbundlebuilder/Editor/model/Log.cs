@@ -36,7 +36,7 @@ namespace FH.AssetBundleBuilder.Ed
 
         public static void Error(string msg)
         {
-            UnityEngine.Debug.Log(msg);
+            UnityEngine.Debug.LogError(msg);
         }
 
         public static void Assert(bool cond)

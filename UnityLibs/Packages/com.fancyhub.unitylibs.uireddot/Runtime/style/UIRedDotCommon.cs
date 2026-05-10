@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace FH.UI
 {
-    public class UIRedDotCommon : UIRedDotBehaviour
+    public class UIRedDotCommon : UIRedDotBehaviourBase
     {
         public enum EWatchType
         {

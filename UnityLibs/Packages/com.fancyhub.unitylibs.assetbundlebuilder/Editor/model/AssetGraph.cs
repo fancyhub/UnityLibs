@@ -74,7 +74,7 @@ namespace FH.AssetBundleBuilder.Ed
 
             foreach (var sub in bundle.Deps)
             {
-                if (!out_bundle_index_set.Add(sub))
+                if (out_bundle_index_set.Add(sub))
                 {
                     GetBundleAllDeps(sub, out_bundle_index_set);
                 }
@@ -89,21 +89,27 @@ namespace FH.AssetBundleBuilder.Ed
 
             //1. 建立Asset索引
             {
-                int index = 0;
+
                 foreach (var p in assets_set)
                 {
                     var asset = new Asset()
                     {
-                        Index = index,
                         Path = p.FilePath,
                         Export = p.NeedExport,
-                        Address = p.AddressName                        
+                        Address = p.AddressName
                     };
-                    index++;
                     asset_dict.Add(asset.Path, asset);
                     assets_list.Add(asset);
                 }
+
+                assets_list.Sort((a, b) => a.Path.CompareTo(b.Path));
+                for (int i = 0; i < assets_list.Count; i++)
+                {
+                    assets_list[i].Index = i;
+                }
             }
+
+
 
             //2. 建立Asset依赖
             {
@@ -127,6 +133,7 @@ namespace FH.AssetBundleBuilder.Ed
                     {
                         throw new Exception($"找不到Asset {p.FilePath}");
                     }
+                    temp_deps.Sort();
                     self.Deps = temp_deps.ToArray();
                 }
             }
@@ -139,17 +146,16 @@ namespace FH.AssetBundleBuilder.Ed
             //3. 建立 Bundle 索引
             {
                 List<int> temp_assets = new List<int>();
-                int index = 0;
+
                 foreach (var p in nodes_set)
                 {
                     Bundle bundle = new Bundle()
                     {
-                        Index = index,
+
                         Name = p.GetNodeName(),
                     };
 
                     bundles_list.Add(bundle);
-                    index++;
                     bundle_dict.Add(bundle.Name, bundle);
 
                     temp_assets.Clear();
@@ -164,6 +170,12 @@ namespace FH.AssetBundleBuilder.Ed
                     }
                     bundle.Assets = temp_assets.ToArray();
                     bundle.FileHash = p.FileHash;
+                }
+
+                bundles_list.Sort((a, b) => a.Name.CompareTo(b.Name));
+                for (int i = 0; i < bundles_list.Count; i++)
+                {
+                    bundles_list[i].Index = i;
                 }
             }
 
@@ -187,6 +199,7 @@ namespace FH.AssetBundleBuilder.Ed
                     {
                         throw new Exception($"找不到Bundle {p.GetNodeName()}");
                     }
+                    temp_deps.Sort();
                     self.Deps = temp_deps.ToArray();
                 }
             }

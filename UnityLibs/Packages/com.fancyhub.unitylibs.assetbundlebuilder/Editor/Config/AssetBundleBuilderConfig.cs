@@ -47,14 +47,21 @@ namespace FH.AssetBundleBuilder.Ed
         public IAssetCollector GetAssetCollector()
         {
             if (AssetCollector.Count == 0)
-                return null;
+            {
+                Debug.LogError("AssetCollector 是空的", this);
+                throw new Exception($"AssetCollector 是空的 {AssetDatabase.GetAssetPath(this)} ");
+            }
             return AssetCollector[0].GetAssetCollector();
         }
 
         public IAssetDependency GetAssetDependency()
         {
             if (AssetDependency.Count == 0)
-                return null;
+            {
+                Debug.LogError("AssetDependency 是空的", this);
+                throw new Exception($"AssetDependency 是空的 {AssetDatabase.GetAssetPath(this)} ");
+            }
+
             return AssetDependency[0].GetAssetDependency();
         }
 
@@ -94,7 +101,7 @@ namespace FH.AssetBundleBuilder.Ed
                 case BuildTarget.StandaloneOSX:
                     return OSX;
                 default:
-                    return null;
+                    throw new NotImplementedException($"平台 {target} 未实现");
             }
         }
 
@@ -176,7 +183,7 @@ namespace FH.AssetBundleBuilder.Ed
             public bool UseCache = true;
             public string CacheServerHost;
             public int CacheServerPort = 8126;
-            public bool WriteLinkXML; 
+            public bool WriteLinkXML;
         }
 
         public SBPParamConfig SBPParam = new SBPParamConfig();

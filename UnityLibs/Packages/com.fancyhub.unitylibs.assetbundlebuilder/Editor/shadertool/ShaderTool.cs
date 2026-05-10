@@ -134,9 +134,10 @@ namespace FH.AssetBundleBuilder.Ed
                     ret.Add(p.Key, p.Value);
                 }
                 else
-                {
+                {                    
                     string path = AssetDatabase.GetAssetPath(p.Value);
-                    AssetDatabase.DeleteAsset(path);
+                    if(path.StartsWith(ShaderDBAsset.CMatDirs))
+                        AssetDatabase.DeleteAsset(path);
                 }
             }
 

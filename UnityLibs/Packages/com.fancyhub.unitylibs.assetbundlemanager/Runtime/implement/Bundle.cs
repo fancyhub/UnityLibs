@@ -18,7 +18,7 @@ namespace FH.ABManagement
         public static bool UnloadAllLoadedObjectsCurrent = UnloadAllLoadedObjectsDefault;
     }
 
-   
+
 
     internal class Bundle : IBundle
     {
@@ -33,10 +33,11 @@ namespace FH.ABManagement
 
         private EBundleLoadStatus _status = EBundleLoadStatus.None;
 
-        private bool _loaded_by_external_flag = false;
+        private bool _loaded_by_external_flag = false; //是否由外部直接加载的
         private int _external_ref_count = 0;
+        private bool _loaded_dep_bundles_by_self = false; //是否已经由自己加载了自己的所有依赖bundles
 
-        private bool _loaded_by_dep_flag = false;
+        private bool _loaded_by_dep_flag = false; //由依赖加载的
         private int _dep_ref_count = 0;
 
         public string Name { get { return _config.Name; } }
@@ -70,6 +71,7 @@ namespace FH.ABManagement
                 return RefCount;
             _external_ref_count = 0;
             _loaded_by_external_flag = false;
+            _UnloadAllDeps(); 
 
             if (_dep_ref_count > 0)
                 return RefCount;
@@ -124,7 +126,10 @@ namespace FH.ABManagement
                 default:
                     return false;
 
-                case EBundleLoadStatus.Loaded:
+                case EBundleLoadStatus.Loaded:                    
+                    if (!_LoadAllDeps())
+                        return false;
+
                     _loaded_by_external_flag = true;
                     return true;
 
@@ -155,8 +160,7 @@ namespace FH.ABManagement
                     if (_external_bundle == null)
                     {
                         _status = EBundleLoadStatus.Error;
-                        foreach (var p in _all_deps)
-                            p._UnloadByDep(_config.Name);
+                        _UnloadAllDeps();                        
                         return false;
                     }
                     else
@@ -172,11 +176,16 @@ namespace FH.ABManagement
         public void Destroy()
         {
             ___obj_ver++;
+            _loaded_dep_bundles_by_self = false;
             _UnloadUnityBundle(true);
         }
 
         private bool _LoadAllDeps()
         {
+            //0. 检查标记位
+            if (_loaded_dep_bundles_by_self)
+                return true;
+
             //1. 先检查是否都下载了
             foreach (var p in _all_deps)
             {
@@ -200,8 +209,19 @@ namespace FH.ABManagement
 
                 return false;
             }
-
+            _loaded_dep_bundles_by_self = true;
             return true;
+        }
+
+        private void _UnloadAllDeps()
+        {
+            if (!_loaded_dep_bundles_by_self)
+                return;
+            _loaded_dep_bundles_by_self = false;
+            for (int i = 0; i < _all_deps.Length; i++)
+            {
+                _all_deps[i]._UnloadByDep(_config.Name);
+            }
         }
 
         private bool _LoadByDep(string parent_bundle_name)

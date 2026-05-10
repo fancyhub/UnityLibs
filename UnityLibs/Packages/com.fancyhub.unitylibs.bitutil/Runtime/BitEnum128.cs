@@ -325,12 +325,12 @@ namespace FH
                 bool on = _IsOn(current_lo, current_hi, p.value);
                 menu.AddItem(new GUIContent(p.name), on, () =>
                 {
-                    if (p.value >= 0 && p.value < 63)
+                    if (p.value >= 0 && p.value < 64)
                     {
                         ulong newValue = current_lo ^ (1UL << p.value);
                         onChanged(newValue, current_hi);
                     }
-                    else if (p.value >= 64 && p.value < 64)
+                    else if (p.value >= 64 && p.value < 128)
                     {
                         ulong newValue = current_hi ^ (1UL << (p.value - 64));
                         onChanged(current_lo, newValue);

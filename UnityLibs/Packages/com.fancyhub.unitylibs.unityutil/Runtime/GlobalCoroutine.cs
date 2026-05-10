@@ -24,7 +24,7 @@ namespace FH
 #if UNITY_EDITOR
             if (!Application.isPlaying)
             {
-                EdCoroutineRunner.StartCoroutine(enumerator);
+                EditorStartCoroutine(enumerator);
                 return null;
 
             }
@@ -130,6 +130,7 @@ namespace FH
     public interface ICoroutineInstructionProcessor
     {
         public ECoroutineInstructionResult Process(CoroutineExecutorHandler handler, System.Object obj);
+        public void OnCoroutineRemoved(CoroutineExecutorHandler handler);
     }
 
     public class EmptyCoroutineInstructionProcessor : ICoroutineInstructionProcessor
@@ -137,6 +138,9 @@ namespace FH
         public ECoroutineInstructionResult Process(CoroutineExecutorHandler handler, System.Object obj)
         {
             return ECoroutineInstructionResult.Continue;
+        }
+        public void OnCoroutineRemoved(CoroutineExecutorHandler handler)
+        {
         }
     }
 
@@ -169,15 +173,15 @@ namespace FH
                     if (node == null)
                         break;
 
-                    if (now < node.Value.ExpireTime)
-                        continue;
-
-                    node.Value.Handler.Resume();
-                    if (node.Value.ShouldTickOnce)
-                        node.Value.Handler.TickOnce();
-                    var t = node;
+                    var cur = node;
                     node = node.Next;
-                    _timeList.Remove(t);
+
+                    if (now < cur.Value.ExpireTime)
+                        continue;
+                    cur.Value.Handler.Resume();
+                    if (cur.Value.ShouldTickOnce)
+                        cur.Value.Handler.TickOnce();
+                    _timeList.Remove(cur);
                 }
             }
 
@@ -186,13 +190,15 @@ namespace FH
                 {
                     if (node == null)
                         break;
-                    if (!node.Value.Op.isDone)
+                    var cur = node;
+                    node = node.Next;
+
+
+                    if (!cur.Value.Op.isDone)
                         continue;
 
-                    node.Value.Handler.Resume();
-                    var t = node;
-                    node = node.Next;
-                    _asyncOperations.Remove(t);
+                    cur.Value.Handler.Resume(); //等待下一帧自然触发
+                    _asyncOperations.Remove(cur);
                 }
             }
         }
@@ -238,6 +244,8 @@ namespace FH
                     });
                     return ECoroutineInstructionResult.Pause;
 
+
+
                 case AsyncOperation op:
                     _asyncOperations.AddLast(new OpItem()
                     {
@@ -246,10 +254,13 @@ namespace FH
                     });
                     return ECoroutineInstructionResult.Pause;
 
-
                 default:
                     return ECoroutineInstructionResult.Continue;
             }
+        }
+
+        public void OnCoroutineRemoved(CoroutineExecutorHandler handler)
+        {
         }
     }
 #endif
@@ -269,7 +280,7 @@ namespace FH
         private static int _IdGen = 0;
         private Dictionary<int, RoutineData> _Dict = new();
         private List<int> _ListCoroutineIds = new(); //添加的顺序
-        private List<RoutineData> _RunningTempList = new();
+        private List<int> _RunningTempList = new();
         private ICoroutineInstructionProcessor _InstructionProcessor;
 
         public CoroutineExecutor(ICoroutineInstructionProcessor instructionProcessor)
@@ -298,7 +309,11 @@ namespace FH
 
         public bool Stop(CoroutineExecutorHandler handler)
         {
-            return _Dict.Remove(handler.CoroutineId);
+            if (!_Dict.Remove(handler.CoroutineId))
+                return false;
+
+            _InstructionProcessor.OnCoroutineRemoved(handler);
+            return true;
         }
 
         public bool IsRunning(CoroutineExecutorHandler handler)
@@ -330,20 +345,7 @@ namespace FH
 
         public void TickOnce(CoroutineExecutorHandler handler)
         {
-            if (!_Dict.TryGetValue(handler.CoroutineId, out var d))
-                return;
-
-            try
-            {
-                if (!d._Enumerator.MoveNext())
-                {
-                    _Dict.Remove(d._CoroutineId);
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
+            _RunOnce(handler.CoroutineId);
         }
 
         public void Tick()
@@ -361,22 +363,36 @@ namespace FH
                 if (data._Pause)
                     continue;
 
-                _RunningTempList.Add(data);
+                _RunningTempList.Add(data._CoroutineId);
             }
 
+            _RunningTempList.Reverse();
             foreach (var p in _RunningTempList)
             {
-                try
-                {
-                    if (!p._Enumerator.MoveNext())
-                    {
-                        _Dict.Remove(p._CoroutineId);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                }
+                _RunOnce(p);
+            }
+        }
+
+        private void _RunOnce(int corId)
+        {
+            if (!_Dict.TryGetValue(corId, out var data))
+                return;
+
+            bool end = true;
+            try
+            {
+                end = !data._Enumerator.MoveNext();
+            }
+            catch (Exception e)
+            {
+                end = true;
+                Debug.LogException(e);
+            }
+
+            if (end)
+            {
+                _Dict.Remove(corId);
+                _InstructionProcessor.OnCoroutineRemoved(new CoroutineExecutorHandler(this, corId));
             }
         }
 
@@ -406,7 +422,7 @@ namespace FH
                     continue;
                 }
 
-                object current = orig.Current;
+                object current = top.Current;
                 if (current == null)
                 {
                     yield return current;

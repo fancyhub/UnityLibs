@@ -123,7 +123,10 @@ namespace FH
             get => (float)(_pause_scale.Scale * CScaleInt2Float);
             set
             {
-                Scale = (uint)(value * IClock.ScaleOne);
+                var t = value;
+                if (t < 0)
+                    t = 0;
+                Scale = (uint)(t * IClock.ScaleOne);
             }
         }
 

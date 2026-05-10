@@ -67,19 +67,7 @@ namespace FH.AssetBundleBuilder.Ed
                 ret[i] = keys[i].name;
             }
 
-            for (int i = 0; i < ret.Length - 1; i++)
-            {
-                for (int j = i + 1; j < ret.Length; j++)
-                {
-                    if (ret[i].CompareTo(ret[j]) > 0)
-                    {
-                        var t = keys[i];
-                        keys[i] = keys[j];
-                        keys[j] = t;
-                    }
-                }
-            }
-
+            Array.Sort(ret);            
             return ret;
         }
 
