@@ -21,6 +21,9 @@ namespace FH
         Unkown, //未知的错误     
 
         CRC,//校验CRC的时候有错误
+        SizeMismatch,//下载文件大小和远端大小不一致
+        PartialNotSupported,//服务器不支持安全的断点续传
+        UnsupportedContentEncoding,//不支持的HTTP传输压缩
     };
 
     public struct HttpDownloaderError
@@ -48,15 +51,41 @@ namespace FH
 
         public void SetWebException(WebException e)
         {
-            Error = EHttpDownloaderError.WebCode;
             WebStatus = e.Status;
             Msg = e.Message;
+
+            if (e.Response is HttpWebResponse response)
+            {
+                HttpStatusCode status_code = response.StatusCode;
+                HttpStatusCode = status_code;
+                response.Close();
+                Error = status_code == HttpStatusCode.NotFound
+                    ? EHttpDownloaderError.RemoteFileNotExist
+                    : EHttpDownloaderError.HttpCode;
+                return;
+            }
+
+            Error = EHttpDownloaderError.WebCode;
+        }
+
+        public void SetHttpCode(HttpStatusCode status_code)
+        {
+            Error = status_code == HttpStatusCode.NotFound
+                ? EHttpDownloaderError.RemoteFileNotExist
+                : EHttpDownloaderError.HttpCode;
+            HttpStatusCode = status_code;
         }
 
         public void SetIOException(System.IO.IOException e)
         {
             Error = EHttpDownloaderError.IOError;
             Msg = e.Message;
+        }
+
+        public void SetIOException(string msg)
+        {
+            Error = EHttpDownloaderError.IOError;
+            Msg = msg ?? string.Empty;
         }
 
         public void SetUnkownException(Exception e)
@@ -69,6 +98,24 @@ namespace FH
         {
             Error = EHttpDownloaderError.CRC;
             Msg = "Crc Error";
+        }
+
+        public void SetSizeMismatch(long local_file_size, long remote_file_size)
+        {
+            Error = EHttpDownloaderError.SizeMismatch;
+            Msg = $"local_size:{local_file_size}, remote_size:{remote_file_size}";
+        }
+
+        public void SetPartialNotSupported(string msg)
+        {
+            Error = EHttpDownloaderError.PartialNotSupported;
+            Msg = msg ?? string.Empty;
+        }
+
+        public void SetUnsupportedContentEncoding(string content_encoding)
+        {
+            Error = EHttpDownloaderError.UnsupportedContentEncoding;
+            Msg = content_encoding ?? string.Empty;
         }
 
         public void Reset()
@@ -90,6 +137,7 @@ namespace FH
                     break;
 
                 case EHttpDownloaderError.HttpCode:
+                case EHttpDownloaderError.RemoteFileNotExist:
                     HttpDownloaderLog._.E("{0},{1},{2},{3}", Error, HttpStatusCode, Msg, RemoteUrl);
                     break;
 
@@ -98,6 +146,11 @@ namespace FH
                     break;
 
                 case EHttpDownloaderError.IOError:
+                case EHttpDownloaderError.UserCancer:
+                case EHttpDownloaderError.CRC:
+                case EHttpDownloaderError.SizeMismatch:
+                case EHttpDownloaderError.PartialNotSupported:
+                case EHttpDownloaderError.UnsupportedContentEncoding:
                     HttpDownloaderLog._.E("{0},{1},{2}", Error, Msg, RemoteUrl);
                     break;
 
