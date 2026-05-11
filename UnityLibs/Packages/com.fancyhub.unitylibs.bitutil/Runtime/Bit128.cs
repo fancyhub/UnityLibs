@@ -9,30 +9,37 @@ using System;
 
 namespace FH
 {
-    public struct Bit128 : IEquatable<Bit128> 
+    public struct Bit128 : IEquatable<Bit128>
     {
         public const int LENGTH = 128;
         private const int C_COMP_LEN = 64;
-        public static Bit128 All = new Bit128 (ulong.MaxValue, ulong.MaxValue);
-        public static Bit128 Zero = new Bit128 (0, 0);
+        public static Bit128 All = new Bit128(ulong.MaxValue, ulong.MaxValue);
+        public static Bit128 Zero = new Bit128(0, 0);
 
         private ulong _lo;
         private ulong _hi;
 
         public Bit128(ulong lo, ulong hi) { _lo = lo; _hi = hi; }
-          
 
-        public void SetValue(Bit128  mask, Bit128  value)
+
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>        
+        public bool SetValue(Bit128 mask, Bit128 value)
         {
+            var old1 = _lo;
+            var old2 = _hi;
             _lo = (_lo & (~mask._lo)) | (value._lo & mask._lo);
             _hi = (_hi & (~mask._hi)) | (value._hi & mask._hi);
+
+            return old1 != _lo || old2 != _hi;
         }
 
-        public Bit128  GetValue(Bit128  mask)
+        public Bit128 GetValue(Bit128 mask)
         {
             ulong lo = _lo & mask._lo;
             ulong hi = _hi & mask._hi;
-            return new Bit128 (lo, hi);
+            return new Bit128(lo, hi);
         }
 
 
@@ -41,6 +48,9 @@ namespace FH
             return _lo == 0 && _hi == 0;
         }
 
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>        
         public bool SetBit(int idx, bool state)
         {
             //1. check            
@@ -52,19 +62,22 @@ namespace FH
 
             if (idx < C_COMP_LEN)
             {
+                var old = _lo;
                 if (state)
                     _lo |= (1ul << idx);
                 else
                     _lo &= ~(1ul << idx);
-                return true;
+                return old != _lo;
             }
-
-            idx -= C_COMP_LEN;
-            if (state)
-                _hi |= (1ul << idx);
-            else
-                _hi &= ~(1ul << idx);
-            return true;
+            {
+                var old = _hi;
+                idx -= C_COMP_LEN;
+                if (state)
+                    _hi |= (1ul << idx);
+                else
+                    _hi &= ~(1ul << idx);
+                return old != _hi;
+            }
         }
 
         public bool GetBit(int idx)
@@ -82,7 +95,7 @@ namespace FH
             idx -= C_COMP_LEN;
             return ((1ul << idx) & _hi) != 0;
         }
-         
+
         public bool this[int idx]
         {
             set { SetBit(idx, value); }
@@ -145,10 +158,10 @@ namespace FH
             return a._lo != b._lo || a._hi != b._hi;
         }
 
-        public bool Equals(Bit128  other)
+        public bool Equals(Bit128 other)
         {
             return _lo == other._lo && _hi == other._hi;
-        } 
+        }
 
         public override int GetHashCode()
         {

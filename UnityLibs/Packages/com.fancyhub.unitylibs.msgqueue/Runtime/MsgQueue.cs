@@ -48,7 +48,7 @@ namespace FH
         {
             _Procs.TryGetValue(handle, out object v);
             return v as IMsgProc<T>;
-        } 
+        }
 
         public bool Reg(int handle, IMsgProc<T> proc)
         {
@@ -80,7 +80,7 @@ namespace FH
         public bool UnReg(int handle)
         {
             return _Procs.Remove(handle, out object v);
-        } 
+        }
 
         public void ClearMsgQueue()
         {
@@ -93,7 +93,7 @@ namespace FH
         }
 
         public int MsgCount { get { return _MsgQueues.Count; } }
-      
+
         /// <summary>
         /// 同步发消息
         /// </summary>
@@ -101,7 +101,7 @@ namespace FH
         {
             //一般都是异步的
             if (!sync)
-            {                
+            {
                 _MsgQueues.ExtAddLast(new KeyValuePair<int, T>(handle_id, msg));
                 return;
             }
@@ -136,19 +136,27 @@ namespace FH
             int msg_count_process = 0;
             for (; ; )
             {
-                //1. 找到消息
+                //1. 检查是否处理消息超过了上限
+                if (msg_count_process >= msg_count && _MsgQueues.Count > 0)
+                {
+                    Log.Assert(false, "当前帧的msg 消息超过了上限{0}, 剩下{1}", msg_count_process, _MsgQueues.Count);
+                    //Warning: 超过了上限，最好检查一下错误，可能出现了循环消息
+                    break;
+                }
+
+                //2. 找到消息
                 bool succ = _MsgQueues.ExtPopFirst(out KeyValuePair<int, T> msg_pair);
                 if (!succ)
                     break;
-                
-                //2. 计数器+1
+
+                //3. 计数器+1
                 msg_count_process++;
 
-                //3. 找到对应的 target
+                //4. 找到对应的 target
                 int target_id = msg_pair.Key;
                 IMsgProc<T> target = Find(target_id);
 
-                //4. 处理 消息
+                //5. 处理 消息
                 if (null != target)
                 {
                     T msg = msg_pair.Value;
@@ -157,14 +165,6 @@ namespace FH
                 else
                 {
                     //Log.Assert(false, "找不到: {0}", target_id);
-                }
-
-                //5. 检查是否处理消息超过了上限
-                if (msg_count_process >= msg_count)
-                {
-                    Log.Assert(false, "当前帧的msg 消息超过了上限{0}, 剩下{1}", msg_count_process, _MsgQueues.Count);
-                    //Warning: 超过了上限，最好检查一下错误，可能出现了循环消息
-                    break;
                 }
             }
             return msg_count_process;

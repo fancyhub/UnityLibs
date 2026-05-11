@@ -19,6 +19,9 @@ namespace FH
         public Bit32(uint value) { _v = value; }
         public Bit32(int value) { _v = (uint)value; }
 
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>        
         public bool SetBit(int idx, bool value)
         {
             //1. check
@@ -28,11 +31,12 @@ namespace FH
                 return false;
             }
 
+            var old = _v;
             if (value) 
                 _v = (1u << idx) | _v;
             else
                 _v = ~(1u << idx) & _v;
-            return true;
+            return old!=_v;
         }
 
         public bool GetBit(int idx)
@@ -91,9 +95,14 @@ namespace FH
             return IndexOf(0, value);
         }
 
-        public void SetValue(Bit32 mask, Bit32 value)
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>        
+        public bool SetValue(Bit32 mask, Bit32 value)
         {
+            var old = _v;
             _v = (_v & (~mask.Value)) | (value.Value & mask.Value);
+            return old != _v;
         }
 
         public Bit32 GetValue(Bit32 mask)

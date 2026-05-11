@@ -27,6 +27,12 @@ namespace Game
             FH.TimerMgr.Init();
             FH.UI.UIMgr.UpdateList += FH.TimerMgr.Update;
         }
+
+        [Button]
+        public void Test()
+        {
+            Debug.LogFormat("}");
+        }
     }
 
 

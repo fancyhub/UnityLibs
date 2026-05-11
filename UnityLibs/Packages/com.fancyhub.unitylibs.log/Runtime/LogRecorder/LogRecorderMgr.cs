@@ -98,6 +98,7 @@ namespace FH
 
                 _._CreateThread();
             }
+            _._auto_reset_evt.Set();
         }
 
         private void _CreateThread()

@@ -21,6 +21,9 @@ namespace FH
         public Bit64(ulong value) { _v = value; }
         public Bit64(long value) { _v = (ulong)value; }
 
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>        
         public bool SetBit(int idx, bool state)
         {
             //1. check
@@ -30,11 +33,12 @@ namespace FH
                 return false;
             }
 
+            var old = _v;
             if (state)
                 _v = (1ul << idx) | _v;
             else
                 _v = ~(1ul << idx) & _v;
-            return true;
+            return old!=_v;
         }
 
         public bool GetBit(int idx)
@@ -93,9 +97,14 @@ namespace FH
             return IndexOf(0, v);
         }
 
-        public void SetValue(Bit64 mask, Bit64 value)
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>        
+        public bool SetValue(Bit64 mask, Bit64 value)
         {
+            var old = _v;
             _v = (_v & (~mask.Value)) | (value.Value & mask.Value);
+            return old != _v;
         }
 
         public Bit64 GetValue(Bit64 mask)

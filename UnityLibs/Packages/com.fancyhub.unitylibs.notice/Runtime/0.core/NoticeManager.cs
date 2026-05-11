@@ -20,7 +20,7 @@ namespace FH
     /// </summary>
     public class NoticeManager
     {
-        public ENoticeVisible _vision_flag;
+        public BitEnum32<ENoticeVisible> _vision_flag;
         public INoticeChannel[] _channels = new INoticeChannel[(int)ENoticeChannel.Max];
         public IClock _clock;
 
@@ -101,7 +101,7 @@ namespace FH
         /// </summary>
         public void InitVisionFlag()
         {
-            _vision_flag = ENoticeVisible.None;
+            _vision_flag.Clear(false);
             foreach (var p in _channels)
             {
                 p?.SetVisibleFlag(_vision_flag);
@@ -113,12 +113,7 @@ namespace FH
         /// </summary>        
         public void SetVisibleFlag(ENoticeVisible flag, bool v)
         {
-            ENoticeVisible new_flag = _vision_flag;
-
-            if (v) new_flag |= flag;
-            else new_flag &= ~flag;
-
-            if (_vision_flag == new_flag)
+            if (!_vision_flag.SetBit(flag, v))
                 return;
 
             foreach (var p in _channels)
@@ -149,10 +144,11 @@ namespace FH
 
         public void ClearChannel(ENoticeChannel channel)
         {
-            if (channel != ENoticeChannel.Max)
-            {
-                _channels[(int)channel].Clear();
-            }
+            int index = (int)channel;
+            if (index < 0 || index >= _channels.Length)
+                return;
+
+            _channels[index]?.Clear();
         }
     }
 }

@@ -64,7 +64,14 @@ namespace FH
 
         public static IPool<T> CreatePool<T>(int cap, Func<T> create_func) where T : class, IPoolItem
         {
-            return CreatePool<T>(cap, create_func);
+            IPool<T> pool = Pool<T>.Inst;
+            if (pool != null)
+                return pool;
+
+            Log.Assert(typeof(T).IsSealed, "使用 Pool 最好是 sealed 类型的类 {0}", typeof(T));
+            pool = new Pool<T>(cap, create_func);
+            Dict[typeof(T)] = pool;
+            return pool;
         }
 
         public static IPool<T> CreatePool<T>(Func<T> create_func) where T : class, IPoolItem

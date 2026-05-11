@@ -22,7 +22,7 @@ namespace FH
             _config = config;
         }
 
-        public bool IsVisible(ENoticeVisible flag)
+        public bool IsVisible(BitEnum32<ENoticeVisible> flag)
         {
             return _config.IsVisible(flag);
         }

@@ -10,12 +10,9 @@ using System.Collections.Generic;
 namespace FH
 {
 
-    [Flags]
     public enum EDataReporterChannel
     {
-        //svr = 1 << 0,
-        beacon = 1 << 1, //灯塔
-        //tdm = 1 << 2,
+        Appsflyer=0,
     }
 
 

@@ -31,6 +31,9 @@ namespace FH
 
         public BitEnum128(ulong lo, ulong hi) { ValueLo = lo; ValueHi = hi; }
 
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>       
         public bool SetBit(T idx, bool state)
         {
             //1. check
@@ -55,10 +58,15 @@ namespace FH
             return GetBit(index);
         }
 
-        public void SetValue(BitEnum128<T> mask, BitEnum128<T> value)
+
+        public bool SetValue(BitEnum128<T> mask, BitEnum128<T> value)
         {
+            var old1 = ValueLo;
+            var old2 = ValueHi;
             ValueLo = (ValueLo & (~mask.ValueLo)) | (value.ValueLo & mask.ValueLo);
             ValueHi = (ValueHi & (~mask.ValueHi)) | (value.ValueHi & mask.ValueHi);
+
+            return old1!= ValueLo || old2!= ValueHi;
         }
 
         public BitEnum128<T> GetValue(BitEnum128<T> mask)
@@ -93,6 +101,9 @@ namespace FH
             return ValueLo == 0 && ValueHi == 0;
         }
 
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>       
         public bool SetBit(int idx, bool state)
         {
             //1. check            
@@ -104,19 +115,23 @@ namespace FH
 
             if (idx < C_COMP_LEN)
             {
+                var old = ValueLo;
                 if (state)
                     ValueLo |= (1ul << idx);
                 else
                     ValueLo &= ~(1ul << idx);
-                return true;
+                return old != ValueLo;
             }
 
-            idx -= C_COMP_LEN;
-            if (state)
-                ValueHi |= (1ul << idx);
-            else
-                ValueHi &= ~(1ul << idx);
-            return true;
+            {
+                var old = ValueHi;
+                idx -= C_COMP_LEN;
+                if (state)
+                    ValueHi |= (1ul << idx);
+                else
+                    ValueHi &= ~(1ul << idx);
+                return old != ValueHi;
+            }
         }
 
         public bool GetBit(int idx)

@@ -375,7 +375,14 @@ namespace LZ4
         /// <summary>When overridden in a derived class, clears all buffers for this stream and causes any buffered data to be written to the underlying device.</summary>
         public override void Flush()
         {
-            if (_bufferOffset > 0 && CanWrite) FlushCurrentChunk();
+            if (!CanWrite)
+                return;
+
+            if (_bufferOffset > 0)
+            {
+                FlushCurrentChunk();
+            }
+            _innerStream.Flush();
         }
 
         /// <summary>When overridden in a derived class, gets the length in bytes of the stream.</summary>

@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 
 namespace FH
@@ -15,7 +16,7 @@ namespace FH
     public class LogRecorder_Udp : ILogRecorder
     {
         public const int C_UDP_PACKAGE_SIZE = 600;
-        
+
         private StringWriter _string_writer;
         public System.Net.Sockets.UdpClient _client;
         public System.Net.IPEndPoint _remote;
@@ -26,10 +27,21 @@ namespace FH
             _string_writer = new StringWriter(C_UDP_PACKAGE_SIZE, System.Text.Encoding.UTF8);
         }
 
-        public static IPEndPoint CreateRemoteIP(string address,int port)
+        public static IPEndPoint CreateRemoteIP(string address, int port)
         {
-            var host_entry = Dns.GetHostEntry(address);
-            if (host_entry == null )
+            IPHostEntry host_entry = null;
+#if !UNITY_EDITOR
+            try
+            {
+#endif
+            host_entry = Dns.GetHostEntry(address);
+
+#if !UNITY_EDITOR
+            }
+            catch{}
+#endif
+
+            if (host_entry == null)
                 return null;
             System.Net.IPAddress[] address_list = host_entry.AddressList;
             if (address_list == null || address_list.Length == 0)

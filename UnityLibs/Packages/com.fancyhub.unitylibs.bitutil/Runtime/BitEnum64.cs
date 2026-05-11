@@ -40,6 +40,9 @@ namespace FH
             }
         }
 
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>       
         public bool SetBit(T idx, bool state)
         {
             //1. check
@@ -50,11 +53,12 @@ namespace FH
                 return false;
             }
 
+            var old = Value;
             if (state)
                 Value = (1ul << index) | Value;
             else
                 Value = ~(1ul << index) & Value;
-            return true;
+            return old != Value;
         }
 
         public bool GetBit(T idx)
@@ -69,19 +73,32 @@ namespace FH
             return ((1ul << index) & Value) != 0;
         }
 
-        public void SetValue(BitEnum64<T> mask, BitEnum64<T> v)
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>       
+        public bool SetValue(BitEnum64<T> mask, BitEnum64<T> v)
         {
+            var old = Value;
             Value = (Value & (~mask.Value)) | (v.Value & mask.Value);
+            return old != Value;
         }
 
-        public void SetValue(BitEnum64<T> mask, bool v)
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>       
+        public bool SetValue(BitEnum64<T> mask, bool v)
         {
+            var old = Value;
             if (v)
                 Value |= mask.Value;
             else
                 Value &= ~mask.Value;
+            return old != Value;
         }
 
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>
         public bool SetBit(int idx, bool state)
         {
             //1. check            
@@ -91,11 +108,12 @@ namespace FH
                 return false;
             }
 
+            var old = Value;
             if (state)
                 Value = (1ul << idx) | Value;
             else
                 Value = ~(1ul << idx) & Value;
-            return true;
+            return old != Value;
         }
 
         public bool GetBit(int idx)

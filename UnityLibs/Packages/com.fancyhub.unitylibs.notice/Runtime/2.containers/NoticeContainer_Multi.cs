@@ -100,7 +100,7 @@ namespace FH
 
         public void OnDestroy()
         {
-            _show_queue.Destroy();
+            _show_queue?.Destroy();
         }
     }
 }

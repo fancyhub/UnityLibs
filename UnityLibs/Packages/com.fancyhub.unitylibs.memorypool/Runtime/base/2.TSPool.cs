@@ -11,81 +11,57 @@ using System.Threading;
 
 namespace FH
 {
-    //http://adammil.net/blog/v111_Creating_High-Performance_Locks_and_Lock-free_Code_for_NET_.html
-    public sealed class CasCriticalSection
+    public sealed class SpinCriticalSection
     {
-        private readonly bool _Sleep;
-        private long _Value = 0;
+        private long _locked;
+        private long _tokenGen;
 
-        public CasCriticalSection(bool sleep = true)
+        public Locker Lock()
         {
-            _Sleep = sleep;
+            long token = _NextToken();
+            var spin = new SpinWait();
+            while (Interlocked.CompareExchange(ref _locked, token, 0) != 0)
+                spin.SpinOnce();
+
+            return new Locker(this, token);
         }
 
-        public bool Enter(long locker_id)
+        private long _NextToken()
         {
-            if (locker_id == 0)
-                return false;
-            int spinCount = 0;
-
-            while (Interlocked.CompareExchange(ref _Value, locker_id, 0) != 0)
-            {
-                if(!_Sleep)
-                    return false; 
-                _SpinWait(spinCount++);
-            }
-            return true;
+            long token = Interlocked.Increment(ref _tokenGen);
+            if (token == 0)
+                token = Interlocked.Increment(ref _tokenGen);
+            return token;
         }
 
-        public bool Exit(long locker_id)
+        private void Unlock(long token)
         {
-            if (locker_id == 0)
-                return false;
-            return Interlocked.CompareExchange(ref _Value, 0L, locker_id) == locker_id;
-        }
-
-        private static void _SpinWait(int spinCount)
-        {
-            if (spinCount < 10)
-                Thread.SpinWait(20 * (spinCount + 1));
-            else if (spinCount < 15)
-                Thread.Sleep(0); // or use Thread.Yield() in .NET 4
-            else
-                Thread.Sleep(1);
-        }
-    }
-
-    public static class CasCriticalSectionExt
-    {
-        public static Locker ExtLock(this CasCriticalSection self)
-        {
-            return new Locker(self);
+            if (token == 0)
+                return;
+            Interlocked.CompareExchange(ref _locked, 0, token);
         }
 
         public struct Locker : IDisposable
         {
-            private static long _LockerIdGen = 1;
-            private long _LockerId;
-            private CasCriticalSection _CriticalSection;
-            internal Locker(CasCriticalSection critical_section)
+            private SpinCriticalSection _owner;
+            private long _token;
+
+            internal Locker(SpinCriticalSection owner, long token)
             {
-                _CriticalSection = critical_section;
-                _LockerId = 0;
-                long locker_id = Interlocked.Increment(ref _LockerIdGen);
-                if (critical_section.Enter(locker_id))
-                    _LockerId = locker_id;
+                _owner = owner;
+                _token = token;
             }
 
             public void Dispose()
             {
-                if (_LockerId == 0 || _CriticalSection == null)
+                var owner = _owner;
+                var token = _token;
+                if (owner == null)
                     return;
-                var value = _LockerId;
-                var cs = _CriticalSection;
-                _CriticalSection = null;
-                _LockerId = 0;
 
-                cs.Exit(value);
+                _owner = null;
+                _token = 0;
+                owner.Unlock(token);
             }
         }
     }
@@ -96,19 +72,12 @@ namespace FH
     /// </summary>
     public sealed class TSPool<T> : IPool<T> where T : class, IPoolItem, new()
     {
-        internal static TSPool<T> _;
+        internal static TSPool<T> _ = new TSPool<T>();
 
-        public static TSPool<T> Inst
-        {
-            get
-            {
-                if (_ == null)
-                    _ = new TSPool<T>();
-                return _;
-            }
-        }
+        public static TSPool<T> Inst => _;
 
-        private CasCriticalSection _CriticalSection = new CasCriticalSection();
+
+        private SpinCriticalSection _CriticalSection = new SpinCriticalSection();
 
         //调用new的次数
         private int _count_new = 0;
@@ -155,14 +124,14 @@ namespace FH
 
         public void Clear()
         {
-            using var locker = _CriticalSection.ExtLock();
+            using var locker = _CriticalSection.Lock();
             _free_list.Clear();
         }
 
         public T New()
         {
             T ret = null;
-            using (var locker = _CriticalSection.ExtLock())
+            using (var locker = _CriticalSection.Lock())
             {
                 _count_new++;
                 int count_using = _count_new - _count_del;
@@ -196,6 +165,9 @@ namespace FH
             if (null == item)
                 return false;
 
+
+            using var locker = _CriticalSection.Lock();
+
             if (item.Pool != this)
             {
                 Log.Assert(false, "对象的Pool 不是自己", item.GetType().FullName);
@@ -210,11 +182,10 @@ namespace FH
 
             item.InPool = true;
 
-            using var locker = _CriticalSection.ExtLock();
             _count_del++;
             _free_list.Add(item);
             return true;
         }
     }
-      
+
 }

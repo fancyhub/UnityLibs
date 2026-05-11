@@ -171,7 +171,7 @@ namespace FH
         {
             internal static Pool<T> _;
             private LinkedList<T> s_pooled = new LinkedList<T>();
-            private int allocatedCount = 0;
+            private const int CMaxCount = 10; //只保留这么多, 太多了就不是临时用的了
 
             public static Pool<T> Inst
             {
@@ -187,7 +187,6 @@ namespace FH
             {
                 if (s_pooled.ExtPopFirst(out T ret))
                     return ret;
-                allocatedCount++;
                 return new T();
             }
 
@@ -196,10 +195,17 @@ namespace FH
                 if (_ == null)
                     return false;
 
-                if (_.s_pooled.Count < _.allocatedCount)
+                if (_.s_pooled.Count >= CMaxCount)
+                    return true;
+
+                foreach (var p in _.s_pooled)
                 {
-                    _.s_pooled.ExtAddLast(tar);
+                    if (p == tar)
+                    {
+                        return false;
+                    }
                 }
+                _.s_pooled.ExtAddLast(tar);
                 return true;
             }
         }

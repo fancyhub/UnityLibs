@@ -44,6 +44,9 @@ namespace FH
             }
         }
 
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>        
         public bool SetBit(T idx, bool state)
         {
             //1. check
@@ -54,11 +57,13 @@ namespace FH
                 return false;
             }
 
+            var old = Value;
+
             if (state)
                 Value = (1u << index) | Value;
             else
                 Value = ~(1u << index) & Value;
-            return true;
+            return old != Value;
         }
 
         public bool GetBit(T idx)
@@ -73,17 +78,27 @@ namespace FH
             return ((1u << index) & Value) != 0;
         }
 
-        public void SetValue(BitEnum32<T> mask, BitEnum32<T> value)
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>        
+        public bool SetValue(BitEnum32<T> mask, BitEnum32<T> value)
         {
+            var old = Value;
             Value = (Value & (~mask.Value)) | (value.Value & mask.Value);
+            return old != Value;
         }
 
-        public void SetValue(BitEnum32<T> mask, bool value)
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>        
+        public bool SetValue(BitEnum32<T> mask, bool value)
         {
+            var old = Value;
             if (value)
                 Value |= mask.Value;
             else
                 Value &= ~mask.Value;
+            return old != Value;
         }
 
         public BitEnum32<T> GetValue(BitEnum32<T> mask)
@@ -91,6 +106,9 @@ namespace FH
             return Value & mask.Value;
         }
 
+        /// <summary>
+        /// 返回是否有数值变化
+        /// </summary>        
         public bool SetBit(int idx, bool state)
         {
             //1. check            
@@ -100,11 +118,12 @@ namespace FH
                 return false;
             }
 
+            var old = Value;
             if (state)
                 Value = (1u << idx) | Value;
             else
                 Value = ~(1u << idx) & Value;
-            return true;
+            return old != Value;
         }
 
         public bool GetBit(int idx)

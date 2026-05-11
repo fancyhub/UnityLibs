@@ -29,7 +29,7 @@ namespace FH
         public BitEnum32<ENoticeClearSignal> ClearSignal;
 
 
-        public bool IsVisible(ENoticeVisible flag)
+        public bool IsVisible(BitEnum32<ENoticeVisible> flag)
         {
             //白名单
             bool visible = _is_white_list_visible(flag);
@@ -44,25 +44,24 @@ namespace FH
             return true;
         }
 
-        private bool _is_white_list_visible(ENoticeVisible flag)
+        private bool _is_white_list_visible(BitEnum32<ENoticeVisible> flag)
         {
             ENoticeVisiblePatternFlag conf_pattern = VisiblePattern;
             bool pattern_exist = (conf_pattern & ENoticeVisiblePatternFlag.WhiteList) != ENoticeVisiblePatternFlag.None;
             if (!pattern_exist)
                 return true;
 
-            return WhiteList[flag];
-
+            return (WhiteList & flag) != 0;
         }
 
-        private bool _is_black_list_visible(ENoticeVisible flag)
+        private bool _is_black_list_visible(BitEnum32<ENoticeVisible> flag)
         {
             ENoticeVisiblePatternFlag conf_pattern = VisiblePattern;
             bool pattern_exist = (conf_pattern & ENoticeVisiblePatternFlag.BlackList) != ENoticeVisiblePatternFlag.None;
             if (!pattern_exist)
                 return true;
 
-            return !BlackList[flag];
+            return (BlackList & flag) == 0;
         }
     }
 

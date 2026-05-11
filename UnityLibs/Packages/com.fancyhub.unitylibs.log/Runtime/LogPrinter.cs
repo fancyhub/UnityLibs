@@ -57,14 +57,10 @@ namespace FH
             if ((unity_mask & lvl_mask) != ELogMask.None)
             {
                 log_msg = sb.ToString();
-                LogType logType = _ToUnityLogType(log_lvl);
-                LogOption logOption = with_trace ? LogOption.None : LogOption.NoStacktrace;
-                //UnityEngine.Debug.LogFormat(logType, logOption, context, log_msg); // 如果log_msg 里面含有{}, 就会报错
-                var unityLogger = UnityEngine.Debug.unityLogger;
-                if (unityLogger != null && unityLogger.IsLogTypeAllowed(logType))
-                {
-                    unityLogger.Log(logType, (object)log_msg, context);
-                }
+                if (!log_msg.Contains('{') && !log_msg.Contains('}')) //这里只能调用LogFormat, 碰到{ 有问题
+                    UnityEngine.Debug.LogFormat(_ToUnityLogType(log_lvl), with_trace ? LogOption.None : LogOption.NoStacktrace, context, log_msg);
+                else
+                    UnityEngine.Debug.LogFormat(_ToUnityLogType(log_lvl), with_trace ? LogOption.None : LogOption.NoStacktrace, context, "{0}", log_msg);            
             }
 
             if (log_msg != null)
@@ -119,7 +115,10 @@ namespace FH
             if ((unity_mask & lvl_mask) != ELogMask.None)
             {
                 log_msg = sb.ToString();
-                UnityEngine.Debug.LogFormat(_ToUnityLogType(log_lvl), with_trace ? LogOption.None : LogOption.NoStacktrace, context, log_msg);
+                if (!log_msg.Contains('{') && !log_msg.Contains('}')) //这里只能调用LogFormat, 碰到{ 有问题
+                    UnityEngine.Debug.LogFormat(_ToUnityLogType(log_lvl), with_trace ? LogOption.None : LogOption.NoStacktrace, context, log_msg);
+                else
+                    UnityEngine.Debug.LogFormat(_ToUnityLogType(log_lvl), with_trace ? LogOption.None : LogOption.NoStacktrace, context, "{0}", log_msg);
             }
 
             if (log_msg != null)
@@ -156,8 +155,10 @@ namespace FH
             if ((unity_mask & lvl_mask) != ELogMask.None)
             {
                 log_msg = sb.ToString();
-                if(!log_msg.Contains('{')) //这里只能调用LogFormat, 碰到{ 有问题
+                if (!log_msg.Contains('{') && !log_msg.Contains('}')) //这里只能调用LogFormat, 碰到{ 有问题
                     UnityEngine.Debug.LogFormat(_ToUnityLogType(log_lvl), with_trace ? LogOption.None : LogOption.NoStacktrace, context, log_msg);
+                else
+                    UnityEngine.Debug.LogFormat(_ToUnityLogType(log_lvl), with_trace ? LogOption.None : LogOption.NoStacktrace, context, "{0}", log_msg);
             }
 
             if (log_msg != null)
@@ -192,7 +193,11 @@ namespace FH
             if ((unity_mask & lvl_mask) != ELogMask.None)
             {
                 log_msg = sb.ToString();
-                UnityEngine.Debug.LogFormat(_ToUnityLogType(log_lvl), with_trace ? LogOption.None : LogOption.NoStacktrace, context, log_msg);
+                if (!log_msg.Contains('{') && !log_msg.Contains('}')) //这里只能调用LogFormat, 碰到{ 有问题
+                    UnityEngine.Debug.LogFormat(_ToUnityLogType(log_lvl), with_trace ? LogOption.None : LogOption.NoStacktrace, context, log_msg);
+                else
+                    UnityEngine.Debug.LogFormat(_ToUnityLogType(log_lvl), with_trace ? LogOption.None : LogOption.NoStacktrace, context, "{0}", log_msg);
+
             }
 
             if (log_msg != null)

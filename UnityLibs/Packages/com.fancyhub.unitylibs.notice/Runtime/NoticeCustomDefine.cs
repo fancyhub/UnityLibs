@@ -30,7 +30,6 @@ namespace FH
     /// </summary>
     public enum ENoticeVisible
     {
-        None = 0,
         Loading,
         Cutscene,
     }

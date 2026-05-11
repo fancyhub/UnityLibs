@@ -19,7 +19,7 @@ namespace FH
         public void Update();
         public void Destroy();
 
-        public void SetVisibleFlag(ENoticeVisible flag);
+        public void SetVisibleFlag(BitEnum32<ENoticeVisible> flag);
         public void RaiseClearSignal(ENoticeClearSignal signal);
         public void Clear();
 

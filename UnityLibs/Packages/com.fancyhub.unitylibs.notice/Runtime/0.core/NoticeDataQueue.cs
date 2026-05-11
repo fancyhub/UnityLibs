@@ -89,7 +89,10 @@ namespace FH
 
             //剔除掉重复的 notice，主要是针对common类型，避免弹太多太久太慢
             if (_TryMerge(_queue, data))
+            {
+                data.Destroy();
                 return;
+            }
 
             int priority = data.Priority;
 
@@ -177,6 +180,7 @@ namespace FH
             LinkedListNode<NoticeData> node = _queue.First;
             while (null != node)
             {
+                node.Value.Destroy();
                 node = node.Next;
             }
             _queue.ExtClear();

@@ -88,6 +88,7 @@ namespace FH
 
             _size.Clear();
 
+            _move.Clear();
             _clock = null;
         }
 

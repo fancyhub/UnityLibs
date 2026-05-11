@@ -80,6 +80,9 @@ namespace FH
         {
             _container.OnDestroy();
             _container = null;
+
+            _context.DataQueue.Destroy();
+
             _context.Root.Destroy();
             _context.Root = null;
         }
@@ -95,7 +98,7 @@ namespace FH
         /// 清空当前的显示队列，但是不会清空当前的等待队列
         /// 等待队列更新暂停
         /// </summary>
-        public void SetVisibleFlag(ENoticeVisible flag)
+        public void SetVisibleFlag(BitEnum32<ENoticeVisible> flag)
         {
             bool visible = _VisibleCtrl.IsVisible(flag);
             if (_context.Visible == visible)
