@@ -27,21 +27,40 @@ namespace FH
         public MemoryStream _MsWriter;
         public AesManaged _WriteAes;
 
-        public ObjectStreamAes(IObjectStream<NetPackage> stream, int max_package_size)
+        public ObjectStreamAes(IObjectStream<NetPackage> stream, int max_package_size, AesManaged aesMgr)
         {
             _Stream = stream;
             _MaxPackageSize = max_package_size;
 
             _ReadBodyBuff = new byte[max_package_size];
             _MsReader = new MemoryStream(_ReadBodyBuff, true);
-            _ReadAes = _CreateAes();
+            _ReadAes = _CloneAes(aesMgr);
 
             _WriteBodyBuff = new byte[max_package_size];
             _MsWriter = new MemoryStream(_WriteBodyBuff, true);
-            _WriteAes = _CreateAes();
+            _WriteAes = _CloneAes(aesMgr);
         }
 
-        private AesManaged _CreateAes()
+        private static AesManaged _CloneAes(AesManaged aesMgr)
+        {
+            if (aesMgr == null)
+                throw new ArgumentNullException(nameof(aesMgr));
+
+            if (aesMgr.Padding != PaddingMode.PKCS7)
+                throw new ArgumentException("ObjectStreamAes only supports PKCS7 padding", nameof(aesMgr));
+
+            var ret = new AesManaged();
+            ret.Mode = aesMgr.Mode;
+            ret.KeySize = aesMgr.KeySize;
+            ret.BlockSize = aesMgr.BlockSize;
+            ret.FeedbackSize = aesMgr.FeedbackSize;
+            ret.Padding = aesMgr.Padding;
+            ret.Key = aesMgr.Key;
+            ret.IV = aesMgr.IV;
+            return ret;
+        }
+
+        public static AesManaged CreateAes()
         {
             var aes = new AesManaged();
             aes.Mode = CipherMode.CBC;
@@ -121,17 +140,33 @@ namespace FH
             }
 
             //3. 解密
-            _MsReader.Position = 0;
-            ICryptoTransform dec = _ReadAes.CreateDecryptor();
-            using (var cryptoStream = new CryptoStream(_MsReader, dec, CryptoStreamMode.Write))
+            try
             {
-                cryptoStream.Write(pack.Body, 0, pack.Header.MsgBodyLen);
+                _MsReader.Position = 0;
+                ICryptoTransform dec = _ReadAes.CreateDecryptor();
+                using (var cryptoStream = new CryptoStream(_MsReader, dec, CryptoStreamMode.Write))
+                {
+                    cryptoStream.Write(pack.Body, 0, pack.Header.MsgBodyLen);
+                }
+            }
+            catch (CryptographicException e)
+            {
+                Log.E("AES Decrypt Error: {0}", e.Message);
+                CloseIn();
+                data = default;
+                return false;
+            }
+            catch (ObjectDisposedException)
+            {
+                CloseIn();
+                data = default;
+                return false;
             }
 
             //4. 拼装 package
             data = new NetPackage();
             data.Header = pack.Header;
-            data.Header.MsgBodyLen = (ushort)_MsReader.Length;
+            data.Header.MsgBodyLen = (ushort)_MsReader.Position;
             data.Body = _ReadBodyBuff;
             return true;
         }
@@ -181,18 +216,58 @@ namespace FH
                 return _Stream.Write(data);
             }
 
-            //2. 加密
-            _MsWriter.Position = 0;
-            ICryptoTransform enc = _WriteAes.CreateEncryptor();
-            using (var csEncrypt = new CryptoStream(_MsWriter, enc, CryptoStreamMode.Write))
+            int plain_size = data.Header.MsgBodyLen;
+            if (data.Body == null || plain_size > data.Body.Length)
             {
-                csEncrypt.Write(data.Body, 0, data.Header.MsgBodyLen);
+                Log.E("AES Package Body Size Error, plain:{0}, body:{1}", plain_size, data.Body == null ? -1 : data.Body.Length);
+                return false;
+            }
+
+            int block_size = _WriteAes.BlockSize / 8;
+            if (block_size <= 0)
+            {
+                Log.E("AES Block Size Error: {0}", _WriteAes.BlockSize);
+                return false;
+            }
+
+            int padding_size = block_size - plain_size % block_size;
+            int encrypt_size = plain_size + padding_size;
+            if (encrypt_size > _MaxPackageSize)
+            {
+                Log.E("AES Package Too Large, plain:{0}, encrypt:{1}, max:{2}, block:{3}",
+                    plain_size,
+                    encrypt_size,
+                    _MaxPackageSize,
+                    block_size);
+                return false;
+            }
+
+            //2. 加密
+            try
+            {
+                _MsWriter.Position = 0;
+                ICryptoTransform enc = _WriteAes.CreateEncryptor();
+                using (var csEncrypt = new CryptoStream(_MsWriter, enc, CryptoStreamMode.Write))
+                {
+                    csEncrypt.Write(data.Body, 0, data.Header.MsgBodyLen);
+                }
+            }
+            catch (CryptographicException e)
+            {
+                Log.E("AES Encrypt Error: {0}", e.Message);
+                CloseOut();
+                return false;
+            }
+            catch (ObjectDisposedException)
+            {
+                CloseOut();
+                return false;
             }
 
             //3. 写buff
             NetPackage pack = new NetPackage();
             pack.Header = data.Header;
-            pack.Header.MsgBodyLen = (ushort)_MsWriter.Length;
+            pack.Header.MsgBodyLen = (ushort)_MsWriter.Position;
             pack.Body = _WriteBodyBuff;
 
             return _Stream.Write(pack);

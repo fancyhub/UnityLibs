@@ -38,7 +38,7 @@ namespace FH
     }
 
     /// <summary>
-    ///  处理Tcp的粘包问题
+    ///  处理Tcp的粘包问题, 返回的byte[] 是共享的, 需要上层立刻处理,要么解包,要么复制, 不能长期持有
     /// </summary>
     public sealed class ObjectStreamNetPackage : IObjectStream<NetPackage>
     {

@@ -7,40 +7,214 @@
 
 using System;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace FH
 {
+    /// <summary>
+    /// 这个类里面的所有操作都是要基于一个block, 要么全部写完,要么全部读取完, 才能返回true,要不然就是false
+    /// </summary>
+    public static class TcpBlockOp
+    {
+        public static bool Read(Socket socket, byte[] buff, int offset, int size)
+        {
+            if (socket == null)
+                return false;
+
+            if (buff == null || size < 0 || offset < 0 || offset > buff.Length || size > buff.Length - offset)
+                return false;
+
+            return Read(socket, new Span<byte>(buff, offset, size));
+        }
+
+        public static bool Read(Socket socket, Span<byte> buff)
+        {
+            if (socket == null)
+                return false;
+
+            try
+            {
+                int offset = 0;
+                while (offset < buff.Length)
+                {
+                    Span<byte> temp = buff.Slice(offset);
+
+                    if (!socket.Blocking)
+                    {
+                        if (!socket.Poll(-1, SelectMode.SelectRead))
+                            return false;
+                    }
+
+                    int readSize = socket.Receive(temp, SocketFlags.None, out SocketError error);
+
+                    if (error == SocketError.WouldBlock)
+                    {
+                        Thread.Yield();
+                        continue;
+                    }
+
+                    if (error != SocketError.Success)
+                    {
+                        Log.E("Recv Err: {0}", error);
+                        return false;
+                    }
+
+                    if (readSize <= 0)
+                        return false;
+
+                    if (readSize > temp.Length)
+                    {
+                        Log.Assert(false, "Receive size overflow, need:{0}, recv:{1}", temp.Length, readSize);
+                        return false;
+                    }
+
+                    offset += readSize;
+                }
+
+                return true;
+            }
+            catch (ObjectDisposedException)
+            {
+                return false;
+            }
+            catch (SocketException e)
+            {
+                Log.E("Recv Err: {0}", e.SocketErrorCode);
+                return false;
+            }
+        }
+
+        public static bool Skip(Socket socket, int size)
+        {
+            if (size < 0)
+                return false;
+
+            Span<byte> buff = stackalloc byte[256];
+
+            for (; ; )
+            {
+                int t = Math.Min(size, buff.Length);
+                if (t <= 0)
+                    return true;
+
+                var temp = buff.Slice(0, t);
+                if (!Read(socket, temp))
+                    return false;
+                size -= temp.Length;
+            }
+        }
+
+        public static bool Write(Socket socket, byte[] buff, int offset, int size)
+        {
+            if (socket == null)
+                return false;
+
+            if (buff == null || size < 0 || offset < 0 || offset > buff.Length || size > buff.Length - offset)
+                return false;
+
+            return Write(socket, new ReadOnlySpan<byte>(buff, offset, size));
+        }
+
+        public static bool Write(Socket socket, ReadOnlySpan<byte> buff)
+        {
+            if (socket == null)
+                return false;
+
+            try
+            {
+                int offset = 0;
+                while (offset < buff.Length)
+                {
+                    ReadOnlySpan<byte> temp = buff.Slice(offset);
+
+                    if (!socket.Blocking)
+                    {
+                        if (!socket.Poll(-1, SelectMode.SelectWrite))
+                            return false;
+                    }
+
+                    int writeSize = socket.Send(temp, SocketFlags.None, out SocketError error);
+
+                    if (error == SocketError.WouldBlock)
+                    {
+                        Thread.Yield();
+                        continue;
+                    }
+
+                    if (error != SocketError.Success)
+                    {
+                        Log.E("Send Err: {0}", error);
+                        return false;
+                    }
+
+                    if (writeSize <= 0)
+                        return false;
+
+                    if (writeSize > temp.Length)
+                    {
+                        Log.Assert(false, "Send size overflow, need:{0}, send:{1}", temp.Length, writeSize);
+                        return false;
+                    }
+
+                    offset += writeSize;
+                }
+
+                return true;
+            }
+            catch (ObjectDisposedException)
+            {
+                return false;
+            }
+            catch (SocketException e)
+            {
+                Log.E("Send Err: {0}", e.SocketErrorCode);
+                return false;
+            }
+        }
+    }
+
     public sealed class ObjectStreamTcpSocket : IObjectStream<byte>
     {
         private const int CReadTimeOut = -1;//无限
         private Socket _Socket;
+        private int _Closed;
 
         public ObjectStreamTcpSocket(Socket socket)
         {
             _Socket = socket;
+            _Closed = socket == null ? 1 : 0;
+        }
+
+        private void _Close()
+        {
+            if (Interlocked.Exchange(ref _Closed, 1) != 0)
+                return;
+
+            var socket = _Socket;
+            _Socket = null;
+            socket?.Close();
         }
 
         #region Stream In
         public void CloseIn()
         {
-            _Socket?.Close();
+            _Close();
         }
 
         public bool IsClosedIn()
         {
-            if (_Socket == null || !_Socket.Connected)
-                return true;
-            return false;
+            return Volatile.Read(ref _Closed) != 0;
         }
 
         public bool Read(out byte b)
         {
+            b = default;
             Span<byte> buff = stackalloc byte[1];
+            if (Read(buff) != buff.Length)
+                return false;
 
-            int ret = Read(buff);
             b = buff[0];
-
-            return ret == 1;
+            return true;
         }
 
         public int Read(byte[] buff, int offset, int count)
@@ -54,61 +228,34 @@ namespace FH
 
         public int Read(Span<byte> buff)
         {
-            int ret_count = 0;
-            int offset = 0;
-            int count = buff.Length;
-
-            for (; ; )
+            var socket = _Socket;
+            if (!TcpBlockOp.Read(socket, buff))
             {
-                if (!_Socket.Connected)
-                    return 0;
-
-                if (!_Socket.Poll(1, SelectMode.SelectRead))
-                    continue;
-
-                int recv_count = _Socket.Receive(buff.Slice(offset, count), SocketFlags.None, out SocketError socket_err);
-                if (socket_err != SocketError.Success)
-                {
-                    Log.E("Recv Err: {0}", socket_err);
-                    return 0;
-                }
-
-                Log.Assert(recv_count <= count, "有问题,需要看一下, need:{0}, recv:{1}", count, recv_count);
-
-                //这个比较特殊,说明网络断了
-                if (recv_count == 0)
-                {
-                    continue;
-                }
-
-                count -= recv_count;
-                offset += recv_count;
-                ret_count += recv_count;
-                if (count <= 0)
-                    break;
+                _Close();
+                return 0;
             }
-            return ret_count;
+
+            return buff.Length;
         }
         #endregion
 
         #region Stream Out
         public void CloseOut()
         {
-            _Socket?.Close();
+            _Close();
         }
 
         public bool IsClosedOut()
         {
-            if (_Socket == null || !_Socket.Connected)
-                return true;
-            return false;
+            return Volatile.Read(ref _Closed) != 0;
         }
 
         public bool Write(byte data)
         {
             Span<byte> buff = stackalloc byte[1];
             buff[0] = data;
-            return Write(buff) == 1;
+
+            return Write(buff) == buff.Length;
         }
 
         public int Write(byte[] buff, int offset, int count)
@@ -122,38 +269,14 @@ namespace FH
 
         public int Write(ReadOnlySpan<byte> buff)
         {
-            if (_Socket == null)
-                return 0;
-            if (buff.Length == 0)
-                return 0;
-
-            int ret_count = 0;
-            for (; ; )
+            var socket = _Socket;
+            if (!TcpBlockOp.Write(socket, buff))
             {
-                if (!_Socket.Connected)
-                    return 0;
-                if (!_Socket.Poll(1, SelectMode.SelectWrite))
-                    continue;
-
-                int send_count = _Socket.Send(buff, SocketFlags.None, out SocketError socket_err);
-                if (socket_err != SocketError.Success)
-                {
-                    Log.E("Send Err: {0}", socket_err);
-                    return 0;
-                }
-                if (send_count == 0)
-                {
-                    Log.E("Send Err count: {0},need {1}", send_count, buff.Length);
-                    return 0;
-                }
-
-                buff = buff.Slice(send_count);
-
-                ret_count += send_count;
-                if (buff.Length <= 0)
-                    break;
+                _Close();
+                return 0;
             }
-            return ret_count;
+
+            return buff.Length;
         }
         #endregion
     }
