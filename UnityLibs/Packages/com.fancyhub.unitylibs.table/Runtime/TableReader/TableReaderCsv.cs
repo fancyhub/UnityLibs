@@ -23,16 +23,14 @@ namespace FH
         {
             if (_csv_reader == null)
                 return null;
-            _list_str.Clear();
             bool ret = _csv_reader.ReadRow(_list_str);
-            ret &= _csv_reader.ReadRow(_list_str);
+            ret &= _csv_reader.ReadRow(_list_str,false);
             return _list_str;
         }
 
         public bool NextRow(out ITableRowReader rowReader)
         {
             rowReader = null;
-            _list_str.Clear();
             if (!_csv_reader.ReadRow(_list_str))
                 return false;
 

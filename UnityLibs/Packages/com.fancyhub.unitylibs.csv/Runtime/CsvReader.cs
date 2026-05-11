@@ -11,127 +11,62 @@ namespace FH
 {
     public sealed partial class CsvReader
     {
-        private CsvTokenizer _Tokenizer;
-        private bool _ReadWordNeedWord = true;
-        private bool _ReadWordPendingEmpty;
+        private CsvWordTokenizer _Tokenizer;
 
         public CsvReader(byte[] buff)
         {
-            _Tokenizer = new CsvTokenizer(buff);
+            _Tokenizer = new CsvWordTokenizer(buff);
         }
 
         public CsvReader(string buf)
         {
-            _Tokenizer = new CsvTokenizer(buf);
+            _Tokenizer = new CsvWordTokenizer(buf);
         }
 
         public bool IsEnd => _Tokenizer.IsEnd;
 
-        /// <summary>
-        /// 不会清除 out_list
-        /// </summary>
-        public bool ReadRow(List<Str> out_list)
+
+        public bool ReadRow(List<Str> out_list, bool clear = true)
         {
+            if (clear)
+                out_list.Clear();
+
             if (IsEnd)
                 return false;
 
-            bool hasToken = false;
-            bool needWord = true;
+            bool hasWord = false;
             for (; ; )
             {
-                var r = _Tokenizer.Next(out Str word);
-                switch (r)
+                var result = _Tokenizer.Next(out Str word);
+                switch (result)
                 {
-                    case ECsvTokenizer.Word:
+                    case ECsvWordTokenizerResult.Word:
                         out_list.Add(word);
-                        hasToken = true;
-                        needWord = false;
+                        hasWord = true;
                         break;
 
-                    case ECsvTokenizer.CharDelimiter:
-                        if (needWord)
-                            out_list.Add(Str.Empty);
-                        hasToken = true;
-                        needWord = true;
-                        break;
-
-                    case ECsvTokenizer.NewLine:
-                        if (needWord)
-                            out_list.Add(Str.Empty);
+                    case ECsvWordTokenizerResult.RowEnd:
+                        out_list.Add(word);
                         return true;
 
-                    case ECsvTokenizer.End:
-                        if (!hasToken)
-                            return false;
-                        if (needWord)
-                            out_list.Add(Str.Empty);
-                        return true;
+                    case ECsvWordTokenizerResult.End:
+                        return hasWord;
 
-                    case ECsvTokenizer.Error:
+                    case ECsvWordTokenizerResult.Error:
                         return false;
 
                     default:
-                        break;
+                        return false;
                 }
             }
         }
 
+
         public bool ReadWord(out Str word)
         {
-            word = Str.Empty;
-            if (_ReadWordPendingEmpty)
-            {
-                _ReadWordPendingEmpty = false;
-                _ReadWordNeedWord = false;
-                return true;
-            }
-
-            if (IsEnd)
-                return false;
-            for (; ; )
-            {
-                var r = _Tokenizer.Next(out word);
-                switch (r)
-                {
-                    case ECsvTokenizer.Word:
-                        _ReadWordNeedWord = false;
-                        return true;
-
-                    case ECsvTokenizer.CharDelimiter:
-                        if (_ReadWordNeedWord)
-                        {
-                            _ReadWordPendingEmpty = IsEnd;
-                            word = Str.Empty;
-                            return true;
-                        }
-                        _ReadWordNeedWord = true;
-                        if (IsEnd)
-                        {
-                            _ReadWordNeedWord = false;
-                            word = Str.Empty;
-                            return true;
-                        }
-                        break;
-
-                    case ECsvTokenizer.NewLine:
-                        if (_ReadWordNeedWord)
-                        {
-                            word = Str.Empty;
-                            return true;
-                        }
-                        _ReadWordNeedWord = true;
-                        break;
-
-                    case ECsvTokenizer.End:
-                        return false;
-
-                    case ECsvTokenizer.Error:
-                        return false;
-
-                    default:
-                        break;
-                }
-            }
+            var result = _Tokenizer.Next(out word);
+            return result == ECsvWordTokenizerResult.Word ||
+                result == ECsvWordTokenizerResult.RowEnd;
         }
     }
 }

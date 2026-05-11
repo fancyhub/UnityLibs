@@ -16,10 +16,10 @@ namespace FH
             if (ta == null)
             {
                 byte[] buff = null;
-                _Tokenizer = new CsvTokenizer(buff);
+                _Tokenizer = new CsvWordTokenizer(buff);
             }
             else
-                _Tokenizer = new CsvTokenizer(ta.bytes);
+                _Tokenizer = new CsvWordTokenizer(ta.bytes);
         }
     }
 }

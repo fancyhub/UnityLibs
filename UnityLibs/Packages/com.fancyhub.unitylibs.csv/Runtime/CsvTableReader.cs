@@ -111,7 +111,6 @@ namespace FH
             for (; ; )
             {
                 row_index++;
-                row_temp.Clear();
                 if (!reader.ReadRow(row_temp))
                     break;
 

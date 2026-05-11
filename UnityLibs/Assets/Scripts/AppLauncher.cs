@@ -1,7 +1,10 @@
+using FH;
+using FH.Omi;
 using FH.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 namespace Game
@@ -28,7 +31,7 @@ namespace Game
 
 
     public class MyUISceneMgr : FH.UI.UIMgr
-    {        
+    {
     }
 
     public class UISceneExtractAsset : FH.UI.UISceneBase
