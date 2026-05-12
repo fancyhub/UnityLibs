@@ -61,6 +61,7 @@ namespace FH
         GameObjectCreatorAsync_inst_error_asset_null2,
         GameObjectCreatorAsync_inst_error_unkown,
         GameObjectCreatorAsync_inst_error_not_gameobj,
+        GameObjectCreatorAsync_inst_null,
 
         GameObjectCreatorSync_start = -1400,
         GameObjectCreatorSync_inst_error_asset_null,

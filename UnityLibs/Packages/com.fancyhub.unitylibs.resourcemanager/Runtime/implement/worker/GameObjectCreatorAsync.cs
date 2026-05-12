@@ -82,7 +82,7 @@ namespace FH.ResManagement
         public void Update()
         {
             //1. 检查operation
-            if (_operation == null)
+            if (_operation == null || !_operation.isDone)
                 return;
 
             //2. 获取实例
@@ -94,6 +94,9 @@ namespace FH.ResManagement
             //4. 添加到pool
             bool succ = _gobj_pool.AddInst(new ResRef(_job.AssetId, _job.Path.Path, _asset_pool), inst, out _job.InstId);
             ResLog._.Assert(succ, "add go inst to pool failed {0}", _job.Path.Path);
+
+            if (!succ)
+                _job.ErrorCode = EResError.GameObjectCreatorAsync_inst_null;
 
             //5. 把当前任务发送给下一个
             _asset_pool.RemoveUser(_job.AssetId, _job);
