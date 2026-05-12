@@ -6,6 +6,8 @@
 *************************************************************************************/
 using FH.ResManagement;
 using System.Collections.Generic;
+using UnityEngine;
+using System.Threading;
 
 
 namespace FH
@@ -119,7 +121,7 @@ namespace FH
 
         public void CancelJob(int job_id);
 
-        //public ResRef GetResRef(UnityEngine.Object res);
+        public ResRef GetResRef(UnityEngine.Object res_or_inst);
 
         #region Upgrade
         /// <summary>
@@ -262,7 +264,7 @@ namespace FH
             return err == EResError.OK;
         }
 #if UNITY_2023_2_OR_NEWER
-        public static async Awaitable<ResRef> AsyncLoad(string path, EResPathType pathType, CancellationToken cancelToken, int priority = ResDef.PriorityDefault)
+        public static async Awaitable<ResRef> AsyncLoad(string path, EAssetPathType pathType, CancellationToken cancelToken, int priority = ResDef.PriorityDefault)
         {
             IResMgr inst = _.Val;
             if (inst == null)
@@ -411,8 +413,8 @@ namespace FH
             inst.CancelJob(job_id);
         }
 
-        /*
-        public static ResRef GetResRef(UnityEngine.Object res)
+
+        public static ResRef GetResRef(UnityEngine.Object res_or_inst)
         {
             var inst = _.Val;
             if (inst == null)
@@ -420,7 +422,7 @@ namespace FH
                 ResLog._.ErrCode(EResError.ResMgrNotInit);
                 return default;
             }
-            return inst.GetResRef(res);
+            return inst.GetResRef(res_or_inst);
         }
         //*/
     }

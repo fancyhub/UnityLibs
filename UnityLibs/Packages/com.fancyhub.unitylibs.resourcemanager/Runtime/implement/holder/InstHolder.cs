@@ -80,13 +80,13 @@ namespace FH.ResManagement
                 {
                     ResLog._.ErrCode(err, $"创建实例失败,因为只能从缓存里面创建, 可能资源未提前加载 {path}");
                 }
-                else 
+                else
                 {
                     ResLog._.ErrCode(err, $"创建实例失败,资源不存在 {path}");
                 }
                 return null;
             }
-             
+
             ResLog._.D("{0}", res_ref);
 
             //4. 获取对象
@@ -154,8 +154,8 @@ namespace FH.ResManagement
                 _HolderCb?.OnHolderCallBack();
                 return;
             }
-            
-            if(!res_ref.AddUser(this))
+
+            if (!res_ref.AddUser(this))
             {
                 _Stat.Fail++;
                 _HolderCb?.OnHolderCallBack();
@@ -181,9 +181,9 @@ namespace FH.ResManagement
 
             if (!_Dict.Remove(inst_id, out ResRef res_ref))
             {
-                GameObjectPoolUtil.Push2Pool(obj);
+                //GameObjectPoolUtil.Push2Pool(obj);
                 ResLog._.Assert(false, "对象不是从自身的Holder创建的");
-                return true;
+                return false;
             }
 
             if (_Share)

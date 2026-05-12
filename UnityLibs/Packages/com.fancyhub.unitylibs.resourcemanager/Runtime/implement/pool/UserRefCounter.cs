@@ -85,7 +85,7 @@ namespace FH.ResManagement
             {
                 out_list = new List<object>(_user_list.Count);
             }
-            out_list.AddRange(out_list);
+            out_list.AddRange(_user_list);
 #else 
             if(out_list == null)
             {

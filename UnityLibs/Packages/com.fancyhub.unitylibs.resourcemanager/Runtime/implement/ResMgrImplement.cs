@@ -155,12 +155,12 @@ namespace FH.ResManagement
             ResLog._.D("ResMgrImplement Destroy End");
         }
 
-        /*
-        public ResRef GetResRef(UnityEngine.Object res)
+
+        public ResRef GetResRef(UnityEngine.Object asset_or_inst)
         {
-            if (res == null)
+            if (asset_or_inst == null)
                 return default;
-            int inst_id = res.GetInstanceID();
+            int inst_id = asset_or_inst.GetInstanceID();
 
             if (inst_id < 0)
             {
@@ -173,20 +173,20 @@ namespace FH.ResManagement
                 }
 
                 {
-                    if (_res_pool.GetPathById(inst_id, out var path) == EResError.OK)
+                    if (_asset_pool.GetPathByInstId(inst_id, out var path) == EResError.OK)
                     {
-                        ResId res_id = new ResId(inst_id, EResType.Res);
-                        return new ResRef(res_id, path.Path, _res_pool);
+                        ResId res_id = new ResId(inst_id, EResType.Asset);
+                        return new ResRef(res_id, path.Path, _asset_pool);
                     }
                 }
             }
             else
             {
                 {
-                    if (_res_pool.GetPathById(inst_id, out var path) == EResError.OK)
+                    if (_asset_pool.GetPathByInstId(inst_id, out var path) == EResError.OK)
                     {
-                        ResId res_id = new ResId(inst_id, EResType.Res);
-                        return new ResRef(res_id, path.Path, _res_pool);
+                        ResId res_id = new ResId(inst_id, EResType.Asset);
+                        return new ResRef(res_id, path.Path, _asset_pool);
                     }
                 }
                 {

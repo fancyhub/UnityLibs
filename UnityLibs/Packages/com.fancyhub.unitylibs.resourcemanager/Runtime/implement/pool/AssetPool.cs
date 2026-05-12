@@ -156,14 +156,14 @@ namespace FH.ResManagement
             }
         }
 
-        /*
-        public EResError GetPathById(int inst_id, out ResPath path)
+
+        public EResError GetPathByInstId(int inst_id, out AssetPath path)
         {
             bool found = _pool.TryGetValue(inst_id, out ResPoolItem val);
             if (val == null)
             {
                 path = default;
-                return EResError.ResPool_res_not_exist_6;
+                return EResError.AssetPool_asset_not_exist_6;
             }
 
             path = val.GetPath();
@@ -183,6 +183,19 @@ namespace FH.ResManagement
             if (succ)
                 return EResError.OK;
             return EResError.AssetPool_asset_not_exist_5;
+        }
+
+        public EResError GetIdByInstId(int inst_id, out ResId resId)
+        {
+            bool found = _pool.TryGetValue(inst_id, out ResPoolItem val);
+            if (val == null)
+            {
+                resId = default;
+                return EResError.AssetPool_asset_not_exist_6;
+            }
+
+            resId = val.ResId;
+            return EResError.OK;
         }
 
         public EResError AddAsset(AssetPath path, IResMgr.IExternalAssetRef asset_ref, out ResId id)
