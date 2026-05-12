@@ -7,9 +7,6 @@ namespace FH.SceneManagement
 {
     internal sealed class SceneMgrImplement : ISceneMgr
     {
-        private int ___obj_ver = 0;
-        int IVersionObj.ObjVersion => ___obj_ver;
-
         private ScenePool _pool;
         private SceneLoadingQueue _loading_queue;
         private CPtr<ISceneMgr.IExternalLoader> _external_loader;
@@ -74,12 +71,7 @@ namespace FH.SceneManagement
         public void UnloadAll()
         {
             _pool.UnloadAll();
-        }
-
-        public void Destroy()
-        {
-            throw new Exception("Can't destroy scene manager");
-        }
+        }        
 
         #region upgrade
         public SceneMgrUpgradeOperation BeginUpgrade()

@@ -135,7 +135,10 @@ namespace FH.SampleExternalLoader
             {
                 UnityEngine.AssetBundle ab = UnityEngine.AssetBundle.LoadFromStream(stream);
                 if (ab == null)
+                {
+                    stream.Close();
                     return null;
+                }
                 BundleItem ret = new BundleItem();
                 ret._Bundle = ab;
                 ret._Stream = stream;

@@ -105,6 +105,7 @@ namespace FH
         }
 
         private static List<GameObject> _TempList = new();
+        private static bool _InRoutine = false;
         private static System.Collections.IEnumerator _CaptureRoutine(
             Action<Texture2D> callBack,
             RectTransform targetArea,
@@ -113,6 +114,9 @@ namespace FH
             //1. check
             if (callBack == null)
                 yield break;
+            if (_InRoutine)
+                yield break;
+            _InRoutine = true;
 
             //2. calc texture size and crop area
             Vector2Int textureSize = new Vector2Int(Screen.width, Screen.height);
@@ -168,6 +172,7 @@ namespace FH
                 _TempList.Clear();
             }
 
+            _InRoutine = false;
             //7. 
             callBack(screenShotTexture);
         }

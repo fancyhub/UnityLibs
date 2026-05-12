@@ -23,7 +23,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.provider.MediaStore;
 
@@ -150,12 +149,8 @@ public class ShareUtil {
             // --- Android 10+ (API 29+) : 使用 MediaStore (免权限) ---
             return saveViaMediaStore(activity, srcFilePath, destFileName);
         } else {
-            // --- Android 9 及以下 (API 28-) : 需要 WRITE_EXTERNAL_STORAGE 权限 ---
-            if (hasWritePermission(activity)) {
-                return saveViaLegacyFileCopy(activity, srcFilePath, destFileName);
-            } else {
-                return SaveImageError_Permission; //权限不足
-            }
+            // --- Android 9 及以下 (API 28-) : 写入应用外部图片目录，避免请求 WRITE_EXTERNAL_STORAGE ---
+            return saveViaLegacyFileCopy(activity, srcFilePath, destFileName);
         }
     }
 
@@ -201,14 +196,12 @@ public class ShareUtil {
         }
     }
 
-    private static boolean hasWritePermission(Activity activity) {
-        return activity.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED;
-    }
-
     private static int saveViaLegacyFileCopy(Activity activity, String sourcePath, String fileName) {
         try {
-            // 目标目录：/sdcard/Pictures/+activity.getPackageName()
-            File picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+            File picturesDir = activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            if (picturesDir == null) {
+                return SaveImageError_Unkown;
+            }
             File albumDir = new File(picturesDir, activity.getPackageName());
             if (!albumDir.exists()) {
                 albumDir.mkdirs();

@@ -43,7 +43,7 @@ namespace FH
         }
     }
 
-    public partial interface ISceneMgr : ICPtr
+    public partial interface ISceneMgr 
     {
         public SceneRef LoadScene(string scene_path, UnityEngine.SceneManagement.LoadSceneMode loadMode);
         public void Update();
@@ -61,8 +61,8 @@ namespace FH
 
     public static class SceneMgr
     {
-        private static CPtr<ISceneMgr> _;
-        public static ISceneMgr Inst => _.Val;
+        private static ISceneMgr _;
+        public static ISceneMgr Inst => _;
 
         public static void InitMgr(ISceneMgr.Config config, ISceneMgr.IExternalLoader external_loader)
         {
@@ -72,7 +72,7 @@ namespace FH
                 return;
             }
 
-            if (!_.Null)
+            if (_ !=null)
             {
                 SceneLog._.E("SceneMgr 已经创建了");
                 return;
@@ -85,12 +85,12 @@ namespace FH
 
             SceneLog._ = TagLog.Create(SceneLog._.Tag, config.LogLvl);
             SceneMgrImplement mgr = new SceneMgrImplement(external_loader);
-            _ = new CPtr<ISceneMgr>(mgr);
+            _ =mgr;
         }
 
         public static SceneRef LoadScene(string scene_path, UnityEngine.SceneManagement.LoadSceneMode loadMode)
         {
-            ISceneMgr mgr = _.Val;
+            ISceneMgr mgr = _;
             if (mgr == null)
             {
                 SceneLog._.E("SceneMgr is Null");
@@ -101,7 +101,7 @@ namespace FH
 
         public static void GetAllScenes(List<SceneRef> out_list)
         {
-            ISceneMgr mgr = _.Val;
+            ISceneMgr mgr = _;
             if (mgr == null)
             {
                 SceneLog._.E("SceneMgr is Null");
@@ -118,13 +118,8 @@ namespace FH
 
         public static void Update()
         {
-            ISceneMgr mgr = _.Val;
+            ISceneMgr mgr = _;
             mgr?.Update();
-        }
-
-        public static void Destroy()
-        {
-            _.Destroy();
-        }
+        }        
     }
 }

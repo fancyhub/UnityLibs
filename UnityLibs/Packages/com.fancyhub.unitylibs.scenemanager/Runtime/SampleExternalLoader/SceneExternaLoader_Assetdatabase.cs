@@ -49,6 +49,7 @@ namespace FH.SampleExternalLoader
 
         public void Destroy()
         {
+            ___obj_ver++;
         }
 
         public ISceneMgr.IExternalRef CreateSceneRef(string scene)

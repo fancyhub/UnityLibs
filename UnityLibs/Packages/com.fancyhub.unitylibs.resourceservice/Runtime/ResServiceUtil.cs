@@ -28,7 +28,7 @@ namespace FH
         public static List<FileManifest.FileItem> GetNeedDownloadFilesByAssetTags(List<string> tags)
         {
             _SharedFileItemList.Clear();
-            FileMgr.IsAllFilesReady(tags, _SharedFileItemList);
+            FileMgr.IsAllTagsReady(tags, _SharedFileItemList);
 
             return _SharedFileItemList;
         }

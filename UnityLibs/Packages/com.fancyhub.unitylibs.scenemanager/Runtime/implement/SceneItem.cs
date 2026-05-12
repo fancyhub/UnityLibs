@@ -363,7 +363,7 @@ namespace FH.SceneManagement
                         int scene_count = SceneManager.sceneCount;
                         _UnityScene = SceneManager.GetSceneAt(scene_count - 1);
 
-                        SceneLog._.Assert(_UnityScene.IsValid() && _UnityScene.path == _ScenePath, "Scene:{0}, loaded has error, Valid:{1}, {2} : {3}", _UnityScene.IsValid(), _UnityScene.path, _ScenePath);
+                        SceneLog._.Assert(_UnityScene.IsValid() && _UnityScene.path == _ScenePath, "Scene:{0}, loaded has error, Valid:{1}, {2} {3} ", SceneId, _UnityScene.IsValid(), _ScenePath, UnityScenePath);
 
                         if (_UnityScene.IsValid())
                         {
