@@ -19,7 +19,7 @@ namespace FH
 
         public Str Substr(int start_index, int length)
         {
-            if (start_index < 0 || (start_index + length) > Length)
+            if (start_index < 0 || length < 0 || start_index > _len || length > _len - start_index)
                 return string.Empty;
             start_index += _offset;
             return new Str(_str, start_index, length);

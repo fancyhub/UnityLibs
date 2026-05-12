@@ -22,74 +22,32 @@ namespace FH
 
         public long ParseInt64()
         {
-            if (_len == 0)
-                return 0;
-            int start = _offset;
-            int end_offset = _offset + _len;
-            long ret = 0;
-            if (end_offset == start)
-                return ret;
-            bool is_neg = false;
-            if (_str[start] == '-') //记录数字正负  
-            {
-                is_neg = true;
-                start++;
-            }
-
-            for (; start < end_offset; start++)
-            {
-                char b = _str[start];
-                if (b >= '0' && b <= '9')
-                    ret = ret * 10 + (b - '0');
-                else
-                    break;
-            }
-            if (is_neg)
-                return -ret;
-            return ret;
+            return _ParseInt64(_str, _offset, _offset + _len);
         }
 
         public ulong ParseUInt64()
         {
-            if (_len == 0)
-                return 0;
-            int start = _offset;
-            int end_offset = _offset + _len;
-            ulong ret = 0;
-            if (end_offset == start)
-                return ret;
-
-            for (; start < end_offset; start++)
-            {
-                char b = _str[start];
-                if (b >= '0' && b <= '9')
-                    ret = ret * 10 + b - '0';
-                else
-                    break;
-            }
-            return ret;
+            return _ParseUInt64(_str, _offset, _offset + _len);
         }
 
         public double ParseDouble()
         {
-            if (_len == 0)
+            if (_str == null || _len == 0)
                 return 0;
+
             int start = _offset;
             int end_offset = _offset + _len;
 
             double s = 0.0;
-            if (end_offset == start)
-                return s;
-
             double d = 10.0;
             bool is_neg = false;
-            if (_str[start] == '-') //记录数字正负  
+            if (_str[start] == '-' || _str[start] == '+')
             {
-                is_neg = true;
+                is_neg = _str[start] == '-';
                 start++;
             }
 
-            bool is_dig = true; //是整数部分
+            bool is_dig = true;
             for (; start < end_offset; start++)
             {
                 char b = _str[start];
@@ -115,24 +73,67 @@ namespace FH
                     break;
                 }
             }
-            double v = s * (is_neg ? -1.0 : 1.0);
-            if (end_offset == start)
-                return v;
 
-            if (_str[start] == 'E' || _str[start] == 'e')
+            double v = s * (is_neg ? -1.0 : 1.0);
+            if (start < end_offset && (_str[start] == 'E' || _str[start] == 'e'))
             {
-                start++;
-                Str sub = Substr(start);
-                int exp = sub.ParseInt32();
+                int exp = (int)_ParseInt64(_str, start + 1, end_offset);
                 return Math.Pow(10, exp) * v;
             }
-            else
-                return v;
+
+            return v;
         }
 
         public float ParseFloat()
         {
             return (float)ParseDouble();
+        }
+
+        private static long _ParseInt64(string str, int start, int end_offset)
+        {
+            if (str == null || start >= end_offset)
+                return 0;
+
+            long ret = 0;
+            bool is_neg = false;
+            if (str[start] == '-' || str[start] == '+')
+            {
+                is_neg = str[start] == '-';
+                start++;
+            }
+
+            for (; start < end_offset; start++)
+            {
+                char b = str[start];
+                if (b >= '0' && b <= '9')
+                    ret = ret * 10 + (b - '0');
+                else
+                    break;
+            }
+
+            if (is_neg)
+                return -ret;
+            return ret;
+        }
+
+        private static ulong _ParseUInt64(string str, int start, int end_offset)
+        {
+            if (str == null || start >= end_offset)
+                return 0;
+
+            ulong ret = 0;
+            if (str[start] == '+')
+                start++;
+
+            for (; start < end_offset; start++)
+            {
+                char b = str[start];
+                if (b >= '0' && b <= '9')
+                    ret = ret * 10 + b - '0';
+                else
+                    break;
+            }
+            return ret;
         }
     } 
 }
