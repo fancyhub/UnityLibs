@@ -1,0 +1,17 @@
+{
+    "name": "fancyhub.protobuf",
+    "rootNamespace": "",
+    "references": [
+        "GUID:fd3e1939cfeaae345a28d38349cb6f69",
+        "GUID:0c8e9a0407566414faf27c5bf87754c3"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
