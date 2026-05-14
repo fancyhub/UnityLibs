@@ -31,7 +31,7 @@ namespace FH
             if (!string.IsNullOrEmpty(xor_keys))
             {
                 _Keys = System.Text.Encoding.UTF8.GetBytes(xor_keys);
-                _KeyLen = xor_keys.Length;
+                _KeyLen = _Keys.Length;
             }
         }
 

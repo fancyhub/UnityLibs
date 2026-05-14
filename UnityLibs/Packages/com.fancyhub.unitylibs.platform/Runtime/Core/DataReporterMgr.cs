@@ -12,32 +12,103 @@ namespace FH
 {
     public interface IDataReporter
     {
-        void ReportEvent(EDataReporterChannel channel, string event_name, Dictionary<string, string> event_data);
+        void ReportEvent(string event_name, Dictionary<string, string> event_data);
+
+        /// <summary>
+        /// 第三方账号的登录
+        /// </summary>
+        public void OnAuthLogin();
+        public void OnAuthLogout();
+
+        /// <summary>
+        /// 游戏账号的登录
+        /// </summary>
+        public void OnGameLogin();
+        public void OnGameLogout();
+
     }
 
     public static class DataReporterMgr
     {
-        private static bool _Inited = false;
-        private static List<IDataReporter> _Reporter = new List<IDataReporter>();
-        public static void Init(params IDataReporter[] reporters)
+        private static List<(EDataReporterChannel channel, IDataReporter reporter)> _Reporter = new();
+
+        public static void Reg(EDataReporterChannel channel, IDataReporter reporter)
         {
-            if (_Inited)
-            {
-                PlatformLog._.E("DataReporterMgr Is Inited, can't init twice");
+            if (reporter == null)
                 return;
+
+            foreach (var p in _Reporter)
+            {
+                if (p.channel == channel)
+                    return;
             }
-            _Inited = true;
-            _Reporter.AddRange(reporters);
+
+            _Reporter.Add((channel, reporter));
         }
 
-        public static void ReportEvent(EDataReporterChannel channel, string event_anme, Dictionary<string, string> event_data)
+        public static void OnGameLogin()
         {
-            PlatformLog._.Assert(_Inited, "DataReporterMgr Is not inited");
-
-            foreach (var r in _Reporter)
+            foreach (var p in _Reporter)
             {
-                r.ReportEvent(channel, event_anme, event_data);
+                p.reporter.OnGameLogin();
             }
+        }
+
+        public static void OnGameLogout()
+        {
+            foreach (var p in _Reporter)
+            {
+                p.reporter.OnGameLogout();
+            }
+        }
+        public static void OnAuthLogin()
+        {
+            foreach (var p in _Reporter)
+            {
+                p.reporter.OnAuthLogin();
+            }
+        }
+        public static void OnAuthLogout()
+        {
+            foreach (var p in _Reporter)
+            {
+                p.reporter.OnAuthLogout();
+            }
+        }
+
+
+        public static bool UnReg(EDataReporterChannel channel)
+        {
+            for (int i = 0; i < _Reporter.Count; i++)
+            {
+                if (_Reporter[i].channel == channel)
+                {
+                    _Reporter.RemoveAt(i);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static void ReportEvent(BitEnum32<EDataReporterChannel> channels, string event_name, Dictionary<string, string> event_data)
+        {
+            foreach (var p in _Reporter)
+            {
+                if (channels[p.channel])
+                    p.reporter.ReportEvent(event_name, event_data);
+            }
+        }
+
+        public static void ReportEvent(EDataReporterChannel channel, string event_name, Dictionary<string, string> event_data)
+        {
+            BitEnum32<EDataReporterChannel> mask = BitEnum32<EDataReporterChannel>.Zero;
+            mask.SetBit(channel, true);
+            ReportEvent(mask, event_name, event_data);
+        }
+
+        public static void ReportEvent(string event_name, Dictionary<string, string> event_data)
+        {
+            ReportEvent(BitEnum32<EDataReporterChannel>.All, event_name, event_data);
         }
     }
 }

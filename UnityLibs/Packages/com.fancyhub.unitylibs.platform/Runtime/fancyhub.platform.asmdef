@@ -2,7 +2,8 @@
     "name": "fancyhub.platform",
     "rootNamespace": "",
     "references": [
-        "GUID:fd3e1939cfeaae345a28d38349cb6f69"
+        "GUID:fd3e1939cfeaae345a28d38349cb6f69",
+        "GUID:e339efed2d24ba740a43e34bd62d0f61"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
