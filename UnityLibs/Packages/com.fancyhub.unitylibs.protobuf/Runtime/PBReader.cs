@@ -768,6 +768,56 @@ namespace FH
         }
 
         /// <summary>
+        /// Enters a length-delimited message field. Use this for generated inline sub-message bodies, such as protobuf map entries.
+        /// </summary>
+        public bool TryBeginMessageField(int field_index, EPBWireType wire_type)
+        {
+            if (EPBWireType.Length_delimited != wire_type)
+            {
+                PBLog._.E("BeginMessageField:  FieldIndex:{0}, NeedWireType:{1}, GivenWireType:{2}", field_index, EPBWireType.Length_delimited, wire_type);
+                return _SetError();
+            }
+
+            if (!_TryReadLength(out var len))
+            {
+                PBLog._.E("BeginMessageField:  FieldIndex:{0}, ReadLength Error", field_index);
+                return _SetError();
+            }
+
+            if (len > _Reader.BytesUntilLimit())
+            {
+                PBLog._.E("BeginMessageField:  FieldIndex:{0}, Len:{1} > {2}", field_index, len, _Reader.BytesUntilLimit());
+                return _SetError();
+            }
+
+            if (!_Reader.TryPushLimit(len))
+            {
+                PBLog._.E("BeginMessageField:  FieldIndex:{0}, Push Limit error, Len:{1} remain:{2}", field_index, len, _Reader.BytesUntilLimit());
+                return _SetError();
+            }
+
+            return true;
+        }
+
+        public bool EndMessageField(int field_index)
+        {
+            bool ret = true;
+            if (_Reader.BytesUntilLimit() != 0)
+            {
+                PBLog._.E("EndMessageField:  FieldIndex:{0}, remain:{1}", field_index, _Reader.BytesUntilLimit());
+                ret = _SetError();
+            }
+
+            if (!_Reader.TryPopLimit(out var _))
+            {
+                PBLog._.E("EndMessageField:  FieldIndex:{0}, TryPopLimitError", field_index);
+                ret = _SetError();
+            }
+
+            return ret && !_hasError;
+        }
+
+        /// <summary>
         /// ProtoType: message<para/>
         /// WireType: Length_delimited<para/>
         /// C# Type: IPBMessage

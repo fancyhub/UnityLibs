@@ -46,6 +46,7 @@ ExportedObj/
 *.mdb
 *.opendb
 *.VC.db
+!Packages/com.fancyhub.unitylibs.protobuf/Roslyn~/FH.Protobuf.SourceGenerator/FH.Protobuf.SourceGenerator.csproj
 
 # Unity3D generated meta files
 *.pidb.meta

@@ -1,0 +1,18 @@
+{
+    "name": "fancyhub.protobuf.editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:267376663395b6246aac135ec61a28d3"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -242,6 +242,59 @@ namespace FH
             CollectionAssert.AreEqual(expected, stream.ToArray());
         }
 
+        [Test]
+        public void MessageFieldScope_CanReadInlineMapEntry()
+        {
+            var stream = new MemoryStream();
+            var writer = new PBWriter();
+
+            writer.SetStream(stream);
+            writer.Begin();
+            writer.BeginMessageField(1);
+            writer.WriteString(1, "key");
+            writer.WriteInt32(2, 42);
+            writer.EndMessageField();
+            writer.End();
+
+            var reader = new PBReader();
+            reader.SetStream(stream.ToArray());
+
+            var tagResult = reader.ReadTag(out _, out int fieldIndex, out EPBWireType wireType);
+            Assert.AreEqual(PBReader.EReadTagResult.OK, tagResult);
+            Assert.AreEqual(1, fieldIndex);
+            Assert.AreEqual(EPBWireType.Length_delimited, wireType);
+            Assert.IsTrue(reader.TryBeginMessageField(fieldIndex, wireType));
+
+            string key = string.Empty;
+            int value = 0;
+            while (true)
+            {
+                var entryTagResult = reader.ReadTag(out _, out int entryFieldIndex, out EPBWireType entryWireType);
+                if (entryTagResult == PBReader.EReadTagResult.End)
+                    break;
+
+                Assert.AreEqual(PBReader.EReadTagResult.OK, entryTagResult);
+                switch (entryFieldIndex)
+                {
+                    case 1:
+                        reader.ReadString(entryFieldIndex, entryWireType, out key);
+                        break;
+                    case 2:
+                        reader.ReadInt32(entryFieldIndex, entryWireType, out value);
+                        break;
+                    default:
+                        reader.SkipField(entryFieldIndex, entryWireType);
+                        break;
+                }
+            }
+
+            Assert.IsTrue(reader.EndMessageField(fieldIndex));
+            Assert.AreEqual("key", key);
+            Assert.AreEqual(42, value);
+            Assert.IsFalse(reader.HasError());
+            Assert.AreEqual(PBReader.EReadTagResult.End, reader.ReadTag(out _, out _, out _));
+        }
+
         private static bool IsSame(PBTestAllTypes a, PBTestAllTypes b)
         {
             return a.DoubleValue == b.DoubleValue

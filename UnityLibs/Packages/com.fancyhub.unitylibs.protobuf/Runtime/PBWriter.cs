@@ -489,6 +489,28 @@ namespace FH
             WriteString(value);
         }
 
+        /// <summary>
+        /// Begins a length-delimited message field. Use this for generated inline sub-message bodies, such as protobuf map entries.
+        /// </summary>
+        public void BeginMessageField(int fieldIndex)
+        {
+            BeginMessageField(PBUtil.MakeTag(fieldIndex, EPBWireType.Length_delimited));
+        }
+
+        /// <summary>
+        /// Begins a length-delimited message field with a precomputed tag.
+        /// </summary>
+        public void BeginMessageField(uint tag)
+        {
+            _BlockWriter.WriteVariant(tag);
+            _BlockWriter.BeginBlock();
+        }
+
+        public void EndMessageField()
+        {
+            _BlockWriter.EndBlock();
+        }
+
 
         /// <summary>
         /// ProtoType: message<para/>
@@ -499,10 +521,9 @@ namespace FH
             if (message == null)
                 return;
 
-            _BlockWriter.WriteVariant(PBUtil.MakeTag(fieldIndex, EPBWireType.Length_delimited));
-            _BlockWriter.BeginBlock();
+            BeginMessageField(fieldIndex);
             message.Serialize(this);
-            _BlockWriter.EndBlock();
+            EndMessageField();
 
         }
 
@@ -511,10 +532,9 @@ namespace FH
             if (message == null)
                 return;
 
-            _BlockWriter.WriteVariant(tag);
-            _BlockWriter.BeginBlock();
+            BeginMessageField(tag);
             message.Serialize(this);
-            _BlockWriter.EndBlock();
+            EndMessageField();
         }
         #endregion
 
