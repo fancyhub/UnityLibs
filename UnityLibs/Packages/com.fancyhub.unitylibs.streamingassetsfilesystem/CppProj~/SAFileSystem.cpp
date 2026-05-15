@@ -6,6 +6,7 @@
 #include <android/log.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define TAG    "<NativeIO>"
 
@@ -211,15 +212,21 @@ JNIEXPORT void JNICALL Java_com_fancyhub_nativeio_JNIContext_nativeAddFolder(
         if(buff_size<=1024)
         {
             char temp[1024];
-            sprintf(temp,"%s/%s",folder_path,file_name);
-            g_fh_file_list.push_back(temp);  
+            if(folder_path[0] == '\0')
+                snprintf(temp,sizeof(temp),"%s",file_name);
+            else
+                snprintf(temp,sizeof(temp),"%s/%s",folder_path,file_name);
+            g_fh_file_list.push_back(temp);
             LOGD("Add File: %s",temp);
         }
         else
         {
             char* temp = (char *)malloc(buff_size);
-            sprintf(temp,"%s/%s",folder_path,file_name);
-            g_fh_file_list.push_back(temp);  
+            if(folder_path[0] == '\0')
+                snprintf(temp,buff_size,"%s",file_name);
+            else
+                snprintf(temp,buff_size,"%s/%s",folder_path,file_name);
+            g_fh_file_list.push_back(temp);
             LOGD("Add File: %s",temp);
             free(temp);
         }

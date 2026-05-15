@@ -40,7 +40,7 @@ namespace FH.StreamingAssetsFileSystem
 
             _InitAndroidJNIContext();
             string file_relative_path = file_path.Substring(SAFileSystemDef.StreamingAssetsDir.Length);
-            return AndroidStreamingAssetStream.OpenRead(file_relative_path);            
+            return AndroidStreamingAssetStream.OpenRead(file_relative_path);
         }
 
         public byte[] ReadAllBytes(string file_path)
@@ -177,10 +177,10 @@ namespace FH.StreamingAssetsFileSystem
             public static AndroidStreamingAssetStream OpenRead(string file_path)
             {
                 //(int)AndroidNativeIO.EAssetOpenMode.AASSET_MODE_STREAMING
-               IntPtr fhandle = AndroidNativeIO.fh_native_io_file_open(file_path);
-               if (fhandle == IntPtr.Zero)
+                IntPtr fhandle = AndroidNativeIO.fh_native_io_file_open(file_path);
+                if (fhandle == IntPtr.Zero)
                     return null;
-               return new AndroidStreamingAssetStream(fhandle);
+                return new AndroidStreamingAssetStream(fhandle);
             }
 
             private AndroidStreamingAssetStream(System.IntPtr fhandle)
@@ -199,27 +199,24 @@ namespace FH.StreamingAssetsFileSystem
             public override void Close()
             {
                 base.Close();
-                if (_fhandle != IntPtr.Zero)
-                {
-                    var t = _fhandle;
-                    _fhandle = IntPtr.Zero;
-                    AndroidNativeIO.fh_native_io_file_close(t);
-                }
+                _CloseHandle();
             }
 
             protected override void Dispose(bool disposing)
             {
                 base.Dispose(disposing);
 
-                if (!disposing)
-                {
-                    if (_fhandle != IntPtr.Zero)
-                    {
-                        var t = _fhandle;
-                        _fhandle = IntPtr.Zero;
-                        AndroidNativeIO.fh_native_io_file_close(t);
-                    }
-                }
+                _CloseHandle();
+            }
+
+            private void _CloseHandle()
+            {
+                if (_fhandle == IntPtr.Zero)
+                    return;
+
+                var t = _fhandle;
+                _fhandle = IntPtr.Zero;
+                AndroidNativeIO.fh_native_io_file_close(t);
             }
 
             public override bool CanRead { get { return _fhandle != IntPtr.Zero; } }
