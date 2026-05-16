@@ -43,30 +43,30 @@ namespace FH
         /// <summary>
         /// 从时间戳 秒/毫秒 转成 DateTime UTC
         /// </summary> 
-        public static DateTimeOffset ToDateTimeUtc(long time_stamp)
+        public static DateTimeOffset ToDateTimeUtc(long timestamp)
         {
-            if (time_stamp <= 0)
+            if (timestamp <= 0)
                 return DateTimeOffset.FromUnixTimeSeconds(0);
-            else if (time_stamp < int.MaxValue)
-                return DateTimeOffset.FromUnixTimeSeconds(time_stamp);
+            else if (timestamp < int.MaxValue) //判断是否为秒
+                return DateTimeOffset.FromUnixTimeSeconds(timestamp);
             else
-                return DateTimeOffset.FromUnixTimeMilliseconds(time_stamp);
+                return DateTimeOffset.FromUnixTimeMilliseconds(timestamp);
         }
 
         /// <summary>
         /// 从时间戳 秒/毫秒 转成 DateTime Local
         /// </summary> 
-        public static DateTimeOffset ToDateTimeLocal(long time_stamp)
+        public static DateTimeOffset ToDateTimeLocal(long timestamp)
         {
-            return ToDateTimeUtc(time_stamp).ToLocalTime();
+            return ToDateTimeUtc(timestamp).ToLocalTime();
         }
 
         /// <summary>
         /// 从时间戳 秒/毫秒 转成 DateTime Svr
         /// </summary> 
-        public static DateTimeOffset ToDateTimeSvr(long time_stamp)
+        public static DateTimeOffset ToDateTimeSvr(long timestamp)
         {
-            return ToDateTimeUtc(time_stamp).ToOffset(_svr_time_zone);
+            return ToDateTimeUtc(timestamp).ToOffset(_svr_time_zone);
         }
 
         public static long ToUnix(this DateTimeOffset date)
@@ -107,7 +107,7 @@ namespace FH
         /// 把string格式的时间转换成服务器的时间
         /// </summary>        
         public static bool TryParseToSvrDateTime(string value, string format, out DateTimeOffset svr_time)
-        {            
+        {
             IFormatProvider provider = System.Globalization.CultureInfo.InvariantCulture;
             System.Globalization.DateTimeStyles style = System.Globalization.DateTimeStyles.None;
             if (DateTime.TryParseExact(value, format, provider, style, out DateTime dt))
@@ -182,10 +182,21 @@ namespace FH
         /// </summary>
         public static DateTimeOffset GetNextMonthReset(DateTimeOffset now, int resetDayOfMonth = DefaultResetDayOfMonth, int resetHour = DefaultResetHour)
         {
-            var this_month_reset_time = new DateTimeOffset(now.Year, now.Month, resetDayOfMonth, resetHour, 0, 0, now.Offset);
+            resetDayOfMonth = Math.Max(resetDayOfMonth, 1);
+            resetHour = Math.Clamp(resetHour, 0, 23);
+
+            var this_month_reset_time = _CreateMonthReset(now.Year, now.Month, now.Offset, resetDayOfMonth, resetHour);
             if (this_month_reset_time > now)
                 return this_month_reset_time;
-            return this_month_reset_time.AddMonths(1);
+
+            DateTimeOffset next_month = now.AddMonths(1);
+            return _CreateMonthReset(next_month.Year, next_month.Month, now.Offset, resetDayOfMonth, resetHour);
+        }
+
+        private static DateTimeOffset _CreateMonthReset(int year, int month, TimeSpan offset, int resetDayOfMonth, int resetHour)
+        {
+            int day = Math.Min(resetDayOfMonth, DateTime.DaysInMonth(year, month));
+            return new DateTimeOffset(year, month, day, resetHour, 0, 0, offset);
         }
 
         /// <summary>

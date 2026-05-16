@@ -182,7 +182,7 @@ namespace FH
 
             _data.Start(_driver.Clock, interval_ms, repeat_count, duration_ms);
             _timer_id = _driver.AddTimer(_on_time_out, interval_ms);
-            return true;
+            return _timer_id.IsValid();
         }
 
         public void Stop()
@@ -216,7 +216,14 @@ namespace FH
             }
 
             CPtr<ICPtr> timer_ptr = this;
-            _call_back?.Invoke(this);
+            try
+            {
+                _call_back?.Invoke(this);
+            }
+            catch (Exception ex)
+            {
+                Log.E(ex);
+            }
             if (!_timer_id.IsValid())
                 timer_ptr.Destroy();
         }
@@ -285,7 +292,7 @@ namespace FH
 
             _data.Start(_driver.Clock, interval_ms, repeat_count, duration_ms);
             _timer_id = _driver.AddTimer(_on_time_out, interval_ms);
-            return true;
+            return _timer_id.IsValid();
         }
 
         public void Stop()
@@ -317,7 +324,14 @@ namespace FH
             }
 
             CPtr<ICPtr> timer_ptr = this;
-            _call_back?.Invoke(this);
+            try
+            {
+                _call_back?.Invoke(this);
+            }
+            catch (Exception ex)
+            {
+                Log.E(ex);
+            }
             if (!_timer_id.IsValid())
                 timer_ptr.Destroy();
         }
@@ -392,19 +406,27 @@ namespace FH
             }
         }
 
-     
-        public void Start()
+
+        public bool Start()
         {
             if (!_cur_timer.Null)
-                return;
+                return false;
             if (_link_list.Count == 0)
-                return;
+                return false;
 
-            _start_time_ms = _timer_driver.Clock.Time;
+            var now_time = _timer_driver.Clock.Time;
             _link_list.ExtPopFirst(out var data);
+            var temp_timer = Timer.Create(_OnTimerOut, _timer_driver);
+            if (!temp_timer.Start(data._interval_ms, data._repeat_count, data._duration_ms))
+            {
+                _link_list.ExtAddFirst(data);
+                temp_timer.Destroy();
+                return false;
+            }
+            _start_time_ms = now_time;
+            _cur_timer = temp_timer;
             _cur_call_back = data._call_back;
-            _cur_timer = Timer.Create(_OnTimerOut, _timer_driver);
-            _cur_timer.Val.Start(0, data._repeat_count, data._duration_ms);
+            return true;
         }
 
         public void Stop()
@@ -431,7 +453,7 @@ namespace FH
                 return false;
             }
 
-            if(_is_infinite)
+            if (_is_infinite)
             {
                 Log.Assert(false, "已经不再结束了, 不能添加");
                 return false;
@@ -461,17 +483,35 @@ namespace FH
                 _cur_call_back = null;
 
 
-                if (_link_list.ExtPopFirst(out var data))
+                for (; ; )
                 {
-                    _cur_call_back = data._call_back;
-                    _cur_timer = Timer.Create(_OnTimerOut, _timer_driver);
-                    _cur_timer.Val.Start(data._interval_ms, data._repeat_count, data._duration_ms);
+                    if (!_link_list.ExtPopFirst(out var data))
+                        break;
+
+                    var tempTimer = Timer.Create(_OnTimerOut, _timer_driver);
+                    if (tempTimer.Start(data._interval_ms, data._repeat_count, data._duration_ms))
+                    {
+                        _cur_timer = tempTimer;
+                        _cur_call_back = data._call_back;
+                        break;
+                    }
+                    else
+                    {
+                        tempTimer.Destroy();
+                    }
                 }
             }
 
             //调用回调
             CPtr<ICPtr> timer_ptr = this;
-            action?.Invoke(this);
+            try
+            {
+                action?.Invoke(this);
+            }
+            catch (Exception ex)
+            {
+                Log.E(ex);
+            }
             if (_cur_timer.Val == null)
                 timer_ptr.Destroy();
         }

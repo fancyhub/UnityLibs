@@ -228,7 +228,10 @@ namespace FH
             //2. 处理第一个，要把过期的TimeId 传出
             _wheels[0].Tick(time_stamp, _temp);
             foreach (TimerWheelItem<T> p in _temp)
+            {
                 out_list.Add(p);
+                _dict.Remove(p.Id);
+            }
             _temp.ExtClear();
 
             //3. 迭代后续的 slot_groups

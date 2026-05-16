@@ -30,6 +30,7 @@ namespace FH
             private static class EnvironmentTick32
             {
                 private const int CThresholdMS = 1000 * 60 * 60 * 24 * 2;//小于2天
+                private const long CRoundMS = (long)(uint.MaxValue) + 1;
 
                 private static long _time_round_delta = 0;
                 private static long _last_time = (uint)Environment.TickCount;
@@ -62,7 +63,7 @@ namespace FH
                             }
                             else if (dt < 0)
                             {
-                                _time_round_delta += uint.MaxValue;
+                                _time_round_delta += CRoundMS;
                                 _last_time = now;
                             }
                         }
@@ -78,31 +79,10 @@ namespace FH
             private static extern ulong GetTickCount64();
             public static long Now { get { return (long)GetTickCount64(); } }
 
-
-
 #elif UNITY_EDITOR_OSX
-            private const int CLOCK_MONOTONIC = 6;
 
-            [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
-            private struct timespec
-            {
-                public long tv_sec;
-                public long tv_nsec;
-            }
+            public static long Now =>EnvironmentTick32.Now;
 
-            
-            [System.Runtime.InteropServices.DllImport("__Internal")]
-            private static extern int clock_gettime(int clockId, out timespec tp);
-
-            public static long Now
-            {
-                get
-                { 
-                    if (clock_gettime(CLOCK_MONOTONIC, out timespec tp) == 0)
-                        return tp.tv_sec * 1000 + tp.tv_nsec / 1000000;       
-                    return 0; 
-                }
-            }
 #elif  UNITY_IOS || UNITY_STANDALONE_OSX
 
             [System.Runtime.InteropServices.DllImport("__Internal")]
@@ -140,17 +120,9 @@ namespace FH
                 }
             }
 #else
-            public static long Now
-            {
-                get
-                { 
-                    return EnvironmentTick32.Now;
-                }
-            }
+            public static long Now =>EnvironmentTick32.Now;
 #endif
         }
-
-
 
         /// <summary>
         /// 获取系统开启到现在的时间，毫秒,用户不可修改, 线程安全的

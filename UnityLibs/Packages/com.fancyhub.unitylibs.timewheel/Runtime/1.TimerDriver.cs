@@ -71,7 +71,16 @@ namespace FH
             _temp_list.Clear();
             _time_wheel.Tick(_clock.Time, _temp_list);
             foreach (var p in _temp_list)
-                p.UserData(new TimerId(p.Id));
+            {
+                try
+                {
+                    p.UserData(new TimerId(p.Id));
+                }
+                catch (Exception e)
+                {
+                    Log.E(e);
+                }
+            }
             _temp_list.Clear();
         }
 
