@@ -17,10 +17,9 @@ namespace FH
     {
         public string Name { get; }
 
-        public byte[] ReadAllBytes(string file_path);
-        public string ReadAllText(string file_path);
-
-        public Stream OpenRead(string file_path);
+        public (bool fileExist, byte[] data) ReadAllBytes(string file_path);
+        public (bool fileExist, string data) ReadAllText(string file_path);
+        public (bool fileExist, Stream stream) OpenRead(string file_path);
 
         public bool Exist(string file_path);
 

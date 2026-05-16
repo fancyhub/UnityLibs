@@ -24,7 +24,7 @@ namespace FH.VFSManagement
         }
 
         public List<IVirtualFileSystem> GetAll()
-        {            
+        {
             return _file_system_list;
         }
 
@@ -101,8 +101,8 @@ namespace FH.VFSManagement
             for (int i = 0; i < _file_system_list.Count; ++i)
             {
                 IVirtualFileSystem sub_system = _file_system_list[i];
-                Stream ret = sub_system.OpenRead(file_path);
-                if (null != ret)
+                (bool exist, Stream ret) = sub_system.OpenRead(file_path);
+                if (exist)
                     return ret;
             }
 
@@ -117,8 +117,8 @@ namespace FH.VFSManagement
             for (int i = 0; i < _file_system_list.Count; ++i)
             {
                 IVirtualFileSystem sub_system = _file_system_list[i];
-                string ret = sub_system.ReadAllText(file_path);
-                if (null != ret)
+                (bool fileExist, string ret) = sub_system.ReadAllText(file_path);
+                if (fileExist)
                     return ret;
             }
             VfsLog._.E("找不到  {0}", file_path);
@@ -132,8 +132,8 @@ namespace FH.VFSManagement
             for (int i = 0; i < _file_system_list.Count; ++i)
             {
                 IVirtualFileSystem sub_system = _file_system_list[i];
-                byte[] ret = sub_system.ReadAllBytes(file_path);
-                if (null != ret)
+                (bool fileExist, byte[] ret) = sub_system.ReadAllBytes(file_path);
+                if (fileExist)
                     return ret;
             }
             VfsLog._.E("找不到  {0}", file_path);

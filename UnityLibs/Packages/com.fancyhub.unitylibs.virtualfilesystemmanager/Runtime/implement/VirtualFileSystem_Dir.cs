@@ -123,12 +123,12 @@ namespace FH
             return false;
         }
 
-        public Stream OpenRead(string file_path)
+        public (bool fileExist, Stream stream) OpenRead(string file_path)
         {
             if (string.IsNullOrEmpty(file_path))
             {
                 VfsLog._.E("file path is null or empty");
-                return null;
+                return (false, null);
             }
 
             foreach (var p in _Dirs)
@@ -138,21 +138,21 @@ namespace FH
 
                 string full_file_path = p.root_dir + file_path;
                 if (File.Exists(full_file_path))
-                    return File.Open(full_file_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    return (true, File.Open(full_file_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
                 else
                 {
                     VfsLog._.D("不存在 {0}->{1}", file_path, full_file_path);
                 }
             }
-            return null;
+            return (false, null);
         }
 
-        public string ReadAllText(string file_path)
+        public (bool fileExist, string data) ReadAllText(string file_path)
         {
             if (string.IsNullOrEmpty(file_path))
             {
                 VfsLog._.E("file path is null or empty");
-                return null;
+                return (false, null);
             }
 
             foreach (var p in _Dirs)
@@ -163,21 +163,21 @@ namespace FH
                 string full_file_path = p.root_dir + file_path;
                 if (File.Exists(full_file_path))
                 {
-                    return System.IO.File.ReadAllText(full_file_path);
+                    return (true, System.IO.File.ReadAllText(full_file_path));
                 }
                 else
                 {
                     VfsLog._.D("不存在 {0}->{1}", file_path, full_file_path);
                 }
             }
-            return null;
+            return (false, null);
         }
 
-        public byte[] ReadAllBytes(string file_path)
+        public (bool fileExist, byte[] data) ReadAllBytes(string file_path)
         {
-            Stream stream = OpenRead(file_path);
+            (bool fileExist2, Stream stream) = OpenRead(file_path);
             if (stream == null)
-                return null;
+                return (fileExist2, null);
 
 
             int len = (int)stream.Length;
@@ -185,7 +185,7 @@ namespace FH
 
             stream.Read(ret, 0, len);
             stream.Close();
-            return ret;
+            return (true, ret);
         }
     }
 }

@@ -34,6 +34,13 @@ namespace Game
             }
         }
 
+        protected override void OnUI5Close()
+        {
+            foreach (var p in _SubPages)
+                p.OnUIClose();
+            base.OnUI5Close();
+        }
+
         private void OnItemClick(int index, long user_data)
         {
             foreach (var p in _SubPages)
@@ -74,6 +81,10 @@ namespace Game
             Debug.Log("OnClick");
             _ItemClickCallBack?.Invoke(item_index, user_data);
         }
+
+        public virtual void OnUIClose()
+        {
+        }
     }
 
     public class ScrollDemoRow2 : PageElemScrollDemoBase
@@ -91,6 +102,11 @@ namespace Game
         {
             base.SetData(data);
             _scroll_anim.Play(FUIScrollAnim.IN_DIR_LEFT_2_RIGHT, 0.5f, 0.1f, null, _anim_item_map);
+        }
+
+        public override void OnUIClose()
+        {
+            _scroll_anim.Stop();
         }
 
         private int _anim_item_map(int item_count, int index)
@@ -112,9 +128,7 @@ namespace Game
         {
             view.SetLayout(new ScrollLayoutCenterV(5));
             _scroll_anim = new FUIScrollAnim(view.UIScroll);
-
-             _center_child = new FUIScrollCenterChild(view.UIScroll, 100, 0.5f, _on_select); ;
-            
+            _center_child = new FUIScrollCenterChild(view.UIScroll, 100, 0.5f, _on_select);
         }
 
         public override void SetData(List<string> data)
@@ -132,6 +146,11 @@ namespace Game
         public void _on_select(int index)
         {
             _ItemClickCallBack?.Invoke(index, 0);
+        }
+
+        public override void OnUIClose()
+        {
+            _scroll_anim.Stop();
         }
     }
 

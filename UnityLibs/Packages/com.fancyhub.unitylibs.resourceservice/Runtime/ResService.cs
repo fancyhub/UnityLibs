@@ -207,10 +207,13 @@ namespace FH
                     return null;
 
                 case EFileLocation.StreamingAssets:
-                    Log.E("ZipFile can't read in StreamingAssets,{0}:{1}", name, file_path);
-                    return null;
-
                 case EFileLocation.Persistent:
+                    if (file_loc == EFileLocation.StreamingAssets && !Application.isEditor && Application.platform == RuntimePlatform.Android)
+                    {
+                        Log.E("ZipFile can't read in StreamingAssets,{0}:{1}", name, file_path);
+                        return null;
+                    }
+
                     if (!System.IO.File.Exists(file_path))
                     {
                         Log.E("File Not Exist {0}:{1}", name, file_path);

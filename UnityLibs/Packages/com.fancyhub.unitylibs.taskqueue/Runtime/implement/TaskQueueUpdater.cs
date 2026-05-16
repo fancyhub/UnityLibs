@@ -5,19 +5,17 @@
  * Desc    : 
 *************************************************************************************/
 
-using System;
-using System.Xml.Schema;
 using UnityEngine;
 
 namespace FH
 {
     internal sealed class TaskQueueUpdater : MonoBehaviour
     {
-        internal static TaskQueueUpdater _Inst;
-        internal static bool _ManualUpdate;
-        internal static CPtr<ITaskQueue> _TaskQueue;
+        private static TaskQueueUpdater _Inst;
+        private static bool _ManualUpdate;
+        private static ITaskQueue _TaskQueue;
 
-        public static TaskQueueUpdater CreateInst()
+        private static TaskQueueUpdater CreateInst()
         {
             if (_Inst == null)
             {
@@ -33,7 +31,7 @@ namespace FH
         {
             CreateInst();
             _ManualUpdate = manual_update;
-            _TaskQueue = new CPtr<ITaskQueue>(task_queue);
+            _TaskQueue = task_queue;
         }     
 
         public void Awake()
@@ -44,17 +42,7 @@ namespace FH
         public void Update()
         {
             if (!_ManualUpdate)
-                _TaskQueue.Val?.Update();
-        }
-
-        public void OnDestroy()
-        {
-            _TaskQueue.Destroy();
-        }
-
-        public void OnApplicationQuit()
-        {
-            _TaskQueue.Destroy();
+                _TaskQueue?.Update();
         }
     }
 }

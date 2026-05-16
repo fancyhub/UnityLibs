@@ -58,24 +58,24 @@ namespace FH
         /// 这个比较特殊，用的时候，一定要读取完之后，直接关闭
         /// 不能同时打开两个
         /// </summary>
-        public Stream OpenRead(string file_path)
+        public (bool fileExist, Stream stream) OpenRead(string file_path)
         {
             if (_zip_file == null)
-                return null;
+                return (false,null);
             return _zip_file.OpenRead(file_path);
         }
 
-        public byte[] ReadAllBytes(string file_path)
+        public (bool fileExist, byte[] data) ReadAllBytes(string file_path)
         {
             if (_zip_file == null)
-                return null;
+                return (false,null);
             return _zip_file.ReadFileAllBytes(file_path);
         }
 
-        public string ReadAllText(string file_path)
+        public (bool fileExist, string data) ReadAllText(string file_path)
         {
             if (_zip_file == null)
-                return null;
+                return (false,null);
             return _zip_file.ReadAllText(file_path);
         }
 

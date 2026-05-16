@@ -276,12 +276,12 @@ namespace FH
             return _FindEntry(file);
         }
 
-        public Stream OpenRead(string file)
+        public (bool fileExist, Stream stream) OpenRead(string file)
         {
-            if (_ZipFileOrigStream == null) return null;
+            if (_ZipFileOrigStream == null) return (false, null);
 
             Lz4ZipEntryInfo file_info = _FindEntry(file);
-            if (file_info == null) return null;
+            if (file_info == null) return (false, null);
 
             if (null != _last_stream)
             {
@@ -294,7 +294,7 @@ namespace FH
             //外面套接一下
             _last_stream = new EntryReadStream(stream_in, file_info.OrigSize);
 
-            return _last_stream;
+            return (true,_last_stream);
         }
 
         /// <summary>
@@ -320,11 +320,11 @@ namespace FH
             return read_size;
         }
 
-        public string ReadAllText(string path)
+        public (bool fileExist, string data) ReadAllText(string path)
         {
             Lz4ZipEntryInfo file_info = _FindEntry(path);
             if (file_info == null)
-                return null;
+                return (false, null);
 
             Stream stream_in = _get_inner_stream_reader(file_info);
             if (file_info.OrigSize > CMaxStackBuffSize)
@@ -332,8 +332,8 @@ namespace FH
                 Span<byte> buff = new byte[(int)file_info.OrigSize];
                 int read_size = stream_in.Read(buff);
                 if (read_size < buff.Length)
-                    return null;
-                return System.Text.Encoding.UTF8.GetString(buff);
+                    return (true, null);
+                return (true, System.Text.Encoding.UTF8.GetString(buff));
             }
             else
             {
@@ -341,15 +341,17 @@ namespace FH
 
                 int read_size = stream_in.Read(buff);
                 if (read_size < buff.Length)
-                    return null;
-                return System.Text.Encoding.UTF8.GetString(buff);
+                    return (true, null);
+                return (true, System.Text.Encoding.UTF8.GetString(buff));
             }
         }
 
-        public byte[] ReadFileAllBytes(string path)
+        public (bool fileExist, byte[] data) ReadFileAllBytes(string path)
         {
             Lz4ZipEntryInfo file_info = _FindEntry(path);
-            return ReadFileAllBytes(file_info);
+            if (file_info == null)
+                return (false, null);
+            return (true, ReadFileAllBytes(file_info));
         }
 
         public byte[] ReadFileAllBytes(Lz4ZipEntryInfo file_info)

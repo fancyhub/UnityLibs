@@ -188,7 +188,7 @@ namespace FH
                 return;
             }
 
-            TaskQueue.StartCoroutine(_wait_fire(result, wait_count));
+            GlobalCoroutine.StartCoroutine(_wait_fire(result, wait_count));
         }
 
         private System.Collections.IEnumerator _wait_fire(LoginPlatformResult result, int wait_count)
