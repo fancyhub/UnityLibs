@@ -56,6 +56,9 @@ namespace FH.UI
 
         public static void ExtSetOverrideTexture(this RawImage img, Texture texture)
         {
+            if(img== null) 
+                return;
+
             UIRawImageSetter img_loader = img.GetComponent<UIRawImageSetter>();
             if (img_loader == null)
                 img_loader = img.gameObject.AddComponent<UIRawImageSetter>();
@@ -107,6 +110,8 @@ namespace FH.UI
             {
                 _CancelJob();
                 _Path = null;
+                _ResRef.RemoveUser(this);
+                _ResRef = default;
 
                 OverrideTexture = texture;
             }

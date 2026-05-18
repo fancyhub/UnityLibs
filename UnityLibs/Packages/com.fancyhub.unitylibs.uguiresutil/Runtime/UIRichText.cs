@@ -25,10 +25,10 @@ namespace FH.UI
     /// 
     /// Example:
     /// <quad img=sprite_name/> sprite_name can't contain ",space,'
+    /// <quad img=sprite_name width=2.0 height=1.0/>
     /// <quad img=sprite_name size=40/>
     /// <quad img=sprite_name size=40 width=2.0 height=1.0/>
     /// <quad img=sprite_name size=40 width=2.0/>
-    /// <quad img=sprite_name width=2.0 height=1.0/>
     /// 
     /// width: default 1
     /// height: default 1
@@ -60,6 +60,7 @@ namespace FH.UI
             base.Start();
             _Helper.ParseText(text, this.fontSize);
             _Helper.SyncImagesCount(transform);
+            //_Helper.SyncImagesVisible();
         }
 
         public override void SetVerticesDirty()
@@ -68,6 +69,7 @@ namespace FH.UI
 
             _Helper.ParseText(text, this.fontSize);
             _Helper.SyncImagesCount(transform);
+            //_Helper.SyncImagesVisible();
         }
 
         protected override void OnPopulateMesh(VertexHelper toFill)
@@ -78,6 +80,7 @@ namespace FH.UI
             _Helper.CalcImageQuadRect(toFill);
             _Helper.ProcessTypeWriter(toFill, m_TypeWriterProgress);
             _Helper.SyncImagePos();
+            //_Helper.SyncImagesVisible(); 这里不能调用
         }
 
 #if UNITY_EDITOR
@@ -86,6 +89,7 @@ namespace FH.UI
             _Helper.ParseText(text, this.fontSize);
             _Helper.SyncImagesCount(transform);
             _Helper.EditorDestroyUnusedImages();
+            //_Helper.SyncImagesVisible();
         }
 #endif
     }
@@ -97,7 +101,8 @@ namespace FH.UI
         private const string CQuadPlaceHolder = "&&&&";
 
         private static readonly Regex S_TagQuadReg = new Regex(@"<quad(?<content>[\s\w=\.]*)/?>", RegexOptions.IgnoreCase);
-        private static readonly Regex S_TagReg = new Regex(@"</?.*/?>", RegexOptions.IgnoreCase);
+        private static readonly Regex S_TagReg = new Regex(@"</?[^>]+>", RegexOptions.IgnoreCase);
+        //private static readonly Regex S_TagReg = new Regex(@"</?.*/?>", RegexOptions.IgnoreCase);
 
         //所有的 attr 后面不要有空格
         private const string CAttrImageName = "img="; //string
@@ -318,11 +323,11 @@ namespace FH.UI
                         _ImageList.RemoveAt(i);
                     else
                         _ImageList[i].gameObject.SetActive(false);
-                } 
+                }
             }
 #endif
         }
-        
+
 
         public void SyncImagesCount(Transform tran)
         {
@@ -360,7 +365,7 @@ namespace FH.UI
             //4. 隐藏多余的
             for (int i = _ImageList.Count - 1; i >= _InfoList.Count; i--)
             {
-                _ImageList[i].gameObject.SetActive(false); 
+                _ImageList[i].gameObject.SetActive(false);
             }
 
             //5. 加载
@@ -377,14 +382,31 @@ namespace FH.UI
                 image.gameObject.SetActive(true);
                 image.rectTransform.sizeDelta = info.CalcSize();
                 image.ExtAsyncSetSprite(info.ImageName);
-                image.enabled = info.TypeWriterShow;
             }
         }
 
+        public void SyncImagesVisible()
+        {
+            //Debug.Log("SyncImagesVisible");
+            for (int i = 0; i < _InfoList.Count; i++)
+            {
+                ImageInfo info = _InfoList[i];
+                float alpha = info.TypeWriterShow ? 1.0f : 0.0f;
+
+                Image image = _ImageList[i];
+                var c = image.color;
+                if (Math.Abs(alpha - c.a) < 0.001f)
+                    continue;
+
+                c.a = alpha;
+                image.color = c;
+            }
+        }
         public void SyncImagePos()
         {
             if (_ImageList == null)
                 return;
+
             for (int i = 0; i < _InfoList.Count; i++)
             {
                 ImageInfo info = _InfoList[i];
@@ -393,15 +415,17 @@ namespace FH.UI
 
                 Image image = _ImageList[i];
                 if (image == null)
-                    continue;
-
-                image.rectTransform.anchoredPosition = info.QuadRect.center;
+                    continue;                
 
                 //移走
-                if (info.QuadRect.size.x < 0.001f || info.QuadRect.size.y < 0.001f)
+                if (info.QuadRect.size.x < 0.001f || info.QuadRect.size.y < 0.001f || !info.TypeWriterShow)
                 {
                     //Debug.Log($"Index: {i}, {info.QuadRect},   {info.CalcSize()}");
                     image.rectTransform.anchoredPosition = Vector2.one * 10000;
+                }
+                else
+                {
+                    image.rectTransform.anchoredPosition = info.QuadRect.center;
                 }
 
                 //不能在这边调用
@@ -411,14 +435,13 @@ namespace FH.UI
 
         public void ProcessTypeWriter(VertexHelper toFill, float progress)
         {
-            if (progress >= 1.0f)
-                return;
-
+            //if (progress >= 1.0f)
+            //    return;
+            progress = Mathf.Clamp01(progress);
 
             int count = toFill.currentVertCount / CVertCountPerChar;
             int showCount = (int)(count * progress);
-            if (showCount >= count)
-                return;
+            //Debug.Log($"{progress} {count} {showCount}");            
 
             int showIndexCount = showCount * CVertCountPerChar;
             int totalIndexCount = count * CVertCountPerChar;
@@ -436,7 +459,8 @@ namespace FH.UI
             for (int i = 0; i < _InfoList.Count; i++)
             {
                 var info = _InfoList[i];
-                info.TypeWriterShow = info.CharIndex <= showCount;
+                info.TypeWriterShow = info.CharIndex < showCount;
+                //Debug.Log($"{info.CharIndex} {showCount} {info.TypeWriterShow}");
                 _InfoList[i] = info;
             }
         }

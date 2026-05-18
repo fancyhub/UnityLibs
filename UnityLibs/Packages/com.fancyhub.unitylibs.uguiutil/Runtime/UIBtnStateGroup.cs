@@ -149,7 +149,7 @@ namespace FH.UI
             Selected = 1 << 1,
             PressedKeybord = 1 << 2,
             PressedTouch = 1 << 3,
-            Disable = 1 << 3,
+            Disable = 1 << 4,
         }
 
         [NonSerialized] private UIBtnStateGroup _BtnStateGroup;

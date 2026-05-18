@@ -95,7 +95,7 @@ namespace FH.UI
 
             public UISafeAreaRect ToScreen(UISize size)
             {
-                var ratio = this;
+                UISafeAreaRect ratio = this;
                 if(Mode != EUISafeAreaOffset.Ratio)
                 {
                     ratio = this.ToRatio(size);
