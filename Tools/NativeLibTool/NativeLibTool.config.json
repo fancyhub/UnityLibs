@@ -1,0 +1,21 @@
+{
+  "UnityProjectRoot": "",
+  "AndroidSourceDirectory": "",
+  "AndroidGroupId": "com.garena.crashsight",
+  "AndroidArtifactId": "crashsight",
+  "AndroidVersion": "1.0.0",
+  "IosSourceDirectory": "",
+  "IosPodName": "CrashSightCN",
+  "IosVersion": "1.0.0",
+  "IosMinimumVersion": "12.0",
+  "IosSystemFrameworks": "Foundation, UIKit, SystemConfiguration",
+  "IosSystemLibraries": "z, c++",
+  "IosSummaryFormat": "{PodName} native SDK",
+  "IosHomepageFormat": "https://internal.local/{PodName}",
+  "IosLicenseType": "Proprietary",
+  "IosAuthorName": "Company",
+  "IosAuthorEmail": "dev@company.local",
+  "IosStaticFramework": false,
+  "IosGenerateVersionDirectory": true,
+  "PodfilePatchDefine": "UNITY_IOS"
+}
