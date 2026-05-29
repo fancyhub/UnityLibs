@@ -6,10 +6,12 @@
 *************************************************************************************/
 
 using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace FH
 {
-    public static class DateUtil
+    public static partial class DateUtil
     {
         #region Svr time zone
         private static TimeSpan _svr_time_zone = DateTimeOffset.Now.Offset;
@@ -224,5 +226,147 @@ namespace FH
         {
             return day1.Date == day2.Date;
         }
+    }
+
+    /// <summary>
+    /// 解决DateTime的格式化问题, 因为不同的国家或者区域, 对应的日期时间个是不一样的
+    /// 
+    /// 日期部分:
+    /// 中国 2026/05/19 
+    /// 美国 05/19/2026
+    /// 英国 19/05/2026
+    /// 
+    /// 时间部分:
+    /// 中国:  20:34:30  
+    /// 英语:  08:34:30 PM
+    /// 西班牙: 08:34:30 p.m.
+    /// 越南语: 08:34:30 CH
+    /// 阿拉伯: 08:34:30 م
+    /// </summary>
+    public static class DataTimeLocalFormatExt
+    {
+        /// <summary>
+        /// 本地化的 "yyyy/MM/dd"
+        /// </summary>
+        public static string ToStr_YYYYMMDD(this DateTime time)
+        {
+            return time.ToLocalTime().ToString("d");
+        }
+
+        /// <summary>
+        /// 本地化的 "yyyy/MM/dd"
+        /// </summary>
+        public static string ToStr_YYYYMMDD(this DateTimeOffset time)
+        {
+            return time.ToLocalTime().ToString("d");
+        }
+
+        /// <summary>
+        /// 本地化的 "yyyy/MM/dd hh:mm"
+        /// </summary>
+        public static string ToStr_YYYYMMDD_HHMM(this DateTime time)
+        {
+            return time.ToLocalTime().ToString("g");
+        }
+
+        /// <summary>
+        /// 本地化的 "yyyy/MM/dd hh:mm"
+        /// </summary>
+        public static string ToStr_YYYYMMDD_HHMM(this DateTimeOffset time)
+        {
+            return time.ToLocalTime().ToString("g");
+        }
+
+        /// <summary>
+        /// 本地化的 "yyyy/MM/dd hh:mm:ss"
+        /// </summary>
+        public static string ToStr_YYYYMMDD_HHMMSS(this DateTime time)
+        {
+            return time.ToLocalTime().ToString("G");
+        }
+
+        /// <summary>
+        /// 本地化的 "yyyy/MM/dd hh:mm:ss"
+        /// </summary>
+        public static string ToStr_YYYYMMDD_HHMMSS(this DateTimeOffset time)
+        {
+            return time.ToLocalTime().ToString("G");
+        }
+
+        /// <summary>
+        /// 本地化的 "hh:mm:ss"
+        /// </summary>
+        public static string ToStr_HHMMSS(this DateTime time)
+        {
+            return time.ToLocalTime().ToString("T");
+        }
+
+        /// <summary>
+        /// 本地化的 "hh:mm:ss"
+        /// </summary>
+        public static string ToStr_HHMMSS(this DateTimeOffset time)
+        {
+            return time.ToLocalTime().ToString("T");
+        }
+
+        /// <summary>
+        /// 本地化的 "hh:mm"
+        /// </summary>
+        public static string ToStr_HHMM(this DateTime time)
+        {
+            return time.ToLocalTime().ToString("t");
+        }
+
+        /// <summary>
+        /// 本地化的 "hh:mm"
+        /// </summary>
+        public static string ToStr_HHMM(this DateTimeOffset time)
+        {
+            return time.ToLocalTime().ToString("t");
+        }
+
+
+#if UNITY_EDITOR 
+        public static void Test()
+        {
+            Dictionary<string, string> local_format_dict = new()
+            {
+                {"yyyy/MM/dd","d" },
+
+                {"hh:mm","t" },
+                {"hh:mm:ss","T" },
+
+                {"yyyy/MM/dd hh:mm","g" },
+                {"yyyy/MM/dd hh:mm:ss","G" },
+            };
+
+            List<string> culture_info_names = new List<string>()
+            {
+                "zh-CN",
+                "en-US",
+                "en-AU",
+                "fr-FR",
+                "vi-VN",
+                "es-ES",
+                "es-US",
+                "ar-QA",
+            };
+
+
+            var now = DateTime.Now;
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"Culture, LikeFormat, FormatKey, Value");
+            foreach (var culture_info_name in culture_info_names)
+            {
+                var culture_info = System.Globalization.CultureInfo.GetCultureInfo(culture_info_name);
+                foreach (var format in local_format_dict)
+                {
+                    sb.AppendLine($"{culture_info_name}, {format.Key}, {format.Value}, {now.ToString(format.Value, culture_info)}");
+                }
+            }
+
+            UnityEngine.Debug.LogFormat(UnityEngine.LogType.Log, UnityEngine.LogOption.NoStacktrace, null, "{0}", sb.ToString());
+        }
+#endif
     }
 }

@@ -107,8 +107,19 @@ namespace FH.UI
             {
                 //1. 判断是否相同
                 //这里不会因为 sync: true or false 发生变化
-                if (_Image == null || _Path == path)
+                if (_Image == null)
                     return;
+                if (_Path == path)
+                {
+                    if (Application.isEditor)
+                    {
+                        //editor 模式下, 只有路径相同并且已经获得了图片, 要不然不会返回                        
+                        //editor模式下, 可能因为初始化顺序问题,导致延迟出现的问题
+                        if (_Image.overrideSprite != null)
+                            return;
+                    }
+                    else return;// 非editor模式下, 只检查路径是否相同
+                }
 
                 //2.只是清除
                 if (string.IsNullOrEmpty(path))

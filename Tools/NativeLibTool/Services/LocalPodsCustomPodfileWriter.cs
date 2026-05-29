@@ -8,41 +8,30 @@ using NativeLibTool.Utilities;
 
 namespace NativeLibTool.Services
 {
-    internal static class LocalPodsPatchConfigWriter
+    internal static class LocalPodsCustomPodfileWriter
     {
-        public static string Write(string unityProjectRoot, string localPodsDirectory)
-        {
-            return Write(unityProjectRoot, localPodsDirectory, "UNITY_IOS");
-        }
+        private const string UnityProjectPlaceholder = "<UnityProject>";
 
-        public static string Write(string unityProjectRoot, string localPodsDirectory, string define)
+        public static string Write(string unityProjectRoot, string localPodsDirectory)
         {
             FileCopyUtility.EnsureDirectory(localPodsDirectory);
 
             var pods = FindPods(unityProjectRoot, localPodsDirectory).ToList();
-            var buildDefine = string.IsNullOrWhiteSpace(define) ? "UNITY_IOS" : define.Trim();
             var builder = new StringBuilder();
-            builder.AppendLine("{");
-            builder.AppendLine("  \"enabled\": true,");
-            builder.AppendLine("  \"onlyWhenDefinesContain\": [");
-            builder.AppendLine("    \"" + EscapeJson(buildDefine) + "\"");
-            builder.AppendLine("  ],");
-            builder.AppendLine("  \"pods\": [");
 
-            for (var i = 0; i < pods.Count; i++)
+            builder.AppendLine("target 'Add' do");
+            foreach (var pod in pods)
             {
-                var pod = pods[i];
-                var suffix = i == pods.Count - 1 ? string.Empty : ",";
-                builder.AppendLine("    {");
-                builder.AppendLine("      \"name\": \"" + EscapeJson(pod.Name) + "\",");
-                builder.AppendLine("      \"path\": \"" + EscapeJson(pod.RelativePath) + "\"");
-                builder.AppendLine("    }" + suffix);
+                builder.AppendLine("  pod '" + EscapeRuby(pod.Name) + "', :path => '" +
+                                   EscapeRuby(UnityProjectPlaceholder + "/" + pod.RelativePath) + "'");
             }
 
-            builder.AppendLine("  ]");
-            builder.AppendLine("}");
+            builder.AppendLine("end");
+            builder.AppendLine();
+            builder.AppendLine("target 'Remove' do");
+            builder.AppendLine("end");
 
-            var outputPath = Path.Combine(localPodsDirectory, "podfile-patch_temp.json");
+            var outputPath = Path.Combine(localPodsDirectory, "custom.podfile");
             File.WriteAllText(outputPath, builder.ToString(), new UTF8Encoding(false));
             return outputPath;
         }
@@ -93,19 +82,9 @@ namespace NativeLibTool.Services
             }
         }
 
-        private static string EscapeJson(string value)
+        private static string EscapeRuby(string value)
         {
-            if (value == null)
-            {
-                return string.Empty;
-            }
-
-            return value
-                .Replace("\\", "\\\\")
-                .Replace("\"", "\\\"")
-                .Replace("\r", "\\r")
-                .Replace("\n", "\\n")
-                .Replace("\t", "\\t");
+            return (value ?? string.Empty).Replace("\\", "\\\\").Replace("'", "\\'");
         }
 
         private sealed class PodEntry

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using NativeLibTool.Models;
 using NativeLibTool.Utilities;
 
@@ -10,7 +11,43 @@ namespace NativeLibTool.Services
 {
     internal sealed class IosPodBuilder
     {
+        private static readonly string[] NativeSourceFilePatterns =
+        {
+            "*.h",
+            "*.hh",
+            "*.hpp",
+            "*.m",
+            "*.mm",
+            "*.c",
+            "*.cc",
+            "*.cpp",
+            "*.cxx"
+        };
+
+        private static readonly string[] PublicHeaderPatterns =
+        {
+            "*.h",
+            "*.hh",
+            "*.hpp"
+        };
+
+        private static readonly string[] CompileSourceFilePatterns =
+        {
+            "*.m",
+            "*.mm",
+            "*.c",
+            "*.cc",
+            "*.cpp",
+            "*.cxx"
+        };
+
         private readonly Action<string> _log;
+
+        private sealed class PodDependency
+        {
+            public string Name { get; set; }
+            public string Version { get; set; }
+        }
 
         public IosPodBuilder(Action<string> log)
         {
@@ -58,14 +95,15 @@ namespace NativeLibTool.Services
                 throw new DirectoryNotFoundException("iOS source directory does not exist: " + root);
             }
 
-            if (ContainsAppleArtifact(root, SearchOption.TopDirectoryOnly))
+            if (ContainsPodContent(root, SearchOption.TopDirectoryOnly) ||
+                ContainsNativeCompileSource(root, SearchOption.AllDirectories))
             {
                 return root;
             }
 
             if (!autoDetect)
             {
-                throw new InvalidOperationException("No framework, xcframework, static library, or bundle was found in the selected directory.");
+                throw new InvalidOperationException("No framework, xcframework, static library, bundle, privacy manifest, or native source file was found in the selected directory.");
             }
 
             var candidates = FindPodSourceRoots(root).ToList();
@@ -101,7 +139,7 @@ namespace NativeLibTool.Services
                 var directory = item.Item1;
                 var depth = item.Item2;
 
-                if (ContainsAppleArtifact(directory, SearchOption.TopDirectoryOnly))
+                if (ContainsPodContent(directory, SearchOption.TopDirectoryOnly))
                 {
                     results.Add(directory);
                     continue;
@@ -130,13 +168,20 @@ namespace NativeLibTool.Services
             return results;
         }
 
-        private static bool ContainsAppleArtifact(string directory, SearchOption searchOption)
+        private static bool ContainsPodContent(string directory, SearchOption searchOption)
         {
             return Directory.GetDirectories(directory, "*.framework", searchOption).Length > 0 ||
                    Directory.GetDirectories(directory, "*.xcframework", searchOption).Length > 0 ||
                    Directory.GetFiles(directory, "*.a", searchOption).Length > 0 ||
                    Directory.GetDirectories(directory, "*.bundle", searchOption).Length > 0 ||
-                   Directory.GetFiles(directory, "*.xcprivacy", searchOption).Length > 0;
+                   Directory.GetFiles(directory, "*.xcprivacy", searchOption).Length > 0 ||
+                   ContainsNativeCompileSource(directory, searchOption);
+        }
+
+        private static bool ContainsNativeCompileSource(string directory, SearchOption searchOption)
+        {
+            return CompileSourceFilePatterns.Any(pattern =>
+                Directory.GetFiles(directory, pattern, searchOption).Any(file => !FileCopyUtility.IsUnityMetaPath(file)));
         }
 
         private static bool ShouldSkipCopyPath(string path)
@@ -175,8 +220,13 @@ namespace NativeLibTool.Services
             var vendoredFrameworks = FindRelativeDirectories(vendorRoot, new[] { "*.framework", "*.xcframework" }).ToList();
             var vendoredLibraries = FindRelativeFiles(vendorRoot, "*.a").ToList();
             var resourceEntries = FindResourceEntries(vendorRoot).ToList();
-            var publicHeaders = FindRelativeFiles(vendorRoot, "*.h")
+            var sourceFiles = FindRelativeFiles(vendorRoot, NativeSourceFilePatterns)
                 .Where(path => !IsInsideVendoredContainer(path))
+                .Where(path => !IsInsideResourceContainer(path))
+                .ToList();
+            var publicHeaders = FindRelativeFiles(vendorRoot, PublicHeaderPatterns)
+                .Where(path => !IsInsideVendoredContainer(path))
+                .Where(path => !IsInsideResourceContainer(path))
                 .ToList();
 
             var builder = new StringBuilder();
@@ -201,19 +251,27 @@ namespace NativeLibTool.Services
             if (publicHeaders.Count > 0)
             {
                 AppendRubyArray(builder, "s.public_header_files", publicHeaders);
-                AppendRubyArray(builder, "s.source_files", publicHeaders);
+            }
+
+            if (sourceFiles.Count > 0)
+            {
+                AppendRubyArray(builder, "s.source_files", sourceFiles);
             }
 
             AppendRubyArray(builder, "s.resources", resourceEntries);
             AppendCommaList(builder, "s.frameworks", options.SystemFrameworks);
             AppendCommaList(builder, "s.libraries", options.SystemLibraries);
+            AppendPodDependencies(builder, options.PodDependencies);
             builder.AppendLine("end");
 
             File.WriteAllText(podspecPath, builder.ToString(), new UTF8Encoding(false));
 
             _log("Vendored frameworks: " + vendoredFrameworks.Count);
             _log("Vendored libraries: " + vendoredLibraries.Count);
+            _log("Source files: " + sourceFiles.Count);
+            _log("Public headers: " + publicHeaders.Count);
             _log("Resources: " + resourceEntries.Count);
+            _log("Pod dependencies: " + ParsePodDependencies(options.PodDependencies).Count);
         }
 
         private static IEnumerable<string> FindRelativeDirectories(string root, IEnumerable<string> patterns)
@@ -232,6 +290,17 @@ namespace NativeLibTool.Services
             foreach (var file in Directory.GetFiles(root, pattern, SearchOption.AllDirectories))
             {
                 yield return FileCopyUtility.ToUnixPath(FileCopyUtility.GetRelativePath(Path.GetDirectoryName(root), file));
+            }
+        }
+
+        private static IEnumerable<string> FindRelativeFiles(string root, IEnumerable<string> patterns)
+        {
+            foreach (var pattern in patterns)
+            {
+                foreach (var file in FindRelativeFiles(root, pattern))
+                {
+                    yield return file;
+                }
             }
         }
 
@@ -265,6 +334,12 @@ namespace NativeLibTool.Services
         {
             return relativePath.IndexOf(".framework/", StringComparison.OrdinalIgnoreCase) >= 0 ||
                    relativePath.IndexOf(".xcframework/", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsInsideResourceContainer(string relativePath)
+        {
+            return relativePath.IndexOf(".bundle/", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   relativePath.IndexOf(".xcassets/", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static void AppendRubyArray(StringBuilder builder, string name, IList<string> values)
@@ -304,6 +379,101 @@ namespace NativeLibTool.Services
             }
 
             builder.AppendLine("  " + name + " = " + string.Join(", ", items.Select(item => "'" + R(item) + "'")));
+        }
+
+        private static void AppendPodDependencies(StringBuilder builder, string value)
+        {
+            foreach (var dependency in ParsePodDependencies(value))
+            {
+                if (string.IsNullOrWhiteSpace(dependency.Version))
+                {
+                    builder.AppendLine("  s.dependency '" + R(dependency.Name) + "'");
+                }
+                else
+                {
+                    builder.AppendLine("  s.dependency '" + R(dependency.Name) + "', '" + R(dependency.Version) + "'");
+                }
+            }
+        }
+
+        private static IList<PodDependency> ParsePodDependencies(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return new List<PodDependency>();
+            }
+
+            var dependencies = new List<PodDependency>();
+            foreach (var item in value.Split(new[] { '\r', '\n', ';' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var dependency = ParsePodDependency(item);
+                if (dependency != null &&
+                    !dependencies.Any(existing =>
+                        string.Equals(existing.Name, dependency.Name, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(existing.Version ?? string.Empty, dependency.Version ?? string.Empty, StringComparison.OrdinalIgnoreCase)))
+                {
+                    dependencies.Add(dependency);
+                }
+            }
+
+            return dependencies;
+        }
+
+        private static PodDependency ParsePodDependency(string value)
+        {
+            var text = (value ?? string.Empty).Trim();
+            if (text.Length == 0)
+            {
+                return null;
+            }
+
+            var rubyMatch = Regex.Match(
+                text,
+                @"^(?:pod|s\.dependency)\s+['""]([^'""]+)['""]\s*(?:,\s*['""]([^'""]+)['""])?",
+                RegexOptions.IgnoreCase);
+            if (rubyMatch.Success)
+            {
+                return CreatePodDependency(rubyMatch.Groups[1].Value, rubyMatch.Groups[2].Value);
+            }
+
+            var separatorIndex = FindDependencySeparator(text);
+            if (separatorIndex < 0)
+            {
+                return CreatePodDependency(text, string.Empty);
+            }
+
+            return CreatePodDependency(text.Substring(0, separatorIndex), text.Substring(separatorIndex + 1));
+        }
+
+        private static int FindDependencySeparator(string value)
+        {
+            var comma = value.IndexOf(',');
+            var pipe = value.IndexOf('|');
+            var colon = value.IndexOf(':');
+            return new[] { comma, pipe, colon }
+                .Where(index => index >= 0)
+                .DefaultIfEmpty(-1)
+                .Min();
+        }
+
+        private static PodDependency CreatePodDependency(string name, string version)
+        {
+            var dependencyName = TrimDependencyToken(name);
+            if (string.IsNullOrWhiteSpace(dependencyName))
+            {
+                return null;
+            }
+
+            return new PodDependency
+            {
+                Name = dependencyName,
+                Version = TrimDependencyToken(version)
+            };
+        }
+
+        private static string TrimDependencyToken(string value)
+        {
+            return (value ?? string.Empty).Trim().Trim('\'', '"');
         }
 
         private static IEnumerable<string> SplitCommaList(string value)

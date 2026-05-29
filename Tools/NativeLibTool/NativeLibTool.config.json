@@ -1,6 +1,17 @@
 {
   "UnityProjectRoot": "",
+  "AndroidAarPath": "",
   "AndroidSourceDirectory": "",
+  "AndroidAarOutputDirectory": "",
+  "AndroidSourceProjectDirectory": "",
+  "AndroidSourceGradleProjectDirectory": "",
+  "AndroidSourceAarOutputDirectory": "",
+  "AndroidGradleCommand": "gradle",
+  "AndroidGradlePluginVersion": "7.4.2",
+  "AndroidCompileSdk": "35",
+  "AndroidMinSdk": "21",
+  "AndroidNamespace": "",
+  "AndroidUnityDataDirectory": "",
   "AndroidGroupId": "com.garena.crashsight",
   "AndroidArtifactId": "crashsight",
   "AndroidVersion": "1.0.0",
@@ -10,12 +21,12 @@
   "IosMinimumVersion": "12.0",
   "IosSystemFrameworks": "Foundation, UIKit, SystemConfiguration",
   "IosSystemLibraries": "z, c++",
+  "IosPodDependencies": "",
   "IosSummaryFormat": "{PodName} native SDK",
   "IosHomepageFormat": "https://internal.local/{PodName}",
   "IosLicenseType": "Proprietary",
   "IosAuthorName": "Company",
   "IosAuthorEmail": "dev@company.local",
   "IosStaticFramework": false,
-  "IosGenerateVersionDirectory": true,
-  "PodfilePatchDefine": "UNITY_IOS"
+  "IosGenerateVersionDirectory": true
 }

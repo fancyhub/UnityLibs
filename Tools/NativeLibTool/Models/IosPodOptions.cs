@@ -14,6 +14,7 @@ namespace NativeLibTool.Models
         public string MinimumIosVersion { get; set; }
         public string SystemFrameworks { get; set; }
         public string SystemLibraries { get; set; }
+        public string PodDependencies { get; set; }
         public bool StaticFramework { get; set; }
         public bool GenerateVersionDirectory { get; set; }
         public bool AutoDetectSourceRoot { get; set; }

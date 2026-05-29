@@ -47,6 +47,50 @@ namespace NativeLibTool.Services
             _log = log ?? delegate { };
         }
 
+        public BuildResult BuildAar(AndroidAarPackageOptions options)
+        {
+            ValidatePackageOptions(options);
+
+            var source = ResolveSource(options.SourcePath, options.AutoDetectSourceRoot);
+            if (source.Kind == AndroidInputKind.ExistingAarFile)
+            {
+                throw new InvalidOperationException("The selected input is already an AAR. Use the Android AAR -> Local Maven tab to publish it.");
+            }
+
+            var outputDirectory = Path.GetFullPath(options.OutputDirectory);
+            var artifactId = options.ArtifactId.Trim();
+            var version = options.Version.Trim();
+            var aarPath = Path.Combine(outputDirectory, artifactId + "-" + version + ".aar");
+            var tempRoot = Path.Combine(Path.GetTempPath(), "NativeLibTool-AAR-" + Guid.NewGuid().ToString("N"));
+            var aarRoot = Path.Combine(tempRoot, "aar");
+
+            _log("Android source: " + source.Path);
+            _log("Android source type: " + GetInputKindLabel(source.Kind));
+            _log("AAR output: " + aarPath);
+
+            try
+            {
+                FileCopyUtility.EnsureDirectory(outputDirectory);
+                FileCopyUtility.EnsureCleanDirectory(aarRoot);
+                CopyAarContents(source, aarRoot);
+                CreateAarArchive(aarRoot, aarPath);
+
+                return new BuildResult
+                {
+                    PrimaryArtifactPath = aarPath,
+                    ResolvedSourceDirectory = source.Path,
+                    RepositorySnippet = "AAR output:\r\n" + aarPath
+                };
+            }
+            finally
+            {
+                if (Directory.Exists(tempRoot))
+                {
+                    Directory.Delete(tempRoot, true);
+                }
+            }
+        }
+
         public BuildResult Build(AndroidAarOptions options)
         {
             ValidateOptions(options);
@@ -295,6 +339,18 @@ namespace NativeLibTool.Services
 
             IdentifierValidator.ValidateRequired("Output repository directory", options.OutputRepositoryDirectory);
             IdentifierValidator.ValidateMavenCoordinate(options.GroupId, options.ArtifactId, options.Version);
+        }
+
+        private static void ValidatePackageOptions(AndroidAarPackageOptions options)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException("options");
+            }
+
+            IdentifierValidator.ValidateRequired("Android source path", options.SourcePath);
+            IdentifierValidator.ValidateRequired("Output directory", options.OutputDirectory);
+            IdentifierValidator.ValidateMavenCoordinate("local", options.ArtifactId, options.Version);
         }
 
         private static string GetInputKindLabel(AndroidInputKind kind)

@@ -413,16 +413,40 @@ Android source / .androidlib / Java / Kotlin / C++ source
   -> Gradle dependency 引用
 ```
 
-用 NativeLibTool 转换支持的 Android 输入：
+NativeLibTool 现在把 Android 转换拆成三个页签：
 
-1. 打开工具，设置 `Unity project root`。
-2. Android 页签里选择 `Source path`。可以选目录，也可以用 `File` 选择 `.aar`、`.jar`、`.so`。
-3. 填 Maven 坐标：
-   - `GroupId`：例如 `com.company.foo`
-   - `ArtifactId`：例如 `foo`
-   - `Version`：例如 `1.0.0`
-4. 点击 `Generate`。
-5. 工具会在 Unity 项目根目录生成 `LocalMaven`。
+1. `Android AAR -> Local Maven`：只做一件事，把现成 `.aar` 发布到 `LocalMaven`，并生成 `.pom`、`maven-metadata.xml` 和 `temp.gradle`。
+2. `Android JAR/SO -> AAR`：把 `.jar`、`.so`、旧 Unity Android 插件目录或 loose content 目录打成 `.aar`，不自动发布到 `LocalMaven`。
+3. `Android Source -> AAR`：把 Java/C/C++ 源码目录生成可检查的 Android Library Gradle 工程，也可以继续调用 Gradle 编译成 `.aar`，不自动发布到 `LocalMaven`。
+
+推荐流程：
+
+```text
+.aar
+  -> Android AAR -> Local Maven
+
+.jar / .so / old Android library directory
+  -> Android JAR/SO -> AAR
+  -> Android AAR -> Local Maven
+
+Java/C/C++ source directory
+  -> Android Source -> AAR
+  -> Android AAR -> Local Maven
+```
+
+发布到 `LocalMaven` 时需要填 Maven 坐标：
+
+- `GroupId`：例如 `com.company.foo`
+- `ArtifactId`：例如 `foo`
+- `Version`：例如 `1.0.0`
+
+`Android AAR -> Local Maven` 页签有 `Detect` 按钮，会按顺序尝试：
+
+1. 读取 AAR 内的 `META-INF/maven/**/pom.properties`。
+2. 读取 AAR 内的 `META-INF/maven/**/pom.xml`。
+3. 从文件名 `artifact-version.aar` 推断 `ArtifactId` 和 `Version`。
+
+普通 Gradle 直接编译出来的 AAR 通常不包含 Maven 坐标，特别是 `GroupId`。这种情况下工具只能从文件名猜 `ArtifactId` / `Version`，`GroupId` 仍然需要手填。发布时工具会为 AAR、POM、`maven-metadata.xml` 同时生成 `.md5` 和 `.sha1`。
 
 工具打 AAR 时的映射规则：
 
@@ -437,11 +461,99 @@ Android source / .androidlib / Java / Kotlin / C++ source
 | `aidl/` | `aidl/` |
 | `proguard-project.txt` | `proguard.txt` |
 | `consumer-proguard-rules.pro` | `proguard.txt` |
-| existing `.aar` | copied as `<artifact>-<version>.aar` |
 | single `.jar` file | `classes.jar` in a minimal AAR |
 | single `.so` file | `jni/<abi>/<name>.so` in a minimal AAR |
 
-生成后的文件：
+源码页签的临时 Gradle 工程映射规则：
+
+| 原目录内容 | 临时 Gradle 工程位置 |
+| --- | --- |
+| `src/main/java` / `java` / old Unity `src` | `lib/src/main/java` |
+| `src/main/cpp` / `cpp` / loose C/C++ files | `lib/src/main/cpp` |
+| `src/main/AndroidManifest.xml` / `AndroidManifest.xml` | `lib/src/main/AndroidManifest.xml` |
+| `res/` | `lib/src/main/res` |
+| `assets/` | `lib/src/main/assets` |
+| `aidl/` | `lib/src/main/aidl` |
+| `jniLibs/<abi>/*.so` | `lib/src/main/jniLibs/<abi>/*.so` |
+| `libs/<abi>/*.so` | `lib/src/main/jniLibs/<abi>/*.so` |
+| `libs/*.jar` | `lib/libs/*.jar` |
+
+源码页签可以先单独生成类似这样的 Gradle 工程：
+
+```text
+TempGradleProject/
+  settings.gradle
+  build.gradle
+  gradle.bat
+  gradlew.bat
+  gradle/
+    wrapper/
+      gradle-wrapper.jar
+  lib/
+    build.gradle
+    src/main/
+      AndroidManifest.xml
+      java/
+      cpp/
+      res/
+      assets/
+      aidl/
+      jniLibs/
+```
+
+`Gradle project` 输入框可以指定这个工程的输出目录。点击 `Generate Project` 只生成工程，方便检查 `build.gradle`、`CMakeLists.txt`、源码复制位置和依赖是否正确；点击 `Build AAR` 会生成/更新工程，然后执行：
+
+```text
+gradle.bat :lib:assembleRelease --stacktrace
+```
+
+如果没有指定 `Gradle project` 目录，`Build AAR` 会使用临时目录，编译完成后删除。
+
+如果 Java 源码里引用了 `com.unity3d.player.UnityPlayer`，工具顶部需要填写 `Unity root/Data` 路径。可以填 Unity 安装根目录：
+
+```text
+c:\tools\Unity\Unity2022.3.47f1\
+```
+
+也可以填 Unity 的 `Data` 目录：
+
+```text
+c:\tools\Unity\Unity2022.3.47f1\Data\
+```
+
+工具会从这个路径下查找：
+
+```text
+Data/Data/PlaybackEngines/AndroidPlayer/Variations/il2cpp/Release/Classes/classes.jar
+PlaybackEngines/AndroidPlayer/Variations/il2cpp/Release/Classes/classes.jar
+Data/PlaybackEngines/AndroidPlayer/Variations/il2cpp/Release/Classes/classes.jar
+```
+
+并在临时 Gradle 工程里直接引用绝对路径：
+
+```gradle
+dependencies {
+    compileOnly files('C:/tools/Unity/Unity2022.3.47f1/Data/Data/PlaybackEngines/AndroidPlayer/Variations/il2cpp/Release/Classes/classes.jar')
+}
+```
+
+这里用 `compileOnly`，不会把 Unity 的 `classes.jar` 打进 AAR。
+
+工具还会从 Unity 安装目录查找：
+
+```text
+PlaybackEngines/AndroidPlayer/Tools/VisualStudioGradleTemplates/gradlew.bat
+PlaybackEngines/AndroidPlayer/Tools/VisualStudioGradleTemplates/gradle-wrapper.jar
+PlaybackEngines/AndroidPlayer/Tools/gradle/lib/gradle-launcher-*.jar
+```
+
+生成工程时会把 `gradlew.bat` 和 `gradle-wrapper.jar` 复制进去，并额外写一个 `gradle.bat`，直接指向 Unity 内置 Gradle launcher。这样生成出来的工程可以不依赖系统全局 `gradle` 命令来检查 Gradle 版本或执行构建。
+
+如果 C/C++ 源码目录没有 `CMakeLists.txt`，工具会生成一个最小 `CMakeLists.txt`，把 `.c`、`.cc`、`.cpp`、`.cxx` 编译成一个 `.so` 并打进 AAR。复杂 NDK 工程仍建议保留自己的 `CMakeLists.txt` 或先在 Android Studio 中整理为标准 Android Library。
+
+Kotlin 源码会被检测并在日志里提示，但当前源码页签不会自动加入 Kotlin Gradle Plugin。包含 Kotlin、annotation processor、DataBinding 或复杂远程依赖的 SDK，建议先整理成标准 Android Library 工程再产出 AAR。
+
+发布到 `LocalMaven` 后的文件：
 
 ```text
 <UnityProjectRoot>/LocalMaven/<group path>/<artifact>/<version>/<artifact>-<version>.aar
@@ -523,7 +635,7 @@ LocalMaven/com/company/foo/foo/1.0.0/foo-1.0.0.pom
 </project>
 ```
 
-建议仍然用工具生成一次，因为它会同时生成 AAR、POM 和 `maven-metadata.xml`，目录结构也不容易写错。
+建议仍然用第一个页签发布一次，因为它会同时生成 POM 和 `maven-metadata.xml`，目录结构也不容易写错。
 
 常见坑：
 
@@ -851,7 +963,7 @@ pod 'FooCN', :path => '<UnityProjectRoot>/LocalPods/FooCN/1.0.0'
 | `.a` + `.h` | 可以 | 放进 `Vendor/`，podspec 写 `s.vendored_libraries`、`s.public_header_files` |
 | `.bundle` / `.xcassets` | 可以，但通常作为资源跟随 SDK | 放进 `Vendor/`，podspec 写 `s.resources` |
 | `.xcprivacy` | 可以 | 放进 `Vendor/` 或 SDK 根目录，podspec 写 `s.resources` |
-| `.m` / `.mm` / `.c` / `.cpp` / `.h` | 可以做成 Pod，但不适合当前工具直接生成完整源码 Pod | 手写或扩展 podspec，写 `s.source_files` |
+| `.m` / `.mm` / `.c` / `.cc` / `.cpp` / `.cxx` / `.h` / `.hh` / `.hpp` | 可以，工具已支持 ObjC/C/C++ 源码 Pod | 放进 `Vendor/`，podspec 写 `s.source_files` 和 `s.public_header_files` |
 | `.swift` | 可以，但更麻烦 | 手写 podspec，补 `s.source_files`、`s.swift_version`，处理 Swift module 和桥接 |
 | 现成 `.podspec` | 可以 | 调整成 `s.source = { :path => '.' }`，修正 vendored/source/resource 相对路径 |
 | 远程 Pod | 可以本地化，但不是简单复制 | 用官方 Pod 依赖，或把源码/二进制/vendor 资源整理成本地 Pod |
@@ -862,12 +974,13 @@ pod 'FooCN', :path => '<UnityProjectRoot>/LocalPods/FooCN/1.0.0'
 
 - SDK 已经是 `.framework` 或 `.xcframework`。
 - SDK 是 `.a` 静态库，并且头文件完整。
+- SDK 是 `.m/.mm/.c/.cpp` 这类 Objective-C/C/C++ 源码。
 - SDK 的资源是 `.bundle`、`.xcassets`、`.plist`、`.storyboard`、`.xib`、`.xcprivacy`。
 - 只是需要补系统 framework/library，例如 `Foundation`、`UIKit`、`z`、`c++`。
 
 不好直接转的格式：
 
-- SDK 只有 Swift/Objective-C/C++ 源码，还没有稳定的 Podspec。
+- SDK 只有 Swift 源码，还没有稳定的 Podspec。
 - SDK 是完整 Xcode 工程，需要先编译或拆出源码文件。
 - SDK 依赖其他 CocoaPods，但这些依赖没有在 podspec 里声明。
 - SDK 需要复杂 Build Settings，例如 Swift version、module map、script phase、resource bundle 编译规则。
@@ -875,7 +988,7 @@ pod 'FooCN', :path => '<UnityProjectRoot>/LocalPods/FooCN/1.0.0'
 这些不好直接转的格式，要先变成标准 Pod 或标准 Apple SDK 产物：
 
 ```text
-iOS source / Xcode project / Swift SDK
+iOS Swift source / Xcode project / complex SDK
   -> 写 podspec 或用 Xcode 构建
   -> .framework / .xcframework 或源码 Pod
   -> 放进 LocalPods
@@ -885,13 +998,14 @@ iOS source / Xcode project / Swift SDK
 用 NativeLibTool 转换 iOS SDK 目录：
 
 1. 打开工具，设置 `Unity project root`。
-2. iOS 页签里选择 `Source directory`。可以选到真正包含 `.framework`、`.xcframework`、`.a`、`.bundle`、`.xcprivacy` 的目录，也可以选它的父目录，让工具自动检测。
+2. iOS 页签里选择 `Source directory`。可以选到真正包含 `.framework`、`.xcframework`、`.a`、`.bundle`、`.xcprivacy`、`.m/.mm/.c/.cpp/.h` 的目录，也可以选它的父目录，让工具自动检测。
 3. 填 Pod 信息：
    - `Pod name`：例如 `FooCN`
    - `Version`：例如 `1.0.0`
    - `Min iOS`：例如 `12.0`
    - `Frameworks`：例如 `Foundation, UIKit, SystemConfiguration`
    - `Libraries`：例如 `z, c++`
+   - `Dependencies`：例如 `SolarEngineSDK, >=0`
 4. 点击 `Generate`。
 5. 工具会在 Unity 项目根目录生成 `LocalPods/<PodName>/<Version>`。
 
@@ -902,13 +1016,34 @@ iOS source / Xcode project / Swift SDK
 | `*.framework` | `s.vendored_frameworks` |
 | `*.xcframework` | `s.vendored_frameworks` |
 | `*.a` | `s.vendored_libraries` |
-| `*.h` | `s.public_header_files`、`s.source_files` |
+| `*.m`, `*.mm`, `*.c`, `*.cc`, `*.cpp`, `*.cxx` | `s.source_files` |
+| `*.h`, `*.hh`, `*.hpp` | `s.public_header_files`、`s.source_files` |
 | `*.bundle` | `s.resources` |
 | `*.xcassets` | `s.resources` |
 | `*.plist` | `s.resources` |
 | `*.storyboard` | `s.resources` |
 | `*.xib` | `s.resources` |
 | `*.xcprivacy` | `s.resources` |
+
+如果 `Dependencies` 填：
+
+```text
+SolarEngineSDK, >=0
+```
+
+或者直接粘贴：
+
+```ruby
+pod 'SolarEngineSDK', '>=0'
+```
+
+生成的 podspec 会包含：
+
+```ruby
+s.dependency 'SolarEngineSDK', '>=0'
+```
+
+这表示当前 LocalPod 编译时和链接时依赖 `SolarEngineSDK`，CocoaPods 会自动把它加入 Pods。`s.dependency` 只能声明 pod 名和版本；如果依赖必须使用 `:path`、`:podspec` 或网络 podspec URL，就需要在 Podfile/custom Podfile 里直接写那条 pod。
 
 生成后的文件：
 
@@ -948,17 +1083,26 @@ pod 'FooCN', :path => 'D:/YourUnityProject/LocalPods/FooCN/1.0.0'
 }
 ```
 
-用工具生成 Podfile patch 配置：
+用工具生成自定义 Podfile 配置：
 
 1. 点击 iOS 页签的 `Collect`。
 2. 工具会扫描 `LocalPods` 下所有 `.podspec`。
 3. 生成：
 
 ```text
-<UnityProjectRoot>/LocalPods/podfile-patch_temp.json
+<UnityProjectRoot>/LocalPods/custom.podfile
 ```
 
-`podfile-patch_temp.json` 只是给 Unity PostProcessBuild 使用或复制改名的配置，不会自动修改 Unity 工程。
+`custom.podfile` 只是给 Unity PostProcessBuild 使用或复制改名的配置，不会自动修改 Unity 工程。它包含两个目标：
+
+```ruby
+target 'Add' do
+  pod 'FooCN', :path => '<UnityProject>/LocalPods/FooCN/1.0.0'
+end
+
+target 'Remove' do
+end
+```
 
 如果输入本来就是一个本地 Pod，最小结构是：
 
@@ -993,7 +1137,7 @@ end
 - 如果 SDK 依赖其他 Pod，要在 podspec 里写 `s.dependency`，或者同时把依赖也变成本地 Pod 并确保 Podfile 能找到。
 - Swift SDK 通常不能只复制 `.swift` 文件就结束，要处理 `s.swift_version`、module、bridging 和 Build Settings。
 - 系统 framework/library 不要复制到 `LocalPods`，在 podspec 里用 `s.frameworks` / `s.libraries` 声明。
-- 当前 NativeLibTool 主要面向 vendored SDK；纯源码 Pod、Swift Pod、复杂 podspec 需要手写 podspec 或扩展工具。
+- 当前 NativeLibTool 支持 vendored SDK 和 Objective-C/C/C++ 源码 Pod；Swift Pod、复杂 podspec 需要手写 podspec 或扩展工具。
 
 ## Windows / macOS / Linux
 
@@ -1161,9 +1305,10 @@ Assets/Plugins/WebGL/Foo.jspre
 | iOS SDK 是静态库 | `.a` + `.h` + `.m/.mm` bridge |
 | iOS SDK 是 framework | `.framework` |
 | iOS SDK 是现代多架构包 | `.xcframework` 或 CocoaPods |
-| iOS SDK 官方提供 Pod | CocoaPods / Podfile patch / `LocalPods` |
+| iOS SDK 官方提供 Pod | CocoaPods / custom Podfile / `LocalPods` |
 | iOS 二进制 SDK 要按区域显式接入 | 转成 `LocalPods` |
-| iOS 源码或 Swift SDK 要本地 Pod 化 | 先写 podspec 或构建 `.xcframework`，再放进 `LocalPods` |
+| iOS Objective-C/C/C++ 源码要本地 Pod 化 | 直接转成 `LocalPods` 源码 Pod |
+| iOS Swift SDK 要本地 Pod 化 | 先写 podspec 或构建 `.xcframework`，再放进 `LocalPods` |
 | Windows native | `.dll` |
 | macOS native | `.bundle` 或 `.dylib` |
 | Linux native | `.so` |
@@ -1181,9 +1326,9 @@ Android 侧：
 
 iOS 侧：
 
-- 输入 `.framework` / `.xcframework` / `.a` / `.bundle` / `.xcprivacy` 等原生 SDK 目录。
+- 输入 `.framework` / `.xcframework` / `.a` / `.bundle` / `.xcprivacy` / `.m` / `.mm` / `.c` / `.cpp` 等原生 SDK 目录。
 - 输出本地 Pod 到 `LocalPods`。
-- Unity 导出 Xcode 后，通过 Podfile patch 按构建条件显式引用。
+- Unity 导出 Xcode 后，通过自定义 Podfile 配置显式引用。
 
 这样做的好处是：
 

@@ -415,7 +415,7 @@ namespace FH.UI
 
                 Image image = _ImageList[i];
                 if (image == null)
-                    continue;                
+                    continue;
 
                 //移走
                 if (info.QuadRect.size.x < 0.001f || info.QuadRect.size.y < 0.001f || !info.TypeWriterShow)
