@@ -12,7 +12,7 @@ namespace FH.DI.Ed
 {
     [System.Serializable]
     [CreateAssetMenu(fileName = "XCodeProject", menuName = "fancyhub/XCode Project Asset")]
-    public class XCodeProjectModifierAsset : ScriptableObject
+    public class IOSXCodeProjectModifierAsset : ScriptableObject
     {
         [Serializable]
         public class Framework
@@ -24,6 +24,8 @@ namespace FH.DI.Ed
             public string Comment;
         }
 
-        public List<Framework> FrameworksToAdd = new ();
+        public List<Framework> FrameworksToAdd = new();
+        public List<string> MacrosToAdd = new List<string>();
+        public List<string> MacrosToRemove = new List<string>();
     }
 }
