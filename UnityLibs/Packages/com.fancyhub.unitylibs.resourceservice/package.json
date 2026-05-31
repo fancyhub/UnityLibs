@@ -20,6 +20,7 @@
     "com.fancyhub.unitylibs.virtualfilesystemmanager": "1.0.0",
     "com.fancyhub.unitylibs.resourcemanager": "1.0.0",
     "com.fancyhub.unitylibs.scenemanager": "1.0.0",
-    "com.fancyhub.unitylibs.assetbundlebuilder": "1.0.0"
+    "com.fancyhub.unitylibs.assetbundlebuilder": "1.0.0",
+    "com.fancyhub.unitylibs.debugconnection": "1.0.0"
   }
 }

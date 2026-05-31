@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
-using UnityEngine.Networking.PlayerConnection;
 
 namespace FH
 {
@@ -9,6 +8,7 @@ namespace FH
     public class SnapShot
     {
         public int FrameCount;
+        public string Error;
         public List<ResSnapShotItem> ResItems = new();
         public List<BundleSnapshotItem> BundleItems = new();
         public BundleManifest BundleManifest;
@@ -24,6 +24,25 @@ namespace FH
         }
     }
 
+    [Serializable]
+    public class SnapShotRequest
+    {
+        public bool IncludeBundleManifest;
+
+        public byte[] Serialize2Bytes()
+        {
+            return System.Text.Encoding.UTF8.GetBytes(JsonUtility.ToJson(this));
+        }
+
+        public static SnapShotRequest DeserializeFromBytes(byte[] data)
+        {
+            if (data == null || data.Length == 0)
+                return new SnapShotRequest();
+
+            return JsonUtility.FromJson<SnapShotRequest>(System.Text.Encoding.UTF8.GetString(data)) ?? new SnapShotRequest();
+        }
+    }
+
     public partial class ResService
     {
         public static readonly Guid DebugKeyPlayer2Editor = new Guid("D9AB1B8D-8640-4114-965F-5BDC4E313978");
@@ -31,60 +50,87 @@ namespace FH
 
         public void InitDebug()
         {
-            PlayerConnection.instance.Register(DebugKeyEditor2Player, _OnHandleEditorMessage);
+            DebugConnection.Register(DebugKeyEditor2Player, _OnHandleEditorMessage);
         }
 
-        private void _OnHandleEditorMessage(MessageEventArgs args)
+        private void _OnHandleEditorMessage(DebugConnectionMessageEventArgs args)
         {
-            SnapShot snapshot = new SnapShot();
-            snapshot.FrameCount = Time.frameCount;
-            ResMgr.Snapshot(ref snapshot.ResItems);
-            BundleMgr.Snapshot(ref snapshot.BundleItems);
-            snapshot.BundleManifest = BundleMgr.GetBundleManifest();
+            try
+            {
+                SnapShotRequest request = SnapShotRequest.DeserializeFromBytes(args.Data);
+                SnapShot snapshot = new SnapShot();
+                snapshot.FrameCount = Time.frameCount;
+                ResMgr.Snapshot(ref snapshot.ResItems);
+                BundleMgr.Snapshot(ref snapshot.BundleItems);
+                if (request.IncludeBundleManifest)
+                    snapshot.BundleManifest = BundleMgr.GetBundleManifest();
 
-
-            byte[] data = snapshot.Serialize2Bytes();
-            PlayerConnection.instance.Send(DebugKeyPlayer2Editor, data);
+                PrepareForSerialization(snapshot);
+                DebugConnection.Send(DebugKeyPlayer2Editor, SerializeForSend(snapshot));
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                SendErrorSnapshot(e.Message);
+            }
         }
 
         public void _RequestPlayerSnapshot()
         {
 
         }
+
+        private static void PrepareForSerialization(SnapShot snapshot)
+        {
+            if (snapshot == null || snapshot.ResItems == null)
+                return;
+
+            for (int i = 0; i < snapshot.ResItems.Count; i++)
+            {
+                ResSnapShotItem item = snapshot.ResItems[i];
+                item.Users = null;
+                snapshot.ResItems[i] = item;
+            }
+        }
+
+        private static byte[] SerializeForSend(SnapShot snapshot)
+        {
+            byte[] data = snapshot.Serialize2Bytes();
+            if (data.Length <= DebugConnection.MaxPayloadSize)
+                return data;
+
+            if (snapshot.BundleManifest != null)
+            {
+                snapshot.BundleManifest = null;
+                snapshot.Error = "Snapshot payload was too large. BundleManifest was omitted.";
+                data = snapshot.Serialize2Bytes();
+                if (data.Length <= DebugConnection.MaxPayloadSize)
+                    return data;
+            }
+
+            snapshot.ResItems.Clear();
+            snapshot.BundleItems.Clear();
+            snapshot.BundleManifest = null;
+            snapshot.Error = "Snapshot payload was too large: " + data.Length + " bytes.";
+            return snapshot.Serialize2Bytes();
+        }
+
+        private static void SendErrorSnapshot(string error)
+        {
+            SnapShot snapshot = new SnapShot
+            {
+                FrameCount = Time.frameCount,
+                Error = error,
+            };
+
+            try
+            {
+                DebugConnection.Send(DebugKeyPlayer2Editor, snapshot.Serialize2Bytes());
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
     }
-
-#if UNITY_EDITOR
-
-    public class EdResServiceSnapshot
-    {
-        public EdResServiceSnapshot()
-        {
-            UnityEditor.Networking.PlayerConnection.EditorConnection.instance.Initialize();
-            UnityEditor.Networking.PlayerConnection.EditorConnection.instance.RegisterConnection(OnHandleConnectionEvent);
-            UnityEditor.Networking.PlayerConnection.EditorConnection.instance.RegisterDisconnection(OnHandleDisconnectionEvent);
-            UnityEditor.Networking.PlayerConnection.EditorConnection.instance.Register(ResService.DebugKeyPlayer2Editor, _OnHandlePlayerMessage);
-        }
-
-        public void RequestSnapShot()
-        {
-            UnityEditor.Networking.PlayerConnection.EditorConnection.instance.Send(ResService.DebugKeyPlayer2Editor, null);
-        }
-
-
-        private void OnHandleConnectionEvent(int playerId)
-        {
-            Debug.Log($"Game player connection : {playerId}");
-        }
-
-        private void OnHandleDisconnectionEvent(int playerId)
-        {
-            Debug.Log($"Game player disconnection : {playerId}");
-        }
-
-        private void _OnHandlePlayerMessage(MessageEventArgs msg)
-        {
-            SnapShot snapshot = SnapShot.DeserializeFromBytes(msg.data);
-        }
-    }
-#endif
 }

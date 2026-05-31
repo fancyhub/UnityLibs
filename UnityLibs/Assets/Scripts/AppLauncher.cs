@@ -8,13 +8,16 @@ using System.Text;
 using UnityEngine;
 
 namespace Game
-{ 
+{
     public class AppLauncher : MonoBehaviour
     {
         // Start is called before the first frame update
         void Start()
         {
             FH.Log.AutoInit();
+
+            if (!Application.isEditor)
+                FH.DebugConnection.StartServer();
 
             new MyUISceneMgr().Init();
             FH.UI.UIMgr.ChangeScene<UISceneExtractAsset>();
@@ -25,8 +28,8 @@ namespace Game
             FH.UI.UIMgr.UpdateList += FH.UI.UIRedDotMgr.Update;
 
             FH.TimerMgr.Init();
-            FH.UI.UIMgr.UpdateList += FH.TimerMgr.Update;            
-        }         
+            FH.UI.UIMgr.UpdateList += FH.TimerMgr.Update;
+        }
     }
 
 
