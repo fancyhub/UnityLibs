@@ -29,7 +29,7 @@ namespace FH
         private void OnEnable()
         {
             _Host = EditorPrefs.GetString(CHostKey, "127.0.0.1");
-            _Port = EditorPrefs.GetInt(CPortKey, DebugConnection.DefaultPort);
+            _Port = EditorPrefs.GetInt(CPortKey, DebugConnectionServer.DefaultPort);
             _AutoPort = EditorPrefs.GetBool(CAutoPortKey, false);
             _Name = _Host;
             ReloadHistory();
@@ -70,7 +70,7 @@ namespace FH
                 {
                     EditorGUILayout.LabelField(
                         "Port Range",
-                        DebugConnection.DefaultPort + " - " + (DebugConnection.DefaultPort + DebugConnection.DefaultPortScanCount - 1));
+                        DebugConnectionServer.DefaultPort + " - " + (DebugConnectionServer.DefaultPort + DebugConnectionServer.DefaultPortScanCount - 1));
                 }
                 else
                 {
@@ -174,7 +174,7 @@ namespace FH
             EditorPrefs.SetBool(CAutoPortKey, _AutoPort);
             SaveHistory();
             if (_AutoPort)
-                DebugConnectionEditorClient.ConnectAutoPort(_Host, DebugConnection.DefaultPort, DebugConnection.DefaultPortScanCount);
+                DebugConnectionEditorClient.ConnectAutoPort(_Host, DebugConnectionServer.DefaultPort, DebugConnectionServer.DefaultPortScanCount);
             else
                 DebugConnectionEditorClient.Connect(_Host, port);
             Repaint();
@@ -187,7 +187,7 @@ namespace FH
                 _Host,
                 GetPortForCurrentMode(),
                 _AutoPort,
-                DebugConnection.DefaultPortScanCount);
+                DebugConnectionServer.DefaultPortScanCount);
             ReloadHistory();
 
             if (record != null)
@@ -244,7 +244,7 @@ namespace FH
             _Name = record.Name;
             _Host = record.Host;
             _AutoPort = record.AutoPort;
-            _Port = _AutoPort ? DebugConnection.DefaultPort : record.Port;
+            _Port = _AutoPort ? DebugConnectionServer.DefaultPort : record.Port;
             EditorPrefs.SetString(CHostKey, _Host);
             EditorPrefs.SetInt(CPortKey, _Port);
             EditorPrefs.SetBool(CAutoPortKey, _AutoPort);
@@ -252,7 +252,7 @@ namespace FH
 
         private int GetPortForCurrentMode()
         {
-            return _AutoPort ? DebugConnection.DefaultPort : _Port;
+            return _AutoPort ? DebugConnectionServer.DefaultPort : _Port;
         }
 
         private void OnConnectionChanged()

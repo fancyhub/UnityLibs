@@ -26,7 +26,7 @@ namespace FH
 
         public int GetPortCount()
         {
-            return PortCount <= 0 ? DebugConnection.DefaultPortScanCount : PortCount;
+            return PortCount <= 0 ? DebugConnectionServer.DefaultPortScanCount : PortCount;
         }
 
         public DebugConnectionHistoryRecord Clone()

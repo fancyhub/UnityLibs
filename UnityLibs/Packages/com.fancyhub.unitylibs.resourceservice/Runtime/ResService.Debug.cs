@@ -48,9 +48,9 @@ namespace FH
         public static readonly Guid DebugKeyPlayer2Editor = new Guid("D9AB1B8D-8640-4114-965F-5BDC4E313978");
         public static readonly Guid DebugKeyEditor2Player = new Guid("4AB41548-6455-46FF-A692-F794E5A7D986");
 
-        public void InitDebug()
+        partial void StartDebugHost()
         {
-            DebugConnection.Register(DebugKeyEditor2Player, _OnHandleEditorMessage);
+            DebugConnectionServer.Register(DebugKeyEditor2Player, _OnHandleEditorMessage);
         }
 
         private void _OnHandleEditorMessage(DebugConnectionMessageEventArgs args)
@@ -66,7 +66,7 @@ namespace FH
                     snapshot.BundleManifest = BundleMgr.GetBundleManifest();
 
                 PrepareForSerialization(snapshot);
-                DebugConnection.Send(DebugKeyPlayer2Editor, SerializeForSend(snapshot));
+                DebugConnectionServer.Send(DebugKeyPlayer2Editor, SerializeForSend(snapshot));
             }
             catch (Exception e)
             {
@@ -100,7 +100,7 @@ namespace FH
         private static byte[] SerializeForSend(SnapShot snapshot)
         {
             byte[] data = snapshot.Serialize2Bytes();
-            if (data.Length <= DebugConnection.MaxPayloadSize)
+            if (data.Length <= DebugConnectionServer.MaxPayloadSize)
                 return data;
 
             if (snapshot.BundleManifest != null)
@@ -108,7 +108,7 @@ namespace FH
                 snapshot.BundleManifest = null;
                 snapshot.Error = "Snapshot payload was too large. BundleManifest was omitted.";
                 data = snapshot.Serialize2Bytes();
-                if (data.Length <= DebugConnection.MaxPayloadSize)
+                if (data.Length <= DebugConnectionServer.MaxPayloadSize)
                     return data;
             }
 
@@ -129,7 +129,7 @@ namespace FH
 
             try
             {
-                DebugConnection.Send(DebugKeyPlayer2Editor, snapshot.Serialize2Bytes());
+                DebugConnectionServer.Send(DebugKeyPlayer2Editor, snapshot.Serialize2Bytes());
             }
             catch (Exception e)
             {

@@ -14,7 +14,7 @@ namespace FH
         private static string _Host;
         private static int _Port;
         private static bool _AutoPort;
-        private static int _PortCount = DebugConnection.DefaultPortScanCount;
+        private static int _PortCount = DebugConnectionServer.DefaultPortScanCount;
         private static string _TargetDisplayName;
 
         public static event Action Connected;
@@ -44,7 +44,7 @@ namespace FH
 
         public static DebugConnectionEditorClientConnectResult Connect(
             string host,
-            int port = DebugConnection.DefaultPort,
+            int port = DebugConnectionServer.DefaultPort,
             float reconnectIntervalSeconds = 2f)
         {
             return ConnectInternal(host, port, false, 1, reconnectIntervalSeconds);
@@ -52,8 +52,8 @@ namespace FH
 
         public static DebugConnectionEditorClientConnectResult ConnectAutoPort(
             string host,
-            int startPort = DebugConnection.DefaultPort,
-            int portCount = DebugConnection.DefaultPortScanCount,
+            int startPort = DebugConnectionServer.DefaultPort,
+            int portCount = DebugConnectionServer.DefaultPortScanCount,
             float reconnectIntervalSeconds = 2f)
         {
             return ConnectInternal(host, startPort, true, portCount, reconnectIntervalSeconds);

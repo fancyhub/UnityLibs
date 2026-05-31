@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace FH
 {
-    public static class DebugConnection
+    public static class DebugConnectionServer
     {
         public const int DefaultPort = DebugConnectionProtocol.DefaultPort;
         public const int DefaultPortScanCount = DebugConnectionProtocol.DefaultPortScanCount;

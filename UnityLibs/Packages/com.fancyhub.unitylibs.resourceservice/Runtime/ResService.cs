@@ -83,7 +83,7 @@ namespace FH
             LocMgr.Init(Config.LocLogLvl, langSettingAsset);
             LocMgr.FuncLoader = TableMgr.LoadTranslation;
 
-            InitDebug();
+            StartDebugHost();
         }
 
         private void _InitBase(EMode mode)
@@ -253,5 +253,7 @@ namespace FH
 
             FileMgr.OnFileDownloaded(file_item);
         }
+
+        partial void StartDebugHost();
     }
 }

@@ -17,7 +17,7 @@ namespace Game
             FH.Log.AutoInit();
 
             if (!Application.isEditor)
-                FH.DebugConnection.StartServer();
+                FH.DebugConnectionServer.StartServer();
 
             new MyUISceneMgr().Init();
             FH.UI.UIMgr.ChangeScene<UISceneExtractAsset>();
