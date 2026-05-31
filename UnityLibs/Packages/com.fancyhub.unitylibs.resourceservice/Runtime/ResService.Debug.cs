@@ -82,15 +82,19 @@ namespace FH
 
         private static void PrepareForSerialization(SnapShot snapshot)
         {
-            if (snapshot == null || snapshot.ResItems == null)
+            if (snapshot == null)
                 return;
 
-            for (int i = 0; i < snapshot.ResItems.Count; i++)
+            if (snapshot.ResItems != null)
             {
-                ResSnapShotItem item = snapshot.ResItems[i];
-                item.Users = null;
-                snapshot.ResItems[i] = item;
-            }
+                for (int i = 0; i < snapshot.ResItems.Count; i++)
+                {
+                    ResSnapShotItem item = snapshot.ResItems[i];
+                    item.Users = null;
+                    snapshot.ResItems[i] = item;
+                }
+            }      
+
         }
 
         private static byte[] SerializeForSend(SnapShot snapshot)

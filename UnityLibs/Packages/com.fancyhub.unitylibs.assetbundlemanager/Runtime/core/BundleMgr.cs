@@ -72,6 +72,7 @@ namespace FH
         }
     }
 
+    [System.Serializable]
     public struct BundleSnapshotItem
     {
         public string BundleName;
