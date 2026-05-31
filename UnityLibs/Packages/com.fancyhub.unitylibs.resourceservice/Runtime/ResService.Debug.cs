@@ -66,7 +66,7 @@ namespace FH
                     snapshot.BundleManifest = BundleMgr.GetBundleManifest();
 
                 PrepareForSerialization(snapshot);
-                DebugConnectionServer.Send(DebugKeyPlayer2Editor, SerializeForSend(snapshot));
+                DebugConnectionServer.SendTo(args.ConnectionId, DebugKeyPlayer2Editor, SerializeForSend(snapshot));
             }
             catch (Exception e)
             {

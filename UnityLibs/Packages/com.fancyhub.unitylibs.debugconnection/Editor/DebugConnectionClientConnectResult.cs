@@ -5,6 +5,13 @@
  * Desc    : 
 *************************************************************************************/
 
-using System.Runtime.CompilerServices;
-
-[assembly: InternalsVisibleTo("fancyhub.debugconnection.editor")]
+namespace FH
+{
+    public enum DebugConnectionClientConnectResult
+    {
+        Started,
+        AlreadyRunning,
+        InvalidHost,
+        InvalidPort,
+    }
+}

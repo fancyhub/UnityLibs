@@ -1,5 +1,5 @@
 {
-    "name": "fancyhub.resouceservice.editor",
+    "name": "fancyhub.resourceservice.editor",
     "rootNamespace": "",
     "references": [
         "GUID:4face68fd9d2caf47807180bedf4b0b5",

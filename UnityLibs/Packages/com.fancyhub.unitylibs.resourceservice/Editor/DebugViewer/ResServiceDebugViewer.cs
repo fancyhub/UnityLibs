@@ -38,7 +38,7 @@ namespace FH
         {
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
             {
-                DebugConnectionPopupContent.DrawGUI(Repaint);
+                DebugConnectionWindow.DrawOnToolBar(Repaint);
                 GUILayout.FlexibleSpace();
             }
         }

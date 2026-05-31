@@ -4,20 +4,22 @@
  * Title   : 
  * Desc    : 
 *************************************************************************************/
-using System;
 
 namespace FH
 {
-    public sealed class DebugConnectionTargetInfo
+    public sealed class DebugConnectionListeningAddress
     {
         public string Host;
         public int Port;
-        public int StartPort;
-        public bool AutoPort;
-        public int PortCount;
-        public string DisplayName;
-        public string RemoteEndPoint;
-        public DateTime ConnectedUtc;
-        public bool IsConnected;
+
+        public string EndPoint
+        {
+            get { return string.IsNullOrEmpty(Host) ? ":" + Port : Host + ":" + Port; }
+        }
+
+        public override string ToString()
+        {
+            return EndPoint;
+        }
     }
 }

@@ -16,7 +16,7 @@ namespace Game
         {
             FH.Log.AutoInit();
 
-            if (!Application.isEditor)
+            //if (!Application.isEditor)
                 FH.DebugConnectionServer.StartServer();
 
             new MyUISceneMgr().Init();

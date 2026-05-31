@@ -1,3 +1,9 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2026/5/31
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -42,7 +48,7 @@ namespace FH
             }
         }
 
-        public static DebugConnectionEditorClientConnectResult Connect(
+        public static DebugConnectionClientConnectResult Connect(
             string host,
             int port = DebugConnectionServer.DefaultPort,
             float reconnectIntervalSeconds = 2f)
@@ -50,7 +56,7 @@ namespace FH
             return ConnectInternal(host, port, false, 1, reconnectIntervalSeconds);
         }
 
-        public static DebugConnectionEditorClientConnectResult ConnectAutoPort(
+        public static DebugConnectionClientConnectResult ConnectAutoPort(
             string host,
             int startPort = DebugConnectionServer.DefaultPort,
             int portCount = DebugConnectionServer.DefaultPortScanCount,
@@ -59,7 +65,7 @@ namespace FH
             return ConnectInternal(host, startPort, true, portCount, reconnectIntervalSeconds);
         }
 
-        private static DebugConnectionEditorClientConnectResult ConnectInternal(
+        private static DebugConnectionClientConnectResult ConnectInternal(
             string host,
             int port,
             bool autoPort,
@@ -67,13 +73,13 @@ namespace FH
             float reconnectIntervalSeconds)
         {
             if (string.IsNullOrWhiteSpace(host))
-                return DebugConnectionEditorClientConnectResult.InvalidHost;
+                return DebugConnectionClientConnectResult.InvalidHost;
 
             if (port <= 0 || port > 65535)
-                return DebugConnectionEditorClientConnectResult.InvalidPort;
+                return DebugConnectionClientConnectResult.InvalidPort;
 
             if (_Client != null && _Client.IsRunning)
-                return DebugConnectionEditorClientConnectResult.AlreadyRunning;
+                return DebugConnectionClientConnectResult.AlreadyRunning;
 
             DebugConnectionMainThread.Initialize();
 
@@ -98,7 +104,7 @@ namespace FH
 
             _Client = client;
             client.Start();
-            return DebugConnectionEditorClientConnectResult.Started;
+            return DebugConnectionClientConnectResult.Started;
         }
 
         public static void Disconnect()

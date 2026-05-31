@@ -1,3 +1,9 @@
+/*************************************************************************************
+ * Author  : cunyu.fan
+ * Time    : 2026/5/31
+ * Title   : 
+ * Desc    : 
+*************************************************************************************/
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -63,28 +69,58 @@ namespace FH
             }
         }
 
-        public static DebugConnectionServerStartResult StartServer(int port = DefaultPort)
+        public static DebugConnectionServerStartResult StartServer(
+            int preferredPort = DefaultPort,
+            int portCount = 20)
         {
-            if (port <= 0 || port > 65535)
+            if (preferredPort <= 0 || preferredPort > 65535)
             {
-                LastError = "Invalid port: " + port;
+                LastError = "Invalid port: " + preferredPort;
                 return DebugConnectionServerStartResult.InvalidPort;
             }
 
             if (_Running)
                 return DebugConnectionServerStartResult.AlreadyRunning;
 
-            DebugConnectionMainThread.Initialize();
+            if (portCount <= 0)
+                portCount = 1;
 
+            DebugConnectionMainThread.Initialize();
+            _ServerHelloPayload = DebugConnectionHello.CreatePayload(DebugConnectionHello.RolePlayer);
+
+            long requestedLastPort = (long)preferredPort + portCount - 1;
+            int lastPort = requestedLastPort > 65535 ? 65535 : (int)requestedLastPort;
+            for (int port = preferredPort; port <= lastPort; port++)
+            {
+                DebugConnectionServerStartResult result = TryStartServerOnPort(port);
+                if (result == DebugConnectionServerStartResult.Started)
+                    return result;
+
+                if (result != DebugConnectionServerStartResult.PortInUse)
+                {
+                    _ServerHelloPayload = null;
+                    return result;
+                }
+            }
+
+            Port = 0;
+            _ServerHelloPayload = null;
+            LastError = "No free port found from " + preferredPort + " to " + lastPort;
+            Debug.LogWarning("[DebugConnection] Server start failed: " + LastError);
+            return DebugConnectionServerStartResult.PortInUse;
+        }
+
+        private static DebugConnectionServerStartResult TryStartServerOnPort(int port)
+        {
             try
             {
-                _ServerHelloPayload = DebugConnectionHello.CreatePayload(DebugConnectionHello.RolePlayer);
                 TcpListener listener = new TcpListener(IPAddress.Any, port);
                 listener.Start();
 
                 _Listener = listener;
                 _Running = true;
-                Port = port;
+                IPEndPoint localEndPoint = listener.LocalEndpoint as IPEndPoint;
+                Port = localEndPoint == null ? port : localEndPoint.Port;
                 LastError = string.Empty;
 
                 _AcceptThread = new Thread(AcceptLoop);
@@ -92,7 +128,7 @@ namespace FH
                 _AcceptThread.Name = "FH.DebugConnection.Server";
                 _AcceptThread.Start();
 
-                Debug.Log("[DebugConnection] Server started on port " + port);
+                Debug.Log("[DebugConnection] Server started on " + FormatListeningAddresses());
                 return DebugConnectionServerStartResult.Started;
             }
             catch (SocketException e)
@@ -102,47 +138,14 @@ namespace FH
                     : e.Message;
                 _Listener = null;
                 _Running = false;
-                Debug.LogWarning("[DebugConnection] Server start failed: " + LastError);
+                Port = 0;
 
                 if (e.SocketErrorCode == SocketError.AddressAlreadyInUse)
                     return DebugConnectionServerStartResult.PortInUse;
 
+                Debug.LogWarning("[DebugConnection] Server start failed: " + LastError);
                 return DebugConnectionServerStartResult.SocketError;
             }
-        }
-
-        public static DebugConnectionServerStartResult StartServerOnNextFreePort(
-            int preferredPort,
-            int portCount,
-            out int actualPort)
-        {
-            actualPort = 0;
-
-            if (_Running)
-            {
-                actualPort = Port;
-                return DebugConnectionServerStartResult.AlreadyRunning;
-            }
-
-            if (portCount <= 0)
-                portCount = 1;
-
-            for (int i = 0; i < portCount; i++)
-            {
-                int port = preferredPort + i;
-                DebugConnectionServerStartResult result = StartServer(port);
-                if (result == DebugConnectionServerStartResult.Started)
-                {
-                    actualPort = port;
-                    return result;
-                }
-
-                if (result != DebugConnectionServerStartResult.PortInUse)
-                    return result;
-            }
-
-            LastError = "No free port found from " + preferredPort + " to " + (preferredPort + portCount - 1);
-            return DebugConnectionServerStartResult.PortInUse;
         }
 
         public static void Stop()
@@ -160,6 +163,7 @@ namespace FH
 
             _Listener = null;
             _ServerHelloPayload = null;
+            Port = 0;
 
             List<DebugConnectionPeer> peers = new List<DebugConnectionPeer>();
             lock (_PeerLock)
@@ -258,7 +262,34 @@ namespace FH
             return ret;
         }
 
-        public static List<string> GetLocalIPv4Addresses()
+        public static List<DebugConnectionListeningAddress> GetListeningAddresses()
+        {
+            List<DebugConnectionListeningAddress> ret = new List<DebugConnectionListeningAddress>();
+            TcpListener listener = _Listener;
+            if (!_Running || listener == null || Port <= 0)
+                return ret;
+
+            IPEndPoint localEndPoint = listener.LocalEndpoint as IPEndPoint;
+            int port = localEndPoint == null ? Port : localEndPoint.Port;
+            IPAddress listenAddress = localEndPoint == null ? IPAddress.Any : localEndPoint.Address;
+
+            if (!listenAddress.Equals(IPAddress.Any) && !listenAddress.Equals(IPAddress.IPv6Any))
+            {
+                ret.Add(CreateListeningAddress(listenAddress.ToString(), port));
+                return ret;
+            }
+
+            List<string> localAddresses = GetLocalIPv4AddressStrings();
+            for (int i = 0; i < localAddresses.Count; i++)
+                ret.Add(CreateListeningAddress(localAddresses[i], port));
+
+            if (ret.Count == 0)
+                ret.Add(CreateListeningAddress(IPAddress.Loopback.ToString(), port));
+
+            return ret;
+        }
+
+        private static List<string> GetLocalIPv4AddressStrings()
         {
             List<string> ret = new List<string>();
 
@@ -273,7 +304,9 @@ namespace FH
                     if (IPAddress.IsLoopback(address))
                         continue;
 
-                    ret.Add(address.ToString());
+                    string addressText = address.ToString();
+                    if (!ret.Contains(addressText))
+                        ret.Add(addressText);
                 }
             }
             catch (Exception e)
@@ -282,6 +315,28 @@ namespace FH
             }
 
             return ret;
+        }
+
+        private static DebugConnectionListeningAddress CreateListeningAddress(string host, int port)
+        {
+            return new DebugConnectionListeningAddress
+            {
+                Host = host,
+                Port = port,
+            };
+        }
+
+        private static string FormatListeningAddresses()
+        {
+            List<DebugConnectionListeningAddress> addresses = GetListeningAddresses();
+            if (addresses.Count == 0)
+                return "port " + Port;
+
+            List<string> endPoints = new List<string>();
+            for (int i = 0; i < addresses.Count; i++)
+                endPoints.Add(addresses[i].EndPoint);
+
+            return string.Join(", ", endPoints.ToArray());
         }
 
         private static void AcceptLoop()
