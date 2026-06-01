@@ -1,0 +1,17 @@
+{
+  "name": "com.fancyhub.unitylibs.editortoolhub",
+  "version": "1.0.0",
+  "displayName": "[fancyhub] Editor Tool Hub",
+  "description": "Editor window hub for composing small editor tool modules into one editable workspace.",
+  "unity": "2022.3",
+  "keywords": [
+    "editor",
+    "tool",
+    "hub"
+  ],
+  "author": {
+    "name": "fancyhub",
+    "email": "fancy113@msn.com",
+    "url": "https://github.com/fancyhub/UnityLibs"
+  }
+}
