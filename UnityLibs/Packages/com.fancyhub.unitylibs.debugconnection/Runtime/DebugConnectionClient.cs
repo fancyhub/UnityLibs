@@ -278,4 +278,10 @@ namespace FH
             }
         }
     }
+
+
+    [System.Serializable]
+    public struct DebugConnectionButton
+    {
+    }
 }

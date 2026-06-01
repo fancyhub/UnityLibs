@@ -17,11 +17,22 @@ namespace FH
         private const string CHostKey = "FH.DebugConnection.Host";
         private const string CPortKey = "FH.DebugConnection.Port";
         private const string CAutoPortKey = "FH.DebugConnection.AutoPort";
+        private const string CModeKey = "FH.DebugConnection.Mode";
+        private const string CAdbDeviceSerialKey = "FH.DebugConnection.AdbDeviceSerial";
+
+        private enum ConnectionMode
+        {
+            Tcp,
+            Adb,
+        }
 
         private readonly Action _Repaint;
         private string _Host;
         private int _Port;
         private bool _AutoPort;
+        private ConnectionMode _Mode;
+        private string _AdbDeviceSerial;
+        private string[] _AdbDeviceSerials = new string[0];
         private string _Name;
         private int _HistoryIndex = -1;
         private List<DebugConnectionHistoryRecord> _History = new List<DebugConnectionHistoryRecord>();
@@ -49,8 +60,11 @@ namespace FH
         public void DrawWindowGUI()
         {
             DrawConnectionControls(true);
-            EditorGUILayout.Space(8);
-            DrawHistoryControls(true);
+            if (_Mode == ConnectionMode.Tcp)
+            {
+                EditorGUILayout.Space(8);
+                DrawHistoryControls(true);
+            }
             EditorGUILayout.Space(8);
             DrawTargetDetails();
         }
@@ -63,8 +77,11 @@ namespace FH
                 DrawStateBox();
                 EditorGUILayout.Space(6);
                 DrawConnectionControls(false);
-                EditorGUILayout.Space(6);
-                DrawHistoryControls(false);
+                if (_Mode == ConnectionMode.Tcp)
+                {
+                    EditorGUILayout.Space(6);
+                    DrawHistoryControls(false);
+                }
             }
         }
 
@@ -83,36 +100,33 @@ namespace FH
 
             using (new EditorGUI.DisabledScope(DebugConnectionEditorClient.IsRunning))
             {
-                _Name = EditorGUILayout.TextField("Name", _Name);
-                _Host = EditorGUILayout.TextField("Host", _Host);
-                _AutoPort = EditorGUILayout.Toggle("Auto Port", _AutoPort);
+                _Mode = (ConnectionMode)EditorGUILayout.EnumPopup("Mode", _Mode);
 
-                if (_AutoPort)
-                {
-                    int lastPort = DebugConnectionServer.DefaultPort + DebugConnectionServer.DefaultPortScanCount - 1;
-                    EditorGUILayout.LabelField("Port Range", DebugConnectionServer.DefaultPort + " - " + lastPort);
-                }
+                if (_Mode == ConnectionMode.Adb)
+                    DrawAdbControls();
                 else
-                {
-                    _Port = EditorGUILayout.IntField("Port", _Port);
-                }
+                    DrawTcpControls();
             }
 
             using (new EditorGUILayout.HorizontalScope())
             {
                 if (!DebugConnectionEditorClient.IsRunning)
                 {
-                    if (GUILayout.Button("Connect", GUILayout.Width(100)))
+                    string connectText = _Mode == ConnectionMode.Adb ? "Connect ADB" : "Connect";
+                    if (GUILayout.Button(connectText, GUILayout.Width(100)))
                         Connect();
 
-                    if (GUILayout.Button("Save", GUILayout.Width(80)))
-                        SaveHistory();
+                    if (_Mode == ConnectionMode.Tcp)
+                    {
+                        if (GUILayout.Button("Save", GUILayout.Width(80)))
+                            SaveHistory();
+                    }
                 }
                 else
                 {
                     if (GUILayout.Button("Disconnect", GUILayout.Width(100)))
                     {
-                        DebugConnectionEditorClient.Disconnect();
+                        Disconnect();
                         Repaint();
                     }
                 }
@@ -125,6 +139,50 @@ namespace FH
 
             if (showTitle && !string.IsNullOrEmpty(DebugConnectionEditorClient.LastError))
                 EditorGUILayout.HelpBox(DebugConnectionEditorClient.LastError, MessageType.Warning);
+
+        }
+
+        private void DrawTcpControls()
+        {
+            _Name = EditorGUILayout.TextField("Name", _Name);
+            _Host = EditorGUILayout.TextField("Host", _Host);
+            _AutoPort = EditorGUILayout.Toggle("Auto Port", _AutoPort);
+
+            if (_AutoPort)
+            {
+                int lastPort = DebugConnectionServer.DefaultPort + DebugConnectionServer.DefaultPortScanCount - 1;
+                EditorGUILayout.LabelField("Port Range", DebugConnectionServer.DefaultPort + " - " + lastPort);
+            }
+            else
+            {
+                _Port = EditorGUILayout.IntField("Port", _Port);
+            }
+        }
+
+        private void DrawAdbControls()
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (_AdbDeviceSerials.Length == 0)
+                {
+                    _AdbDeviceSerial = EditorGUILayout.TextField("Device", _AdbDeviceSerial);
+                }
+                else
+                {
+                    string[] options = BuildAdbDeviceOptions();
+                    int index = GetAdbDeviceIndex(options);
+                    int newIndex = EditorGUILayout.Popup("Device", index, options);
+                    _AdbDeviceSerial = newIndex <= 0 ? string.Empty : options[newIndex];
+                }
+
+                if (GUILayout.Button("Refresh", GUILayout.Width(80)))
+                    RefreshAdbDevices();
+            }
+
+            EditorGUILayout.LabelField(
+                "Local Port",
+                DebugConnectionEditorClient.DefaultAdbLocalPortStart + " - " + DebugConnectionEditorClient.DefaultAdbLocalPortEnd);
+            EditorGUILayout.LabelField("Remote Port", DebugConnectionServer.DefaultPort.ToString());
         }
 
         private void DrawHistoryControls(bool showTitle)
@@ -213,6 +271,12 @@ namespace FH
 
         private void Connect()
         {
+            if (_Mode == ConnectionMode.Adb)
+            {
+                ConnectAdb();
+                return;
+            }
+
             int port = GetPortForCurrentMode();
             SavePrefs(port);
             SaveHistory();
@@ -230,6 +294,21 @@ namespace FH
             }
 
             Repaint();
+        }
+
+        private void ConnectAdb()
+        {
+            SavePrefs(GetPortForCurrentMode());
+
+            DebugConnectionEditorClient.ConnectAdb(
+                string.IsNullOrWhiteSpace(_AdbDeviceSerial) ? null : _AdbDeviceSerial.Trim());
+
+            Repaint();
+        }
+
+        private void Disconnect()
+        {
+            DebugConnectionEditorClient.Disconnect();
         }
 
         private void SaveHistory()
@@ -314,6 +393,8 @@ namespace FH
             _Host = EditorPrefs.GetString(CHostKey, "127.0.0.1");
             _Port = EditorPrefs.GetInt(CPortKey, DebugConnectionServer.DefaultPort);
             _AutoPort = EditorPrefs.GetBool(CAutoPortKey, false);
+            _Mode = (ConnectionMode)Mathf.Clamp(EditorPrefs.GetInt(CModeKey, (int)ConnectionMode.Tcp), 0, 1);
+            _AdbDeviceSerial = EditorPrefs.GetString(CAdbDeviceSerialKey, string.Empty);
             _Name = _Host;
         }
 
@@ -322,6 +403,8 @@ namespace FH
             EditorPrefs.SetString(CHostKey, _Host);
             EditorPrefs.SetInt(CPortKey, port);
             EditorPrefs.SetBool(CAutoPortKey, _AutoPort);
+            EditorPrefs.SetInt(CModeKey, (int)_Mode);
+            EditorPrefs.SetString(CAdbDeviceSerialKey, _AdbDeviceSerial ?? string.Empty);
         }
 
         private int GetPortForCurrentMode()
@@ -347,6 +430,40 @@ namespace FH
         private void Repaint()
         {
             _Repaint?.Invoke();
+        }
+
+        private void RefreshAdbDevices()
+        {
+            _AdbDeviceSerials = DebugConnectionEditorClient.GetAdbDeviceSerials();
+            if (_AdbDeviceSerials.Length == 1)
+                _AdbDeviceSerial = _AdbDeviceSerials[0];
+
+            SavePrefs(GetPortForCurrentMode());
+            Repaint();
+        }
+
+        private string[] BuildAdbDeviceOptions()
+        {
+            string[] options = new string[_AdbDeviceSerials.Length + 1];
+            options[0] = "Default";
+            for (int i = 0; i < _AdbDeviceSerials.Length; i++)
+                options[i + 1] = _AdbDeviceSerials[i];
+
+            return options;
+        }
+
+        private int GetAdbDeviceIndex(string[] options)
+        {
+            if (string.IsNullOrWhiteSpace(_AdbDeviceSerial))
+                return 0;
+
+            for (int i = 1; i < options.Length; i++)
+            {
+                if (string.Equals(options[i], _AdbDeviceSerial, StringComparison.Ordinal))
+                    return i;
+            }
+
+            return 0;
         }
     }
 }

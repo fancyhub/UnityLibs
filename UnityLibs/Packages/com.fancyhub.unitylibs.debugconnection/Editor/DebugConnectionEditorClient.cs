@@ -22,6 +22,10 @@ namespace FH
         private static bool _AutoPort;
         private static int _PortCount = DebugConnectionServer.DefaultPortScanCount;
         private static string _TargetDisplayName;
+        private static Action _CleanupConnection;
+
+        public const int DefaultAdbLocalPortStart = DebugConnectionEditorAdbTransport.DefaultLocalPortStart;
+        public const int DefaultAdbLocalPortEnd = DebugConnectionEditorAdbTransport.DefaultLocalPortEnd;
 
         public static event Action Connected;
         public static event Action Disconnected;
@@ -65,12 +69,87 @@ namespace FH
             return ConnectInternal(host, startPort, true, portCount, reconnectIntervalSeconds);
         }
 
+        public static DebugConnectionClientConnectResult ConnectAdb(
+            string deviceSerial = null,
+            int localStartPort = DefaultAdbLocalPortStart,
+            int remotePort = DebugConnectionServer.DefaultPort,
+            float reconnectIntervalSeconds = 2f)
+        {
+            if (_Client != null && _Client.IsRunning)
+                return DebugConnectionClientConnectResult.AlreadyRunning;
+
+            CleanupConnection();
+
+            if (!DebugConnectionEditorAdbTransport.ForwardAnyLocalPort(
+                deviceSerial,
+                localStartPort,
+                DefaultAdbLocalPortEnd,
+                remotePort,
+                out int localPort))
+            {
+                OnError(DebugConnectionEditorAdbTransport.LastError);
+                return DebugConnectionClientConnectResult.InvalidHost;
+            }
+
+            _CleanupConnection = DebugConnectionEditorAdbTransport.RemoveForwards;
+            return ConnectInternal("127.0.0.1", localPort, false, 1, reconnectIntervalSeconds, false);
+        }
+
+        public static DebugConnectionClientConnectResult ConnectAdbAutoPort(
+            string deviceSerial = null,
+            int remoteStartPort = DebugConnectionServer.DefaultPort,
+            int portCount = DebugConnectionServer.DefaultPortScanCount,
+            float reconnectIntervalSeconds = 2f,
+            int localStartPort = DefaultAdbLocalPortStart)
+        {
+            if (_Client != null && _Client.IsRunning)
+                return DebugConnectionClientConnectResult.AlreadyRunning;
+
+            CleanupConnection();
+
+            int count = Math.Max(1, portCount);
+            int localPort = localStartPort;
+            int lastForwardedLocalPort = 0;
+            for (int i = 0; i < count; i++)
+            {
+                int remotePort = remoteStartPort + i;
+                if (!DebugConnectionEditorAdbTransport.ForwardAnyLocalPort(
+                    deviceSerial,
+                    localPort,
+                    DefaultAdbLocalPortEnd,
+                    remotePort,
+                    out int forwardedLocalPort))
+                {
+                    DebugConnectionEditorAdbTransport.RemoveForwards();
+                    OnError(DebugConnectionEditorAdbTransport.LastError);
+                    return DebugConnectionClientConnectResult.InvalidHost;
+                }
+
+                lastForwardedLocalPort = forwardedLocalPort;
+                localPort = forwardedLocalPort + 1;
+            }
+
+            _CleanupConnection = DebugConnectionEditorAdbTransport.RemoveForwards;
+            int localPortCount = lastForwardedLocalPort - localStartPort + 1;
+            return ConnectInternal("127.0.0.1", localStartPort, true, localPortCount, reconnectIntervalSeconds, false);
+        }
+
+        public static string[] GetAdbDeviceSerials()
+        {
+            string[] serials = DebugConnectionEditorAdbTransport.GetDeviceSerials();
+            if (!string.IsNullOrEmpty(DebugConnectionEditorAdbTransport.LastError))
+                OnError(DebugConnectionEditorAdbTransport.LastError);
+
+            return serials;
+        }
+
         private static DebugConnectionClientConnectResult ConnectInternal(
             string host,
             int port,
             bool autoPort,
             int portCount,
-            float reconnectIntervalSeconds)
+            float reconnectIntervalSeconds,
+            bool cleanupExisting = true)
         {
             if (string.IsNullOrWhiteSpace(host))
                 return DebugConnectionClientConnectResult.InvalidHost;
@@ -80,6 +159,9 @@ namespace FH
 
             if (_Client != null && _Client.IsRunning)
                 return DebugConnectionClientConnectResult.AlreadyRunning;
+
+            if (cleanupExisting)
+                CleanupConnection();
 
             DebugConnectionMainThread.Initialize();
 
@@ -113,7 +195,15 @@ namespace FH
             _Client = null;
             _TargetDisplayName = string.Empty;
             client?.Dispose();
+            CleanupConnection();
             TargetInfoChanged?.Invoke(GetTargetInfo());
+        }
+
+        private static void CleanupConnection()
+        {
+            Action cleanup = _CleanupConnection;
+            _CleanupConnection = null;
+            cleanup?.Invoke();
         }
 
         public static void Register(Guid messageId, DebugConnectionMessageHandler handler)

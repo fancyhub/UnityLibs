@@ -41,6 +41,17 @@ namespace FH
                 PopupWindow.Show(connectionRect, new PopupContent(ownerRepaint));
         }
 
+        public static void DrawButton(Rect position, UnityEditor.SerializedProperty property, GUIContent label, GUIStyle style = null)
+        {
+            if (style == null)
+                style = EditorStyles.toolbarDropDown;
+            string buttonText = DebugConnectionConnectionPanel.GetStateText();
+            GUIContent content = new GUIContent(buttonText);
+
+            if (GUI.Button(position, buttonText, style))
+                PopupWindow.Show(position, new PopupContent(null));
+        }
+
         private void OnEnable()
         {
             _ConnectionPanel = new DebugConnectionConnectionPanel(Repaint);
@@ -93,6 +104,16 @@ namespace FH
                 editorWindow?.Repaint();
                 _OwnerRepaint?.Invoke();
             }
+        }
+    }
+
+
+    [UnityEditor.CustomPropertyDrawer(typeof(DebugConnectionButton))]
+    public class DebugConnectionButtonEditor : UnityEditor.PropertyDrawer
+    {
+        public override void OnGUI(Rect position, UnityEditor.SerializedProperty property, GUIContent label)
+        {
+            DebugConnectionWindow.DrawButton(position, property, label);
         }
     }
 }
