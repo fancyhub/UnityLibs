@@ -6,279 +6,177 @@
 *************************************************************************************/
 
 using System;
-using System.IO;
-using System.Net.Sockets;
-using System.Threading;
 
 namespace FH
 {
-    internal sealed class DebugConnectionClient : IDisposable
+    public interface IDebugConnectionClient : IDisposable
     {
-        private readonly string _Host;
-        private readonly int _Port;
-        private readonly int _PortCount;
-        private readonly int _ReconnectIntervalMilliseconds;
-        private readonly byte[] _HelloPayload;
-        private readonly string _ExpectedRemoteRole;
+        bool IsRunning { get; }
+        bool IsConnected { get; }
+        string RemoteEndPoint { get; }
+        DateTime ConnectedUtc { get; }
+        int ConnectedPort { get; }
+        string LastError { get; }
+        string RemoteDisplayName { get; }
 
-        private Thread _Thread;
-        private volatile bool _Running;
-        private DebugConnectionPeer _Peer;
-        private int _ConnectedPort;
+        event Action Connected;
+        event Action Disconnected;
+        event Action<string> Error;
+        event Action<string> RemoteDisplayNameChanged;
+        event DebugConnectionMessageHandler MessageReceived;
 
-        public bool IsRunning
+        bool Send(Guid messageId, byte[] data);
+    }
+
+    internal class DebugConnectionClientEventSet
+    {
+        private readonly object _MessageLock = new object();
+        private readonly System.Collections.Generic.Dictionary<Guid, DebugConnectionMessageHandler> _MessageHandlers =
+            new System.Collections.Generic.Dictionary<Guid, DebugConnectionMessageHandler>();
+
+        public Action Connected;
+        public Action Disconnected;
+        public Action<string> Error;
+        public Action<string> RemoteDisplayNameChanged;
+
+        public void Register(Guid messageId, DebugConnectionMessageHandler handler)
         {
-            get { return _Running; }
-        }
-
-        public bool IsConnected
-        {
-            get
-            {
-                DebugConnectionPeer peer = _Peer;
-                return peer != null && peer.IsConnected;
-            }
-        }
-
-        public string RemoteEndPoint
-        {
-            get
-            {
-                DebugConnectionPeer peer = _Peer;
-                return peer == null ? string.Empty : peer.RemoteEndPoint;
-            }
-        }
-
-        public DateTime ConnectedUtc
-        {
-            get
-            {
-                DebugConnectionPeer peer = _Peer;
-                return peer == null ? default : peer.ConnectedUtc;
-            }
-        }
-
-        public int ConnectedPort
-        {
-            get { return _ConnectedPort; }
-        }
-
-        public event Action Connected;
-        public event Action Disconnected;
-        public event Action<DebugConnectionFrame> FrameReceived;
-        public event Action<string> Error;
-
-        public DebugConnectionClient(
-            string host,
-            int port,
-            int portCount,
-            float reconnectIntervalSeconds,
-            byte[] helloPayload,
-            string expectedRemoteRole)
-        {
-            _Host = host;
-            _Port = port;
-            _PortCount = Math.Max(1, portCount);
-            _ReconnectIntervalMilliseconds = Math.Max(500, (int)(reconnectIntervalSeconds * 1000));
-            _HelloPayload = helloPayload ?? Array.Empty<byte>();
-            _ExpectedRemoteRole = expectedRemoteRole;
-        }
-
-        public void Start()
-        {
-            if (_Running)
+            if (handler == null)
                 return;
 
-            _Running = true;
-            _Thread = new Thread(ConnectionLoop);
-            _Thread.IsBackground = true;
-            _Thread.Name = "FH.DebugConnection.Client";
-            _Thread.Start();
-        }
-
-        public bool Send(Guid messageId, byte[] data)
-        {
-            DebugConnectionPeer peer = _Peer;
-            if (peer == null)
-                return false;
-
-            return peer.SendMessage(messageId, data);
-        }
-
-        public void Dispose()
-        {
-            _Running = false;
-
-            DebugConnectionPeer peer = _Peer;
-            _Peer = null;
-            peer?.Close();
-        }
-
-        private void ConnectionLoop()
-        {
-            while (_Running)
+            lock (_MessageLock)
             {
-                DebugConnectionPeer peer = null;
-
-                try
-                {
-                    if (!TryConnect(out peer, out string error))
-                    {
-                        if (_Running)
-                            DebugConnectionMainThread.Post(delegate { Error?.Invoke(error); });
-
-                        WaitReconnectInterval();
-                        continue;
-                    }
-
-                    peer.FrameReceived += OnFrameReceived;
-                    peer.Closed += OnPeerClosed;
-                    peer.Error += OnPeerError;
-
-                    _Peer = peer;
-                    peer.Start();
-
-                    DebugConnectionMainThread.Post(delegate { Connected?.Invoke(); });
-                    peer.WaitForClosed();
-                }
-                catch (Exception e)
-                {
-                    if (_Running)
-                        DebugConnectionMainThread.Post(delegate { Error?.Invoke(e.Message); });
-
-                    peer?.Close();
-                }
-                finally
-                {
-                    if (ReferenceEquals(_Peer, peer))
-                        _Peer = null;
-                }
-
-                if (_Running)
-                    WaitReconnectInterval();
+                if (_MessageHandlers.TryGetValue(messageId, out DebugConnectionMessageHandler oldHandler))
+                    _MessageHandlers[messageId] = oldHandler + handler;
+                else
+                    _MessageHandlers.Add(messageId, handler);
             }
         }
 
-        private bool TryConnect(out DebugConnectionPeer peer, out string error)
+        public void Unregister(Guid messageId, DebugConnectionMessageHandler handler)
         {
-            peer = null;
-            error = string.Empty;
+            if (handler == null)
+                return;
 
-            int portCount = Math.Max(1, _PortCount);
-            for (int i = 0; i < portCount && _Running; i++)
+            lock (_MessageLock)
             {
-                int port = _Port + i;
-                if (port <= 0 || port > 65535)
-                    continue;
-
-                if (TryConnectPort(port, out peer, out error))
-                    return true;
-            }
-
-            if (string.IsNullOrEmpty(error))
-                error = "No debug connection server found";
-            else if (portCount > 1)
-                error = "No debug connection server found from port " + _Port + " to " + (_Port + portCount - 1);
-
-            return false;
-        }
-
-        private bool TryConnectPort(int port, out DebugConnectionPeer peer, out string error)
-        {
-            peer = null;
-            error = string.Empty;
-
-            TcpClient client = null;
-            try
-            {
-                client = new TcpClient();
-                client.NoDelay = true;
-                ConnectWithTimeout(client, _Host, port, DebugConnectionProtocol.ConnectTimeoutMilliseconds);
-                client.ReceiveTimeout = DebugConnectionProtocol.HandshakeTimeoutMilliseconds;
-                client.SendTimeout = DebugConnectionProtocol.HandshakeTimeoutMilliseconds;
-
-                NetworkStream stream = client.GetStream();
-                stream.ReadTimeout = DebugConnectionProtocol.HandshakeTimeoutMilliseconds;
-                stream.WriteTimeout = DebugConnectionProtocol.HandshakeTimeoutMilliseconds;
-
-                DebugConnectionProtocol.WriteFrame(
-                    stream,
-                    DebugConnectionFrame.Create(DebugConnectionFrameType.Hello, Guid.Empty, _HelloPayload));
-
-                DebugConnectionFrame frame = DebugConnectionProtocol.ReadFrame(stream);
-                if (frame.FrameType != DebugConnectionFrameType.Hello
-                    || !DebugConnectionHello.IsRole(frame.Payload, _ExpectedRemoteRole))
+                if (_MessageHandlers.TryGetValue(messageId, out DebugConnectionMessageHandler oldHandler))
                 {
-                    error = "Port " + port + " is not a debug connection player. Remote hello: "
-                        + DebugConnectionHello.ParsePayload(frame.Payload);
-                    client.Close();
-                    return false;
+                    oldHandler -= handler;
+                    if (oldHandler == null)
+                        _MessageHandlers.Remove(messageId);
+                    else
+                        _MessageHandlers[messageId] = oldHandler;
                 }
-
-                _ConnectedPort = port;
-                peer = new DebugConnectionPeer(client, 0);
-                peer.SetDisplayName(DebugConnectionHello.ParsePayload(frame.Payload));
-                return true;
             }
-            catch (Exception e)
+        }
+
+        public void OnMessage(DebugConnectionMessageEventArgs msg)
+        {
+            DebugConnectionMessageHandler handler;
+
+            lock (_MessageLock)
             {
-                error = "Port " + port + ": " + e.Message;
-
-                try
-                {
-                    client?.Close();
-                }
-                catch
-                {
-                }
-
-                return false;
+                _MessageHandlers.TryGetValue(msg.MessageId, out handler);
             }
-        }
 
-        private static void ConnectWithTimeout(TcpClient client, string host, int port, int timeoutMilliseconds)
-        {
-            IAsyncResult result = client.BeginConnect(host, port, null, null);
-            bool connected = result.AsyncWaitHandle.WaitOne(timeoutMilliseconds);
-            result.AsyncWaitHandle.Close();
-
-            if (!connected)
-                throw new TimeoutException("Connect timeout");
-
-            client.EndConnect(result);
-        }
-
-        private void OnFrameReceived(DebugConnectionPeer peer, DebugConnectionFrame frame)
-        {
-            FrameReceived?.Invoke(frame);
-        }
-
-        private void OnPeerClosed(DebugConnectionPeer peer)
-        {
-            if (ReferenceEquals(_Peer, peer))
-                _Peer = null;
-            _ConnectedPort = 0;
-
-            if (_Running)
-                DebugConnectionMainThread.Post(delegate { Disconnected?.Invoke(); });
-        }
-
-        private void OnPeerError(DebugConnectionPeer peer, string message)
-        {
-            DebugConnectionMainThread.Post(delegate { Error?.Invoke(message); });
-        }
-
-        private void WaitReconnectInterval()
-        {
-            int elapsed = 0;
-            while (_Running && elapsed < _ReconnectIntervalMilliseconds)
-            {
-                Thread.Sleep(100);
-                elapsed += 100;
-            }
+            handler?.Invoke(msg);
         }
     }
 
+    public static class DebugConnectionClient
+    {
+
+        private static IDebugConnectionClient _Client;
+        internal static DebugConnectionClientEventSet _ClientEventSet = new DebugConnectionClientEventSet();
+
+        public static bool IsRunning { get { return _Client != null && _Client.IsRunning; } }
+        public static bool IsConnected { get { return _Client != null && _Client.IsConnected; } }
+        public static string RemoteEndPoint { get { return _Client == null ? string.Empty : _Client.RemoteEndPoint; } }
+        public static DateTime ConnectedUtc { get { return _Client == null ? default : _Client.ConnectedUtc; } }
+        public static int ConnectedPort { get { return _Client == null ? 0 : _Client.ConnectedPort; } }
+        public static string LastError { get { return _Client == null ? string.Empty : _Client.LastError; } }
+        public static string RemoteDisplayName { get { return _Client == null ? string.Empty : _Client.RemoteDisplayName; } }
+
+        public static event Action Connected;
+        public static event Action Disconnected;
+        public static event Action<string> Error;
+        public static event Action<string> RemoteDisplayNameChanged;
+
+        static DebugConnectionClient()
+        {
+            _ClientEventSet.Connected = () =>
+            {
+                Connected?.Invoke();
+            };
+
+            _ClientEventSet.Disconnected = () =>
+            {
+                Disconnected?.Invoke();
+            };
+
+            _ClientEventSet.Error = (msg) =>
+            {
+                Error?.Invoke(msg);
+            };
+
+            _ClientEventSet.RemoteDisplayNameChanged = (msg) =>
+            {
+                RemoteDisplayNameChanged?.Invoke(msg);
+            };
+        }
+
+        public static IDebugConnectionClient Current
+        {
+            get { return _Client; }
+        }
+
+        internal static void SetClient(IDebugConnectionClient client)
+        {
+            Disconnect();
+            _Client = client;
+        }
+
+        internal static DebugConnectionClientEventSet ClientEventSet => _ClientEventSet;
+
+        public static void Disconnect()
+        {
+            IDebugConnectionClient client = _Client;
+            _Client = null;
+            if (client == null)
+                return;
+            client.Dispose();
+        }
+
+        public static bool Send(Guid messageId, byte[] data)
+        {
+            return _Client != null && _Client.Send(messageId, data);
+        }
+
+        public static bool Send(Guid messageId, string data)
+        {
+            if (_Client == null)
+                return false;
+            if (string.IsNullOrEmpty(data))
+                return Send(messageId, Array.Empty<byte>());
+            else
+                return Send(messageId, System.Text.Encoding.UTF8.GetBytes(data));
+        }
+
+        public static void Register(Guid messageId, DebugConnectionMessageHandler handler)
+        {
+            if (handler == null)
+                return;
+            _ClientEventSet.Register(messageId, handler);
+        }
+
+        public static void Unregister(Guid messageId, DebugConnectionMessageHandler handler)
+        {
+            if (handler == null)
+                return;
+            _ClientEventSet.Unregister(messageId, handler);
+        }
+    }
 
     [System.Serializable]
     public struct DebugConnectionButton

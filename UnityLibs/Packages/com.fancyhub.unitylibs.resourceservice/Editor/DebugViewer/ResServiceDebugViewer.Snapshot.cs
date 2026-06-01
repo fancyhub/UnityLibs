@@ -29,21 +29,13 @@ namespace FH
 
             public EdResServiceSnapshot(Action repaint)
             {
-                _Repaint = repaint;
-                DebugConnectionEditorClient.Connected += OnConnectionChanged;
-                DebugConnectionEditorClient.Disconnected += OnConnectionChanged;
-                DebugConnectionEditorClient.Error += OnConnectionError;
-                DebugConnectionEditorClient.TargetInfoChanged += OnTargetInfoChanged;
-                DebugConnectionEditorClient.Register(ResService.DebugKeyPlayer2Editor, OnPlayerMessage);
+                _Repaint = repaint;                
+                DebugConnectionClient.Register(ResService.DebugKeyPlayer2Editor, OnPlayerMessage);
             }
 
             public void Dispose()
-            {
-                DebugConnectionEditorClient.Connected -= OnConnectionChanged;
-                DebugConnectionEditorClient.Disconnected -= OnConnectionChanged;
-                DebugConnectionEditorClient.Error -= OnConnectionError;
-                DebugConnectionEditorClient.TargetInfoChanged -= OnTargetInfoChanged;
-                DebugConnectionEditorClient.Unregister(ResService.DebugKeyPlayer2Editor, OnPlayerMessage);
+            {                
+                DebugConnectionClient.Unregister(ResService.DebugKeyPlayer2Editor, OnPlayerMessage);
             }
 
             public void OnGUI()
@@ -61,7 +53,7 @@ namespace FH
 
                     using (new EditorGUILayout.HorizontalScope())
                     {
-                        using (new EditorGUI.DisabledScope(!DebugConnectionEditorClient.IsConnected))
+                        using (new EditorGUI.DisabledScope(!DebugConnectionClient.IsConnected))
                         {
                             if (GUILayout.Button("Refresh", GUILayout.Width(96)))
                                 RequestSnapShot();
@@ -129,7 +121,7 @@ namespace FH
                     IncludeBundleManifest = _ShowBundleManifest,
                 };
 
-                if (DebugConnectionEditorClient.Send(ResService.DebugKeyEditor2Player, request.Serialize2Bytes()))
+                if (DebugConnectionClient.Send(ResService.DebugKeyEditor2Player, request.Serialize2Bytes()))
                     return;
 
                 _RequestError = "No connected player.";
@@ -338,15 +330,7 @@ namespace FH
                 _Repaint?.Invoke();
             }
 
-            private void OnConnectionError(string message)
-            {
-                _Repaint?.Invoke();
-            }
-
-            private void OnTargetInfoChanged(DebugConnectionTargetInfo info)
-            {
-                _Repaint?.Invoke();
-            }
+         
 
             private static int GetCount<T>(List<T> list)
             {

@@ -218,6 +218,15 @@ namespace FH
         {
             return Broadcast(messageId, data) > 0;
         }
+        public static bool Send(Guid messageId, string data)
+        {
+            byte[] bytes = Array.Empty<byte>();
+            if(!string.IsNullOrEmpty(data))
+            {
+                bytes = System.Text.Encoding.UTF8.GetBytes(data);
+            }
+            return Broadcast(messageId, bytes) > 0;
+        }
 
         public static bool SendTo(int connectionId, Guid messageId, byte[] data)
         {
@@ -229,6 +238,24 @@ namespace FH
             }
 
             return peer.SendMessage(messageId, data);
+        }
+
+        public static bool SendTo(int connectionId, Guid messageId, string data)
+        {
+            byte[] bytes = Array.Empty<byte>();
+            if (!string.IsNullOrEmpty(data))
+            {
+                bytes = System.Text.Encoding.UTF8.GetBytes(data);
+            }
+
+            DebugConnectionPeer peer;
+            lock (_PeerLock)
+            {
+                if (!_Peers.TryGetValue(connectionId, out peer))
+                    return false;
+            }
+
+            return peer.SendMessage(messageId, bytes);
         }
 
         public static int Broadcast(Guid messageId, byte[] data)

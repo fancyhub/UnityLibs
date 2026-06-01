@@ -101,7 +101,8 @@ namespace FH
 
             private void RepaintAll()
             {
-                editorWindow?.Repaint();
+                if (editorWindow != null)
+                    editorWindow.Repaint();
                 _OwnerRepaint?.Invoke();
             }
         }

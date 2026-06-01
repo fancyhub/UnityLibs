@@ -5,18 +5,13 @@
  * Desc    : 
 *************************************************************************************/
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace FH
 {
-    public static class DebugConnectionEditorClient
+    internal static class DebugConnectionEditorClient
     {
-        private static readonly object _MessageLock = new object();
-        private static readonly Dictionary<Guid, DebugConnectionMessageHandler> _MessageHandlers =
-            new Dictionary<Guid, DebugConnectionMessageHandler>();
-
-        private static DebugConnectionClient _Client;
+        private static IDebugConnectionClient _Client;
         private static string _Host;
         private static int _Port;
         private static bool _AutoPort;
@@ -38,7 +33,7 @@ namespace FH
         {
             get
             {
-                DebugConnectionClient client = _Client;
+                IDebugConnectionClient client = _Client;
                 return client != null && client.IsRunning;
             }
         }
@@ -47,7 +42,7 @@ namespace FH
         {
             get
             {
-                DebugConnectionClient client = _Client;
+                IDebugConnectionClient client = _Client;
                 return client != null && client.IsConnected;
             }
         }
@@ -172,7 +167,7 @@ namespace FH
             _TargetDisplayName = string.Empty;
             LastError = string.Empty;
 
-            DebugConnectionClient client = new DebugConnectionClient(
+            DebugConnectionTcpClient client = new DebugConnectionTcpClient(
                 host,
                 port,
                 autoPort ? _PortCount : 1,
@@ -182,19 +177,21 @@ namespace FH
             client.Connected += OnConnected;
             client.Disconnected += OnDisconnected;
             client.Error += OnError;
-            client.FrameReceived += OnFrameReceived;
+            client.RemoteDisplayNameChanged += OnRemoteDisplayNameChanged;
+            client.MessageReceived += OnMessageReceived;
 
             _Client = client;
+            DebugConnectionClient.SetClient(client);
             client.Start();
             return DebugConnectionClientConnectResult.Started;
         }
 
         public static void Disconnect()
         {
-            DebugConnectionClient client = _Client;
+            IDebugConnectionClient client = _Client;
             _Client = null;
             _TargetDisplayName = string.Empty;
-            client?.Dispose();
+            DebugConnectionClient.Disconnect();
             CleanupConnection();
             TargetInfoChanged?.Invoke(GetTargetInfo());
         }
@@ -206,41 +203,11 @@ namespace FH
             cleanup?.Invoke();
         }
 
-        public static void Register(Guid messageId, DebugConnectionMessageHandler handler)
-        {
-            if (handler == null)
-                return;
-
-            lock (_MessageLock)
-            {
-                if (_MessageHandlers.TryGetValue(messageId, out DebugConnectionMessageHandler oldHandler))
-                    _MessageHandlers[messageId] = oldHandler + handler;
-                else
-                    _MessageHandlers.Add(messageId, handler);
-            }
-        }
-
-        public static void Unregister(Guid messageId, DebugConnectionMessageHandler handler)
-        {
-            if (handler == null)
-                return;
-
-            lock (_MessageLock)
-            {
-                if (!_MessageHandlers.TryGetValue(messageId, out DebugConnectionMessageHandler oldHandler))
-                    return;
-
-                oldHandler -= handler;
-                if (oldHandler == null)
-                    _MessageHandlers.Remove(messageId);
-                else
-                    _MessageHandlers[messageId] = oldHandler;
-            }
-        }
+        
 
         public static bool Send(Guid messageId, byte[] data)
         {
-            DebugConnectionClient client = _Client;
+            IDebugConnectionClient client = _Client;
             if (client == null)
                 return false;
 
@@ -249,7 +216,7 @@ namespace FH
 
         public static DebugConnectionTargetInfo GetTargetInfo()
         {
-            DebugConnectionClient client = _Client;
+            IDebugConnectionClient client = _Client;
             return new DebugConnectionTargetInfo
             {
                 Host = _Host ?? string.Empty,
@@ -257,7 +224,7 @@ namespace FH
                 StartPort = _Port,
                 AutoPort = _AutoPort,
                 PortCount = _PortCount,
-                DisplayName = _TargetDisplayName ?? string.Empty,
+                DisplayName = client == null ? (_TargetDisplayName ?? string.Empty) : client.RemoteDisplayName,
                 RemoteEndPoint = client == null ? string.Empty : client.RemoteEndPoint,
                 ConnectedUtc = client == null ? default : client.ConnectedUtc,
                 IsConnected = client != null && client.IsConnected,
@@ -269,12 +236,14 @@ namespace FH
             Debug.Log("[DebugConnection] Editor connected to " + GetTargetInfo().RemoteEndPoint);
             Connected?.Invoke();
             TargetInfoChanged?.Invoke(GetTargetInfo());
+            DebugConnectionClient.ClientEventSet.Connected?.Invoke();
         }
 
         private static void OnDisconnected()
         {
             Disconnected?.Invoke();
             TargetInfoChanged?.Invoke(GetTargetInfo());
+            DebugConnectionClient.ClientEventSet.Disconnected?.Invoke();
         }
 
         private static void OnError(string message)
@@ -282,34 +251,19 @@ namespace FH
             LastError = message;
             Debug.LogWarning("[DebugConnection] Editor connection error: " + message);
             Error?.Invoke(message);
+            DebugConnectionClient.ClientEventSet.Error?.Invoke(message);
         }
 
-        private static void OnFrameReceived(DebugConnectionFrame frame)
+        private static void OnRemoteDisplayNameChanged(string displayName)
         {
-            if (frame.FrameType == DebugConnectionFrameType.Hello)
-            {
-                _TargetDisplayName = DebugConnectionHello.ParsePayload(frame.Payload);
-                DebugConnectionMainThread.Post(delegate { TargetInfoChanged?.Invoke(GetTargetInfo()); });
-                return;
-            }
+            _TargetDisplayName = displayName ?? string.Empty;
+            TargetInfoChanged?.Invoke(GetTargetInfo());
+            DebugConnectionClient.ClientEventSet.RemoteDisplayNameChanged?.Invoke(displayName);
+        }
 
-            if (frame.FrameType != DebugConnectionFrameType.Message)
-                return;
-
-            DebugConnectionMainThread.Post(delegate
-            {
-                DebugConnectionMessageHandler handler;
-                lock (_MessageLock)
-                {
-                    _MessageHandlers.TryGetValue(frame.MessageId, out handler);
-                }
-
-                handler?.Invoke(new DebugConnectionMessageEventArgs(
-                    frame.MessageId,
-                    frame.Payload,
-                    0,
-                    GetTargetInfo().RemoteEndPoint));
-            });
+        private static void OnMessageReceived(DebugConnectionMessageEventArgs args)
+        {
+            DebugConnectionClient.ClientEventSet.OnMessage(args);
         }
     }
 }
