@@ -15,7 +15,7 @@ namespace FH.AssetBundleBuilder.Ed
 {
     public static partial class Builder
     {
-        [MenuItem("Tools/AssetBundle/Build")]
+        [MenuItem("Tools/FancyHub/Res/AssetBundle/Build")]
         public static void Build()
         {
             AssetBundleBuilderConfig config = AssetBundleBuilderConfig.GetDefault();

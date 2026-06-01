@@ -18,7 +18,7 @@ namespace FH.AssetBundleBuilder.Ed
 {
     public static class ShaderTool
     {
-        [MenuItem("Tools/AssetBundle/ShaderTool/Collect All Materials", false, 2001)]
+        [MenuItem("Tools/FancyHub/Res/AssetBundle/ShaderTool/Collect All Materials", false, 2001)]
         public static void AddAllMaterialsToHelper()
         {
             var config = ShaderDBAsset.LoadOrCreate();
@@ -33,7 +33,7 @@ namespace FH.AssetBundleBuilder.Ed
             Debug.Log("Success add materials");
         }
 
-        [MenuItem("Tools/AssetBundle/ShaderTool/Remove Material Invalid Props", false, 2001)]
+        [MenuItem("Tools/FancyHub/Res/AssetBundle/ShaderTool/Remove Material Invalid Props", false, 2001)]
         public static void RemoveMaterialInvalidProps()
         {
             Material mat = Selection.activeObject as Material;
@@ -43,7 +43,7 @@ namespace FH.AssetBundleBuilder.Ed
             MaterialRemovePropUtil util = new MaterialRemovePropUtil();
             util.RemoveUnusedProp(mat);
         }
-        [MenuItem("Tools/AssetBundle/ShaderTool/Remove Material Invalid Props", true)]
+        [MenuItem("Tools/FancyHub/Res/AssetBundle/ShaderTool/Remove Material Invalid Props", true)]
         public static bool RemoveMaterialInvalidProps_Valid()
         {
             Material mat = Selection.activeObject as Material;

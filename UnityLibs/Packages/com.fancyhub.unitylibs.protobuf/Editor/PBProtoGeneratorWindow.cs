@@ -23,7 +23,7 @@ namespace FH.Protobuf.Ed
         private PBProtoCodeGenMode _mode;
         private PBProtoMemberNameStyle _memberNameStyle;
 
-        [MenuItem("Tools/Protobuf/Generate C#")]
+        [MenuItem("Tools/FancyHub/Protobuf/Generate C#")]
         public static void Open()
         {
             PBProtoGeneratorWindow window = GetWindow<PBProtoGeneratorWindow>();

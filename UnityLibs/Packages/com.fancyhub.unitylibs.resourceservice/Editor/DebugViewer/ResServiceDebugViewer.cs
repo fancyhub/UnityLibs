@@ -7,7 +7,7 @@ namespace FH
     {
         private EdResServiceSnapshot _SnapshotView;
 
-        [MenuItem("Tools/Res Service Debug Viewer")]
+        [MenuItem("Tools/FancyHub/Res/ResService Debug Viewer")]
         public static void Open()
         {
             ResServiceDebugViewer window = GetWindow<ResServiceDebugViewer>();

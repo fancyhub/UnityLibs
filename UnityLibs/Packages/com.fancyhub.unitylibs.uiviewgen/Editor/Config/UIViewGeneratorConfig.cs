@@ -20,9 +20,9 @@ namespace FH.UI.ViewGenerate.Ed
         public const string C_EditorPrefs_Key = "fancyhub.uiview.gen.path";
 
         public const string C_MENU_Gen_Select = "Assets/Gen UIView Code";
-        public const string C_MENU_Gen_ALL = "Tools/UI/Regen All UIView Code";
-        public const string C_MENU_Clear_Unused_Class = "Tools/UI/Clear Unused UIView Code";
-        public const string C_MENU_Export_Class_Usage = "Tools/UI/Gen Class Usage";
+        public const string C_MENU_Gen_ALL = "Tools/FancyHub/UI/Regen All UIView Code";
+        public const string C_MENU_Clear_Unused_Class = "Tools/FancyHub/UI/Clear Unused UIView Code";
+        public const string C_MENU_Export_Class_Usage = "Tools/FancyHub/UI/Gen Class Usage";
 
         public CSharpConfig Csharp = new CSharpConfig();
 

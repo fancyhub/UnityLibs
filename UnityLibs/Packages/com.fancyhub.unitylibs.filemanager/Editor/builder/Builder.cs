@@ -8,7 +8,7 @@ namespace FH.FileManagement.Ed
 {
     public static class Builder
     {
-        [MenuItem("Tools/Files/Build")]
+        [MenuItem("Tools/FancyHub/Res/Files/Build")]
         public static void Build()
         {
             FileBuilderConfig config = FileBuilderConfig.GetDefault();

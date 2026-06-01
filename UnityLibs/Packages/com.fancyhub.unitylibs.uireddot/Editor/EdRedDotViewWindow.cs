@@ -23,7 +23,7 @@ namespace FH.UI.RedDot.Ed
             _tree_view.SetData(root, this);
         }
 
-        [MenuItem("Tools/Red Dot Viewer", false, 25)]
+        [MenuItem("Tools/FancyHub/Red Dot Viewer", false, 25)]
         static void FindRef()
         {
             EdRedDotViewWindow window = GetWindow<EdRedDotViewWindow>();
@@ -51,7 +51,7 @@ namespace FH.UI.RedDot.Ed
 
         public string GetText(ValueTree<UIRedDotTree.InnerNodeData> node)
         {
-            return string.Format($"{node.Key} (Type:{node.Data.NodeType}, Count:{node.Data.Value.Count}, IncreaseFlag:{node.Data.Value.IncrementFlag}, Path:{node.Data.Path})");            
+            return string.Format($"{node.Key} (Type:{node.Data.NodeType}, Count:{node.Data.Value.Count}, IncreaseFlag:{node.Data.Value.IncrementFlag}, Path:{node.Data.Path})");
         }
     }
 }

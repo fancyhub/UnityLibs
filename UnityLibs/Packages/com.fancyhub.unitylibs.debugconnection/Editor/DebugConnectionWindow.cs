@@ -14,7 +14,7 @@ namespace FH
     {
         private DebugConnectionConnectionPanel _ConnectionPanel;
 
-        [MenuItem("Tools/Debug Connection")]
+        [MenuItem("Tools/FancyHub/Debug Connection")]
         public static void Open()
         {
             DebugConnectionWindow window = GetWindow<DebugConnectionWindow>();
