@@ -596,6 +596,236 @@ async function printIpaInfoWithOpenSSL(ipaFilePath) {
   }
 }
 
+function readUInt32(buffer, offset, isBigEndian) {
+  return isBigEndian ? buffer.readUInt32BE(offset) : buffer.readUInt32LE(offset);
+}
+
+function getMachOArchSlices(machoBuffer) {
+  const magicBE = machoBuffer.readUInt32BE(0);
+  const magicLE = machoBuffer.readUInt32LE(0);
+
+  if (magicBE === 0xcafebabe || magicBE === 0xcafebabf) {
+    const archCount = machoBuffer.readUInt32BE(4);
+    const slices = [];
+    const archSize = magicBE === 0xcafebabf ? 32 : 20;
+
+    for (let i = 0; i < archCount; i++) {
+      const archOffset = 8 + i * archSize;
+      const fileOffset = magicBE === 0xcafebabf
+        ? Number(machoBuffer.readBigUInt64BE(archOffset + 8))
+        : machoBuffer.readUInt32BE(archOffset + 8);
+      const fileSize = magicBE === 0xcafebabf
+        ? Number(machoBuffer.readBigUInt64BE(archOffset + 16))
+        : machoBuffer.readUInt32BE(archOffset + 12);
+
+      slices.push({
+        offset: fileOffset,
+        size: fileSize
+      });
+    }
+
+    return slices;
+  }
+
+  if (
+    magicLE === 0xfeedface || magicLE === 0xfeedfacf ||
+    magicBE === 0xfeedface || magicBE === 0xfeedfacf
+  ) {
+    return [{
+      offset: 0,
+      size: machoBuffer.length
+    }];
+  }
+
+  throw new Error("input executable is not a Mach-O file");
+}
+
+function findCodeSignatureInMachO(machoBuffer, slice) {
+  const baseOffset = slice.offset;
+  const magicLE = machoBuffer.readUInt32LE(baseOffset);
+  const magicBE = machoBuffer.readUInt32BE(baseOffset);
+  const isBigEndian = magicBE === 0xfeedface || magicBE === 0xfeedfacf;
+  const magic = isBigEndian ? magicBE : magicLE;
+
+  if (magic !== 0xfeedface && magic !== 0xfeedfacf) {
+    return null;
+  }
+
+  const is64 = magic === 0xfeedfacf;
+  const headerSize = is64 ? 32 : 28;
+  const ncmds = readUInt32(machoBuffer, baseOffset + 16, isBigEndian);
+  let commandOffset = baseOffset + headerSize;
+
+  for (let i = 0; i < ncmds; i++) {
+    const cmd = readUInt32(machoBuffer, commandOffset, isBigEndian);
+    const cmdSize = readUInt32(machoBuffer, commandOffset + 4, isBigEndian);
+
+    if (cmd === 0x1d) { // LC_CODE_SIGNATURE
+      const dataOffset = readUInt32(machoBuffer, commandOffset + 8, isBigEndian);
+      const dataSize = readUInt32(machoBuffer, commandOffset + 12, isBigEndian);
+      return {
+        offset: baseOffset + dataOffset,
+        size: dataSize
+      };
+    }
+
+    commandOffset += cmdSize;
+  }
+
+  return null;
+}
+
+function extractEntitlementsFromCodeSignature(machoBuffer, codeSignature) {
+  const csOffset = codeSignature.offset;
+  const superBlobMagic = machoBuffer.readUInt32BE(csOffset);
+  if (superBlobMagic !== 0xfade0cc0) {
+    throw new Error("code signature SuperBlob not found");
+  }
+
+  const blobCount = machoBuffer.readUInt32BE(csOffset + 8);
+  for (let i = 0; i < blobCount; i++) {
+    const entryOffset = csOffset + 12 + i * 8;
+    const blobType = machoBuffer.readUInt32BE(entryOffset);
+    const blobRelativeOffset = machoBuffer.readUInt32BE(entryOffset + 4);
+
+    if (blobType !== 0x00000005) { // CSSLOT_ENTITLEMENTS, XML plist
+      continue;
+    }
+
+    const blobOffset = csOffset + blobRelativeOffset;
+    const blobMagic = machoBuffer.readUInt32BE(blobOffset);
+    const blobLength = machoBuffer.readUInt32BE(blobOffset + 4);
+
+    if (blobMagic !== 0xfade7171) {
+      throw new Error("entitlements blob has invalid magic");
+    }
+
+    return machoBuffer.subarray(blobOffset + 8, blobOffset + blobLength).toString("utf8").replace(/\0+$/, "");
+  }
+
+  return null;
+}
+
+function moveFileSync(srcFilePath, destFilePath) {
+  try {
+    fs.renameSync(srcFilePath, destFilePath);
+  } catch (err) {
+    if (err.code !== "EXDEV") {
+      throw err;
+    }
+
+    fs.copyFileSync(srcFilePath, destFilePath);
+    fs.unlinkSync(srcFilePath);
+  }
+}
+
+function findMainExecutablePath(zipFile, appDirName) {
+  const appBaseName = appDirName.replace(/\.app\/?$/i, "");
+  const expectedPath = "Payload/" + appDirName + "/" + appBaseName;
+  const files = zipFile.getAllFileNames();
+
+  if (files.includes(expectedPath)) {
+    return expectedPath;
+  }
+
+  const appPrefix = "Payload/" + appDirName + "/";
+  const candidates = files.filter(fileName => {
+    if (!fileName.startsWith(appPrefix)) {
+      return false;
+    }
+
+    const relativePath = fileName.substring(appPrefix.length);
+    return (
+      relativePath.length > 0 &&
+      !relativePath.includes("/") &&
+      !relativePath.includes(".") &&
+      !relativePath.startsWith("_")
+    );
+  });
+
+  if (candidates.length === 1) {
+    return candidates[0];
+  }
+
+  throw new Error("cannot find main executable in ipa");
+}
+
+async function exportEntitlementsFromIpa(ipaFilePath, outputFilePath) {
+  const zipFile = new ZipFile(ipaFilePath);
+  try {
+    const tempOutputFilePath = path.resolve("output", "temp.entitlements.plist");
+    const appDirName = zipFile.getAppDirName();
+    if (!appDirName) {
+      throw new Error("Payload/*.app not found in ipa");
+    }
+
+    const executablePath = findMainExecutablePath(zipFile, appDirName);
+    const executableData = await zipFile.getFile(executablePath);
+    const slices = getMachOArchSlices(executableData);
+
+    for (const slice of slices) {
+      const codeSignature = findCodeSignatureInMachO(executableData, slice);
+      if (!codeSignature) {
+        continue;
+      }
+
+      const entitlements = extractEntitlementsFromCodeSignature(executableData, codeSignature);
+      if (!entitlements) {
+        continue;
+      }
+
+      fs.mkdirSync(path.dirname(outputFilePath), { recursive: true });
+      fs.mkdirSync(path.dirname(tempOutputFilePath), { recursive: true });
+      if (fs.existsSync(tempOutputFilePath)) {
+        fs.unlinkSync(tempOutputFilePath);
+      }
+      fs.writeFileSync(tempOutputFilePath, entitlements, "utf8");
+      if (fs.existsSync(outputFilePath)) {
+        fs.unlinkSync(outputFilePath);
+      }
+      moveFileSync(tempOutputFilePath, outputFilePath);
+      console.log("app dir: " + appDirName);
+      console.log("executable: " + executablePath);
+      console.log("export entitlements success: " + outputFilePath);
+      return;
+    }
+
+    throw new Error("XML entitlements not found in Mach-O code signature");
+  }
+  finally {
+    zipFile.close();
+  }
+}
+
+async function cmdExportEntitlements() {
+  let input = getArg(3, "inputFilePath(ipa)")
+  if (input === "") {
+    printUsage();
+    process.exit(1);
+  }
+
+  try {
+    let inputFilePath = path.resolve(input);
+    let extName = path.extname(inputFilePath).toLowerCase();
+    if (extName !== ".ipa") {
+      console.error(`input ipa, does't support ${extName}`);
+      process.exit(1);
+    }
+
+    let outputFilePath = process.argv.length > 4 ? process.argv[4] : "";
+    if (!outputFilePath) {
+      outputFilePath = inputFilePath + ".entitlements.plist";
+    } else {
+      outputFilePath = path.resolve(outputFilePath);
+    }
+
+    await exportEntitlementsFromIpa(inputFilePath, outputFilePath);
+  } catch (err) {
+    console.error('→', err.message);
+    process.exit(1);
+  }
+}
+
 
 /**
  * cmdPrintCert
@@ -645,6 +875,9 @@ Usage: node ${selfName} cmd
 
       - convertPlist: convert the (bplist/ipa) to plist/ipa
           example: node ${selfName} convertPlist inputFilePath
+
+      - exportEntitlements: export real signed entitlements from ipa
+          example: node ${selfName} exportEntitlements inputFilePath [outputFilePath]
       `);
 }
 
@@ -735,7 +968,7 @@ async function cmdConvertPlist() {
 }
 
 
-function main(args) {
+async function main(args) {
 
   //1. load config file
   if (args.length < 3) {
@@ -758,7 +991,11 @@ function main(args) {
 
 
     case "convertplist":
-      cmdConvertPlist();
+      await cmdConvertPlist();
+      break;
+
+    case "exportentitlements":
+      await cmdExportEntitlements();
       break;
   }
 }
@@ -773,10 +1010,12 @@ if (require.main === module) {
     //   "convertPlist", 
     //   "C:\\Users\\cunyu.fan\\Desktop\\KD_ios_Dev_1053759_0.0.2443_ec_appVer2.1_debuggable_34064_ad-hoc.ipa"];
 
-    main(process.argv);
+    main(process.argv).catch(error => {
+      console.error(`${error.message}`);
+      process.exit(1);
+    });
   } catch (error) {
     console.error(`${error.message}`);
     process.exit(1);
   }
 }
-

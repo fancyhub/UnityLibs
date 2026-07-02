@@ -1,0 +1,20 @@
+{
+    "name": "fancyhub.debugconnection.remotehierarchy.editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:994370c17d1f4e6282838fa86015bc88",
+        "GUID:5d00e189705c43c58cd9ed583a7a48e3",
+        "GUID:b88fcd950fb84bd9b9d1b8a693a5cc39"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

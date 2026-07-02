@@ -7,6 +7,10 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+#if UNITY_EDITOR && ODIN_INSPECTOR
+#define USE_ODIN
+#endif
+
 
 namespace FH
 {
@@ -14,7 +18,7 @@ namespace FH
     {
         private DebugConnectionConnectionPanel _ConnectionPanel;
 
-        [MenuItem("Tools/FancyHub/Debug Connection")]
+        [MenuItem("Tools/FancyHub/Debug Connection/Connection")]
         public static void Open()
         {
             DebugConnectionWindow window = GetWindow<DebugConnectionWindow>();
@@ -41,14 +45,12 @@ namespace FH
                 PopupWindow.Show(connectionRect, new PopupContent(ownerRepaint));
         }
 
-        public static void DrawButton(Rect position, UnityEditor.SerializedProperty property, GUIContent label, GUIStyle style = null)
+        public static void DrawButton(Rect position)
         {
-            if (style == null)
-                style = EditorStyles.toolbarDropDown;
             string buttonText = DebugConnectionConnectionPanel.GetStateText();
             GUIContent content = new GUIContent(buttonText);
 
-            if (GUI.Button(position, buttonText, style))
+            if (GUI.Button(position, buttonText))
                 PopupWindow.Show(position, new PopupContent(null));
         }
 
@@ -114,7 +116,18 @@ namespace FH
     {
         public override void OnGUI(Rect position, UnityEditor.SerializedProperty property, GUIContent label)
         {
-            DebugConnectionWindow.DrawButton(position, property, label);
+            DebugConnectionWindow.DrawButton(position);
         }
     }
+
+#if USE_ODIN
+    public class DebugConnectionButtonDrawer : Sirenix.OdinInspector.Editor.OdinValueDrawer<DebugConnectionButton>
+    {
+        protected override void DrawPropertyLayout(GUIContent label)
+        {
+            Rect rect = EditorGUILayout.GetControlRect();
+            DebugConnectionWindow.DrawButton(rect);
+        }
+    }
+#endif
 }

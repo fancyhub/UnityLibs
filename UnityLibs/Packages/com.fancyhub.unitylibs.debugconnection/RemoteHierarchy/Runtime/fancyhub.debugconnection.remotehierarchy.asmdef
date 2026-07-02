@@ -1,0 +1,16 @@
+{
+    "name": "fancyhub.debugconnection.remotehierarchy",
+    "rootNamespace": "",
+    "references": [
+        "GUID:994370c17d1f4e6282838fa86015bc88"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

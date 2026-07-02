@@ -14,5 +14,6 @@ namespace FH
         InvalidPort,
         PortInUse,
         SocketError,
+        EditorNoPlaying,
     }
 }

@@ -73,6 +73,9 @@ namespace FH
             int preferredPort = DefaultPort,
             int portCount = 20)
         {
+            if (!Application.isPlaying)
+                return DebugConnectionServerStartResult.EditorNoPlaying;
+
             if (preferredPort <= 0 || preferredPort > 65535)
             {
                 LastError = "Invalid port: " + preferredPort;
