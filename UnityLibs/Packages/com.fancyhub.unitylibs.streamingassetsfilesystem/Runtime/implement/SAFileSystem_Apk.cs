@@ -48,6 +48,10 @@ namespace FH.StreamingAssetsFileSystem
             Stream stream = OpenRead(file_path);
             if (stream == null)
                 return null;
+
+            if (stream.Length > int.MaxValue)
+                throw new NotSupportedException($"ReadAllBytes doesn't support files larger than {int.MaxValue} bytes: {file_path}");
+
             int len = (int)stream.Length;
             byte[] ret = new byte[len];
             int count = stream.Read(ret, 0, len);
@@ -246,6 +250,9 @@ namespace FH.StreamingAssetsFileSystem
                     return 0;
 
                 int readed_count = AndroidNativeIO.fh_native_io_file_read(_fhandle, buffer, offset, count);
+                if (readed_count <= 0)
+                    return 0;
+
                 _pos += readed_count;
                 count -= readed_count;
                 return readed_count;

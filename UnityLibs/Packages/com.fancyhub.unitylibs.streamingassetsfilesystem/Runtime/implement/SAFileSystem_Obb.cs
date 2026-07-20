@@ -7,10 +7,7 @@
 *************************************************************************************/
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using System.IO;
-using System.IO.Compression;
-using System.Reflection;
 
 namespace FH.StreamingAssetsFileSystem
 {
@@ -37,7 +34,7 @@ namespace FH.StreamingAssetsFileSystem
 
             string path = CAssetDir + file_path.Substring(SAFileSystemDef.StreamingAssetsDir.Length);
 
-            return ZipEntryStream.Create(_ObbPath, path);
+            return Zip64EntryStream.Create(_ObbPath, path);
         }
 
         public byte[] ReadAllBytes(string file_path)
@@ -48,19 +45,26 @@ namespace FH.StreamingAssetsFileSystem
             string path = CAssetDir + file_path.Substring(SAFileSystemDef.StreamingAssetsDir.Length);
             try
             {
-                using ZipArchive archive = ZipFile.OpenRead(_ObbPath);
-                ZipArchiveEntry entry = archive.GetEntry(path);
-
-
-                Stream stream = entry.Open();
-
-                byte[] ret = new byte[entry.Length];
-                int len = stream.Read(ret, 0, ret.Length);
-                if (len != entry.Length)
-                {
-                    UnityEngine.Debug.Assert(len == entry.Length, "读取长度和Entry不一致");
+                using Stream stream = OpenRead(file_path);
+                if (stream == null)
                     return null;
+
+                if (stream.Length > int.MaxValue)
+                    throw new NotSupportedException($"ReadAllBytes doesn't support files larger than {int.MaxValue} bytes: {path}");
+
+                byte[] ret = new byte[stream.Length];
+                int offset = 0;
+                while (offset < ret.Length)
+                {
+                    int len = stream.Read(ret, offset, ret.Length - offset);
+                    if (len <= 0)
+                        break;
+                    offset += len;
                 }
+
+                if (offset != ret.Length)
+                    throw new EndOfStreamException($"读取长度和Entry不一致: {path}");
+
                 return ret;
             }
             catch (Exception e)
@@ -77,7 +81,7 @@ namespace FH.StreamingAssetsFileSystem
             _FileList = new List<string>();
             try
             {
-                using ZipArchive zipFile = ZipFile.OpenRead(_ObbPath);
+                using Zip64FileReader zipFile = new Zip64FileReader(_ObbPath);
 
                 foreach (var p in zipFile.Entries)
                 {
@@ -97,19 +101,19 @@ namespace FH.StreamingAssetsFileSystem
         }
 
 
-        internal class ZipEntryStream : Stream, IDisposable
+        internal class Zip64EntryStream : Stream, IDisposable
         {
-            private ZipArchive _Archive;
+            private Zip64FileReader _Reader;
             private Stream _Stream;
 
-            public static ZipEntryStream Create(string zip_file_path, string path)
+            public static Zip64EntryStream Create(string zip_file_path, string path)
             {
-                ZipArchive zipArchive = null;
+                Zip64FileReader zipArchive = null;
                 try
                 {
-                    zipArchive = ZipFile.OpenRead(zip_file_path);
+                    zipArchive = new Zip64FileReader(zip_file_path);
 
-                    ZipArchiveEntry entry = zipArchive.GetEntry(path);
+                    Zip64FileReader.Entry entry = zipArchive.GetEntry(path);
                     if (entry == null)
                     {
                         zipArchive.Dispose();
@@ -117,7 +121,7 @@ namespace FH.StreamingAssetsFileSystem
                         return null;
                     }
 
-                    Stream stream = entry.Open();
+                    Stream stream = zipArchive.OpenEntry(entry);
                     if (stream == null)
                     {
                         zipArchive.Dispose();
@@ -125,9 +129,9 @@ namespace FH.StreamingAssetsFileSystem
                         return null;
                     }
 
-                    return new ZipEntryStream()
+                    return new Zip64EntryStream()
                     {
-                        _Archive = zipArchive,
+                        _Reader = zipArchive,
                         _Stream = stream
                     };
                 }
@@ -179,8 +183,8 @@ namespace FH.StreamingAssetsFileSystem
                 base.Dispose(disposing);
                 _Stream?.Dispose();
                 _Stream = null;
-                _Archive?.Dispose();
-                _Archive = null;
+                _Reader?.Dispose();
+                _Reader = null;
             }
         }
     }

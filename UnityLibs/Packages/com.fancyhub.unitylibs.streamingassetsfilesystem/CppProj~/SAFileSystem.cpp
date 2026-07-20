@@ -422,8 +422,10 @@ int fh_native_io_file_read(MyAsset* fhandle,unsigned char* buf,int offset, int c
 	else
 	{
 		long long nowPos = lseek64(fhandle->FD, 0, SEEK_CUR);		
-		int  remainCount = (int)(fhandle->Length - (nowPos - fhandle->Start));		
-		int toReadCount = remainCount>count? count:remainCount;
+		long long remainCount = fhandle->Length - (nowPos - fhandle->Start);
+		if(remainCount <= 0)
+			return 0;
+		int toReadCount = remainCount>count? count:(int)remainCount;
 		int ret = read(fhandle->FD,buf+offset,toReadCount);			
 		LOGD("fh_native_io_file_read : readed count %d", ret);
 		return ret;
