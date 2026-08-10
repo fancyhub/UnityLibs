@@ -33,6 +33,8 @@ namespace FH.UI
 
     public class UIRedDotTree
     {
+        private const char CPathSeparator = '.';
+
         public enum ENodeType
         {
             AutoNode, // 自动
@@ -51,13 +53,13 @@ namespace FH.UI
         public ValueTree<InnerNodeData> _Root;
         public UIRedDotTree()
         {
-            _Root = ValueTree<InnerNodeData>.Create();
+            _Root = ValueTree<InnerNodeData>.Create(CPathSeparator);
         }
 
         public void Clear()
         {
             _Root.Destroy();
-            _Root = ValueTree<InnerNodeData>.Create();
+            _Root = ValueTree<InnerNodeData>.Create(CPathSeparator);
         }
 
         public void Destroy()
@@ -215,7 +217,7 @@ namespace FH.UI
 
             int count = 0;
             ValueTree<InnerNodeData> temp_node = root;
-            foreach (Str node_name in path.Split(ValueTree<InnerNodeData>.CPathSeparator))
+            foreach (Str node_name in path.Split(CPathSeparator))
             {
                 temp_node = temp_node.Get(node_name, auto_create);
                 if (temp_node == null)
@@ -245,7 +247,7 @@ namespace FH.UI
         private static bool _GetParentPath(Str path, out Str parent_path)
         {
             parent_path = Str.Empty;
-            int index = path.LastIndexOf(ValueTree<InnerNodeData>.CPathSeparator);
+            int index = path.LastIndexOf(CPathSeparator);
             if (index <= 0)
                 return false;
 

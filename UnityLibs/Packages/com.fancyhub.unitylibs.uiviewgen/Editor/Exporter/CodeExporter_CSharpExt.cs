@@ -69,7 +69,7 @@ namespace " + config.NameSpace + "\n{";
             {
                 string file_path = _Config.GenFilePath_Ext(view.Desc.PrefabName);
                 if (File.Exists(file_path))
-                    return;
+                    continue;
 
                 VersionControlUtil.Checkout(file_path);
 

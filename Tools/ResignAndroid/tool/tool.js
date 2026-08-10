@@ -2,9 +2,14 @@
 const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const {
+    readZipCommentData,
+    readSigningBlockData,
+} = require('./apkData');
 
 // Set to false to hide keystore passwords in printed commands.
 const PRINT_COMMAND_PASSWORDS = true;
+
 
 /**
  * Signing and Android tool paths loaded from config.json.
@@ -18,6 +23,7 @@ class Config {
     apksignerPath = '';
     zipalignPath = '';
     bundletoolPath = '';
+    apktoolPath = '';
 }
 
 
@@ -234,6 +240,81 @@ function printCertWithApksigner(config, inputFilePath) {
 }
 
 /**
+ * Decodes an APK with apktool.  `--no-res` is suitable when only the
+ * human-readable AndroidManifest.xml is needed; rebuilding requires resources.
+ * @param {Config} config validated tool configuration
+ * @param {string} inputFilePath APK path to decode
+ * @param {string} outputDir decoded output directory
+ * @param {boolean} manifestOnly whether to skip resource decoding
+ * @returns {boolean} true when decoding succeeds
+ */
+function decodeApkWithApktool(config, inputFilePath, outputDir, manifestOnly) {
+    ensureParentDir(outputDir);
+    const args = ['-jar', config.apktoolPath, 'd', '--force', '--no-src'];
+    if (manifestOnly) {
+        args.push('--no-res');
+    }
+    args.push(inputFilePath, '--output', outputDir);
+    return execCommand('java', args, 'apktool decode');
+}
+
+/**
+ * Builds a decoded APK directory with apktool.
+ * @param {Config} config validated tool configuration
+ * @param {string} decodedDir decoded APK directory
+ * @param {string} outputFilePath unsigned APK output path
+ * @returns {boolean} true when building succeeds
+ */
+function buildApkWithApktool(config, decodedDir, outputFilePath) {
+    ensureParentDir(outputFilePath);
+    return execCommand('java', [
+        '-jar', config.apktoolPath,
+        'b',
+        decodedDir,
+        '--output', outputFilePath,
+    ], 'apktool build');
+}
+
+/**
+ * Prints bytes in a readable generic form without assuming the payload format.
+ * @param {string} name section name
+ * @param {Buffer} data raw bytes
+ */
+function printRawData(name, data) {
+    console.log(`${name}:`);
+    console.log(`    length: ${data.length}`);
+    console.log(`    utf8:`);
+    console.log(data.toString('utf8'));
+    console.log(`    hex:`);
+    console.log(data.toString('hex'));
+}
+
+/**
+ * Prints APK Signing Block entries and ZIP comment bytes.
+ * @param {string} inputFilePath APK path to inspect
+ */
+function printApkData(inputFilePath) {
+    console.log(`APK: ${inputFilePath}`);
+
+    console.log('\nAPK Signing Block Entries================================');
+    const entries = readSigningBlockData(inputFilePath);
+    if (entries.length === 0) {
+        console.log('No APK Signing Block entries found.');
+    }
+
+    for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
+        console.log(`\nEntry[${i}]:`);
+        console.log(`    entryId: ${entry.entryId} / 0x${entry.entryId.toString(16).padStart(8, '0')}`);
+        printRawData('    data', entry.data);
+    }
+
+    console.log('\nZIP Comment================================');
+    const zipCommentData = readZipCommentData(inputFilePath);
+    printRawData('ZIP Comment Data', zipCommentData);
+}
+
+/**
  * Finds the first APK in a directory, preferring root-level universal.apk.
  * @param {string} dir directory path
  * @returns {string|null} APK file path, or null when no APK exists
@@ -428,6 +509,12 @@ function validateConfig(config) {
     config.bundletoolPath = path.resolve(config.bundletoolPath)
     if (!fs.existsSync(config.bundletoolPath)) {
         console.error("bundletoolPath not exist: " + config.bundletoolPath)
+        return false
+    }
+
+    config.apktoolPath = path.resolve(config.apktoolPath)
+    if (!fs.existsSync(config.apktoolPath)) {
+        console.error("apktoolPath not exist: " + config.apktoolPath)
         return false
     }
     return true;
@@ -651,6 +738,15 @@ Usage: node ${selfName} -config </path/xxx/config.json> cmd
         - printCert: print the cert info about the apk/aab/apks,
             example: node ${selfName} -config </path/xxx/config.json> printCert inputFilePath
 
+        - printApkData: print APK Signing Block entries and ZIP comment data,
+            example: node ${selfName} -config </path/xxx/config.json> printApkData inputFilePath
+
+        - decodeManifest: extract a readable AndroidManifest.xml from an APK,
+            example: node ${selfName} -config </path/xxx/config.json> decodeManifest inputFilePath [outputDir]
+
+        - replaceManifest: replace an APK manifest and generate a newly signed APK,
+            example: node ${selfName} -config </path/xxx/config.json> replaceManifest inputFilePath AndroidManifest.xml
+
         - aab2Apk: convert the aab to apk
             example: node ${selfName} -config </path/xxx/config.json> aab2Apk inputFilePath
 
@@ -771,6 +867,106 @@ function cmdPrintCert(config) {
             break
 
     }
+}
+
+/**
+ * Handles the printApkData command for APK files.
+ */
+function cmdPrintApkData() {
+    let input = getArg(5, "inputFilePath(apk)")
+    if (input === "") {
+        printUsage();
+        process.exit(1);
+    }
+
+    let inputFilePath = path.resolve(input);
+    let extName = path.extname(inputFilePath).toLowerCase();
+    if (extName !== ".apk") {
+        console.error(`input APK, does't support ${input}`);
+        process.exit(1);
+    }
+
+    printApkData(inputFilePath);
+}
+
+/**
+ * Handles the decodeManifest command for APK files.
+ * @param {Config} config validated tool configuration
+ */
+function cmdDecodeManifest(config) {
+    const input = getArg(5, 'inputFilePath(apk)');
+    if (input === '') {
+        printUsage();
+        process.exit(1);
+    }
+
+    const inputFilePath = path.resolve(input);
+    if (path.extname(inputFilePath).toLowerCase() !== '.apk') {
+        console.error(`input APK, does't support ${input}`);
+        process.exit(1);
+    }
+
+    const defaultOutputDir = path.resolve('output', `${path.basename(inputFilePath, '.apk')}_manifest`);
+    const outputDir = path.resolve(process.argv[6] || defaultOutputDir);
+    console.log('\nstep1/1: decode AndroidManifest.xml================================');
+    if (!decodeApkWithApktool(config, inputFilePath, outputDir, true)) {
+        process.exit(1);
+    }
+
+    console.log('\n================================');
+    console.log('Success: ' + path.join(outputDir, 'AndroidManifest.xml'));
+    console.log('================================');
+}
+
+/**
+ * Handles the replaceManifest command for APK files.
+ * @param {Config} config validated tool configuration
+ */
+function cmdReplaceManifest(config) {
+    const input = getArg(5, 'inputFilePath(apk)');
+    const manifest = getArg(6, 'AndroidManifest.xml');
+    if (input === '' || manifest === '') {
+        printUsage();
+        process.exit(1);
+    }
+
+    const inputFilePath = path.resolve(input);
+    const manifestFilePath = path.resolve(manifest);
+    if (path.extname(inputFilePath).toLowerCase() !== '.apk') {
+        console.error(`input APK, does't support ${input}`);
+        process.exit(1);
+    }
+    if (!fs.existsSync(manifestFilePath) || !fs.statSync(manifestFilePath).isFile()) {
+        console.error('AndroidManifest.xml not exist: ' + manifestFilePath);
+        process.exit(1);
+    }
+
+    const decodedDir = path.resolve('output', 'temp_manifest_replace');
+    const unsignedApkFilePath = path.resolve('output', 'temp_manifest_unsigned.apk');
+    const outputFilePath = createNewFilePath(inputFilePath, '_new');
+
+    console.log('\nstep1/5: decode apk================================');
+    if (!decodeApkWithApktool(config, inputFilePath, decodedDir, false)) {
+        process.exit(1);
+    }
+    console.log('\nstep2/5: replace AndroidManifest.xml================================');
+    copyFile(manifestFilePath, path.join(decodedDir, 'AndroidManifest.xml'));
+    console.log('\nstep3/5: build unsigned apk================================');
+    if (!buildApkWithApktool(config, decodedDir, unsignedApkFilePath)) {
+        process.exit(1);
+    }
+    console.log('\nstep4/5: zipalign================================');
+    if (!zipAlign(config, unsignedApkFilePath, outputFilePath)) {
+        process.exit(1);
+    }
+    console.log('\nstep5/5: sign with apksigner================================');
+    if (!signWithApksigner(config, outputFilePath)) {
+        process.exit(1);
+    }
+
+    console.log('\n================================');
+    console.log('Success: ' + outputFilePath);
+    console.log('================================');
 }
 
 /**
@@ -1027,6 +1223,18 @@ function main() {
 
         case "printcert":
             cmdPrintCert(config);
+            break;
+
+        case "printapkdata":
+            cmdPrintApkData();
+            break;
+
+        case "decodemanifest":
+            cmdDecodeManifest(config);
+            break;
+
+        case "replacemanifest":
+            cmdReplaceManifest(config);
             break;
 
         case "aab2apk":

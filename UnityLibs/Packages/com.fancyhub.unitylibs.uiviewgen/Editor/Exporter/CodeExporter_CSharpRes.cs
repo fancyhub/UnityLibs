@@ -178,7 +178,7 @@ namespace FH.UI.ViewGenerate.Ed
                 foreach (var list_field in fields)
                 {
                     if (!_ShouldExport(list_field))
-                        return;
+                        continue;
 
                     foreach (var field in list_field.FieldList)
                     {
@@ -192,7 +192,7 @@ namespace FH.UI.ViewGenerate.Ed
                 foreach (var field in fields)
                 {
                     if (!_ShouldExport(field))
-                        return;
+                        continue;
 
                     sw.WriteLine("\t\t\t{0}_list.Clear();", field.FieldName);
                 }
@@ -273,7 +273,7 @@ namespace FH.UI.ViewGenerate.Ed
                         case EdUIFieldType.EType.Component:
                             break;
                         case EdUIFieldType.EType.SubView:
-                            sw.WriteLine("\t\t\t{0}.Destroy();", field.Fieldname);
+                            sw.WriteLine("\t\t\tif({0}!=null){ {0}.Destroy(); {0}=null;}", field.Fieldname);
                             break; ;
                     }
                 }

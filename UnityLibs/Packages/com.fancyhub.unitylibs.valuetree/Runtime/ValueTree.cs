@@ -9,8 +9,7 @@ namespace FH
 {
     public sealed class ValueTree<T> : IPoolItem, ICPtr
     {
-        public const char CPathSeparator = '.';
-
+        private char _PathSeparator = '.';
         
         #region IPoolItem, ICPtr
         private IPool ___pool = null;
@@ -41,6 +40,21 @@ namespace FH
 
         public ValueTree<T> Parent { get { return _Parent; } }
 
+        public ValueTree<T> GetByPath(Str path, bool auto_create)
+        {
+            if (path.IsEmpty())
+                return null;
+
+            ValueTree<T> temp = this;
+            foreach (var sub in path.Split(_PathSeparator))
+            {
+                temp = temp.Get(sub, auto_create);
+                if (temp == null)
+                    return null;
+            }
+            return temp;
+        }
+
         public ValueTree<T> Get(Idx key, bool auto_create)
         {
             _Children.TryGetValue(key, out ValueTree<T> c);
@@ -49,7 +63,7 @@ namespace FH
 
             if (auto_create)
             {
-                c = ValueTree<T>.Create();
+                c = ValueTree<T>.Create(_PathSeparator);
                 c._Key = key;
                 c._Parent = this;
                 _Children.Add(key, c);
@@ -99,12 +113,12 @@ namespace FH
                 if (string.IsNullOrEmpty(path))
                     return null;
 
-                if (path.IndexOf(CPathSeparator) < 0)
+                if (path.IndexOf(_PathSeparator) < 0)
                     return Get(path, false);
 
                 Str str = path;
                 ValueTree<T> v = this;
-                foreach (var p in str.Split(CPathSeparator))
+                foreach (var p in str.Split(_PathSeparator))
                 {
                     v = v.Get(p, false);
                     if (v == null)
@@ -117,7 +131,7 @@ namespace FH
                 if (string.IsNullOrEmpty(path))
                     return;
 
-                if (path.IndexOf(CPathSeparator) < 0)
+                if (path.IndexOf(_PathSeparator) < 0)
                 {
                     Set(path, value);
                     return;
@@ -125,7 +139,7 @@ namespace FH
 
                 Str str = path;
                 ValueTree<T> v = this;
-                foreach (var p in str.Split(CPathSeparator))
+                foreach (var p in str.Split(_PathSeparator))
                     v = v.Get(p, true);
 
                 ValueTree<T> parent = v._Parent;
@@ -133,13 +147,7 @@ namespace FH
             }
         }
 
-        public static implicit operator ValueTree<T>(T v)
-        {
-            ValueTree<T> ret = Create();
-            ret.Data = v;
-            return ret;
-        }
-
+    
         public static implicit operator T(ValueTree<T> v)
         {
             return v.Data;
@@ -152,9 +160,15 @@ namespace FH
             return _Children;
         }
 
-        public static ValueTree<T> Create()
+        public static ValueTree<T> Create(char pathSeparator)
         {
-            return GPool.New<ValueTree<T>>(() => new ValueTree<T>());
+            var ret = GPool.New<ValueTree<T>>(() => new ValueTree<T>());
+
+            if(ret!=null)
+            {
+                ret._PathSeparator = pathSeparator;
+            }
+            return ret;
         }
 
         public void Destroy()
@@ -189,37 +203,31 @@ namespace FH
     {
         public static ValueTree<T> ExtGetByPath<T>(this ValueTree<T> self, Str path, bool auto_create = false)
         {
-            return _get(self, path, auto_create);
+            if (self == null)
+                return null;
+            return self.GetByPath(path, auto_create);
         }
 
         public static ValueTree<T> ExtSetByPath<T>(this ValueTree<T> self, Str path, T v)
         {
-            ValueTree<T> node = _get(self, path, true);
+            if (self == null)
+                return null;
+            ValueTree<T> node = self.GetByPath(path, true);
             node.Data = v;
             return node;
         }
 
         public static void ExtDelByPath<T>(this ValueTree<T> self, Str path)
         {
-            var node = _get(self, path, false);
+            if (self == null)
+                return;           
+
+            var node = self.GetByPath(path, false);
             if (node == null)
                 return;
             node.Destroy();
         }
 
-        public static ValueTree<T> _get<T>(ValueTree<T> root, Str path, bool auto_create)
-        {
-            if (path.IsEmpty())
-                return null;
-
-            ValueTree<T> temp = root;
-            foreach (var sub in path.Split(ValueTree<T>.CPathSeparator))
-            {
-                temp = temp.Get(sub, auto_create);
-                if (temp == null)
-                    return null;
-            }
-            return temp;
-        }
+       
     }
 }

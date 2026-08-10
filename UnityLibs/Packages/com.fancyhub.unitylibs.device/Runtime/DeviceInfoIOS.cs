@@ -11,6 +11,17 @@ using UnityEngine;
 
 namespace FH
 {
+    public enum EIOSDistributionType
+    {
+        Unknown = 0,
+        Development = 1,
+        AdHoc = 2,
+        Enterprise = 3,
+        TestFlight = 4,
+        AppStore = 5,
+    }     
+
+
     public static partial class DeviceInfoIOS
     {
         #region Base
@@ -39,10 +50,13 @@ namespace FH
         {
             [DllImport("__Internal")] public static extern long FH_GetFreeDiskSpace();
             [DllImport("__Internal")] public static extern long FH_GetTotalDiskSpace();
+            [DllImport("__Internal")] public static extern int FH_GetIOSDistributionType();            
         }
 
         public static long FreeDiskSpace => _Call(_.FH_GetFreeDiskSpace);
         public static long TotalDiskSpace => _Call(_.FH_GetTotalDiskSpace);
+        
+        public static EIOSDistributionType IOSDistributionType => (EIOSDistributionType)_Call(_.FH_GetIOSDistributionType);        
 
         public static string SystemVersion
         {

@@ -9,6 +9,7 @@
 using System;
 using System.Text;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace FH
 {
@@ -95,6 +96,23 @@ namespace FH
                 if (self == null) return default(T);//for c++ assert
 
                 return self.CallStatic<T>(name);
+            }
+            catch (System.Exception ex)
+            {
+                if (ReturnExcpetion)
+                    throw ex;
+                _PrintException(ex);
+                return default(T);
+            }
+        }
+
+        private static T _ExtCallStatic<T>(this AndroidJavaClass self, string name, object arg0, object arg1)
+        {
+            try
+            {
+                if (self == null) return default(T);//for c++ assert
+
+                return self.CallStatic<T>(name,arg0,arg1);
             }
             catch (System.Exception ex)
             {
@@ -738,7 +756,7 @@ namespace FH
         }
 
 
-        public static bool AdvertisingIdReady
+        public static bool GoogleAdvertisingIdReady
         {
             get
             {
@@ -747,7 +765,7 @@ namespace FH
             }
         }
 
-        public static string AdvertisingId
+        public static string GoogleAdvertisingId
         {
             get
             {
@@ -757,6 +775,39 @@ namespace FH
         }
         #endregion
 
+        // https://developer.android.google.cn/reference/android/provider/Settings.Secure
+        #region android.provider.Settings.Secure
+
+        private static AndroidJavaClass _android_provider_Settings_Secure;
+        private static AndroidJavaClass _GetAndroidProviderSettingsSecure()
+        {
+            if(_android_provider_Settings_Secure==null)
+            {
+                _android_provider_Settings_Secure = new AndroidJavaClass("android.provider.Settings$Secure");
+            }
+            return _android_provider_Settings_Secure;
+        }
+
+        private static AndroidJavaObject _contentResolver;
+        private static AndroidJavaObject _GetContentResolver()
+        {
+            if(_contentResolver==null)
+            {
+                _contentResolver = _GetCurrentActivity().Call<AndroidJavaObject>("getContentResolver");
+            }
+            return _contentResolver;
+        }
+
+        public static string SettingsSecure_GetString(string key)
+        {
+            var contentResolver = _GetContentResolver();
+            return _GetAndroidProviderSettingsSecure()._ExtCallStatic<string>("getString", contentResolver, key);
+        }
+
+        //https://developer.android.google.cn/reference/android/provider/Settings.Secure#ANDROID_ID
+        public static string SettingsSecure_AndroidID => SettingsSecure_GetString("android_id");
+
+        #endregion
 
         //adb shell getprop
         #region  SystemProperties

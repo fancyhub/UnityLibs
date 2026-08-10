@@ -4,7 +4,8 @@
 	"keyAlias":"android",
 	"keyPassword":"654321",
 
-	"apksignerPath":"./tool/apksigner_35.0.0.jar",
-	"zipalignPath":"./tool/zipalign_35.0.0.exe",
-	"bundletoolPath":"./tool/bundletool-all-1.18.1.jar"
+	"apksignerPath":"./tools_external/apksigner_35.0.0.jar",
+	"zipalignPath":"./tools_external/zipalign_35.0.0.exe",
+	"bundletoolPath":"./tools_external/bundletool-all-1.18.1.jar",
+	"apktoolPath":"./tools_external/apktool_3.0.3.jar"
 }

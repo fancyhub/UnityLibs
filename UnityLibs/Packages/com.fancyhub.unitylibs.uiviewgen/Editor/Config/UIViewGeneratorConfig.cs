@@ -85,6 +85,14 @@ namespace FH.UI.ViewGenerate.Ed
 
         public bool IsPrefabPathValid(string path)
         {
+            for (int i = 0; i < ResourcesFolderList.Count; i++)
+            {
+                if (!ResourcesFolderList[i].EndsWith('/'))
+                    ResourcesFolderList[i] = ResourcesFolderList[i] + "/";
+                else if (ResourcesFolderList[i].EndsWith('\\'))
+                    ResourcesFolderList[i] = ResourcesFolderList[i].Replace('\\', '/');
+            }
+
             foreach (var key_word in ResourcesFolderList)
             {
                 if (path.StartsWith(key_word))
@@ -139,7 +147,7 @@ namespace FH.UI.ViewGenerate.Ed
 
         public Component GetComponent(Transform target, Transform root)
         {
-            for(int i=_PriorityCompTypeList.Count-1;i>=0;i--)
+            for (int i = _PriorityCompTypeList.Count - 1; i >= 0; i--)
             {
                 Component obj = target.GetComponent(_PriorityCompTypeList[i]);
                 if (null != obj)
@@ -175,7 +183,7 @@ namespace FH.UI.ViewGenerate.Ed
 
 
             UnityEditor.TypeCache.TypeCollection sub_class_list = UnityEditor.TypeCache.GetTypesDerivedFrom<UnityEngine.Component>();
-            foreach(var p in PriorityCompTypeList)
+            foreach (var p in PriorityCompTypeList)
             {
                 bool found = false;
                 foreach (var type in sub_class_list)
