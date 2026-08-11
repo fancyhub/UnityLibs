@@ -31,11 +31,58 @@ namespace FH.UI.ViewGenerate.Ed
                     break;
 
                 EdUIView view = _CreateView(context, next_conf);
-                view.Fields = _FieldResolver.CreateFields(context, view);
+                var items = _FieldResolver.CollectFields(view.Prefab);
+                view.Fields = _CreateFields(context, view, items);
                 view_list.Add(view);
             }
 
             context.ViewList = view_list;
+        }
+
+        public static List<EdUIField> _CreateFields(EdUIViewGenContext context, EdUIView view, List<FieldResolverItem> items)
+        {
+            List<EdUIField> ret = new List<EdUIField>();
+            var root_tran = view.Prefab.transform;
+
+            foreach (var p in items)
+            {
+                string go_path = EdUIViewGenPrefabUtil.GetHierarchyPath(p.TargetComp.transform, root_tran);
+
+                if (p.SubView)
+                {
+                    string inner_prefab_path = EdUIViewGenPrefabUtil.GetInnerPrefabAssetPath(p.TargetComp.gameObject);
+
+                    if (context.Config.IsPrefabPathValid(inner_prefab_path))
+                    {
+                        var dep_conf = context.AddDependPath(inner_prefab_path);
+
+                        EdUIField field = new EdUIField();
+                        field.HierarchyPath = go_path;
+                        field.FieldType = EdUIFieldType.CreateSubView(dep_conf);
+                        field.Fieldname = p.FieldName;
+                        ret.Add(field);
+                    }
+                    else //路径不合法, 退化到普通组件
+                    {
+                        UnityEngine.Debug.LogErrorFormat("Prefab 里面的对象 {0} 对应的路径不合法 {1}", view.Prefab.name, inner_prefab_path);
+
+                        EdUIField field = new EdUIField();
+                        field.HierarchyPath = go_path;
+                        field.Fieldname = p.FieldName;
+                        field.FieldType = EdUIFieldType.CreateComponent(p.TargetType);
+                        ret.Add(field);
+                    }
+                }
+                else
+                {
+                    EdUIField field = new EdUIField();
+                    field.HierarchyPath = go_path;
+                    field.Fieldname = p.FieldName;
+                    field.FieldType = EdUIFieldType.CreateComponent(p.TargetType);
+                    ret.Add(field);
+                }
+            }
+            return ret;
         }
 
 

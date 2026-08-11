@@ -85,7 +85,7 @@ namespace FH.UI.Sample
                 return null;
 
             T ret = new T();
-            if (ret._Init(obj_self, _res_holder, EUIBaseViewCreateMode.Sub))
+            if (ret._Init(obj_self.gameObject, _res_holder, EUIBaseViewCreateMode.Sub))
                 return ret;
             return null;
         }

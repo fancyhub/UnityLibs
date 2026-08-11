@@ -664,6 +664,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77dc032a4e7a0714491bf6909104982d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ScaleMode: 1
 --- !u!1 &5792097784948997120
 GameObject:
   m_ObjectHideFlags: 0
@@ -1258,11 +1259,11 @@ MonoBehaviour:
   _prefab_name: TestLocalization
   _objs:
   - name: _TestLocalization
-    obj: {fileID: 8782947883826490633}
+    obj: {fileID: 5702376861892734220}
   - name: _Selector
-    obj: {fileID: 9218577195450916575}
+    obj: {fileID: 4544885758182446714}
   - name: _BtnClose
-    obj: {fileID: 8295726008952890608}
+    obj: {fileID: 674060626876881921}
 --- !u!1 &8964068905684496988
 GameObject:
   m_ObjectHideFlags: 0
@@ -1714,10 +1715,5 @@ PrefabInstance:
 --- !u!224 &674060626876881921 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8392225713847172894, guid: dc557665a4531c440a805553b642e21e, type: 3}
-  m_PrefabInstance: {fileID: 9020026446140187423}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &8295726008952890608 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1012681652759660527, guid: dc557665a4531c440a805553b642e21e, type: 3}
   m_PrefabInstance: {fileID: 9020026446140187423}
   m_PrefabAsset: {fileID: 0}

@@ -206,15 +206,15 @@ MonoBehaviour:
   _prefab_name: TestUIRes
   _objs:
   - name: _TestUIRes
-    obj: {fileID: 4105023014087124595}
+    obj: {fileID: 718992996569511629}
   - name: _BtnClose
-    obj: {fileID: 3682367519429913747}
+    obj: {fileID: 5287382042106369122}
   - name: _Img1
-    obj: {fileID: 156298221645149431}
+    obj: {fileID: 4811440584123049362}
   - name: _Img2
-    obj: {fileID: 1889978334134266192}
+    obj: {fileID: 560163394411521106}
   - name: _BtnLoad
-    obj: {fileID: 6150693359143965232}
+    obj: {fileID: 3396082790870592193}
 --- !u!1 &6879809840282097957
 GameObject:
   m_ObjectHideFlags: 0
@@ -406,11 +406,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dc557665a4531c440a805553b642e21e, type: 3}
---- !u!1 &3682367519429913747 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1012681652759660527, guid: dc557665a4531c440a805553b642e21e, type: 3}
-  m_PrefabInstance: {fileID: 4402164348567808892}
-  m_PrefabAsset: {fileID: 0}
 --- !u!224 &5287382042106369122 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8392225713847172894, guid: dc557665a4531c440a805553b642e21e, type: 3}
@@ -538,10 +533,5 @@ PrefabInstance:
 --- !u!224 &3396082790870592193 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8392225713847172894, guid: dc557665a4531c440a805553b642e21e, type: 3}
-  m_PrefabInstance: {fileID: 6581557430292501983}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &6150693359143965232 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1012681652759660527, guid: dc557665a4531c440a805553b642e21e, type: 3}
   m_PrefabInstance: {fileID: 6581557430292501983}
   m_PrefabAsset: {fileID: 0}

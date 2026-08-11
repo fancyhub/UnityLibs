@@ -37,7 +37,7 @@ namespace Game
         {
             base._AutoDestroy();
 
-			_Unload.Destroy();
+			if( _Unload != null ) { _Unload.Destroy(); _Unload=null;}
 
         }
 

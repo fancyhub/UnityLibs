@@ -41,10 +41,10 @@ namespace Game
         {
             base._AutoDestroy();
 
-			_BtnClose.Destroy();
-			_scroll_row_2.Destroy();
-			_scroll_center.Destroy();
-			_scroll_loop.Destroy();
+			if( _BtnClose != null ) { _BtnClose.Destroy(); _BtnClose=null;}
+			if( _scroll_row_2 != null ) { _scroll_row_2.Destroy(); _scroll_row_2=null;}
+			if( _scroll_center != null ) { _scroll_center.Destroy(); _scroll_center=null;}
+			if( _scroll_loop != null ) { _scroll_loop.Destroy(); _scroll_loop=null;}
 
         }
 

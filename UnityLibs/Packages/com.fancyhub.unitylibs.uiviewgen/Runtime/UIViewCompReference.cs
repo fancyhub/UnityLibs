@@ -19,8 +19,8 @@ namespace FH.UI
         public struct Pair
         {
             public string name;
-            public GameObject obj;
-            public Pair(string name, GameObject obj)
+            public UnityEngine.Component obj;
+            public Pair(string name, UnityEngine.Component obj)
             {
                 this.name = name;
                 this.obj = obj;
@@ -30,17 +30,29 @@ namespace FH.UI
         public string _prefab_name;
 
         public Pair[] _objs = new Pair[0];
-        //public string[] _name_list = new string[0];
-        //public GameObject[] _obj_list = new GameObject[0];
 
-        public GameObject GetObj(string key)
+        public Component GetComp(string key)
         {
+            UnityEngine.Component ret = null;
             for (int i = 0; i < _objs.Length; i++)
             {
                 if (_objs[i].name == key)
-                    return _objs[i].obj;
+                {
+                    ret = _objs[i].obj;
+                    break;
+                }
             }
-            return null;
+            if (!ret)
+                return null;
+            return ret;
+        }
+
+        public UnityEngine.GameObject GetObj(string key)
+        {
+            UnityEngine.Component ret = GetComp(key);
+            if (!ret)
+                return null;
+            return ret.gameObject;
         }
 
         public void Clear()
@@ -58,7 +70,7 @@ namespace FH.UI
             return false;
         }
 
-        public bool Exist(string key, GameObject obj)
+        public bool Exist(string key, UnityEngine.Component obj)
         {
             for (int i = 0; i < _objs.Length; i++)
             {
@@ -70,15 +82,12 @@ namespace FH.UI
             return false;
         }
 
+       
 
         public T GetComp<T>(string key) where T : Component
         {
-            var obj = GetObj(key);
-            if (null == obj)
-                return null;
-
-            T t = obj.GetComponent<T>();
-            return t;
+            UnityEngine.Component ret = GetComp(key);
+            return ret as T;
         }
 
         public static UIViewCompReference Find(GameObject obj, string prefab_name)
@@ -100,7 +109,7 @@ namespace FH.UI
 
 #if UNITY_EDITOR
 
-        public void EdAdd(string key, GameObject obj)
+        public void EdAdd(string key, UnityEngine.Component obj)
         {
             if (!Application.isEditor)
                 return;
@@ -110,7 +119,7 @@ namespace FH.UI
             _objs = t.ToArray();
         }
 
-        public void EdSet(string key, GameObject obj)
+        public void EdSet(string key, UnityEngine.Component obj)
         {
             for (int i = 0; i < _objs.Length; i++)
             {

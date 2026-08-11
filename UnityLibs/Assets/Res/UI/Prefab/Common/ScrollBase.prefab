@@ -92,9 +92,7 @@ MonoBehaviour:
   _prefab_name: ScrollBase
   _objs:
   - name: _ScrollBase
-    obj: {fileID: 494981950521540977}
-  - name: _mycontent
-    obj: {fileID: 0}
+    obj: {fileID: 8681901854623692594}
 --- !u!1 &3999825826429877778
 GameObject:
   m_ObjectHideFlags: 0

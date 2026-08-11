@@ -315,11 +315,11 @@ MonoBehaviour:
   _prefab_name: ExtractAsset
   _objs:
   - name: _ExtractAsset
-    obj: {fileID: 5463854501189124403}
+    obj: {fileID: 383309163156763435}
   - name: _LblDesc
-    obj: {fileID: 7458304340095435699}
+    obj: {fileID: 9090564529404909228}
   - name: _progress
-    obj: {fileID: 8725557726731906601}
+    obj: {fileID: 2501821644472080287}
 --- !u!1 &7458304340095435699
 GameObject:
   m_ObjectHideFlags: 0
@@ -574,6 +574,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77dc032a4e7a0714491bf6909104982d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ScaleMode: 1
 --- !u!1 &9020025205423632440
 GameObject:
   m_ObjectHideFlags: 0

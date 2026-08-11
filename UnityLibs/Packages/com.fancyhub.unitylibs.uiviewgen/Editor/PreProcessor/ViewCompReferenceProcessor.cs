@@ -77,13 +77,18 @@ namespace FH.UI.ViewGenerate.Ed
             foreach (var field in view.Fields)
             {
                 string field_name = field.Fieldname;
-                string field_path = field.Path;
+                string field_path = field.HierarchyPath;
 
                 var trans = asset_prefab.transform.Find(field_path);
-                UnityEngine.Debug.AssertFormat(null != trans, "cant find obj with path [{0}].please check your prefab!", field.Path);
+                UnityEngine.Debug.AssertFormat(null != trans, "cant find obj with path [{0}].please check your prefab!", field.HierarchyPath);
 
-                var cur = trans.gameObject;
-                var ori = mono.GetObj(field_name);
+                Component cur = null;
+                if (field.FieldType.Type == EdUIFieldType.EType.SubView)
+                    cur = trans;
+                else
+                    cur = trans.GetComponent(field.FieldType.CompType);
+
+                var ori = mono.GetComp(field_name);
                 if (null != ori && ori == cur)
                     continue;
 

@@ -20,8 +20,6 @@ namespace FH.UI.ViewGenerate.Ed
         public EdUIView ParentView; //继承的类
 
         public List<EdUIField> Fields = new List<EdUIField>();
-        public List<EdUIViewListField> ListFields = new List<EdUIViewListField>();
-
-         
+        public List<EdUIViewListField> ListFields = new List<EdUIViewListField>();         
     }
 }

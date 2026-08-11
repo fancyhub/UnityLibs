@@ -59,19 +59,19 @@ namespace Game
         {
             base._AutoDestroy();
 
-			_BtnTestUIGroupDialog.Destroy();
-			_BtnTestPageAsync.Destroy();
-			_BtnTestLoadScene.Destroy();
-			_BtnTestDeviceInfo.Destroy();
-			_BtnLocalization.Destroy();
-			_BtnUpgrade.Destroy();
-			_BtnReloadUIScene.Destroy();
-			_BtnTime.Destroy();
-			_BtnPermission.Destroy();
-			_BtnScroller.Destroy();
-			_BtnWebView.Destroy();
-			_BtnShare.Destroy();
-			_Btn3DScene.Destroy();
+			if( _BtnTestUIGroupDialog != null ) { _BtnTestUIGroupDialog.Destroy(); _BtnTestUIGroupDialog=null;}
+			if( _BtnTestPageAsync != null ) { _BtnTestPageAsync.Destroy(); _BtnTestPageAsync=null;}
+			if( _BtnTestLoadScene != null ) { _BtnTestLoadScene.Destroy(); _BtnTestLoadScene=null;}
+			if( _BtnTestDeviceInfo != null ) { _BtnTestDeviceInfo.Destroy(); _BtnTestDeviceInfo=null;}
+			if( _BtnLocalization != null ) { _BtnLocalization.Destroy(); _BtnLocalization=null;}
+			if( _BtnUpgrade != null ) { _BtnUpgrade.Destroy(); _BtnUpgrade=null;}
+			if( _BtnReloadUIScene != null ) { _BtnReloadUIScene.Destroy(); _BtnReloadUIScene=null;}
+			if( _BtnTime != null ) { _BtnTime.Destroy(); _BtnTime=null;}
+			if( _BtnPermission != null ) { _BtnPermission.Destroy(); _BtnPermission=null;}
+			if( _BtnScroller != null ) { _BtnScroller.Destroy(); _BtnScroller=null;}
+			if( _BtnWebView != null ) { _BtnWebView.Destroy(); _BtnWebView=null;}
+			if( _BtnShare != null ) { _BtnShare.Destroy(); _BtnShare=null;}
+			if( _Btn3DScene != null ) { _Btn3DScene.Destroy(); _Btn3DScene=null;}
 
         }
 

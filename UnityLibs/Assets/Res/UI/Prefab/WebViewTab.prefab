@@ -258,11 +258,11 @@ MonoBehaviour:
   _prefab_name: WebViewTab
   _objs:
   - name: _WebViewTab
-    obj: {fileID: 1963498709909543721}
+    obj: {fileID: 1081410523386601685}
   - name: _Name
-    obj: {fileID: 505294485673931207}
+    obj: {fileID: 5205265279247318093}
   - name: _Close
-    obj: {fileID: 2500565916789677582}
+    obj: {fileID: 6397683470226384639}
 --- !u!1 &5262052466502471146
 GameObject:
   m_ObjectHideFlags: 0
@@ -439,11 +439,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dc557665a4531c440a805553b642e21e, type: 3}
---- !u!1 &2500565916789677582 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1012681652759660527, guid: dc557665a4531c440a805553b642e21e, type: 3}
-  m_PrefabInstance: {fileID: 3224031884715039201}
-  m_PrefabAsset: {fileID: 0}
 --- !u!224 &6397683470226384639 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8392225713847172894, guid: dc557665a4531c440a805553b642e21e, type: 3}

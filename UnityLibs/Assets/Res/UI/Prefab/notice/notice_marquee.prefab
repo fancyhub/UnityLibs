@@ -276,6 +276,6 @@ MonoBehaviour:
   _prefab_name: notice_marquee
   _objs:
   - name: _notice_marquee
-    obj: {fileID: 5519728206596716594}
+    obj: {fileID: 2443907902283016674}
   - name: _txt
-    obj: {fileID: 3504367137272841974}
+    obj: {fileID: 7895392130575954290}

@@ -43,8 +43,8 @@ namespace Game
         {
             base._AutoDestroy();
 
-			_BtnAddTab.Destroy();
-			_BtnClose.Destroy();
+			if( _BtnAddTab != null ) { _BtnAddTab.Destroy(); _BtnAddTab=null;}
+			if( _BtnClose != null ) { _BtnClose.Destroy(); _BtnClose=null;}
 
         }
 

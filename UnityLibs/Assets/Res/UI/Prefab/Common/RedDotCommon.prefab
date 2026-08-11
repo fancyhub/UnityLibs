@@ -206,6 +206,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _Path: 
   _AutoBind: 0
+  _watch_type: 0
   _obj: {fileID: 5567924431714918372}
   _text: {fileID: 4447256408355833927}
 --- !u!114 &1582846492226471577
@@ -223,7 +224,7 @@ MonoBehaviour:
   _prefab_name: RedDotCommon
   _objs:
   - name: _RedDotCommon
-    obj: {fileID: 4120992521279711619}
+    obj: {fileID: 3637897936700125877}
 --- !u!1 &5567924431714918372
 GameObject:
   m_ObjectHideFlags: 0

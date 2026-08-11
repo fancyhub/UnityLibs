@@ -41,8 +41,8 @@ namespace Game
         {
             base._AutoDestroy();
 
-			_BtnRequest.Destroy();
-			_BtnRequest2.Destroy();
+			if( _BtnRequest != null ) { _BtnRequest.Destroy(); _BtnRequest=null;}
+			if( _BtnRequest2 != null ) { _BtnRequest2.Destroy(); _BtnRequest2=null;}
 
         }
 

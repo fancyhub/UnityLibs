@@ -49,13 +49,13 @@ namespace Game
         {
             base._AutoDestroy();
 
-			_BtnClose.Destroy();
-			_BtnOpenFree.Destroy();
-			_BtnOpenFreeUnique.Destroy();
-			_BtnOpenStack.Destroy();
-			_BtnOpenStackUnique.Destroy();
-			_BtnOpenQueue.Destroy();
-			_BtnOpenQueueUnique.Destroy();
+			if( _BtnClose != null ) { _BtnClose.Destroy(); _BtnClose=null;}
+			if( _BtnOpenFree != null ) { _BtnOpenFree.Destroy(); _BtnOpenFree=null;}
+			if( _BtnOpenFreeUnique != null ) { _BtnOpenFreeUnique.Destroy(); _BtnOpenFreeUnique=null;}
+			if( _BtnOpenStack != null ) { _BtnOpenStack.Destroy(); _BtnOpenStack=null;}
+			if( _BtnOpenStackUnique != null ) { _BtnOpenStackUnique.Destroy(); _BtnOpenStackUnique=null;}
+			if( _BtnOpenQueue != null ) { _BtnOpenQueue.Destroy(); _BtnOpenQueue=null;}
+			if( _BtnOpenQueueUnique != null ) { _BtnOpenQueueUnique.Destroy(); _BtnOpenQueueUnique=null;}
 
         }
 

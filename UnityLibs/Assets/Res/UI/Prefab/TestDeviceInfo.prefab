@@ -1972,15 +1972,15 @@ MonoBehaviour:
   _prefab_name: TestDeviceInfo
   _objs:
   - name: _TestDeviceInfo
-    obj: {fileID: 8120014196122567799}
+    obj: {fileID: 6000336611468300290}
   - name: _DeviceInfo
-    obj: {fileID: 5448827242441581094}
+    obj: {fileID: 9034144547588366883}
   - name: _TabGroup
-    obj: {fileID: 5992031435818040026}
+    obj: {fileID: 7013411305806324892}
   - name: _text
-    obj: {fileID: 5507804283296008972}
+    obj: {fileID: 5331676518046833146}
   - name: _BtnClose
-    obj: {fileID: 7253175846934868286}
+    obj: {fileID: 2221010513212934607}
 --- !u!1 &8171904122515143581
 GameObject:
   m_ObjectHideFlags: 0
@@ -2436,10 +2436,5 @@ PrefabInstance:
 --- !u!224 &2221010513212934607 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8392225713847172894, guid: dc557665a4531c440a805553b642e21e, type: 3}
-  m_PrefabInstance: {fileID: 7684743614139037393}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &7253175846934868286 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1012681652759660527, guid: dc557665a4531c440a805553b642e21e, type: 3}
   m_PrefabInstance: {fileID: 7684743614139037393}
   m_PrefabAsset: {fileID: 0}

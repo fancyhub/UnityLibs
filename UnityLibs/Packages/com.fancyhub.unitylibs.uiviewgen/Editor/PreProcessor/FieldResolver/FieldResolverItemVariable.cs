@@ -13,11 +13,11 @@ namespace FH.UI.ViewGenerate.Ed
 
     public class FieldResolverItemVariable : IFieldResolver
     {
-        public List<EdUIField> CreateFields(EdUIViewGenContext context, EdUIView view)
+        public List<FieldResolverItem> CollectFields(GameObject prefab)
         {
-            List<EdUIField> field_list = new List<EdUIField>();
-            Transform root = view.Prefab.transform;
-            UIItemVariable[] item_variables = view.Prefab.GetComponentsInChildren<UIItemVariable>(true);
+            List<FieldResolverItem> ret = new List<FieldResolverItem>();
+            Transform root = prefab.transform;
+            UIItemVariable[] item_variables = prefab.GetComponentsInChildren<UIItemVariable>(true);
 
             foreach (UIItemVariable item in item_variables)
             {
@@ -25,73 +25,37 @@ namespace FH.UI.ViewGenerate.Ed
                     continue;
 
                 //这个导出组件本身不属于自己
-                var item_type = EdUIViewGenPrefabUtil.GetComponentRelation(root, item);                
+                var item_type = EdUIViewGenPrefabUtil.GetComponentRelation(root, item);
                 if (item_type != EPrefabComponentReleation.CurrentPrefab && item_type != EPrefabComponentReleation.CurrentPrefab_NestedPrefabRoot)
                 {
                     continue;
                 }
 
-                if (item.ExportObject is GameObject obj)
+                switch (item.ExportObject)
                 {
-                    var obj_type = EdUIViewGenPrefabUtil.GetComponentRelation(root, obj.transform);
-                    switch (obj_type)
-                    {
-                        case EPrefabComponentReleation.CurrentPrefab:
-                            {
-                                EdUIField field = _CreateField_Component(root, obj.transform, item);
-                                if (field != null)
-                                    field_list.Add(field);
-                            }
-                            break;
-                        case EPrefabComponentReleation.CurrentPrefab_NestedPrefabRoot:
-                            {
-                                string inner_prefab_path = EdUIViewGenPrefabUtil.GetInnerPrefabAssetPath(obj);
+                    case GameObject obj:
+                        ret.Add(new FieldResolverItem()
+                        {
+                            TargetComp = obj.transform,
+                            TargetType = obj.transform.GetType(),
+                            FieldName = item.GetExportedName(),
+                            SubView = true,
+                        });
+                        break;
 
-                                if (context.Config.IsPrefabPathValid(inner_prefab_path))
-                                {
-
-                                    string go_path = EdUIViewGenPrefabUtil.GetHierarchyPath(obj.transform, root);
-                                    var dep_conf = context.AddDependPath(inner_prefab_path);
-
-                                    EdUIField field = new EdUIField();
-                                    field.Path = go_path;
-                                    field.FieldType = EdUIFieldType.CreateSubView(dep_conf);
-                                    field.Fieldname = item.GetExportedName();
-
-                                    field_list.Add(field);
-                                }
-                                else
-                                {
-                                    EdUIField field = _CreateField_Component(root, obj.transform, item);
-                                    if (field != null)
-                                        field_list.Add(field);
-                                }
-                            }
-                            break;
-                    }
-                }
-                else if (item.ExportObject is Component comp)
-                {
-                    EdUIField field = _CreateField_Component(root, comp, item);
-                    if (field != null)
-                        field_list.Add(field);
+                    case Component comp:
+                        ret.Add(new FieldResolverItem()
+                        {
+                            TargetComp = comp,
+                            TargetType = item.GetExportObjectType(),
+                            FieldName = item.GetExportedName(),
+                            SubView = false,
+                        });
+                        break;
                 }
             }
 
-            return field_list;
-        }
-
-        private static EdUIField _CreateField_Component(Transform root, Component target, UIItemVariable item_v)
-        {
-
-            string go_path = EdUIViewGenPrefabUtil.GetHierarchyPath(target.transform, root);
-
-            EdUIField field = new EdUIField();
-            field.Path = go_path;
-            field.Fieldname = item_v.GetExportedName();
-            field.FieldType = EdUIFieldType.CreateComponent(item_v.GetExportObjectType());
-
-            return field;
-        }
+            return ret;
+        }         
     }
 }

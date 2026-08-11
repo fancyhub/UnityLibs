@@ -96,17 +96,17 @@ MonoBehaviour:
   _prefab_name: TestWebView
   _objs:
   - name: _TestWebView
-    obj: {fileID: 3296848688291642612}
+    obj: {fileID: 1384849307281720172}
   - name: _Tabs
-    obj: {fileID: 7260169454661783099}
+    obj: {fileID: 6441754566437967080}
   - name: _BtnAddTab
-    obj: {fileID: 8076561226721711451}
+    obj: {fileID: 751922945197682090}
   - name: _Url
-    obj: {fileID: 4799731175645608254}
+    obj: {fileID: 2492838708957513911}
   - name: _BtnClose
-    obj: {fileID: 4476272168557539935}
+    obj: {fileID: 4928065651297159854}
   - name: _WebViewDummy
-    obj: {fileID: 7894835167646804045}
+    obj: {fileID: 8933777978632174485}
 --- !u!1 &4078949769849690326
 GameObject:
   m_ObjectHideFlags: 0
@@ -470,11 +470,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dc557665a4531c440a805553b642e21e, type: 3}
---- !u!1 &4476272168557539935 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1012681652759660527, guid: dc557665a4531c440a805553b642e21e, type: 3}
-  m_PrefabInstance: {fileID: 3464162339255580080}
-  m_PrefabAsset: {fileID: 0}
 --- !u!224 &4928065651297159854 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8392225713847172894, guid: dc557665a4531c440a805553b642e21e, type: 3}
@@ -584,10 +579,5 @@ PrefabInstance:
 --- !u!224 &751922945197682090 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8392225713847172894, guid: dc557665a4531c440a805553b642e21e, type: 3}
-  m_PrefabInstance: {fileID: 9086136758956675764}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &8076561226721711451 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1012681652759660527, guid: dc557665a4531c440a805553b642e21e, type: 3}
   m_PrefabInstance: {fileID: 9086136758956675764}
   m_PrefabAsset: {fileID: 0}

@@ -52,9 +52,9 @@ MonoBehaviour:
   _prefab_name: 3DSceneMainPanel
   _objs:
   - name: _3DSceneMainPanel
-    obj: {fileID: 8289601482565954036}
+    obj: {fileID: 1627506532362690961}
   - name: _BtnClose
-    obj: {fileID: 5444555895671958863}
+    obj: {fileID: 3599531647025862078}
 --- !u!1001 &5008906741463820960
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -171,10 +171,5 @@ PrefabInstance:
 --- !u!224 &3599531647025862078 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8392225713847172894, guid: dc557665a4531c440a805553b642e21e, type: 3}
-  m_PrefabInstance: {fileID: 5008906741463820960}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &5444555895671958863 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1012681652759660527, guid: dc557665a4531c440a805553b642e21e, type: 3}
   m_PrefabInstance: {fileID: 5008906741463820960}
   m_PrefabAsset: {fileID: 0}

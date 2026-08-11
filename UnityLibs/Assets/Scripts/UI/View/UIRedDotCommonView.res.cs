@@ -8,12 +8,12 @@ using UnityEngine.UI;
 namespace Game
 {
 
-    //PrefabPath:"Assets/Res/UI/Prefab/Common/ScrollBase.prefab", ParentPrefabPath:"", CsClassName:"UIScrollBaseView", ParentCsClassName:"FH.UI.UIBaseView"
-    public partial class UIScrollBaseView : FH.UI.UIBaseView
+    //PrefabPath:"Assets/Res/UI/Prefab/Common/RedDotCommon.prefab", ParentPrefabPath:"", CsClassName:"UIRedDotCommonView", ParentCsClassName:"FH.UI.UIBaseView"
+    public partial class UIRedDotCommonView : FH.UI.UIBaseView
     {
-        public  const string CPath = "Assets/Res/UI/Prefab/Common/ScrollBase.prefab";
+        public  const string CPath = "Assets/Res/UI/Prefab/Common/RedDotCommon.prefab";
 
-		public UnityEngine.UI.ScrollRect _ScrollBase;
+		public UnityEngine.RectTransform _RedDotCommon;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -21,11 +21,11 @@ namespace Game
         protected override void _AutoInit()
         {
             base._AutoInit();
-            var refs = _FindViewReference("ScrollBase");
+            var refs = _FindViewReference("RedDotCommon");
             if (refs == null)
                 return;
 
-			_ScrollBase = refs.GetComp<UnityEngine.UI.ScrollRect>("_ScrollBase");
+			_RedDotCommon = refs.GetComp<UnityEngine.RectTransform>("_RedDotCommon");
 
         }
 

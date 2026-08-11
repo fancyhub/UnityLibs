@@ -293,13 +293,13 @@ MonoBehaviour:
   _prefab_name: notice_message_box
   _objs:
   - name: _notice_message_box
-    obj: {fileID: 8914663307411663942}
+    obj: {fileID: 499394622279557323}
   - name: _txt
-    obj: {fileID: 9058151516954593676}
+    obj: {fileID: 7128733895852481093}
   - name: _btn
-    obj: {fileID: 6837450016436233995}
+    obj: {fileID: 3875436568589179304}
   - name: _txt_btn
-    obj: {fileID: 2212913830435990095}
+    obj: {fileID: 499288944978656720}
 --- !u!1 &9058151516954593676
 GameObject:
   m_ObjectHideFlags: 0

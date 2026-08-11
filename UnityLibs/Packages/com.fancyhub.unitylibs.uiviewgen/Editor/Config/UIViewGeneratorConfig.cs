@@ -90,14 +90,7 @@ namespace FH.UI.ViewGenerate.Ed
                     if (null != obj)
                         return obj;
                 }
-
-                //如果不是根节点，但是 _开头，就把transform导出
-                if (target != root)
-                {
-                    return target.GetComponent<Transform>();
-                }
-
-                return null;
+                return target;
             }
 
             public void OnAfterDeserialize()
@@ -131,7 +124,7 @@ namespace FH.UI.ViewGenerate.Ed
             "Assets/Res/UI/Prefab"
         };
 
-    
+
 
         public FieldResolverObjectNameConfig FieldResolverObjectName = new FieldResolverObjectNameConfig();
 

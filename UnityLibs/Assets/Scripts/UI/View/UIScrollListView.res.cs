@@ -13,6 +13,7 @@ namespace Game
     {
         public  new  const string CPath = "Assets/Res/UI/Prefab/Common/ScrollList.prefab";
 
+		public UnityEngine.UI.ScrollRect _ScrollList;
 
         #region AutoGen 1
         public override string GetPath() { return CPath; }
@@ -24,6 +25,7 @@ namespace Game
             if (refs == null)
                 return;
 
+			_ScrollList = refs.GetComp<UnityEngine.UI.ScrollRect>("_ScrollList");
 
         }
 

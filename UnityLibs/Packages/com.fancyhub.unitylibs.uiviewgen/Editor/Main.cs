@@ -16,10 +16,6 @@ namespace FH.UI.ViewGenerate.Ed
 {
     public static class Main
     {
-        private static IFieldResolver FieldResolver_ObjName = new FieldResolverObjectName();
-        private static IFieldResolver FieldResolver_ItemVariable = new FieldResolverItemVariable();
-        private static IFieldResolver FieldResolver = FieldResolver_ObjName;
-
         [MenuItem(UIViewGeneratorConfig.C_MENU_Gen_Select, true, 200)]
         public static bool GenCode_Select_Valid()
         {
@@ -60,8 +56,8 @@ namespace FH.UI.ViewGenerate.Ed
             }
 
             foreach (GameObject obj in selections)
-            { 
-                ViewGenerator view_generator = new ViewGenerator(config, FieldResolver);
+            {
+                ViewGenerator view_generator = new ViewGenerator(config, CreateFieldResolver());
                 view_generator.GenCode(obj);
             }
 
@@ -80,7 +76,7 @@ namespace FH.UI.ViewGenerate.Ed
             if (config == null)
                 return;
 
-            ViewGenerator view_generator = new ViewGenerator(config, FieldResolver);
+            ViewGenerator view_generator = new ViewGenerator(config, CreateFieldResolver());
             view_generator.RegenAllCode();
 
 
@@ -99,7 +95,7 @@ namespace FH.UI.ViewGenerate.Ed
             if (config == null)
                 return;
 
-            ViewGenerator view_generator = new ViewGenerator(config, FieldResolver);
+            ViewGenerator view_generator = new ViewGenerator(config, CreateFieldResolver());
             view_generator.RemoveInvalidateCodeFiles();
             Debug.Log("DONE");
         }
@@ -130,6 +126,13 @@ namespace FH.UI.ViewGenerate.Ed
             }
             sw.Close();
             UnityEngine.Debug.Log("Done");
-        }      
+        }
+
+
+        public static IFieldResolver CreateFieldResolver()
+        {
+            return new FieldResolverObjectName(UIViewGeneratorConfig.LoadDefault());
+            return new FieldResolverItemVariable();            
+        }        
     }
 }

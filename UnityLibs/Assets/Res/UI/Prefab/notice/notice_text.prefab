@@ -134,9 +134,9 @@ MonoBehaviour:
   _prefab_name: notice_text
   _objs:
   - name: _notice_text
-    obj: {fileID: 768966519604534888}
+    obj: {fileID: 8682849507608680895}
   - name: _txt
-    obj: {fileID: 2412709510316257845}
+    obj: {fileID: 7583311378522002241}
 --- !u!1 &2412709510316257845
 GameObject:
   m_ObjectHideFlags: 0

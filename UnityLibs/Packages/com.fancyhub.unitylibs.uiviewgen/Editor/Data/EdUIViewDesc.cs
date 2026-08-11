@@ -43,19 +43,6 @@ namespace FH.UI.ViewGenerate.Ed
                 ParentPrefabPath = parent_prefab_path;
                 ParentPrefabName = Path.GetFileNameWithoutExtension(ParentPrefabPath);
             }
-        }
-
-        //public string CsClassName;
-        //public string CsParentClassName;
-
-        //public string GetCsFileNameRes()
-        //{
-        //    return CsClassName + UIViewGeneratorConfig.CSharpConfig.ResSuffix;
-        //}
-
-        //public string GetCsFileNameExt()
-        //{
-        //    return CsClassName + UIViewGeneratorConfig.CSharpConfig.ExtSuffix;
-        //}
+        }         
     }
 }

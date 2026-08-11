@@ -12,30 +12,65 @@ namespace FH.UI.ViewGenerate.Ed
 {
     public class FieldResolverObjectName : IFieldResolver
     {
-        public List<EdUIField> CreateFields(EdUIViewGenContext context, EdUIView view)
+        private UIViewGeneratorConfig _Config;
+        public FieldResolverObjectName(UIViewGeneratorConfig Config)
         {
-            List<EdUIField> field_list = new List<EdUIField>();
-            Transform root_tran = view.Prefab.transform;
-            Transform[] transforms = view.Prefab.GetComponentsInChildren<Transform>(true);
+            _Config = Config;
+        }
+
+        public List<FieldResolverItem> CollectFields(GameObject prefab)
+        {
+            List<FieldResolverItem> ret = new List<FieldResolverItem>();
+            Transform root_tran = prefab.transform;
+            Transform[] transforms = prefab.GetComponentsInChildren<Transform>(true);
             foreach (Transform tran in transforms)
             {
+                string name = tran.name;
+                if (tran == root_tran) //自己就是根节点
+                {
+                    var c = _Config.FieldResolverObjectName.GetComponent(tran, root_tran);
+                    ret.Add(new FieldResolverItem()
+                    {
+                        TargetComp = c,
+                        TargetType = c.GetType(),
+                        FieldName = _GenFiledName(name),
+                        SubView = false,
+                    });
+                    continue;
+                }
+
+                //如果不是根节点，必须要以 下划线开头才能导出 _
+                if (!name.StartsWith("_"))
+                    continue;
+
+
                 EPrefabComponentReleation obj_type = EdUIViewGenPrefabUtil.GetComponentRelation(root_tran, tran);
                 switch (obj_type)
                 {
                     case EPrefabComponentReleation.CurrentPrefab:
                         {
-                            EdUIField field = _CreateField_Component(context, root_tran, tran);
-                            if (null != field)
-                                field_list.Add(field);
+                            var c = _Config.FieldResolverObjectName.GetComponent(tran, root_tran);
+                            ret.Add(new FieldResolverItem()
+                            {
+                                TargetComp = c,
+                                TargetType = c.GetType(),
+                                FieldName = _GenFiledName(name),
+                                SubView = false,
+                            });
                         }
                         break;
 
 
                     case EPrefabComponentReleation.CurrentPrefab_NestedPrefabRoot:
                         {
-                            EdUIField field = _CreateField_Prefab(context, root_tran, tran);
-                            if (null != field)
-                                field_list.Add(field);
+                            var c = _Config.FieldResolverObjectName.GetComponent(tran, root_tran);
+                            ret.Add(new FieldResolverItem()
+                            {
+                                TargetComp = c,
+                                TargetType = c.GetType(),
+                                FieldName = _GenFiledName(name),
+                                SubView = true,
+                            });
                         }
                         break;
 
@@ -57,73 +92,7 @@ namespace FH.UI.ViewGenerate.Ed
                         break;
                 }
             }
-
-            return field_list;
-        }
-
-        private static EdUIField _CreateField_Prefab(EdUIViewGenContext context, Transform root, Transform target)
-        {
-            if (!target.name.StartsWith("_"))
-                return null;
-
-            string inner_prefab_path = EdUIViewGenPrefabUtil.GetInnerPrefabAssetPath(target.gameObject);
-
-            if (context.Config.IsPrefabPathValid(inner_prefab_path))
-            {
-                string go_path = EdUIViewGenPrefabUtil.GetHierarchyPath(target, root);
-                var dep_conf = context.AddDependPath(inner_prefab_path);
-
-                EdUIField field = new EdUIField();
-                field.Path = go_path;
-                field.FieldType = EdUIFieldType.CreateSubView(dep_conf);
-                field.Fieldname = _GenFiledName(target.name);
-
-                return field;
-            }
-            else //如果子 prefab 在别的目录,就当作普通的GameObject 来处理
-            {
-                UnityEngine.Debug.LogErrorFormat("Prefab 里面的对象 {0} 对应的路径不合法 {1}", target.name, inner_prefab_path);
-                string target_name = target.name;
-                //如果不是根节点，必须要以 下划线开头才能导出 _
-                if (root != target && !target_name.StartsWith("_"))
-                    return null;
-
-                Component component = context.Config.FieldResolverObjectName.GetComponent(target, root);
-                if (null == component)
-                    return null;
-
-                string go_path = EdUIViewGenPrefabUtil.GetHierarchyPath(target, root);
-                string field_name = _GenFiledName(target_name);
-
-                EdUIField field = new EdUIField();
-                field.Path = go_path;
-                field.Fieldname = field_name;
-                field.FieldType = EdUIFieldType.CreateComponent(component.GetType());
-                return field;
-            }
-        }
-
-
-        private static EdUIField _CreateField_Component(EdUIViewGenContext context, Transform root, Transform target)
-        {
-            string target_name = target.name;
-            //如果不是根节点，必须要以 下划线开头才能导出 _
-            if (root != target && !target_name.StartsWith("_"))
-                return null;
-
-            Component component = context.Config.FieldResolverObjectName.GetComponent(target, root);
-            if (null == component)
-                return null;
-
-            string go_path = EdUIViewGenPrefabUtil.GetHierarchyPath(target, root);
-            string field_name = _GenFiledName(target_name);
-
-            EdUIField field = new EdUIField();
-            field.Path = go_path;
-            field.Fieldname = field_name;
-            field.FieldType = EdUIFieldType.CreateComponent(component.GetType());
-
-            return field;
+            return ret;
         }
 
         private static string _GenFiledName(string name)

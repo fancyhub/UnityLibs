@@ -255,6 +255,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77dc032a4e7a0714491bf6909104982d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ScaleMode: 1
 --- !u!1 &5626995502679030050
 GameObject:
   m_ObjectHideFlags: 0
@@ -456,11 +457,11 @@ MonoBehaviour:
   _prefab_name: TestPermission
   _objs:
   - name: _TestPermission
-    obj: {fileID: 6753400022249615630}
+    obj: {fileID: 8658530277118812606}
   - name: _ScrollView
-    obj: {fileID: 5626995502679030050}
+    obj: {fileID: 8349593032884568527}
   - name: _BtnClose
-    obj: {fileID: 5822730941193434413}
+    obj: {fileID: 3077250177435389404}
 --- !u!1001 &6828506423845532354
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -565,10 +566,5 @@ PrefabInstance:
 --- !u!224 &3077250177435389404 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8392225713847172894, guid: dc557665a4531c440a805553b642e21e, type: 3}
-  m_PrefabInstance: {fileID: 6828506423845532354}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &5822730941193434413 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1012681652759660527, guid: dc557665a4531c440a805553b642e21e, type: 3}
   m_PrefabInstance: {fileID: 6828506423845532354}
   m_PrefabAsset: {fileID: 0}

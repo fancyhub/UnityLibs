@@ -218,11 +218,11 @@ MonoBehaviour:
   _prefab_name: TestScrollItem
   _objs:
   - name: _TestScrollItem
-    obj: {fileID: 4146460482223470929}
+    obj: {fileID: 8217543368490720220}
   - name: _img_selected
-    obj: {fileID: 9032358926067556938}
+    obj: {fileID: 7167357866083976920}
   - name: _Name
-    obj: {fileID: 2138245173951917258}
+    obj: {fileID: 7160647268947451171}
 --- !u!1 &7556057608504937966
 GameObject:
   m_ObjectHideFlags: 0

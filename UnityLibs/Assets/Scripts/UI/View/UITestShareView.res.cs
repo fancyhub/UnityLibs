@@ -45,10 +45,10 @@ namespace Game
         {
             base._AutoDestroy();
 
-			_BtnClose.Destroy();
-			_BtnDownload.Destroy();
-			_BtnShare.Destroy();
-			_BtnSimuateCapture.Destroy();
+			if( _BtnClose != null ) { _BtnClose.Destroy(); _BtnClose=null;}
+			if( _BtnDownload != null ) { _BtnDownload.Destroy(); _BtnDownload=null;}
+			if( _BtnShare != null ) { _BtnShare.Destroy(); _BtnShare=null;}
+			if( _BtnSimuateCapture != null ) { _BtnSimuateCapture.Destroy(); _BtnSimuateCapture=null;}
 
         }
 

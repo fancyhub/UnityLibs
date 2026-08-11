@@ -62,7 +62,7 @@ namespace FH.UI.ViewGenerate.Ed
     /// </summary>
     public class EdUIField
     {
-        public string Path;
+        public string HierarchyPath;
         public string Fieldname;
 
         public EdUIFieldType FieldType;
