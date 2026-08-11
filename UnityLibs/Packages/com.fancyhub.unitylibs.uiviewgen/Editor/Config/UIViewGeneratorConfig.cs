@@ -6,6 +6,8 @@ using System.IO;
 
 namespace FH.UI.ViewGenerate.Ed
 {
+
+
     [CreateAssetMenu(menuName = "UIView/UI View Gen Config", fileName = "UIViewGeneratorConfig")]
     public class UIViewGeneratorConfig : ScriptableObject, ISerializationCallbackReceiver
     {
@@ -39,7 +41,6 @@ namespace FH.UI.ViewGenerate.Ed
             public string CodeFolder = "Assets/Scripts/UI/View";
 
             public EPathMode PathMode = EPathMode.AssetPath;
-            public string ResourcePath = "/Resources/";
 
             public Type _BaseViewClass;
 
@@ -62,26 +63,77 @@ namespace FH.UI.ViewGenerate.Ed
             }
         }
 
+        [Serializable]
+        public class FieldResolverObjectNameConfig
+        {
+            public List<string> PriorityCompTypeList = new List<string>()
+            {
+                "UnityEngine.RectTransform",
+                "UnityEngine.UI.Image",
+                "UnityEngine.UI.RawImage",
+                "UnityEngine.UI.Text",
+                "UnityEngine.UI.Slider",
+                "UnityEngine.UI.InputField",
+                "UnityEngine.UI.ScrollRect",
+                "UnityEngine.UI.Button",
+                "UnityEngine.UI.Toggle",
+                "UnityEngine.UI.ToggleGroup",
+                "UnityEngine.UI.Dropdown",
+            };
+
+            public List<Type> _PriorityCompTypeList = new List<Type>();
+            public Component GetComponent(Transform target, Transform root)
+            {
+                for (int i = _PriorityCompTypeList.Count - 1; i >= 0; i--)
+                {
+                    Component obj = target.GetComponent(_PriorityCompTypeList[i]);
+                    if (null != obj)
+                        return obj;
+                }
+
+                //如果不是根节点，但是 _开头，就把transform导出
+                if (target != root)
+                {
+                    return target.GetComponent<Transform>();
+                }
+
+                return null;
+            }
+
+            public void OnAfterDeserialize()
+            {
+                _PriorityCompTypeList.Clear();
+
+                UnityEditor.TypeCache.TypeCollection sub_class_list = UnityEditor.TypeCache.GetTypesDerivedFrom<UnityEngine.Component>();
+                foreach (var p in PriorityCompTypeList)
+                {
+                    bool found = false;
+                    foreach (var type in sub_class_list)
+                    {
+                        if (type.FullName == p)
+                        {
+                            _PriorityCompTypeList.Add(type);
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found)
+                    {
+                        Debug.LogError("找不到类型 " + p);
+                    }
+                }
+            }
+        }
 
         public List<string> ResourcesFolderList = new List<string>()
         {
             "Assets/Res/UI/Prefab"
         };
 
-        public List<string> PriorityCompTypeList = new List<string>()
-        {
-            "UnityEngine.RectTransform",
-            "UnityEngine.UI.Image",
-            "UnityEngine.UI.RawImage",
-            "UnityEngine.UI.Scrollbar",
-            "UnityEngine.UI.Text",
-            "UnityEngine.UI.ScrollRect",
-            "UnityEngine.UI.InputField",
-            "UnityEngine.UI.Toggle",
-            "UnityEngine.UI.Slider",
-            "UnityEngine.UI.Button",
-            "UnityEngine.UI.Dropdown",
-        };
+    
+
+        public FieldResolverObjectNameConfig FieldResolverObjectName = new FieldResolverObjectNameConfig();
 
         public bool IsPrefabPathValid(string path)
         {
@@ -143,30 +195,8 @@ namespace FH.UI.ViewGenerate.Ed
         }
 
 
-        public List<Type> _PriorityCompTypeList = new List<Type>();
-
-        public Component GetComponent(Transform target, Transform root)
-        {
-            for (int i = _PriorityCompTypeList.Count - 1; i >= 0; i--)
-            {
-                Component obj = target.GetComponent(_PriorityCompTypeList[i]);
-                if (null != obj)
-                    return obj;
-            }
-
-            //如果不是根节点，但是 _开头，就把transform导出
-            if (target != root)
-            {
-                return target.GetComponent<Transform>();
-            }
-
-            return null;
-        }
-
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-#if UNITY_EDITOR
-            _PriorityCompTypeList.Clear();
 
             {
                 foreach (var assembly in System.AppDomain.CurrentDomain.GetAssemblies())
@@ -181,27 +211,7 @@ namespace FH.UI.ViewGenerate.Ed
                 }
             }
 
-
-            UnityEditor.TypeCache.TypeCollection sub_class_list = UnityEditor.TypeCache.GetTypesDerivedFrom<UnityEngine.Component>();
-            foreach (var p in PriorityCompTypeList)
-            {
-                bool found = false;
-                foreach (var type in sub_class_list)
-                {
-                    if (type.FullName == p)
-                    {
-                        _PriorityCompTypeList.Add(type);
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found)
-                {
-                    Debug.LogError("找不到类型 " + p);
-                }
-            }
-#endif
+            FieldResolverObjectName.OnAfterDeserialize();
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()

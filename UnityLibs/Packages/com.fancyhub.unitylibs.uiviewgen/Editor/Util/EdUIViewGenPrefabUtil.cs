@@ -13,27 +13,27 @@ using UnityEditor;
 
 namespace FH.UI.ViewGenerate.Ed
 {
-    public enum EEDUIObjType
+    public enum EPrefabComponentReleation
     {
         /// <summary>
-        /// 属于prefab 自己的
+        /// 属于prefab 自己的, 需要导出
         /// </summary>
-        Prefab_Self,
+        CurrentPrefab,
 
         /// <summary>
-        /// 属于 内部prefab的 的root 节点
+        /// 属于 内部prefab的 的root 节点, 需要导出(但是 SubView)
         /// </summary>
-        Prefab_Inner_Root,
+        CurrentPrefab_NestedPrefabRoot,
 
         /// <summary>
-        /// 属于内部 prefab的 节点
+        /// 属于内部 prefab的 节点, 不要导出(属于SubView自己的Field)
         /// </summary>
-        Prefab_Inner_Object,
+        NestedPrefab,
 
         /// <summary>
-        /// 整个prefab的根节点，但是该节点也是 一个 variant变体
+        /// 整个prefab的根节点，但是该节点也是 一个 variant变体, 是父prefab的对象,不需要导出
         /// </summary>
-        Prefab_Variant, 
+        ParentPrefab,
     }
 
     public static class EdUIViewGenPrefabUtil
@@ -76,7 +76,7 @@ namespace FH.UI.ViewGenerate.Ed
         public static UIViewCompReference GetViewReference(GameObject prefab_root, bool belong_self)
         {
             UIViewCompReference ret = null;
-            UIViewCompReference[]  comp_list = prefab_root.GetComponents<UIViewCompReference>();
+            UIViewCompReference[] comp_list = prefab_root.GetComponents<UIViewCompReference>();
             if (!belong_self)
             {
                 if (comp_list.Length == 0)
@@ -100,64 +100,26 @@ namespace FH.UI.ViewGenerate.Ed
             return ret;
         }
 
-        public static EEDUIObjType GetTargetType(Transform target, Transform prefab_root)
+        public static EPrefabComponentReleation GetComponentRelation(Transform prefab_root, Component comp)
         {
-            if (!_IsInnerPrefab(target.gameObject, prefab_root.gameObject))
-                return EEDUIObjType.Prefab_Self;
+            if (prefab_root == null || comp == null)
+                return EPrefabComponentReleation.CurrentPrefab;
 
-            if (!_IsInnerPrefabRoot(target.gameObject))
-                return EEDUIObjType.Prefab_Inner_Object;
+            GameObject comp_obj = comp.gameObject;
+            GameObject prefab_outer = PrefabUtility.GetOutermostPrefabInstanceRoot(comp_obj);
 
-            if (target == prefab_root)
-                return EEDUIObjType.Prefab_Variant;
+            if (prefab_outer == null)
+                return EPrefabComponentReleation.CurrentPrefab;
 
-            return EEDUIObjType.Prefab_Inner_Root;
-        }
+            if (prefab_outer != comp_obj)
+                return EPrefabComponentReleation.NestedPrefab;
 
-        /// <summary>
-        /// 判断对象是否是 prefab 里面的嵌套 prefab节点
-        /// 传入的obj一定是没有实例化出来的，才能保证正确，否则参考下面的接口
-        /// </summary>
-        private static bool _IsInnerPrefab(GameObject asset_obj, GameObject obj_root)
-        {
-            GameObject prefab_outer = PrefabUtility.GetOutermostPrefabInstanceRoot(asset_obj);
+            if (comp_obj == prefab_root.gameObject)
+                return EPrefabComponentReleation.ParentPrefab;
 
-            //如果prefab_outer 为null，说明是属于该对象的
-            if (null == prefab_outer)
-                return false;
-            return true;
-            // GameObject prefab_inner = PrefabUtility.GetNearestPrefabInstanceRoot(obj);
-            // Debug.LogFormat("Out:{0},Inner:{1},{2}"
-            //     , prefab_outer == null ? "null" : prefab_outer.name
-            //     , prefab_inner == null ? "null" : prefab_inner.name
-            //     , obj.transform.GetPath(null));
-
-            // if (prefab_inner == prefab_outer)
-            //     return false;
-            // return true;
-        }
-
-        /// <summary>
-        /// 传入的一定是inst obj，但是inst obj也区分是否unpack。没有unpack应该是对的，unpack需要再验证
-        /// </summary>
-        public static bool IsInstInnerPrefab(GameObject inst_obj)
-        {
-            GameObject prefab_outer = PrefabUtility.GetOutermostPrefabInstanceRoot(inst_obj);
-
-            //如果prefab_outer 为null，说明是属于该对象的
-            if (null == prefab_outer)
-                return false;
-
-            GameObject prefab_inner = PrefabUtility.GetNearestPrefabInstanceRoot(inst_obj);
-            // Debug.LogFormat("Out:{0},Inner:{1},{2}"
-            //     , prefab_outer == null ? "null" : prefab_outer.name
-            //     , prefab_inner == null ? "null" : prefab_inner.name
-            //     , obj.transform.GetPath(null));
-
-            if (prefab_inner == prefab_outer)
-                return false;
-            return true;
-        }
+            return EPrefabComponentReleation.CurrentPrefab_NestedPrefabRoot;
+        }        
+         
 
         public static GameObject GetOrigPrefabWithVariant(GameObject obj)
         {
@@ -167,77 +129,55 @@ namespace FH.UI.ViewGenerate.Ed
             return PrefabUtility.GetCorrespondingObjectFromSource(obj);
         }
 
-        /// <summary>
-        /// 判断对象是否是 prefab 里面的嵌套 prefab节点，是否为嵌套prefab的根节点
-        /// </summary>
-        private static bool _IsInnerPrefabRoot(GameObject obj)
-        {
-            GameObject prefab_inner = PrefabUtility.GetOutermostPrefabInstanceRoot(obj);
-            if (obj == prefab_inner)
-                return true;
-
-            //不能用 inner，因为asset 里面，属于该prefab的对象，out是null，inner 有值
-            //如果是 嵌套prefab里面嵌套prefab的节点，inner 的值是 2级嵌套的对象，这个不需要在最上层做表达
-            return false;
-        }
-
+         
         public static string GetInnerPrefabAssetPath(GameObject obj)
         {
             GameObject prefab_inner = PrefabUtility.GetOutermostPrefabInstanceRoot(obj);
             return PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefab_inner);
         }
 
-
-        public static GameObject GetParentPrefab(GameObject obj)
+        #region Hierachy Path
+        private static System.Text.StringBuilder _string_builder = new ();
+        /// <summary>
+        /// 不包括root
+        /// </summary>
+        public static string GetHierarchyPath(Transform self, Transform root)
         {
-            return GetOrigPrefabWithVariant(obj);
+            if (null == self)
+                return string.Empty;
+
+            _string_builder.Length = 0;
+            _GetHierarchyPath(self, self, root, _string_builder);
+            return _string_builder.ToString();
         }
 
-        public static void GetSubPrefab(GameObject obj, List<string> out_list)
+        private static void _GetHierarchyPath(Transform target, Transform obj, Transform root, System.Text.StringBuilder sb)
         {
-            Dictionary<GameObject, string> dict = new Dictionary<GameObject, string>();
-            GetSubPrefab(obj, dict);
-            out_list.Clear();
-
-            foreach (var p in dict)
+            if (obj == root)
             {
-                string inner_prefab_path = p.Value;
-                if (out_list.Contains(inner_prefab_path))
-                    continue;
-                out_list.Add(inner_prefab_path);
+                //不包括root节点
+                //if (null != obj)
+                //{
+                // sb.Append(obj.name);
+                //}
+                return;
             }
+
+            if (null == obj)
+            {
+                Debug.LogErrorFormat("Root {0} 不是 obj {1} 的 根节点", root, target);
+                return;
+            }
+
+            _GetHierarchyPath(target, obj.parent, root, sb);
+
+            if (sb.Length > 0)
+            {
+                sb.Append('/');
+            }
+            sb.Append(obj.name);
         }
+        #endregion
 
-        public static void GetSubPrefab(GameObject obj, Dictionary<GameObject, string> out_list)
-        {
-            out_list.Clear();
-
-            Transform root = obj.transform;
-            Transform[] transform_list = obj.GetComponentsInChildren<Transform>(true);
-            foreach (var a in transform_list)
-            {
-                if (a == root)
-                    continue;
-                var obj_type = GetTargetType(a, root);
-
-                switch (obj_type)
-                {
-                    case EEDUIObjType.Prefab_Self:
-                    case EEDUIObjType.Prefab_Inner_Object:
-                    case EEDUIObjType.Prefab_Variant:
-                        //不处理
-                        break;
-
-                    case EEDUIObjType.Prefab_Inner_Root:
-                        string inner_prefab_path = GetInnerPrefabAssetPath(a.gameObject);
-                        out_list.Add(a.gameObject, inner_prefab_path);
-                        break;
-
-                    default:
-                        Debug.LogError("未知类型:" + obj_type);
-                        break;
-                }
-            }
-        }         
     }
 }

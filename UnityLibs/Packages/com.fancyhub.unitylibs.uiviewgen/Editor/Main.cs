@@ -16,6 +16,10 @@ namespace FH.UI.ViewGenerate.Ed
 {
     public static class Main
     {
+        private static IFieldResolver FieldResolver_ObjName = new FieldResolverObjectName();
+        private static IFieldResolver FieldResolver_ItemVariable = new FieldResolverItemVariable();
+        private static IFieldResolver FieldResolver = FieldResolver_ObjName;
+
         [MenuItem(UIViewGeneratorConfig.C_MENU_Gen_Select, true, 200)]
         public static bool GenCode_Select_Valid()
         {
@@ -57,7 +61,7 @@ namespace FH.UI.ViewGenerate.Ed
 
             foreach (GameObject obj in selections)
             { 
-                ViewGenerator view_generator = new ViewGenerator(config);
+                ViewGenerator view_generator = new ViewGenerator(config, FieldResolver);
                 view_generator.GenCode(obj);
             }
 
@@ -76,7 +80,7 @@ namespace FH.UI.ViewGenerate.Ed
             if (config == null)
                 return;
 
-            ViewGenerator view_generator = new ViewGenerator(config);
+            ViewGenerator view_generator = new ViewGenerator(config, FieldResolver);
             view_generator.RegenAllCode();
 
 
@@ -95,7 +99,7 @@ namespace FH.UI.ViewGenerate.Ed
             if (config == null)
                 return;
 
-            ViewGenerator view_generator = new ViewGenerator(config);
+            ViewGenerator view_generator = new ViewGenerator(config, FieldResolver);
             view_generator.RemoveInvalidateCodeFiles();
             Debug.Log("DONE");
         }

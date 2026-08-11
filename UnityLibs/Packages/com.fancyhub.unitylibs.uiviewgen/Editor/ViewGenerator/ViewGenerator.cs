@@ -24,7 +24,7 @@ namespace FH.UI.ViewGenerate.Ed
         private List<ICodeExporter> _Exporters;
         private List<IViewGeneratePreprocessor> _Preprocessors;
 
-        public ViewGenerator(UIViewGeneratorConfig config)
+        public ViewGenerator(UIViewGeneratorConfig config, IFieldResolver field_resolver)
         {
             _Config = config;
             _CodeAnylyser = new CodeAnalyser_CSharp();
@@ -42,7 +42,7 @@ namespace FH.UI.ViewGenerate.Ed
 
             _Preprocessors = new List<IViewGeneratePreprocessor>()
             {
-                new CreateViewProcessor(),
+                new CreateViewProcessor(field_resolver),
                 new LinkViewProcessor(),
                 new ListFiledsProcessor(),
                 new ViewCompReferenceProcessor(),

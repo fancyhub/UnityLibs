@@ -127,7 +127,7 @@ namespace FH.UI.ViewGenerate.Ed
                     formater.Add("path", view.Desc.PrefabPath);
                     break;
                 case UIViewGeneratorConfig.EPathMode.ResourcePath:
-                    formater.Add("path", _GetResourcePath(_Config.ResourcePath, view.Desc.PrefabPath));
+                    formater.Add("path", _GetResourcePath("/Resources/", view.Desc.PrefabPath));
                     break;
                 case UIViewGeneratorConfig.EPathMode.PrefabName:
                     formater.Add("path", view.Desc.PrefabName);
@@ -273,7 +273,7 @@ namespace FH.UI.ViewGenerate.Ed
                         case EdUIFieldType.EType.Component:
                             break;
                         case EdUIFieldType.EType.SubView:
-                            sw.WriteLine("\t\t\tif({0}!=null){ {0}.Destroy(); {0}=null;}", field.Fieldname);
+                            sw.WriteLine("\t\t\tif( {0} != null ) {{ {0}.Destroy(); {0}=null;}}", field.Fieldname);
                             break; ;
                     }
                 }
