@@ -74,6 +74,7 @@ namespace " + config.NameSpace + "\n{";
                 VersionControlUtil.Checkout(file_path);
 
                 using StreamWriter sw = new StreamWriter(file_path);
+                sw.WriteLine("//AutoGen + Manual, you can modify this file");
                 using var file_scope = CSFileScope.Create(sw, _Config);
 
                 //生成默认的 ext.cs 代码

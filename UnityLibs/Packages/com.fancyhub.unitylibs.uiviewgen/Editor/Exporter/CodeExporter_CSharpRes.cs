@@ -17,7 +17,7 @@ namespace FH.UI.ViewGenerate.Ed
 
         public const string C_CODE_INIT_BEGIN =
             @"
-        #region AutoGen 1
+        #region AutoGen
         public override string GetPath() { return CPath; }
 
         protected override void _AutoInit()
@@ -64,6 +64,7 @@ namespace FH.UI.ViewGenerate.Ed
                 string file_path = _Config.GenFilePath_Res(view.Desc.PrefabPath);
                 VersionControlUtil.Checkout(file_path);
                 using StreamWriter sw = new StreamWriter(file_path);
+                sw.WriteLine("//AutoGen, Don't modify this file");
                 using var file_scope = CSFileScope.Create(sw, _Config);
 
                 EdStrFormatter formater = _GenStrFormatter(view);

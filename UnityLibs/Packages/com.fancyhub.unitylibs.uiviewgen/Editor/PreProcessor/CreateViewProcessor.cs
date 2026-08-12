@@ -57,7 +57,7 @@ namespace FH.UI.ViewGenerate.Ed
                         var dep_conf = context.AddDependPath(inner_prefab_path);
 
                         EdUIField field = new EdUIField();
-                        field.HierarchyPath = go_path;
+                        field.TargetComp = p.TargetComp;
                         field.FieldType = EdUIFieldType.CreateSubView(dep_conf);
                         field.Fieldname = p.FieldName;
                         ret.Add(field);
@@ -67,7 +67,7 @@ namespace FH.UI.ViewGenerate.Ed
                         UnityEngine.Debug.LogErrorFormat("Prefab 里面的对象 {0} 对应的路径不合法 {1}", view.Prefab.name, inner_prefab_path);
 
                         EdUIField field = new EdUIField();
-                        field.HierarchyPath = go_path;
+                        field.TargetComp = p.TargetComp;
                         field.Fieldname = p.FieldName;
                         field.FieldType = EdUIFieldType.CreateComponent(p.TargetType);
                         ret.Add(field);
@@ -76,7 +76,7 @@ namespace FH.UI.ViewGenerate.Ed
                 else
                 {
                     EdUIField field = new EdUIField();
-                    field.HierarchyPath = go_path;
+                    field.TargetComp = p.TargetComp;
                     field.Fieldname = p.FieldName;
                     field.FieldType = EdUIFieldType.CreateComponent(p.TargetType);
                     ret.Add(field);

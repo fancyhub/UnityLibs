@@ -57,19 +57,19 @@ namespace FH.UI.ViewGenerate.Ed
         }
 
 
-        private static bool _RefreshMono(EdUIView view, UIViewCompReference mono, GameObject asset_prefab)
+        private static bool _RefreshMono(EdUIView view, UIViewCompReference view_ref, GameObject asset_prefab)
         {
             //1. 先检查prefab name和key list。如果有变化，那么清空掉重建
-            bool changed = _CheckChanged(view, mono, out var new_name);
+            bool changed = _CheckChanged(view, view_ref, out var new_name);
             if (changed)
             {
-                mono._prefab_name = new_name;
-                mono.Clear();
+                view_ref._prefab_name = new_name;
+                view_ref.Clear();
                 //1.1 清空之后，把key建好，后面就可以直接处理obj的部分了
                 foreach (var field in view.Fields)
                 {
                     string field_name = field.Fieldname;
-                    mono.EdAdd(field_name, null);
+                    view_ref.EdAdd(field_name, null);
                 }
             }
 
@@ -77,23 +77,16 @@ namespace FH.UI.ViewGenerate.Ed
             foreach (var field in view.Fields)
             {
                 string field_name = field.Fieldname;
-                string field_path = field.HierarchyPath;
 
-                var trans = asset_prefab.transform.Find(field_path);
-                UnityEngine.Debug.AssertFormat(null != trans, "cant find obj with path [{0}].please check your prefab!", field.HierarchyPath);
+                UnityEngine.Debug.AssertFormat(field.TargetComp != null, "cant find obj with [{0}].please check your prefab!", field.Fieldname);
 
-                Component cur = null;
-                if (field.FieldType.Type == EdUIFieldType.EType.SubView)
-                    cur = trans;
-                else
-                    cur = trans.GetComponent(field.FieldType.CompType);
-
-                var ori = mono.GetComp(field_name);
+                Component cur = field.TargetComp;
+                var ori = view_ref.GetComp(field_name);
                 if (null != ori && ori == cur)
                     continue;
 
                 changed = true;
-                mono.EdSet(field_name, cur);
+                view_ref.EdSet(field_name, cur);
             }
 
             return changed;

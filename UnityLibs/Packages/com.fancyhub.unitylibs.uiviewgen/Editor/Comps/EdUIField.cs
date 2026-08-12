@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 
 namespace FH.UI.ViewGenerate.Ed
@@ -62,8 +63,10 @@ namespace FH.UI.ViewGenerate.Ed
     /// </summary>
     public class EdUIField
     {
-        public string HierarchyPath;
+        //public string HierarchyPath;
         public string Fieldname;
+
+        public UnityEngine.Component TargetComp;
 
         public EdUIFieldType FieldType;
     }

@@ -1,3 +1,4 @@
+//AutoGen, Don't modify this file
 
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace Game
 		public UnityEngine.UI.Text _Name;
 		public UIButtonView _Unload;
 
-        #region AutoGen 1
+        #region AutoGen
         public override string GetPath() { return CPath; }
 
         protected override void _AutoInit()
