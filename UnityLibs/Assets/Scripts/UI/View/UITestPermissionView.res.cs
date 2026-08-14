@@ -27,9 +27,9 @@ namespace Game
             if (refs == null)
                 return;
 
-			_TestPermission = refs.GetComp<UnityEngine.UI.Image>("_TestPermission");
-			_ScrollView = refs.GetComp<UnityEngine.UI.ScrollRect>("_ScrollView");
-			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
+			_TestPermission = refs.Get<UnityEngine.UI.Image>("_TestPermission");
+			_ScrollView = refs.Get<UnityEngine.UI.ScrollRect>("_ScrollView");
+			_BtnClose = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnClose"));
 
         }
 

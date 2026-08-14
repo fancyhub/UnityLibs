@@ -256,10 +256,10 @@ namespace FH.UI.ViewGenerate.Ed
                     switch (field.FieldType.Type)
                     {
                         case EdUIFieldType.EType.Component:
-                            sw.WriteLine("\t\t\t{0} = refs.GetComp<{1}>(\"{0}\");", field.Fieldname, _GetFieldTypeName(config, field.FieldType));
+                            sw.WriteLine("\t\t\t{0} = refs.Get<{1}>(\"{0}\");", field.Fieldname, _GetFieldTypeName(config, field.FieldType));
                             break;
                         case EdUIFieldType.EType.SubView:
-                            sw.WriteLine("\t\t\t{0} = _CreateSub<{1}>(refs.GetObj(\"{0}\"));", field.Fieldname, _GetFieldTypeName(config, field.FieldType));
+                            sw.WriteLine("\t\t\t{0} = _CreateSub<{1}>(refs.GetGameObject(\"{0}\"));", field.Fieldname, _GetFieldTypeName(config, field.FieldType));
                             break;
                     }
                 }

@@ -28,10 +28,10 @@ namespace Game
             if (refs == null)
                 return;
 
-			_TestTime = refs.GetComp<UnityEngine.RectTransform>("_TestTime");
-			_CurInfo = refs.GetComp<UnityEngine.UI.Text>("_CurInfo");
-			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
-			_DropDownCulture = refs.GetComp<UnityEngine.UI.Dropdown>("_DropDownCulture");
+			_TestTime = refs.Get<UnityEngine.RectTransform>("_TestTime");
+			_CurInfo = refs.Get<UnityEngine.UI.Text>("_CurInfo");
+			_BtnClose = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnClose"));
+			_DropDownCulture = refs.Get<UnityEngine.UI.Dropdown>("_DropDownCulture");
 
         }
 

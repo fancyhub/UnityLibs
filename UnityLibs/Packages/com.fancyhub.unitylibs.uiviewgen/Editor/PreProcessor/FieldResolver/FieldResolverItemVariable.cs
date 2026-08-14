@@ -25,34 +25,16 @@ namespace FH.UI.ViewGenerate.Ed
                     continue;
 
                 //这个导出组件本身不属于自己
-                var item_type = EdUIViewGenPrefabUtil.GetComponentRelation(root, item);
-                if (item_type != EPrefabComponentReleation.CurrentPrefab && item_type != EPrefabComponentReleation.CurrentPrefab_NestedPrefabRoot)
-                {
+                if (!EdUIViewGenPrefabUtil.IsComponentBelongSelf(root.gameObject, item))
                     continue;
-                }
 
-                switch (item.ExportObject)
+                ret.Add(new FieldResolverItem()
                 {
-                    case GameObject obj:
-                        ret.Add(new FieldResolverItem()
-                        {
-                            TargetComp = obj.transform,
-                            TargetType = obj.transform.GetType(),
-                            FieldName = item.GetExportedName(),
-                            SubView = true,
-                        });
-                        break;
-
-                    case Component comp:
-                        ret.Add(new FieldResolverItem()
-                        {
-                            TargetComp = comp,
-                            TargetType = item.GetExportObjectType(),
-                            FieldName = item.GetExportedName(),
-                            SubView = false,
-                        });
-                        break;
-                }
+                    TargetObject = item.ExportObject,
+                    TargetType = item.GetExportObjectType(),
+                    FieldName = item.GetExportedName(),
+                    SubView = false,
+                });                 
             }
 
             return ret;

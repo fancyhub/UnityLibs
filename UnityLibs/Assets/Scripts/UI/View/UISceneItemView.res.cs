@@ -28,9 +28,9 @@ namespace Game
             if (refs == null)
                 return;
 
-			_SceneItem = refs.GetComp<UnityEngine.RectTransform>("_SceneItem");
-			_Name = refs.GetComp<UnityEngine.UI.Text>("_Name");
-			_Unload = _CreateSub<UIButtonView>(refs.GetObj("_Unload"));
+			_SceneItem = refs.Get<UnityEngine.RectTransform>("_SceneItem");
+			_Name = refs.Get<UnityEngine.UI.Text>("_Name");
+			_Unload = _CreateSub<UIButtonView>(refs.GetGameObject("_Unload"));
 
         }
 

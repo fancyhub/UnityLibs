@@ -31,13 +31,13 @@ namespace Game
             if (refs == null)
                 return;
 
-			_TestShare = refs.GetComp<UnityEngine.RectTransform>("_TestShare");
-			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
-			_Img = refs.GetComp<UnityEngine.UI.RawImage>("_Img");
-			_BtnDownload = _CreateSub<UIButtonView>(refs.GetObj("_BtnDownload"));
-			_BtnShare = _CreateSub<UIButtonView>(refs.GetObj("_BtnShare"));
-			_BtnSimuateCapture = _CreateSub<UIButtonView>(refs.GetObj("_BtnSimuateCapture"));
-			_Info = refs.GetComp<UnityEngine.UI.Text>("_Info");
+			_TestShare = refs.Get<UnityEngine.RectTransform>("_TestShare");
+			_BtnClose = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnClose"));
+			_Img = refs.Get<UnityEngine.UI.RawImage>("_Img");
+			_BtnDownload = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnDownload"));
+			_BtnShare = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnShare"));
+			_BtnSimuateCapture = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnSimuateCapture"));
+			_Info = refs.Get<UnityEngine.UI.Text>("_Info");
 
         }
 

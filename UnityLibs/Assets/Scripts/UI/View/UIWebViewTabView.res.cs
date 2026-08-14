@@ -27,9 +27,9 @@ namespace Game
             if (refs == null)
                 return;
 
-			_WebViewTab = refs.GetComp<UnityEngine.UI.Toggle>("_WebViewTab");
-			_Name = refs.GetComp<UnityEngine.UI.Text>("_Name");
-			_Close = _CreateSub<UIButtonView>(refs.GetObj("_Close"));
+			_WebViewTab = refs.Get<UnityEngine.UI.Toggle>("_WebViewTab");
+			_Name = refs.Get<UnityEngine.UI.Text>("_Name");
+			_Close = _CreateSub<UIButtonView>(refs.GetGameObject("_Close"));
 
         }
 

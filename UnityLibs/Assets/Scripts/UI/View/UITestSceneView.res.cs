@@ -29,11 +29,11 @@ namespace Game
             if (refs == null)
                 return;
 
-			_TestScene = refs.GetComp<UnityEngine.RectTransform>("_TestScene");
-			_ItemList = refs.GetComp<UnityEngine.RectTransform>("_ItemList");
-			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
-			_BtnLoadSceneSingle = _CreateSub<UIButtonView>(refs.GetObj("_BtnLoadSceneSingle"));
-			_BtnLoadSceneAdditive = _CreateSub<UIButtonView>(refs.GetObj("_BtnLoadSceneAdditive"));
+			_TestScene = refs.Get<UnityEngine.RectTransform>("_TestScene");
+			_ItemList = refs.Get<UnityEngine.RectTransform>("_ItemList");
+			_BtnClose = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnClose"));
+			_BtnLoadSceneSingle = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnLoadSceneSingle"));
+			_BtnLoadSceneAdditive = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnLoadSceneAdditive"));
 
         }
 

@@ -46,28 +46,31 @@ namespace FH.UI.ViewGenerate.Ed
 
             foreach (var p in items)
             {
-                string go_path = EdUIViewGenPrefabUtil.GetHierarchyPath(p.TargetComp.transform, root_tran);
-
                 if (p.SubView)
                 {
-                    string inner_prefab_path = EdUIViewGenPrefabUtil.GetInnerPrefabAssetPath(p.TargetComp.gameObject);
+                    string sub_view_path = EdUIViewGenPrefabUtil.GetSubViewPrefabPath(p.GetTargetGameObject());
 
-                    if (context.Config.IsPrefabPathValid(inner_prefab_path))
+                    if (context.Config.IsPrefabPathValid(sub_view_path))
                     {
-                        var dep_conf = context.AddDependPath(inner_prefab_path);
+                        var dep_conf = context.AddDependPath(sub_view_path);
 
                         EdUIField field = new EdUIField();
-                        field.TargetComp = p.TargetComp;
+                        field.TargetObj = p.TargetObject;
                         field.FieldType = EdUIFieldType.CreateSubView(dep_conf);
                         field.Fieldname = p.FieldName;
                         ret.Add(field);
                     }
                     else //路径不合法, 退化到普通组件
                     {
-                        UnityEngine.Debug.LogErrorFormat("Prefab 里面的对象 {0} 对应的路径不合法 {1}", view.Prefab.name, inner_prefab_path);
+                        string go_path = EdUIViewGenPrefabUtil.GetHierarchyPath(p.GetTargetGameObject().transform, root_tran);
+                        if (sub_view_path == null)
+                            UnityEngine.Debug.LogError($"Prefab {view.Prefab.name} 里面的对象 {p.FieldName} 不是prefab, 退化到了普通对象", view.Prefab);
+                        else
+                            UnityEngine.Debug.LogError($"Prefab {view.Prefab.name} 里面的对象 {p.FieldName}({go_path}) 对应的子View路径不合法 {sub_view_path}, 退化到了普通对象", view.Prefab);
+
 
                         EdUIField field = new EdUIField();
-                        field.TargetComp = p.TargetComp;
+                        field.TargetObj = p.TargetObject;
                         field.Fieldname = p.FieldName;
                         field.FieldType = EdUIFieldType.CreateComponent(p.TargetType);
                         ret.Add(field);
@@ -76,7 +79,7 @@ namespace FH.UI.ViewGenerate.Ed
                 else
                 {
                     EdUIField field = new EdUIField();
-                    field.TargetComp = p.TargetComp;
+                    field.TargetObj = p.TargetObject;
                     field.Fieldname = p.FieldName;
                     field.FieldType = EdUIFieldType.CreateComponent(p.TargetType);
                     ret.Add(field);
@@ -105,7 +108,7 @@ namespace FH.UI.ViewGenerate.Ed
 
                 case PrefabAssetType.Variant:
                     {
-                        GameObject parent_prefab = EdUIViewGenPrefabUtil.GetOrigPrefabWithVariant(prefab);
+                        GameObject parent_prefab = EdUIViewGenPrefabUtil.GetParentPrefab(prefab);
                         string parent_prefab_path = AssetDatabase.GetAssetPath(parent_prefab);
                         if (context.Config.IsPrefabPathValid(parent_prefab_path))
                         {

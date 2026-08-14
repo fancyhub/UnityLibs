@@ -9,11 +9,22 @@ namespace FH.UI.ViewGenerate.Ed
 {
     public struct FieldResolverItem
     {
-        public UnityEngine.Component TargetComp;
+        public UnityEngine.Object TargetObject;
         public System.Type TargetType;
 
         public string FieldName;
         public bool SubView;
+
+        public GameObject GetTargetGameObject()
+        {
+            if (TargetObject == null)
+                return null;
+            if (TargetObject is GameObject go)
+                return go;
+            else if(TargetObject is Component comp)
+                return comp.gameObject;
+            return null;
+        }
     }
 
     public interface IFieldResolver

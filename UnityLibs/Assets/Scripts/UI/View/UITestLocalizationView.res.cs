@@ -1,3 +1,4 @@
+//AutoGen, Don't modify this file
 
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace Game
 		public UnityEngine.UI.Dropdown _Selector;
 		public UIButtonView _BtnClose;
 
-        #region AutoGen 1
+        #region AutoGen
         public override string GetPath() { return CPath; }
 
         protected override void _AutoInit()
@@ -27,9 +28,9 @@ namespace Game
             if (refs == null)
                 return;
 
-			_TestLocalization = refs.GetComp<UnityEngine.RectTransform>("_TestLocalization");
-			_Selector = refs.GetComp<UnityEngine.UI.Dropdown>("_Selector");
-			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
+			_TestLocalization = refs.Get<UnityEngine.RectTransform>("_TestLocalization");
+			_Selector = refs.Get<UnityEngine.UI.Dropdown>("_Selector");
+			_BtnClose = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnClose"));
 
         }
 

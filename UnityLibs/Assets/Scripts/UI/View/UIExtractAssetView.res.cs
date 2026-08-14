@@ -27,9 +27,9 @@ namespace Game
             if (refs == null)
                 return;
 
-			_ExtractAsset = refs.GetComp<UnityEngine.RectTransform>("_ExtractAsset");
-			_LblDesc = refs.GetComp<UnityEngine.UI.Text>("_LblDesc");
-			_progress = refs.GetComp<UnityEngine.UI.Slider>("_progress");
+			_ExtractAsset = refs.Get<UnityEngine.RectTransform>("_ExtractAsset");
+			_LblDesc = refs.Get<UnityEngine.UI.Text>("_LblDesc");
+			_progress = refs.Get<UnityEngine.UI.Slider>("_progress");
 
         }
 

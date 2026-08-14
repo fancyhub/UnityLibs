@@ -26,8 +26,8 @@ namespace Game
             if (refs == null)
                 return;
 
-			_notice_text = refs.GetComp<UnityEngine.UI.Image>("_notice_text");
-			_txt = refs.GetComp<UnityEngine.UI.Text>("_txt");
+			_notice_text = refs.Get<UnityEngine.UI.Image>("_notice_text");
+			_txt = refs.Get<UnityEngine.UI.Text>("_txt");
 
         }
 

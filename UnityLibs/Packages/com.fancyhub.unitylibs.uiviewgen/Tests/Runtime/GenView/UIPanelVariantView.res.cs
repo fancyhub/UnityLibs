@@ -28,10 +28,10 @@ namespace FH.UI.Sample
             if (refs == null)
                 return;
 
-			_img_3 = refs.GetComp<UnityEngine.UI.Image>("_img_3");
-			_btn_3 = _CreateSub<UIButton2View>(refs.GetObj("_btn_3"));
-			_img_4 = refs.GetComp<UnityEngine.UI.Image>("_img_4");
-			_btn_4 = _CreateSub<UIButtonVariantView>(refs.GetObj("_btn_4"));
+			_img_3 = refs.Get<UnityEngine.UI.Image>("_img_3");
+			_btn_3 = _CreateSub<UIButton2View>(refs.GetGameObject("_btn_3"));
+			_img_4 = refs.Get<UnityEngine.UI.Image>("_img_4");
+			_btn_4 = _CreateSub<UIButtonVariantView>(refs.GetGameObject("_btn_4"));
 			_img_list.Add(_img_3);
 			_img_list.Add(_img_4);
 			_btn_list.Add(_btn_4);

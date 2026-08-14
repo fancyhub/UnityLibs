@@ -25,7 +25,7 @@ namespace Game
             if (refs == null)
                 return;
 
-			_WebViewUrl = refs.GetComp<UnityEngine.UI.InputField>("_WebViewUrl");
+			_WebViewUrl = refs.Get<UnityEngine.UI.InputField>("_WebViewUrl");
 
         }
 

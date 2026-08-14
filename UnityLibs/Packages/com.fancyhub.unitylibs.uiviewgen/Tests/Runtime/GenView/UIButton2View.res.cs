@@ -26,8 +26,8 @@ namespace FH.UI.Sample
             if (refs == null)
                 return;
 
-			_Button2 = refs.GetComp<UnityEngine.UI.Button>("_Button2");
-			_Text = refs.GetComp<UnityEngine.UI.Text>("_Text");
+			_Button2 = refs.Get<UnityEngine.UI.Button>("_Button2");
+			_Text = refs.Get<UnityEngine.UI.Text>("_Text");
 
         }
 

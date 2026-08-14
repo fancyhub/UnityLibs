@@ -13,29 +13,6 @@ using UnityEditor;
 
 namespace FH.UI.ViewGenerate.Ed
 {
-    public enum EPrefabComponentReleation
-    {
-        /// <summary>
-        /// 属于prefab 自己的, 需要导出
-        /// </summary>
-        CurrentPrefab,
-
-        /// <summary>
-        /// 属于 内部prefab的 的root 节点, 需要导出(但是 SubView)
-        /// </summary>
-        CurrentPrefab_NestedPrefabRoot,
-
-        /// <summary>
-        /// 属于内部 prefab的 节点, 不要导出(属于SubView自己的Field)
-        /// </summary>
-        NestedPrefab,
-
-        /// <summary>
-        /// 整个prefab的根节点，但是该节点也是 一个 variant变体, 是父prefab的对象,不需要导出
-        /// </summary>
-        ParentPrefab,
-    }
-
     public static class EdUIViewGenPrefabUtil
     {
         /// <summary>
@@ -100,44 +77,101 @@ namespace FH.UI.ViewGenerate.Ed
             return ret;
         }
 
-        public static EPrefabComponentReleation GetComponentRelation(Transform prefab_root, Component comp)
+        //判断该组件是否属于自己
+        public static bool IsComponentBelongSelf(GameObject self_prefab, Component target)
         {
-            if (prefab_root == null || comp == null)
-                return EPrefabComponentReleation.CurrentPrefab;
+            if (self_prefab == null || target == null)
+                return false;
 
-            GameObject comp_obj = comp.gameObject;
-            GameObject prefab_outer = PrefabUtility.GetOutermostPrefabInstanceRoot(comp_obj);
+            Transform target_transform = target.transform;
+            if (target_transform != self_prefab.transform && !target_transform.IsChildOf(self_prefab.transform))
+            {
+                return false;
+            }
 
-            if (prefab_outer == null)
-                return EPrefabComponentReleation.CurrentPrefab;
+            // If there is no corresponding source component, this component
+            // was added by the current prefab (including an override on a
+            // nested prefab root). A non-null source means it belongs to the
+            // source/parent prefab instead.
+            UnityEngine.Object source = PrefabUtility.GetCorrespondingObjectFromSource(target);
+            return source == null;
+        }
 
-            if (prefab_outer != comp_obj)
-                return EPrefabComponentReleation.NestedPrefab;
+        //判断目标gameobject 是否属于自己
+        public static bool IsGameObjectBelongSelf(GameObject self_prefab, GameObject target)
+        {
+            if (self_prefab == null || target == null)
+                return false;
 
-            if (comp_obj == prefab_root.gameObject)
-                return EPrefabComponentReleation.ParentPrefab;
+            if (target == self_prefab)
+                return true;
 
-            return EPrefabComponentReleation.CurrentPrefab_NestedPrefabRoot;
-        }        
-         
+            if (!target.transform.IsChildOf(self_prefab.transform))
+                return false;
 
-        public static GameObject GetOrigPrefabWithVariant(GameObject obj)
+            GameObject outer_root = PrefabUtility.GetOutermostPrefabInstanceRoot(target);
+
+            // 没有嵌套 Prefab，属于当前 Prefab
+            if (outer_root == null)
+                return true;
+
+            // 只有嵌套 Prefab 根节点属于当前 Prefab
+            return outer_root == target;
+        }
+
+        //判断目标是否属于一个内嵌prefab的根节点
+        public static bool IsGameObjectSubViewRoot(GameObject self_prefab, GameObject target)
+        {
+            if (self_prefab == null || target == null)
+                return false;
+
+            if (target == self_prefab)
+                return false;
+
+            if (!target.transform.IsChildOf(self_prefab.transform))
+                return false;
+
+            return PrefabUtility.GetOutermostPrefabInstanceRoot(target) == target;
+        }
+
+
+        //获取父prefab
+        public static GameObject GetParentPrefab(GameObject obj)
         {
             if (PrefabUtility.GetPrefabAssetType(obj) != PrefabAssetType.Variant)
                 return null;
 
-            return PrefabUtility.GetCorrespondingObjectFromSource(obj);
+            return PrefabUtility.GetCorrespondingObjectFromSource<GameObject>(obj);
         }
 
-         
-        public static string GetInnerPrefabAssetPath(GameObject obj)
+
+        //获取subview 对应的 prefab
+        public static GameObject GetSubViewPrefab(GameObject obj)
         {
-            GameObject prefab_inner = PrefabUtility.GetOutermostPrefabInstanceRoot(obj);
-            return PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefab_inner);
+            if (obj == null)
+                return null;
+
+            GameObject prefab_root = PrefabUtility.GetNearestPrefabInstanceRoot(obj);
+
+            if (prefab_root == null)
+                return null;
+
+            return PrefabUtility.GetCorrespondingObjectFromSource<GameObject>(prefab_root);
+
         }
+
+        //获取subview 对应的prefab path
+        public static string GetSubViewPrefabPath(GameObject obj)
+        {
+            GameObject p = GetSubViewPrefab(obj);
+            if (p == null)
+                return null;
+            return AssetDatabase.GetAssetPath(p);
+        }
+
 
         #region Hierachy Path
-        private static System.Text.StringBuilder _string_builder = new ();
+        private static System.Text.StringBuilder _string_builder = new();
         /// <summary>
         /// 不包括root
         /// </summary>

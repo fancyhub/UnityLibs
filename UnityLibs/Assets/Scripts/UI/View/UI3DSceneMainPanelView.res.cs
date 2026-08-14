@@ -26,8 +26,8 @@ namespace Game
             if (refs == null)
                 return;
 
-			_3DSceneMainPanel = refs.GetComp<UnityEngine.RectTransform>("_3DSceneMainPanel");
-			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
+			_3DSceneMainPanel = refs.Get<UnityEngine.RectTransform>("_3DSceneMainPanel");
+			_BtnClose = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnClose"));
 
         }
 

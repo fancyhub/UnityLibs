@@ -29,11 +29,11 @@ namespace Game
             if (refs == null)
                 return;
 
-			_PermissionItem = refs.GetComp<UnityEngine.RectTransform>("_PermissionItem");
-			_Name = refs.GetComp<UnityEngine.UI.Text>("_Name");
-			_Status = refs.GetComp<UnityEngine.UI.Text>("_Status");
-			_BtnRequest = _CreateSub<UIButtonView>(refs.GetObj("_BtnRequest"));
-			_BtnRequest2 = _CreateSub<UIButtonView>(refs.GetObj("_BtnRequest2"));
+			_PermissionItem = refs.Get<UnityEngine.RectTransform>("_PermissionItem");
+			_Name = refs.Get<UnityEngine.UI.Text>("_Name");
+			_Status = refs.Get<UnityEngine.UI.Text>("_Status");
+			_BtnRequest = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnRequest"));
+			_BtnRequest2 = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnRequest2"));
 
         }
 

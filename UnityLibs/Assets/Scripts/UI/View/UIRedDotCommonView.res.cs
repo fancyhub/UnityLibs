@@ -25,7 +25,7 @@ namespace Game
             if (refs == null)
                 return;
 
-			_RedDotCommon = refs.GetComp<UnityEngine.RectTransform>("_RedDotCommon");
+			_RedDotCommon = refs.Get<UnityEngine.RectTransform>("_RedDotCommon");
 
         }
 

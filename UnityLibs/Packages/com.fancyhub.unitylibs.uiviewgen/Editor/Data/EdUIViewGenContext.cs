@@ -133,7 +133,7 @@ namespace FH.UI.ViewGenerate.Ed
             }
 
             string parent_prefab_path = null;
-            UnityEngine.GameObject orig_prefab = EdUIViewGenPrefabUtil.GetOrigPrefabWithVariant(prefab);
+            UnityEngine.GameObject orig_prefab = EdUIViewGenPrefabUtil.GetParentPrefab(prefab);
             if (orig_prefab != null)
             {
                 parent_prefab_path = AssetDatabase.GetAssetPath(orig_prefab);

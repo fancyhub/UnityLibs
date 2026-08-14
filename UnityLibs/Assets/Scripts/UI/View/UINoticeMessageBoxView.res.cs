@@ -28,10 +28,10 @@ namespace Game
             if (refs == null)
                 return;
 
-			_notice_message_box = refs.GetComp<UnityEngine.UI.Image>("_notice_message_box");
-			_txt = refs.GetComp<UnityEngine.UI.Text>("_txt");
-			_btn = refs.GetComp<UnityEngine.UI.Button>("_btn");
-			_txt_btn = refs.GetComp<UnityEngine.UI.Text>("_txt_btn");
+			_notice_message_box = refs.Get<UnityEngine.UI.Image>("_notice_message_box");
+			_txt = refs.Get<UnityEngine.UI.Text>("_txt");
+			_btn = refs.Get<UnityEngine.UI.Button>("_btn");
+			_txt_btn = refs.Get<UnityEngine.UI.Text>("_txt_btn");
 
         }
 

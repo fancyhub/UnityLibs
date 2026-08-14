@@ -30,12 +30,12 @@ namespace Game
             if (refs == null)
                 return;
 
-			_TestWebView = refs.GetComp<UnityEngine.UI.Image>("_TestWebView");
-			_Tabs = refs.GetComp<UnityEngine.UI.ToggleGroup>("_Tabs");
-			_BtnAddTab = _CreateSub<UIButtonView>(refs.GetObj("_BtnAddTab"));
-			_Url = refs.GetComp<UnityEngine.RectTransform>("_Url");
-			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
-			_WebViewDummy = refs.GetComp<UnityEngine.UI.Image>("_WebViewDummy");
+			_TestWebView = refs.Get<UnityEngine.UI.Image>("_TestWebView");
+			_Tabs = refs.Get<UnityEngine.UI.ToggleGroup>("_Tabs");
+			_BtnAddTab = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnAddTab"));
+			_Url = refs.Get<UnityEngine.RectTransform>("_Url");
+			_BtnClose = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnClose"));
+			_WebViewDummy = refs.Get<UnityEngine.UI.Image>("_WebViewDummy");
 
         }
 

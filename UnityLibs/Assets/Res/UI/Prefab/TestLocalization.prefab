@@ -1263,7 +1263,7 @@ MonoBehaviour:
   - name: _Selector
     obj: {fileID: 4544885758182446714}
   - name: _BtnClose
-    obj: {fileID: 674060626876881921}
+    obj: {fileID: 449796937499104399}
 --- !u!1 &8964068905684496988
 GameObject:
   m_ObjectHideFlags: 0
@@ -1712,6 +1712,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dc557665a4531c440a805553b642e21e, type: 3}
+--- !u!114 &449796937499104399 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8867708257202993040, guid: dc557665a4531c440a805553b642e21e, type: 3}
+  m_PrefabInstance: {fileID: 9020026446140187423}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &674060626876881921 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8392225713847172894, guid: dc557665a4531c440a805553b642e21e, type: 3}

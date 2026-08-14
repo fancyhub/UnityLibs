@@ -38,20 +38,20 @@ namespace Game
             if (refs == null)
                 return;
 
-			_MainPanel = refs.GetComp<UnityEngine.RectTransform>("_MainPanel");
-			_BtnTestUIGroupDialog = _CreateSub<UIButtonView>(refs.GetObj("_BtnTestUIGroupDialog"));
-			_BtnTestPageAsync = _CreateSub<UIButtonView>(refs.GetObj("_BtnTestPageAsync"));
-			_BtnTestLoadScene = _CreateSub<UIButtonView>(refs.GetObj("_BtnTestLoadScene"));
-			_BtnTestDeviceInfo = _CreateSub<UIButtonView>(refs.GetObj("_BtnTestDeviceInfo"));
-			_BtnLocalization = _CreateSub<UIButtonView>(refs.GetObj("_BtnLocalization"));
-			_BtnUpgrade = _CreateSub<UIButtonView>(refs.GetObj("_BtnUpgrade"));
-			_BtnReloadUIScene = _CreateSub<UIButtonView>(refs.GetObj("_BtnReloadUIScene"));
-			_BtnTime = _CreateSub<UIButtonView>(refs.GetObj("_BtnTime"));
-			_BtnPermission = _CreateSub<UIButtonView>(refs.GetObj("_BtnPermission"));
-			_BtnScroller = _CreateSub<UIButtonView>(refs.GetObj("_BtnScroller"));
-			_BtnWebView = _CreateSub<UIButtonView>(refs.GetObj("_BtnWebView"));
-			_BtnShare = _CreateSub<UIButtonView>(refs.GetObj("_BtnShare"));
-			_Btn3DScene = _CreateSub<UIButtonView>(refs.GetObj("_Btn3DScene"));
+			_MainPanel = refs.Get<UnityEngine.RectTransform>("_MainPanel");
+			_BtnTestUIGroupDialog = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnTestUIGroupDialog"));
+			_BtnTestPageAsync = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnTestPageAsync"));
+			_BtnTestLoadScene = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnTestLoadScene"));
+			_BtnTestDeviceInfo = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnTestDeviceInfo"));
+			_BtnLocalization = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnLocalization"));
+			_BtnUpgrade = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnUpgrade"));
+			_BtnReloadUIScene = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnReloadUIScene"));
+			_BtnTime = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnTime"));
+			_BtnPermission = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnPermission"));
+			_BtnScroller = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnScroller"));
+			_BtnWebView = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnWebView"));
+			_BtnShare = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnShare"));
+			_Btn3DScene = _CreateSub<UIButtonView>(refs.GetGameObject("_Btn3DScene"));
 
         }
 

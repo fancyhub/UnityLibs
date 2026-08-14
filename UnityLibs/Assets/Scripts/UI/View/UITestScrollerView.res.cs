@@ -29,11 +29,11 @@ namespace Game
             if (refs == null)
                 return;
 
-			_TestScroller = refs.GetComp<UnityEngine.UI.Image>("_TestScroller");
-			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
-			_scroll_row_2 = _CreateSub<UIScrollListView>(refs.GetObj("_scroll_row_2"));
-			_scroll_center = _CreateSub<UIScrollListView>(refs.GetObj("_scroll_center"));
-			_scroll_loop = _CreateSub<UIScrollListView>(refs.GetObj("_scroll_loop"));
+			_TestScroller = refs.Get<UnityEngine.UI.Image>("_TestScroller");
+			_BtnClose = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnClose"));
+			_scroll_row_2 = _CreateSub<UIScrollListView>(refs.GetGameObject("_scroll_row_2"));
+			_scroll_center = _CreateSub<UIScrollListView>(refs.GetGameObject("_scroll_center"));
+			_scroll_loop = _CreateSub<UIScrollListView>(refs.GetGameObject("_scroll_loop"));
 
         }
 

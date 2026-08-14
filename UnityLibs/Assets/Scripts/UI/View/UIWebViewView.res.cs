@@ -25,7 +25,7 @@ namespace Game
             if (refs == null)
                 return;
 
-			_WebView = refs.GetComp<UnityEngine.UI.Image>("_WebView");
+			_WebView = refs.Get<UnityEngine.UI.Image>("_WebView");
 
         }
 

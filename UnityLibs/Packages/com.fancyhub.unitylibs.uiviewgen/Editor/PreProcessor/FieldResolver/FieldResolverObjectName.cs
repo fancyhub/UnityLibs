@@ -31,7 +31,7 @@ namespace FH.UI.ViewGenerate.Ed
                     var c = _Config.FieldResolverObjectName.GetComponent(tran, root_tran);
                     ret.Add(new FieldResolverItem()
                     {
-                        TargetComp = c,
+                        TargetObject = c,
                         TargetType = c.GetType(),
                         FieldName = _GenFiledName(name),
                         SubView = false,
@@ -43,54 +43,22 @@ namespace FH.UI.ViewGenerate.Ed
                 if (!name.StartsWith("_"))
                     continue;
 
+                //这个对象不属于自己
+                if (!EdUIViewGenPrefabUtil.IsGameObjectBelongSelf(root_tran.gameObject, tran.gameObject))
+                    continue;
 
-                EPrefabComponentReleation obj_type = EdUIViewGenPrefabUtil.GetComponentRelation(root_tran, tran);
-                switch (obj_type)
                 {
-                    case EPrefabComponentReleation.CurrentPrefab:
-                        {
-                            var c = _Config.FieldResolverObjectName.GetComponent(tran, root_tran);
-                            ret.Add(new FieldResolverItem()
-                            {
-                                TargetComp = c,
-                                TargetType = c.GetType(),
-                                FieldName = _GenFiledName(name),
-                                SubView = false,
-                            });
-                        }
-                        break;
-
-
-                    case EPrefabComponentReleation.CurrentPrefab_NestedPrefabRoot:
-                        {
-                            var c = _Config.FieldResolverObjectName.GetComponent(tran, root_tran);
-                            ret.Add(new FieldResolverItem()
-                            {
-                                TargetComp = c,
-                                TargetType = c.GetType(),
-                                FieldName = _GenFiledName(name),
-                                SubView = true,
-                            });
-                        }
-                        break;
-
-
-                    case EPrefabComponentReleation.ParentPrefab:
-                        {
-                            //属于 其他prefab的对象
-                        }
-                        break;
-
-                    case EPrefabComponentReleation.NestedPrefab:
-                        {
-                            //不处理,该节点由 子 prefab 来处理
-                        }
-                        break;
-
-                    default:
-                        Debug.LogError("Error:" + obj_type);
-                        break;
+                    bool is_sub_view = EdUIViewGenPrefabUtil.IsGameObjectSubViewRoot(root_tran.gameObject, tran.gameObject);
+                    var c = _Config.FieldResolverObjectName.GetComponent(tran, root_tran);
+                    ret.Add(new FieldResolverItem()
+                    {
+                        TargetObject = c,
+                        TargetType = c.GetType(),
+                        FieldName = _GenFiledName(name),
+                        SubView = is_sub_view,
+                    });
                 }
+
             }
             return ret;
         }

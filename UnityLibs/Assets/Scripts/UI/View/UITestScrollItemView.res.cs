@@ -27,9 +27,9 @@ namespace Game
             if (refs == null)
                 return;
 
-			_TestScrollItem = refs.GetComp<UnityEngine.UI.Button>("_TestScrollItem");
-			_img_selected = refs.GetComp<UnityEngine.UI.Image>("_img_selected");
-			_Name = refs.GetComp<UnityEngine.UI.Text>("_Name");
+			_TestScrollItem = refs.Get<UnityEngine.UI.Button>("_TestScrollItem");
+			_img_selected = refs.Get<UnityEngine.UI.Image>("_img_selected");
+			_Name = refs.Get<UnityEngine.UI.Text>("_Name");
 
         }
 

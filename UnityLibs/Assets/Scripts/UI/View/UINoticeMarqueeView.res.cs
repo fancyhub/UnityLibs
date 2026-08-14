@@ -26,8 +26,8 @@ namespace Game
             if (refs == null)
                 return;
 
-			_notice_marquee = refs.GetComp<UnityEngine.UI.Image>("_notice_marquee");
-			_txt = refs.GetComp<UnityEngine.UI.Text>("_txt");
+			_notice_marquee = refs.Get<UnityEngine.UI.Image>("_notice_marquee");
+			_txt = refs.Get<UnityEngine.UI.Text>("_txt");
 
         }
 

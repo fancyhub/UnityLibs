@@ -26,8 +26,8 @@ namespace Game
             if (refs == null)
                 return;
 
-			_Button = refs.GetComp<UnityEngine.UI.Button>("_Button");
-			_TextName = refs.GetComp<UnityEngine.UI.Text>("_TextName");
+			_Button = refs.Get<UnityEngine.UI.Button>("_Button");
+			_TextName = refs.Get<UnityEngine.UI.Text>("_TextName");
 
         }
 

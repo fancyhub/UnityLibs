@@ -33,15 +33,15 @@ namespace Game
             if (refs == null)
                 return;
 
-			_TestUIGroupDialog = refs.GetComp<UnityEngine.RectTransform>("_TestUIGroupDialog");
-			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
-			_BtnOpenFree = _CreateSub<UIButtonView>(refs.GetObj("_BtnOpenFree"));
-			_BtnOpenFreeUnique = _CreateSub<UIButtonView>(refs.GetObj("_BtnOpenFreeUnique"));
-			_BtnOpenStack = _CreateSub<UIButtonView>(refs.GetObj("_BtnOpenStack"));
-			_BtnOpenStackUnique = _CreateSub<UIButtonView>(refs.GetObj("_BtnOpenStackUnique"));
-			_BtnOpenQueue = _CreateSub<UIButtonView>(refs.GetObj("_BtnOpenQueue"));
-			_BtnOpenQueueUnique = _CreateSub<UIButtonView>(refs.GetObj("_BtnOpenQueueUnique"));
-			_Title = refs.GetComp<UnityEngine.UI.Text>("_Title");
+			_TestUIGroupDialog = refs.Get<UnityEngine.RectTransform>("_TestUIGroupDialog");
+			_BtnClose = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnClose"));
+			_BtnOpenFree = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnOpenFree"));
+			_BtnOpenFreeUnique = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnOpenFreeUnique"));
+			_BtnOpenStack = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnOpenStack"));
+			_BtnOpenStackUnique = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnOpenStackUnique"));
+			_BtnOpenQueue = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnOpenQueue"));
+			_BtnOpenQueueUnique = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnOpenQueueUnique"));
+			_Title = refs.Get<UnityEngine.UI.Text>("_Title");
 
         }
 

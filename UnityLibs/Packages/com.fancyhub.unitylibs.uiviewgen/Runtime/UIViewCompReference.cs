@@ -19,8 +19,8 @@ namespace FH.UI
         public struct Pair
         {
             public string name;
-            public UnityEngine.Component obj;
-            public Pair(string name, UnityEngine.Component obj)
+            public UnityEngine.Object obj;
+            public Pair(string name, UnityEngine.Object obj)
             {
                 this.name = name;
                 this.obj = obj;
@@ -31,9 +31,9 @@ namespace FH.UI
 
         public Pair[] _objs = new Pair[0];
 
-        public Component GetComp(string key)
+        public UnityEngine.Object Get(string key)
         {
-            UnityEngine.Component ret = null;
+            UnityEngine.Object ret = null;
             for (int i = 0; i < _objs.Length; i++)
             {
                 if (_objs[i].name == key)
@@ -47,48 +47,26 @@ namespace FH.UI
             return ret;
         }
 
-        public UnityEngine.GameObject GetObj(string key)
+        public T Get<T>(string key) where T : UnityEngine.Object
         {
-            UnityEngine.Component ret = GetComp(key);
-            if (!ret)
-                return null;
-            return ret.gameObject;
-        }
-
-        public void Clear()
-        {
-            _objs = new Pair[0];
-        }
-
-        public bool Exist(string key)
-        {
-            for (int i = 0; i < _objs.Length; i++)
-            {
-                if (_objs[i].name == key)
-                    return true;
-            }
-            return false;
-        }
-
-        public bool Exist(string key, UnityEngine.Component obj)
-        {
-            for (int i = 0; i < _objs.Length; i++)
-            {
-                if (_objs[i].name == key)
-                {
-                    return _objs[i].obj == obj;
-                }
-            }
-            return false;
-        }
-
-       
-
-        public T GetComp<T>(string key) where T : Component
-        {
-            UnityEngine.Component ret = GetComp(key);
+            UnityEngine.Object ret = Get(key);            
             return ret as T;
         }
+
+
+        public UnityEngine.GameObject GetGameObject(string key)
+        {
+            UnityEngine.Object ret = Get(key);
+            if (!ret)
+                return null;
+
+            if (ret is GameObject obj)
+                return obj;
+            else if (ret is Component comp)
+                return comp.gameObject;
+            return null;
+        }
+       
 
         public static UIViewCompReference Find(GameObject obj, string prefab_name)
         {
@@ -109,7 +87,22 @@ namespace FH.UI
 
 #if UNITY_EDITOR
 
-        public void EdAdd(string key, UnityEngine.Component obj)
+        public void EdClear()
+        {
+            _objs = new Pair[0];
+        }
+
+        public bool EdExist(string key)
+        {
+            for (int i = 0; i < _objs.Length; i++)
+            {
+                if (_objs[i].name == key)
+                    return true;
+            }
+            return false;
+        }
+
+        public void EdAdd(string key, UnityEngine.Object obj)
         {
             if (!Application.isEditor)
                 return;
@@ -119,7 +112,7 @@ namespace FH.UI
             _objs = t.ToArray();
         }
 
-        public void EdSet(string key, UnityEngine.Component obj)
+        public void EdSet(string key, UnityEngine.Object obj)
         {
             for (int i = 0; i < _objs.Length; i++)
             {

@@ -29,11 +29,11 @@ namespace Game
             if (refs == null)
                 return;
 
-			_TestUIRes = refs.GetComp<UnityEngine.RectTransform>("_TestUIRes");
-			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
-			_Img1 = refs.GetComp<UnityEngine.UI.Image>("_Img1");
-			_Img2 = refs.GetComp<UnityEngine.UI.Image>("_Img2");
-			_BtnLoad = _CreateSub<UIButtonView>(refs.GetObj("_BtnLoad"));
+			_TestUIRes = refs.Get<UnityEngine.RectTransform>("_TestUIRes");
+			_BtnClose = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnClose"));
+			_Img1 = refs.Get<UnityEngine.UI.Image>("_Img1");
+			_Img2 = refs.Get<UnityEngine.UI.Image>("_Img2");
+			_BtnLoad = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnLoad"));
 
         }
 

@@ -32,14 +32,14 @@ namespace Game
             if (refs == null)
                 return;
 
-			_TestUpgrade = refs.GetComp<UnityEngine.RectTransform>("_TestUpgrade");
-			_VersionInfo = refs.GetComp<UnityEngine.UI.Text>("_VersionInfo");
-			_CDNInput = refs.GetComp<UnityEngine.UI.InputField>("_CDNInput");
-			_VersionInput = refs.GetComp<UnityEngine.UI.InputField>("_VersionInput");
-			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
-			_BtnUpgrade = _CreateSub<UIButtonView>(refs.GetObj("_BtnUpgrade"));
-			_BtnBackToBase = _CreateSub<UIButtonView>(refs.GetObj("_BtnBackToBase"));
-			_Progress = refs.GetComp<UnityEngine.UI.Slider>("_Progress");
+			_TestUpgrade = refs.Get<UnityEngine.RectTransform>("_TestUpgrade");
+			_VersionInfo = refs.Get<UnityEngine.UI.Text>("_VersionInfo");
+			_CDNInput = refs.Get<UnityEngine.UI.InputField>("_CDNInput");
+			_VersionInput = refs.Get<UnityEngine.UI.InputField>("_VersionInput");
+			_BtnClose = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnClose"));
+			_BtnUpgrade = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnUpgrade"));
+			_BtnBackToBase = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnBackToBase"));
+			_Progress = refs.Get<UnityEngine.UI.Slider>("_Progress");
 
         }
 

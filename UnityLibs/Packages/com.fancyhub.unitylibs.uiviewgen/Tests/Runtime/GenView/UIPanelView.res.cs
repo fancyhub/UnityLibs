@@ -34,14 +34,14 @@ namespace FH.UI.Sample
             if (refs == null)
                 return;
 
-			_Panel = refs.GetComp<UnityEngine.RectTransform>("_Panel");
-			_bg = refs.GetComp<UnityEngine.UI.Image>("_bg");
-			_img_0 = refs.GetComp<UnityEngine.UI.Image>("_img_0");
-			_btn_0 = _CreateSub<UIButtonView>(refs.GetObj("_btn_0"));
-			_img_1 = refs.GetComp<UnityEngine.UI.Image>("_img_1");
-			_btn_1 = _CreateSub<UIButtonView>(refs.GetObj("_btn_1"));
-			_img_2 = refs.GetComp<UnityEngine.UI.Image>("_img_2");
-			_btn_2 = _CreateSub<UIButtonVariantView>(refs.GetObj("_btn_2"));
+			_Panel = refs.Get<UnityEngine.RectTransform>("_Panel");
+			_bg = refs.Get<UnityEngine.UI.Image>("_bg");
+			_img_0 = refs.Get<UnityEngine.UI.Image>("_img_0");
+			_btn_0 = _CreateSub<UIButtonView>(refs.GetGameObject("_btn_0"));
+			_img_1 = refs.Get<UnityEngine.UI.Image>("_img_1");
+			_btn_1 = _CreateSub<UIButtonView>(refs.GetGameObject("_btn_1"));
+			_img_2 = refs.Get<UnityEngine.UI.Image>("_img_2");
+			_btn_2 = _CreateSub<UIButtonVariantView>(refs.GetGameObject("_btn_2"));
 			_img_list.Add(_img_0);
 			_img_list.Add(_img_1);
 			_img_list.Add(_img_2);

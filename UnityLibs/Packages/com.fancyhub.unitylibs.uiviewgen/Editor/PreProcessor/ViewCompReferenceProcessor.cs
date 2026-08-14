@@ -64,7 +64,7 @@ namespace FH.UI.ViewGenerate.Ed
             if (changed)
             {
                 view_ref._prefab_name = new_name;
-                view_ref.Clear();
+                view_ref.EdClear();
                 //1.1 清空之后，把key建好，后面就可以直接处理obj的部分了
                 foreach (var field in view.Fields)
                 {
@@ -78,10 +78,10 @@ namespace FH.UI.ViewGenerate.Ed
             {
                 string field_name = field.Fieldname;
 
-                UnityEngine.Debug.AssertFormat(field.TargetComp != null, "cant find obj with [{0}].please check your prefab!", field.Fieldname);
+                UnityEngine.Debug.AssertFormat(field.TargetObj != null, "cant find obj with [{0}].please check your prefab!", field.Fieldname);
 
-                Component cur = field.TargetComp;
-                var ori = view_ref.GetComp(field_name);
+                UnityEngine.Object cur = field.TargetObj;
+                var ori = view_ref.Get(field_name);
                 if (null != ori && ori == cur)
                     continue;
 
@@ -110,7 +110,7 @@ namespace FH.UI.ViewGenerate.Ed
             {
                 //把field name当作key，然后保存obj到mono脚本上
                 string field_name = field.Fieldname;
-                if (!view_ref.Exist(field_name))
+                if (!view_ref.EdExist(field_name))
                     return true;
             }
 

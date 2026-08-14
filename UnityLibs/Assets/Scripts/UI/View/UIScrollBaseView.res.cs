@@ -25,7 +25,7 @@ namespace Game
             if (refs == null)
                 return;
 
-			_ScrollBase = refs.GetComp<UnityEngine.UI.ScrollRect>("_ScrollBase");
+			_ScrollBase = refs.Get<UnityEngine.UI.ScrollRect>("_ScrollBase");
 
         }
 

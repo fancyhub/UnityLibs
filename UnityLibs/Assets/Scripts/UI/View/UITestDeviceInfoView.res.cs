@@ -29,11 +29,11 @@ namespace Game
             if (refs == null)
                 return;
 
-			_TestDeviceInfo = refs.GetComp<UnityEngine.RectTransform>("_TestDeviceInfo");
-			_DeviceInfo = refs.GetComp<UnityEngine.RectTransform>("_DeviceInfo");
-			_TabGroup = refs.GetComp<UnityEngine.UI.ToggleGroup>("_TabGroup");
-			_text = refs.GetComp<UnityEngine.UI.Text>("_text");
-			_BtnClose = _CreateSub<UIButtonView>(refs.GetObj("_BtnClose"));
+			_TestDeviceInfo = refs.Get<UnityEngine.RectTransform>("_TestDeviceInfo");
+			_DeviceInfo = refs.Get<UnityEngine.RectTransform>("_DeviceInfo");
+			_TabGroup = refs.Get<UnityEngine.UI.ToggleGroup>("_TabGroup");
+			_text = refs.Get<UnityEngine.UI.Text>("_text");
+			_BtnClose = _CreateSub<UIButtonView>(refs.GetGameObject("_BtnClose"));
 
         }
 
