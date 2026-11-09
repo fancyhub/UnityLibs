@@ -65,7 +65,7 @@ namespace FH.UI.ViewGenerate.Ed
     {
         //public string HierarchyPath;
         public string Fieldname;
-
+        public int FieldIndex;
         public UnityEngine.Object TargetObj;
 
         public EdUIFieldType FieldType;

@@ -81,7 +81,8 @@ namespace FH.UI.ViewGenerate.Ed
                 UnityEngine.Debug.AssertFormat(field.TargetObj != null, "cant find obj with [{0}].please check your prefab!", field.Fieldname);
 
                 UnityEngine.Object cur = field.TargetObj;
-                var ori = view_ref.Get(field_name);
+                field.FieldIndex = view_ref.EdIndexOf(field_name);
+                var ori = view_ref.Get(field.FieldIndex, field_name);                
                 if (null != ori && ori == cur)
                     continue;
 

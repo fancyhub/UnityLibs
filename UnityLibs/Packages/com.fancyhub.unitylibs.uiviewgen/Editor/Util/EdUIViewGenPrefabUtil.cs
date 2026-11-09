@@ -97,6 +97,33 @@ namespace FH.UI.ViewGenerate.Ed
             return source == null;
         }
 
+        //判断该组件是否属于当前 Prefab 的父 Prefab
+        public static bool IsComponentBelongParent(GameObject self_prefab, Component target)
+        {
+            if (self_prefab == null || target == null)
+                return false;
+
+            Transform target_transform = target.transform;
+            if (target_transform != self_prefab.transform &&
+                !target_transform.IsChildOf(self_prefab.transform))
+            {
+                return false;
+            }
+
+            GameObject parent_prefab = GetParentPrefab(self_prefab);
+            if (parent_prefab == null)
+                return false;
+
+            Component source =
+                PrefabUtility.GetCorrespondingObjectFromSource<Component>(target);
+            if (source == null)
+                return false;
+
+            Transform source_transform = source.transform;
+            return source_transform == parent_prefab.transform ||
+                   source_transform.IsChildOf(parent_prefab.transform);
+        }
+
         //判断目标gameobject 是否属于自己
         public static bool IsGameObjectBelongSelf(GameObject self_prefab, GameObject target)
         {

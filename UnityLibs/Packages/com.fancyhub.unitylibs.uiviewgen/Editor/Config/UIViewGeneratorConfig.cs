@@ -42,6 +42,8 @@ namespace FH.UI.ViewGenerate.Ed
 
             public EPathMode PathMode = EPathMode.AssetPath;
 
+            public bool UseIndex;
+
             public Type _BaseViewClass;
 
 

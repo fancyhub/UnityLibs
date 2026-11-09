@@ -47,12 +47,36 @@ namespace FH.UI
             return ret;
         }
 
+        public UnityEngine.Object Get(int index, string key)
+        {
+            if (index < 0 || index >= _objs.Length)
+            {
+                UnityEngine.Debug.LogError($"{index} is not In [0,{_objs.Length})", this);
+                return null;
+            }
+
+            if (_objs[index].name != key)
+            {
+                UnityEngine.Debug.LogError($"obj's name at {index} is not {key}", this);
+            }
+
+            var ret = _objs[index].obj;
+            if (!ret)
+                return null;
+            return ret;
+        }
+
         public T Get<T>(string key) where T : UnityEngine.Object
         {
-            UnityEngine.Object ret = Get(key);            
+            UnityEngine.Object ret = Get(key);
             return ret as T;
         }
 
+        public T Get<T>(int index, string key) where T : UnityEngine.Object
+        {
+            UnityEngine.Object ret = Get(index, key);
+            return ret as T;
+        }
 
         public UnityEngine.GameObject GetGameObject(string key)
         {
@@ -66,7 +90,20 @@ namespace FH.UI
                 return comp.gameObject;
             return null;
         }
-       
+
+        public UnityEngine.GameObject GetGameObject(int index, string key)
+        {
+            UnityEngine.Object ret = Get(index, key);
+            if (!ret)
+                return null;
+
+            if (ret is GameObject obj)
+                return obj;
+            else if (ret is Component comp)
+                return comp.gameObject;
+            return null;
+        }
+
 
         public static UIViewCompReference Find(GameObject obj, string prefab_name)
         {
@@ -86,6 +123,15 @@ namespace FH.UI
         }
 
 #if UNITY_EDITOR
+        public int EdIndexOf(string key)
+        {
+            for (int i = 0; i < _objs.Length; i++)
+            {
+                if (_objs[i].name == key)
+                    return i;
+            }
+            return -1;
+        }
 
         public void EdClear()
         {
