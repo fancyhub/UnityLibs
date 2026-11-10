@@ -25,7 +25,7 @@ namespace FH.AssetBundleBuilder.Ed
 
     public static partial class Builder
     {
-        private static void  _BuildABSbpSimple(BuildTarget target, BuilderParam param, string outputDir, BundleNodeMap bundleMap)
+        private static void _BuildABSbpSimple(BuildTarget target, BuilderParam param, string outputDir, BundleNodeMap bundleMap)
         {
             var sbp_tasks = UnityEditor.Build.Pipeline.DefaultBuildTasks.Create(UnityEditor.Build.Pipeline.DefaultBuildTasks.Preset.AssetBundleCompatible);
 
@@ -34,8 +34,8 @@ namespace FH.AssetBundleBuilder.Ed
 
             var sbp_param = param.SBPParam.ToSbpParam(target, outputDir);
             var exitCode = UnityEditor.Build.Pipeline.ContentPipeline.BuildAssetBundles(
-                sbp_param, 
-                sbp_content, 
+                sbp_param,
+                sbp_content,
                 out var buildResults,
                 sbp_tasks);
 
@@ -72,6 +72,7 @@ namespace FH.AssetBundleBuilder.Ed
                 if (builder.assetBundleName == null || builder.assetNames.Length == 0)
                 {
                     throw new Exception("有node 为空 " + node.GetNodeName());
+                    //continue;
                 }
                 builder_list.Add(builder);
             }
@@ -85,9 +86,27 @@ namespace FH.AssetBundleBuilder.Ed
         {
             UnityEditor.AssetBundleBuild ret = new UnityEditor.AssetBundleBuild();
             ret.assetBundleName = GetNodeName();
-            ret.assetNames = _GetAllFiles().ToArray();
+            ret.assetNames = _GetAllFiles_SbpSimple().ToArray();
             ret.addressableNames = _GetAllAddressNames_SbpSimple().ToArray();
             return ret;
+        }
+
+        private List<string> _GetAllFiles_SbpSimple()
+        {
+            _SortAssets();
+            List<string> file_list = new List<string>(_main_objs.Count + _dep_objs.Count);
+            foreach (AssetObj a in _main_objs)
+            {
+                //if (a.NeedExport)
+                    file_list.Add(a.FilePath);
+            }
+
+            foreach (AssetObj a in _dep_objs)
+            {
+                //if (a.NeedExport)
+                    file_list.Add(a.FilePath);
+            }
+            return file_list;
         }
 
         private List<string> _GetAllAddressNames_SbpSimple()
@@ -96,22 +115,18 @@ namespace FH.AssetBundleBuilder.Ed
             List<string> file_list = new List<string>(_main_objs.Count + _dep_objs.Count);
             foreach (AssetObj a in _main_objs)
             {
-                if (!a.NeedExport)
-                    file_list.Add(a.GUID);
-                else
-                    file_list.Add(a.AddressName);
+                if (a.NeedExport) file_list.Add(a.AddressName);
+                else file_list.Add(a.GUID);
             }
 
             foreach (AssetObj a in _dep_objs)
             {
-                if (!a.NeedExport)
-                    file_list.Add(a.GUID);
-                else
-                    file_list.Add(a.AddressName);
+                if (a.NeedExport) file_list.Add(a.AddressName);
+                else file_list.Add(a.GUID);
             }
             return file_list;
         }
-    } 
+    }
 
 
     public partial class BuilderParam

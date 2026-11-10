@@ -81,6 +81,9 @@ namespace FH.AssetBundleBuilder.Ed
         }
 
 #pragma warning disable 649
+        [InjectContext(ContextUsage.In)]
+        IBundleBuildParameters m_Parameters;
+
         [InjectContext]
         IDependencyData m_DependencyData;
 
@@ -109,6 +112,24 @@ namespace FH.AssetBundleBuilder.Ed
                 {
                     if (anonymousGuids.Contains(obj.guid))
                         requiredObjects.Add(obj);
+                }
+
+                // Some SBP versions do not expose a model sub-object reference from
+                // the prefab through AssetLoadInfo.referencedObjects. Resolve the
+                // object-level dependencies of the explicit asset as a fallback.
+                ObjectIdentifier[] explicitObjects = pair.Value.includedObjects.ToArray();
+                ObjectIdentifier[] objectDependencies =
+                    ContentBuildInterface.GetPlayerDependenciesForObjects(
+                        explicitObjects,
+                        m_Parameters.Target,
+                        m_Parameters.ScriptInfo);
+                if (objectDependencies != null)
+                {
+                    foreach (ObjectIdentifier obj in objectDependencies)
+                    {
+                        if (anonymousGuids.Contains(obj.guid) && IsAllowedAnonymousObject(obj))
+                            requiredObjects.Add(obj);
+                    }
                 }
             }
 
@@ -140,11 +161,46 @@ namespace FH.AssetBundleBuilder.Ed
                     continue;
 
                 // Keep the dependency list calculated by CalculateAssetDependencyData.
-                // Re-querying dependencies for a partial model object can cause Unity
-                // to return a larger serialization closure than the original SBP data.
-                // We only need to remove references to other objects in this anonymous
-                // asset; external asset references must remain unchanged.
+                // A model sub-object can still have an internal serialization dependency
+                // on a minimal source hierarchy (for example the FBX GameObject and its
+                // Transform). Those same-file objects must be serialized as included
+                // objects, otherwise Unity creates a missing Transform at load time.
                 var refs = new List<ObjectIdentifier>(info.referencedObjects);
+                var internalDependencies = ContentBuildInterface.GetPlayerDependenciesForObjects(
+                    keep.ToArray(),
+                    m_Parameters.Target,
+                    m_Parameters.ScriptInfo);
+
+                if (internalDependencies != null)
+                {
+                    foreach (ObjectIdentifier dependency in internalDependencies)
+                    {
+                        if (dependency.guid != anonymousGuid || keep.Contains(dependency))
+                            continue;
+
+                        // The dependency closure of a model Mesh may also contain
+                        // Avatar/AnimationClip and other model sub-assets. They are
+                        // not needed for loading this Mesh. Only retain the hierarchy
+                        // objects Unity needs to resolve the Mesh's source linkage.
+                        Type[] types = ContentBuildInterface.GetTypeForObjects(
+                            new[] { dependency });
+                        bool isHierarchyObject = false;
+                        if (types != null)
+                        {
+                            foreach (Type type in types)
+                            {
+                                if (type == typeof(GameObject) || type == typeof(Transform))
+                                {
+                                    isHierarchyObject = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (isHierarchyObject)
+                            keep.Add(dependency);
+                    }
+                }
 
                 // Update the existing lists in place. CalculateAssetDependencyData
                 // and BuildResults share these list instances in several SBP paths.
@@ -172,6 +228,23 @@ namespace FH.AssetBundleBuilder.Ed
             }
 
             return ReturnCode.Success;
+        }
+
+        private static bool IsAllowedAnonymousObject(ObjectIdentifier objectId)
+        {
+            Type[] types = ContentBuildInterface.GetTypeForObjects(new[] { objectId });
+            if (types == null)
+                return false;
+
+            foreach (Type type in types)
+            {
+                if (type == typeof(Mesh) ||
+                    type == typeof(AnimationClip) ||
+                    type == typeof(GameObject) ||
+                    type == typeof(Transform))
+                    return true;
+            }
+            return false;
         }
 
         private void RebuildUsage(GUID asset, AssetLoadInfo info)
