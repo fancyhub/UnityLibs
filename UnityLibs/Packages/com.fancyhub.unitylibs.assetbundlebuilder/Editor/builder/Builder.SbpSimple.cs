@@ -97,17 +97,17 @@ namespace FH.AssetBundleBuilder.Ed
             foreach (AssetObj a in _main_objs)
             {
                 if (!a.NeedExport)
-                    file_list.Add(a.FilePath);
+                    file_list.Add(a.GUID);
                 else
-                    file_list.Add(a.FilePath);
+                    file_list.Add(a.AddressName);
             }
 
             foreach (AssetObj a in _dep_objs)
             {
                 if (!a.NeedExport)
-                    file_list.Add(a.FilePath);
+                    file_list.Add(a.GUID);
                 else
-                    file_list.Add(a.FilePath);
+                    file_list.Add(a.AddressName);
             }
             return file_list;
         }
