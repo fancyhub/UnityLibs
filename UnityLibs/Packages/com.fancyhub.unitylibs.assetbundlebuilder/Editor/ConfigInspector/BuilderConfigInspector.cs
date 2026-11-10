@@ -26,7 +26,15 @@ namespace FH.AssetBundleBuilder.Ed
 
         public override void OnInspectorGUI()
         {
+            if (UnityEngine.GUILayout.Button("Build Asset Bundle"))
+            {
+                AssetBundleBuilderConfig configTarget = target as AssetBundleBuilderConfig;
+                Builder.Build(configTarget, EditorUserBuildSettings.activeBuildTarget);
+            }
+            EditorGUILayout.Space(10);
+
             base.OnInspectorGUI();
+            
 
             _BuildDrawers();
 

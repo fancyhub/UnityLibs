@@ -14,7 +14,7 @@ namespace FH.NoticeSample
     public static partial class SampleNoticeApi
     {
         private static NoticeManager _Mgr;
-        private static IResHolder _ResHolder;
+        private static CPtr<IResHolder> _ResHolder;
         private static IClock _Clock;
 
 
@@ -23,8 +23,8 @@ namespace FH.NoticeSample
             if (_Mgr != null)
                 return;
 
-            if (_ResHolder == null)
-                _ResHolder = ResMgr.CreateHolder(true, false);
+            if (_ResHolder.Null)
+                _ResHolder = ResMgr.CreateHolder(true, false).CPtr();
 
             if (_Clock == null)
             {
@@ -40,7 +40,7 @@ namespace FH.NoticeSample
 
             foreach (var p in config.Channels)
             {
-                var channel = SampleNoticeFactory.CreateChannel(p, _Clock, _ResHolder);
+                var channel = SampleNoticeFactory.CreateChannel(p, _Clock, _ResHolder.Val);
                 if (channel == null)
                     continue;
                 _Mgr.AddChannel(p.ChannelType, channel);
@@ -51,7 +51,7 @@ namespace FH.NoticeSample
             MonoUpdater.ActionUpdate = _Mgr.Update;
         }
 
-        public static IResHolder ResHolder => _ResHolder;   
+        public static IResHolder ResHolder => _ResHolder.Val;
 
         internal sealed class MonoUpdater : MonoBehaviour
         {

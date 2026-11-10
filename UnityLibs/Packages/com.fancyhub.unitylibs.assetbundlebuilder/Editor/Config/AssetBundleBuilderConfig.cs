@@ -17,6 +17,7 @@ namespace FH.AssetBundleBuilder.Ed
     {
         Legacy,
         SBP_Simple,
+        SBP_Custom,
     }
     [CreateAssetMenu(fileName = "AssetBundleBuilderConfig", menuName = "fancyhub/AssetBundleBuilderConfig")]
     public class AssetBundleBuilderConfig : ScriptableObject

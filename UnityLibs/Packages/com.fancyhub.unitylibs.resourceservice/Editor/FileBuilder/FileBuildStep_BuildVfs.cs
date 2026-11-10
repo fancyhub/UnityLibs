@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using FH.Ed;
 using FH.FileManagement.Ed;
+using UnityEditor;
 
 namespace FH.Ed.ResManagement
 {
@@ -20,17 +21,20 @@ namespace FH.Ed.ResManagement
     {
         public FH.VFSManagement.Builder.BuilderConfig BuilderConfig;
 
-        public string OutputDir = "ProjTemp/Build/Output/{Target}";
-
         public override List<BuildFileInfo> Build(BuildContext context)
         {
-            if (BuilderConfig == null)
+            return Build(BuilderConfig, context.BuildTarget);
+        }
+
+        public static List<BuildFileInfo> Build(FH.VFSManagement.Builder.BuilderConfig config, UnityEditor.BuildTarget buildTarget)
+        {
+            if (config == null)
                 return null;
 
             List<BuildFileInfo> ret = new List<BuildFileInfo>();
-            string dest_dir = OutputDir.Replace("{Target}", context.BuildTarget.Ext2Name());
+            string dest_dir = config.OutputDir.Replace("{Target}", buildTarget.Ext2Name());
             FileUtil.CreateDir(dest_dir);
-            foreach (var p in BuilderConfig.Items)
+            foreach (var p in config.Items)
             {
                 string dest_file = p.EdBuildZip(dest_dir);
 
@@ -48,6 +52,22 @@ namespace FH.Ed.ResManagement
                 });
             }
             return ret;
+        }
+    }
+
+    [CustomEditor(typeof(FH.VFSManagement.Builder.BuilderConfig))]
+    public class VfsBuilderConfigInspector : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            if (UnityEngine.GUILayout.Button("Build Vfs"))
+            {
+                FH.VFSManagement.Builder.BuilderConfig configTarget = target as FH.VFSManagement.Builder.BuilderConfig;
+                FileBuildStep_BuildVfs.Build(configTarget, EditorUserBuildSettings.activeBuildTarget);
+            }
+            EditorGUILayout.Space(10);
+
+            base.OnInspectorGUI();
         }
     }
 }

@@ -18,6 +18,8 @@ namespace FH.VFSManagement.Builder
     [Serializable]
     public sealed class BuilderConfig : ScriptableObject
     {
+        public string OutputDir = "ProjTemp/Build/Output/{Target}";
+
         public enum EFormat
         {
             Lz4ZipStore,
@@ -46,7 +48,7 @@ namespace FH.VFSManagement.Builder
 
             public string EdBuildZip(string out_dir)
             {
-                string path = System.IO.Path.Combine(out_dir, Name);
+                string path = System.IO.Path.Combine(out_dir, Name).Replace('\\','/');
                 if (System.IO.File.Exists(path))
                     System.IO.File.Delete(path);
 

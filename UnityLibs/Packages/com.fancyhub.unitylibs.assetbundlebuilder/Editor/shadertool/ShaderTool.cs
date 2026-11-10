@@ -22,7 +22,11 @@ namespace FH.AssetBundleBuilder.Ed
         public static void AddAllMaterialsToHelper()
         {
             var config = ShaderDBAsset.LoadOrCreate();
+            AddAllMaterialsToHelper(config);
+        }
 
+        public static void AddAllMaterialsToHelper(ShaderDBAsset config)
+        {
             FileUtil.CreateDir(ShaderDBAsset.CMatDirs);
             List<Material> new_mat_list = _GuidList2MatList(AssetDatabase.FindAssets("t:material", config.SearchMaterialFolders));
 
@@ -32,6 +36,8 @@ namespace FH.AssetBundleBuilder.Ed
             config.EdSetDict(result_mats);
             Debug.Log("Success add materials");
         }
+
+
 
         [MenuItem("Tools/FancyHub/Res/AssetBundle/ShaderTool/Remove Material Invalid Props", false, 2001)]
         public static void RemoveMaterialInvalidProps()

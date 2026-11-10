@@ -22,6 +22,13 @@ namespace FH.FileManagement.Ed
 
         public override void OnInspectorGUI()
         {
+            if (UnityEngine.GUILayout.Button("Build All Files"))
+            {
+                FileBuilderConfig configTarget = target as FileBuilderConfig;
+                Builder.Build(configTarget, EditorUserBuildSettings.activeBuildTarget);
+            }
+            EditorGUILayout.Space(10);
+
             base.OnInspectorGUI();
             FileBuilderConfig config = (FileBuilderConfig)target;
 

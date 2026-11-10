@@ -97,7 +97,11 @@ namespace FH.AssetBundleBuilder.Ed
 
                     case EBuildPipeline.SBP_Simple:
                         _BuildABSbpSimple(target, param, outputDir, bundleMap);
-                        break;                    
+                        break;
+
+                    case EBuildPipeline.SBP_Custom:
+                        _BuildABSbpCustom(target, param, outputDir, bundleMap);
+                        break;
                 }   
             }
 
