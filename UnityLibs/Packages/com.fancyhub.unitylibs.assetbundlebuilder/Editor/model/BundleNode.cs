@@ -107,14 +107,7 @@ namespace FH.AssetBundleBuilder.Ed
             return false;
         }
 
-        public UnityEditor.AssetBundleBuild GenAssetBundleBuild()
-        {
-            UnityEditor.AssetBundleBuild ret = new UnityEditor.AssetBundleBuild();
-            ret.assetBundleName = GetNodeName();
-            ret.assetNames = _GetAllFiles().ToArray();
-            ret.addressableNames = _GetAllAddressNames().ToArray();
-            return ret;
-        }
+       
 
         public List<AssetObj> GetDepObjs()
         {
@@ -171,27 +164,7 @@ namespace FH.AssetBundleBuilder.Ed
             return file_list;
         }
 
-        private List<string> _GetAllAddressNames()
-        {
-            _SortAssets();
-            List<string> file_list = new List<string>(_main_objs.Count + _dep_objs.Count);
-            foreach (AssetObj a in _main_objs)
-            {
-                if (!a.NeedExport)
-                    file_list.Add(CIgnoreAddressName);
-                else
-                    file_list.Add(a.AddressName);
-            }
-
-            foreach (AssetObj a in _dep_objs)
-            {
-                if (!a.NeedExport)
-                    file_list.Add(CIgnoreAddressName);
-                else
-                    file_list.Add(a.AddressName);
-            }
-            return file_list;
-        }
+    
 
         public bool HasObject(AssetObj obj)
         {

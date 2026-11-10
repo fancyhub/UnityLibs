@@ -3,7 +3,8 @@
     "rootNamespace": "",
     "references": [
         "GUID:0b842a67cd8e4af44a402c6759714aed",
-        "GUID:0398e9b3593e402478127ea8461a2309"
+        "GUID:0398e9b3593e402478127ea8461a2309",
+        "Unity.ScriptableBuildPipeline.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -14,6 +15,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.scriptablebuildpipeline",
+            "expression": "1.0.0",
+            "define": "ENABLE_SBP"
+        }
+    ],
     "noEngineReferences": false
 }

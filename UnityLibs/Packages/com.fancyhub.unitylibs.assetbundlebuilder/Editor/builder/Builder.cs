@@ -85,16 +85,20 @@ namespace FH.AssetBundleBuilder.Ed
             }
 
             //6. 生成
-            FileUtil.CreateDir(outputDir);
-            AssetBundleManifest unityManifest = null;
-            AssetBundleBuild[] buildInfoList = null;
+            FileUtil.CreateDir(outputDir);            
             using (new BuilderTimer($"{cur_step++}/{total_steps}. Build Bundles"))
             {
+                switch(config.PipelineType)
+                {
+                    default:
+                    case EBuildPipeline.Legacy:
+                        _BuildABLegacy(target, param, outputDir, bundleMap);
+                        break;
 
-                if (config.UseSBP)
-                    (unityManifest, buildInfoList) = _BuildABSBP(target, param, outputDir, bundleMap);
-                else
-                    (unityManifest, buildInfoList) = _BuildABNormal(target, param, outputDir, bundleMap);
+                    case EBuildPipeline.SBP_Simple:
+                        _BuildABSbpSimple(target, param, outputDir, bundleMap);
+                        break;                    
+                }   
             }
 
             //7. 生成 Graph

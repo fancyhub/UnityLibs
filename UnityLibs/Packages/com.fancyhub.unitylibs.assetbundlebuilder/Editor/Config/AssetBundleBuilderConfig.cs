@@ -13,6 +13,11 @@ using FH.Ed;
 
 namespace FH.AssetBundleBuilder.Ed
 {
+    public enum EBuildPipeline
+    {
+        Legacy,
+        SBP_Simple,
+    }
     [CreateAssetMenu(fileName = "AssetBundleBuilderConfig", menuName = "fancyhub/AssetBundleBuilderConfig")]
     public class AssetBundleBuilderConfig : ScriptableObject
     {
@@ -22,7 +27,7 @@ namespace FH.AssetBundleBuilder.Ed
         [SerializeField]
         private string _OutputDir = "ProjTemp/Build/Output/{Target}";
 
-        public bool UseSBP = false;
+        public EBuildPipeline PipelineType =  EBuildPipeline.Legacy;
         public BuilderParam Android;
         public BuilderParam IOS;
         public BuilderParam Windows;

@@ -31,28 +31,7 @@ namespace FH.AssetBundleBuilder.Ed
             new BundleNodeMapBuilder(_nodes_map).Build();
         }
 
-        public UnityEditor.AssetBundleBuild[] GenAssetBundleBuildList()
-        {
-            HashSet<BundleNode> node_list = _nodes_map;
-            if (node_list.Count == 0)
-            {
-                throw new System.Exception("没有任何资源被打包");
-            }
-
-            List<UnityEditor.AssetBundleBuild> builder_list = new List<UnityEditor.AssetBundleBuild>(node_list.Count);
-            foreach (BundleNode node in node_list)
-            {
-                UnityEditor.AssetBundleBuild builder = node.GenAssetBundleBuild();
-
-                if (builder.assetBundleName == null || builder.assetNames.Length == 0)
-                {
-                    throw new Exception("有node 为空 " + node.GetNodeName());
-                }
-                builder_list.Add(builder);
-            }
-            return builder_list.ToArray();
-        }
-
+        
         public void CheckAllAssetsInBundle(ICollection<AssetObj> allAssetObjs)
         {
             HashSet<string> file_list_from_obj = new HashSet<string>(allAssetObjs.Count);
