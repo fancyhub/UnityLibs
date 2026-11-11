@@ -25,6 +25,7 @@ namespace FH.AssetBundleBuilder.Ed
 
         public List<FolderItem> Folders= new List<FolderItem>();
 
+        public override bool IsFake() { return false; }
         public override List<(string path, string address)> GetAllAssets()
         {
             List<(string, string)> ret = new List<(string, string)>();

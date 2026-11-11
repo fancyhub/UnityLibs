@@ -16,7 +16,8 @@ namespace FH.AssetBundleBuilder.Ed
     {
         public override void OnPostBuild(PostBuildContext context)
         {
-            context.AssetGraph.SaveToDir(context.Config.GetOutputDir(context.Target));
+            string name = context.Fake ? "graph_fake.json" : AssetGraph.CDefaultName;
+            context.AssetGraph.SaveToDir(context.Config.GetOutputDir(context.Target), name);
         }
     }
 }

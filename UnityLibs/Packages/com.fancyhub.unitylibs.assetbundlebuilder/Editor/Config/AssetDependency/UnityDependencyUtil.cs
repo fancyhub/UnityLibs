@@ -22,16 +22,16 @@ namespace FH.AssetBundleBuilder.Ed
             ".giparams",// gi 生成的参数
         };
 
-        public void AddIgnoreResList(List<string> ignore_res_list)
+        private AssetDependencyCache _cache;
+        public UnityDependencyUtil(AssetDependencyCache cache, List<string> ignore_res_list, List<string> ignoreExtList)
         {
+            _cache = cache;
+
             foreach (var p in ignore_res_list)
             {
                 _IgnoreResSet.Add(p.ToLower());
             }
-        }
 
-        public void AddIgnoreExtList(List<string> ignoreExtList)
-        {
             foreach (var p in ignoreExtList)
             {
                 _IgnoreExtSet.Add(p.ToLower());
@@ -40,12 +40,7 @@ namespace FH.AssetBundleBuilder.Ed
 
         public List<string> CollectDirectDeps(string asset_path, EAssetObjType asset_type)
         {
-            return _Filter(AssetDatabase.GetDependencies(asset_path, false));
-        }
-
-        public string FileGuid(string path)
-        {
-            return AssetDatabase.AssetPathToGUID(path);
+            return _Filter(_cache.GetDependencies(asset_path));
         }
 
         public List<string> _Filter(string[] in_data)
@@ -70,7 +65,7 @@ namespace FH.AssetBundleBuilder.Ed
                 return true;
             else if (path.EndsWith("LightingData.asset"))
                 return true;
-            else if (path.EndsWith(".unity")) //不可能有资源引用场景的            
+            else if (path.EndsWith(".unity")) //不可能有资源引用场景的
                 return true;
 
             path = path.ToLower();
@@ -83,5 +78,5 @@ namespace FH.AssetBundleBuilder.Ed
 
             return false;
         }
-    }     
+    }
 }

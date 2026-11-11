@@ -19,6 +19,9 @@ namespace FH.Ed.AssetBundleBuilder
     {
         public override void OnPostBuild(PostBuildContext context)
         {
+            if (context.Fake)
+                return;
+
             //BundleMgrManifest manifest = BundleMgrManifest.EdCreateFromManifest(context.Manifest, context.BundleBuildArray);
             BundleManifest manifest = _CreateFromGraph(context.AssetGraph);
 

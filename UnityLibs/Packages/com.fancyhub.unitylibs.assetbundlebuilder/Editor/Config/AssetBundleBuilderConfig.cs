@@ -28,7 +28,7 @@ namespace FH.AssetBundleBuilder.Ed
         [SerializeField]
         private string _OutputDir = "ProjTemp/Build/Output/{Target}";
 
-        public EBuildPipeline PipelineType =  EBuildPipeline.Legacy;
+        public EBuildPipeline PipelineType = EBuildPipeline.Legacy;
         public BuilderParam Android;
         public BuilderParam IOS;
         public BuilderParam Windows;
@@ -50,25 +50,27 @@ namespace FH.AssetBundleBuilder.Ed
 
         [HideInInspector] public List<BuilderPostBuild> PostBuild = new List<BuilderPostBuild>();
 
-        public IAssetCollector GetAssetCollector()
+        public IAssetCollector GetAssetCollector(bool fake)
         {
-            if (AssetCollector.Count == 0)
+            foreach (var p in AssetCollector)
             {
-                Debug.LogError("AssetCollector 是空的", this);
-                throw new Exception($"AssetCollector 是空的 {AssetDatabase.GetAssetPath(this)} ");
+                if (p.IsFake() == fake)
+                    return p.GetAssetCollector();
             }
-            return AssetCollector[0].GetAssetCollector();
+
+            Debug.LogError("AssetCollector 是空的", this);
+            throw new Exception($"AssetCollector 是空的 {AssetDatabase.GetAssetPath(this)} ");
         }
 
-        public IAssetDependency GetAssetDependency()
+        public IAssetDependency GetAssetDependency(bool fake)
         {
-            if (AssetDependency.Count == 0)
+            foreach (var p in AssetDependency)
             {
-                Debug.LogError("AssetDependency 是空的", this);
-                throw new Exception($"AssetDependency 是空的 {AssetDatabase.GetAssetPath(this)} ");
+                if (p.IsFake() == fake)
+                    return p.GetAssetDependency();
             }
-
-            return AssetDependency[0].GetAssetDependency();
+            Debug.LogError("AssetDependency 是空的", this);
+            throw new Exception($"AssetDependency 是空的 {AssetDatabase.GetAssetPath(this)} ");
         }
 
         public IBundleRuler GetBundleRuler()
@@ -121,7 +123,7 @@ namespace FH.AssetBundleBuilder.Ed
                 {
                     foreach (var p in rulers)
                     {
-                        if (p == null)
+                        if (p == null || !p.Enable)
                             continue;
                         var r = p.GetTagRuler();
                         if (r != null)
@@ -149,7 +151,7 @@ namespace FH.AssetBundleBuilder.Ed
                 {
                     foreach (var p in rulers)
                     {
-                        if (p == null)
+                        if (p == null || !p.Enable)
                             continue;
                         var r = p.GetBundleRuler();
                         if (r != null)

@@ -25,6 +25,7 @@ namespace FH.AssetBundleBuilder.Ed
             public bool Export;
             public string Path;
             public string Address;
+            public string GUID;
             public int[] Deps;
 
             public string GetAddressableName()
@@ -50,9 +51,9 @@ namespace FH.AssetBundleBuilder.Ed
         }
 
 
-        public void SaveToDir(string dir)
+        public void SaveToDir(string dir, string name = CDefaultName)
         {
-            string path = System.IO.Path.Combine(dir, CDefaultName);
+            string path = System.IO.Path.Combine(dir, name);
             string content = UnityEngine.JsonUtility.ToJson(this, true);
             System.IO.File.WriteAllText(path, content);
         }
@@ -96,7 +97,8 @@ namespace FH.AssetBundleBuilder.Ed
                     {
                         Path = p.FilePath,
                         Export = p.NeedExport,
-                        Address = p.AddressName
+                        Address = p.AddressName,
+                        GUID = p.GUID,
                     };
                     asset_dict.Add(asset.Path, asset);
                     assets_list.Add(asset);

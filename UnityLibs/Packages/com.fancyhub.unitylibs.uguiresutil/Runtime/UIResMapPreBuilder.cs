@@ -15,10 +15,12 @@ namespace FH.UI
     /// <summary>
     /// 预处理, 收集UI资源的映射表
     /// </summary>
-    public class PreBuild_UIResMap: BuilderPreBuild
+    public class PreBuild_UIResMap : BuilderPreBuild
     {
-        public override void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target)
+        public override void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target, bool fake)
         {
+            if (fake)
+                return;
             UnityEditor.AssetDatabase.MakeEditable(UIResMapConfig.CEditorPATH);
             Debug.Log("UIResMap 生成开始===========================");
             UIResMapConfig asset = UnityEditor.AssetDatabase.LoadAssetAtPath<UIResMapConfig>(UIResMapConfig.CEditorPATH);

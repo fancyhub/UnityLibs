@@ -17,7 +17,7 @@ namespace FH.AssetBundleBuilder.Ed
     public class AssetCollector_AssetsInputConfig : BuilderAssetCollector
     {
         public AssetsInputConfig Config;
-
+        public override bool IsFake() { return false; }
         public override List<(string path, string address)> GetAllAssets()
         {
             if (Config == null)

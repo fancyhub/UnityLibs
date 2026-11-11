@@ -22,7 +22,7 @@ namespace FH.AssetBundleBuilder.Ed
             Build(config, EditorUserBuildSettings.activeBuildTarget);
         }
 
-        public static PostBuildContext Build(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target)
+        public static PostBuildContext Build(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target, bool fake = false)
         {
             BuilderParam param = config.GetBuilderParam(target);
             string outputDir = config.GetOutputDir(target);
@@ -37,7 +37,7 @@ namespace FH.AssetBundleBuilder.Ed
                 foreach (var p in config.PreBuild)
                 {
                     if (p != null && p.Enable)
-                        p.OnPreBuild(config, target);
+                        p.OnPreBuild(config, target, fake);
                 }
             }
 
@@ -45,7 +45,7 @@ namespace FH.AssetBundleBuilder.Ed
             List<(string path, string address)> fileList = null;
             using (new BuilderTimer($"{cur_step++}/{total_steps}. Collect"))
             {
-                IAssetCollector assetCollection = config.GetAssetCollector();
+                IAssetCollector assetCollection = config.GetAssetCollector(fake);
                 fileList = assetCollection.GetAllAssets();
             }
 
@@ -53,11 +53,14 @@ namespace FH.AssetBundleBuilder.Ed
             AssetObjMap assetMap = new AssetObjMap();
             using (new BuilderTimer($"{cur_step++}/{total_steps}. Dep"))
             {
-                assetMap.SetDepCollection(config.GetAssetDependency());
+                IAssetDependency assetDep = config.GetAssetDependency(fake);
+                assetMap.SetDepCollection(assetDep);
                 foreach (var file in fileList)
                 {
                     assetMap.AddObject(file.path, file.address);
                 }
+
+                assetDep.OnFinishCollect();
             }
             //assetMap.CheckCycleDep();
 
@@ -85,24 +88,31 @@ namespace FH.AssetBundleBuilder.Ed
             }
 
             //6. 生成
-            FileUtil.CreateDir(outputDir);            
+            FileUtil.CreateDir(outputDir);
             using (new BuilderTimer($"{cur_step++}/{total_steps}. Build Bundles"))
             {
-                switch(config.PipelineType)
+                if (fake)
                 {
-                    default:
-                    case EBuildPipeline.Legacy:
-                        _BuildABLegacy(target, param, outputDir, bundleMap);
-                        break;
+                    UnityEngine.Debug.Log("Fake Build");
+                }
+                else
+                {
+                    switch (config.PipelineType)
+                    {
+                        default:
+                        case EBuildPipeline.Legacy:
+                            _BuildABLegacy(target, param, outputDir, bundleMap);
+                            break;
 
-                    case EBuildPipeline.SBP_Simple:
-                        _BuildABSbpSimple(target, param, outputDir, bundleMap);
-                        break;
+                        case EBuildPipeline.SBP_Simple:
+                            _BuildABSbpSimple(target, param, outputDir, bundleMap);
+                            break;
 
-                    case EBuildPipeline.SBP_Custom:
-                        _BuildABSbpCustom(target, param, outputDir, bundleMap);
-                        break;
-                }   
+                        case EBuildPipeline.SBP_Custom:
+                            _BuildABSbpCustom(target, param, outputDir, bundleMap);
+                            break;
+                    }
+                }
             }
 
             //7. 生成 Graph
@@ -127,6 +137,7 @@ namespace FH.AssetBundleBuilder.Ed
                     Target = target,
                     Config = config,
                     AssetGraph = graph,
+                    Fake = fake,
                 };
 
                 foreach (var p in config.PostBuild)

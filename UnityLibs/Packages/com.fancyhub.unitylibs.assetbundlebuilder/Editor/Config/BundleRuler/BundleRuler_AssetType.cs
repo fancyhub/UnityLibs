@@ -30,10 +30,7 @@ namespace FH.AssetBundleBuilder.Ed
         }
 
         public override IBundleRuler GetBundleRuler()
-        {
-            if (!Enable)
-                return null;
-
+        {            
             if(_HashAssetTypes==null)
                 _HashAssetTypes= new HashSet<EAssetObjType>();
             _HashAssetTypes.Clear();

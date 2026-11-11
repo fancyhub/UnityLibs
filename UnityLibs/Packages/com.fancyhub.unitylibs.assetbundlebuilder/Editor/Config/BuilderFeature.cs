@@ -18,7 +18,7 @@ namespace FH.AssetBundleBuilder.Ed
     /// </summary>
     public interface IPreBuild
     {
-        void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target);
+        void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target, bool fake);
     }
     /// <summary>
     /// 1/6 ab打包前,预处理
@@ -26,7 +26,7 @@ namespace FH.AssetBundleBuilder.Ed
     public abstract class BuilderPreBuild : ScriptableObject, IPreBuild
     {
         public bool Enable = true;
-        public abstract void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target);
+        public abstract void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target, bool fake);
     }
 
 
@@ -35,7 +35,8 @@ namespace FH.AssetBundleBuilder.Ed
     /// </summary>
     public interface IAssetCollector
     {
-        List<(string path, string address)> GetAllAssets();
+        public List<(string path, string address)> GetAllAssets();
+
     }
     /// <summary>
     /// 2/6 ab打包前, asset 收集
@@ -44,6 +45,7 @@ namespace FH.AssetBundleBuilder.Ed
     {
         public virtual IAssetCollector GetAssetCollector() { return this; }
         public abstract List<(string path, string address)> GetAllAssets();
+        public abstract bool IsFake();
     }
 
     /// <summary>
@@ -53,19 +55,18 @@ namespace FH.AssetBundleBuilder.Ed
     {
         List<string> CollectDirectDeps(string path, EAssetObjType asset_type);
         string FileGuid(string path);
+        void OnFinishCollect();
     }
     /// <summary>
     /// 3/6 ab打包前, 资源依赖的收集
     /// </summary>
     public abstract class BuilderAssetDependency : ScriptableObject, IAssetDependency
     {
-        public virtual string FileGuid(string path)
-        {
-            return UnityEditor.AssetDatabase.AssetPathToGUID(path);
-        }
-
-        public abstract List<string> CollectDirectDeps(string asset_path, EAssetObjType asset_type);
+        public abstract bool IsFake();
         public virtual IAssetDependency GetAssetDependency() { return this; }
+        public abstract string FileGuid(string path);
+        public abstract List<string> CollectDirectDeps(string asset_path, EAssetObjType asset_type);
+        public virtual void OnFinishCollect() { }
     }
 
     /// <summary>
@@ -92,7 +93,7 @@ namespace FH.AssetBundleBuilder.Ed
 
         public virtual IBundleRuler GetBundleRuler()
         {
-            return Enable ? this : null;
+            return this;
         }
     }
 
@@ -115,7 +116,7 @@ namespace FH.AssetBundleBuilder.Ed
 
         public virtual ITagRuler GetTagRuler()
         {
-            return Enable ? this : null;
+            return this;
         }
 
         public abstract void GetTags(string bundle_name, List<string> assets_list, HashSet<string> out_tags);
@@ -126,7 +127,8 @@ namespace FH.AssetBundleBuilder.Ed
     {
         public BuildTarget Target;
         public AssetBundleBuilderConfig Config;
-        public AssetGraph AssetGraph;        
+        public AssetGraph AssetGraph;
+        public bool Fake;
     }
     /// <summary>
     /// 6/6 ab打包后, 后处理, 主要是处理manifest
@@ -143,8 +145,5 @@ namespace FH.AssetBundleBuilder.Ed
         public bool Enable = true;
         public abstract void OnPostBuild(PostBuildContext context);
     }
-
-
-   
 
 }

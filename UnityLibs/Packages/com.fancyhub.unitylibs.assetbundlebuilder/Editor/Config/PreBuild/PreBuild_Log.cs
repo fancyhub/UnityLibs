@@ -15,7 +15,7 @@ namespace FH.AssetBundleBuilder.Ed
     /// </summary>
     public class PreBuild_Log : BuilderPreBuild
     {
-        public override void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target)
+        public override void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target, bool fake)
         {
             UnityEngine.Debug.Log($"Build {target} in {config.GetOutputDir(target)}");
         }

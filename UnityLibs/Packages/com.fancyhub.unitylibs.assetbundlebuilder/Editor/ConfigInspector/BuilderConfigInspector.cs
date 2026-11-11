@@ -31,10 +31,16 @@ namespace FH.AssetBundleBuilder.Ed
                 AssetBundleBuilderConfig configTarget = target as AssetBundleBuilderConfig;
                 Builder.Build(configTarget, EditorUserBuildSettings.activeBuildTarget);
             }
+
+            if (UnityEngine.GUILayout.Button("Build Asset Bundle Fake"))
+            {
+                AssetBundleBuilderConfig configTarget = target as AssetBundleBuilderConfig;
+                Builder.Build(configTarget, EditorUserBuildSettings.activeBuildTarget, true);
+            }
             EditorGUILayout.Space(10);
 
             base.OnInspectorGUI();
-            
+
 
             _BuildDrawers();
 

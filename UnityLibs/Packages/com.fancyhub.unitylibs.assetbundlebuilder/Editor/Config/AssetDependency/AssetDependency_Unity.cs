@@ -22,14 +22,19 @@ namespace FH.AssetBundleBuilder.Ed
         public AssetPath<UnityEditor.DefaultAsset>[] AtlasDirs = new AssetPath<UnityEditor.DefaultAsset>[0];
 
         public UnityDependencyUtil _UnityDepCollection;
+        private AssetDependencyCache _UnityDepCache;
         public AtlasUtil _AtlasUtil;
         public Dictionary<string, List<string>> _ShaderDeps;
 
+        public override bool IsFake()
+        {
+            return false;
+        }
+
         public override IAssetDependency GetAssetDependency()
         {
-            _UnityDepCollection = new UnityDependencyUtil();
-            _UnityDepCollection.AddIgnoreResList(IgnoreAssetPathList);
-            _UnityDepCollection.AddIgnoreExtList(IngoreExtList);
+            _UnityDepCache = AssetDependencyCache.Create();
+            _UnityDepCollection = new UnityDependencyUtil(_UnityDepCache, IgnoreAssetPathList, IngoreExtList);
 
             _AtlasUtil = new AtlasUtil();
             List<string> atlas_dir = new List<string>();
@@ -45,6 +50,11 @@ namespace FH.AssetBundleBuilder.Ed
             else
                 _ShaderDeps = config.EdGetShaderMaterialDict();
             return this;
+        }
+
+        public override string FileGuid(string path)
+        {
+            return UnityEditor.AssetDatabase.AssetPathToGUID(path);
         }
 
         public override List<string> CollectDirectDeps(string asset_path, EAssetObjType asset_type)
@@ -71,6 +81,11 @@ namespace FH.AssetBundleBuilder.Ed
             {
                 return _UnityDepCollection.CollectDirectDeps(asset_path, asset_type);
             }
+        }
+
+        public override void OnFinishCollect()
+        {
+            _UnityDepCache.Save();
         }
     }
 }
