@@ -32,6 +32,9 @@ import com.fancyhub.share.R;
 public class ShareUtil {
     private static final String TAG = "FHShare";
 
+    // 指定 targetPackageId 时：true=直接打开目标 App，false=继续显示系统 chooser。
+    private static final boolean USE_DIRECT_TARGET_SHARE = true;
+
     private static Activity.ScreenCaptureCallback sScreenshotCallBack;
     
     // 注册截图广播监听
@@ -75,57 +78,37 @@ public class ShareUtil {
     }
 
     public static void Share(String choserTitle, String contentSubject, String contentText, String contentImageFilePath, String targetAppPackageId) {
+        if(targetAppPackageId!=null && targetAppPackageId.length()>0 && USE_DIRECT_TARGET_SHARE)
+        {
+            ShareToTarget(contentSubject, contentText, contentImageFilePath, targetAppPackageId);
+        }
+        else
+        {
+            ShareWithChooser(choserTitle, contentSubject, contentText, contentImageFilePath, targetAppPackageId);
+        }
+    }
+
+    // 使用系统分享选择器，可选地限制到指定 package。
+    private static void ShareWithChooser(String choserTitle, String contentSubject, String contentText, String contentImageFilePath, String targetAppPackageId) {
         Activity activity = UnityPlayer.currentActivity;
         if(activity==null)
             return;
 
-        // 构建分享Intent
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        boolean hasContent = false;
-        if(contentText!=null && contentText.length()>0)
-        {
-            hasContent=true;
-            shareIntent.setType("text/plain");
-            shareIntent.putExtra(Intent.EXTRA_TEXT, contentText);
-        }
-
-        if(contentImageFilePath!=null && contentImageFilePath.length()>0)
-        {
-            File imageFile = new File(contentImageFilePath);
-            if (imageFile.exists()) 
-            {            
-                hasContent=true;
-                shareIntent.setType("image/*");
-
-                // 获取文件Uri（Android 7.0+必须使用FileProvider）
-                Uri imageUri = FileProvider.getUriForFile(
-                    activity,
-                    activity.getPackageName() + ".fileprovider",
-                    imageFile
-                );
-
-                shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
-                // 授予目标 App 和系统 Sharesheet 临时读取权限。
-                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                shareIntent.setClipData(ClipData.newRawUri("share_image", imageUri));
-                
-            }
-        }
-
-        if(!hasContent)
+        Intent shareIntent = BuildShareIntent(
+            activity,
+            contentSubject,
+            contentText,
+            contentImageFilePath
+        );
+        if(shareIntent==null)
             return;
-
-        if(contentSubject!=null && contentSubject.length()>0)
-        {
-            shareIntent.putExtra(Intent.EXTRA_SUBJECT,contentSubject);
-        }
 
         if(targetAppPackageId!=null && targetAppPackageId.length()>0)
         {
             shareIntent.setPackage(targetAppPackageId);
 
-            // Android 11（API 30）开始，resolveActivity 结果会受到 package visibility
-            //（<queries>）影响，因此先判断版本，再决定是否进行查询。
+            // API 30+ 可能受 package visibility（<queries>）影响，因此只在 API 29
+            // 及以下通过 resolveActivity 判断；找不到时提示，但仍继续启动 chooser。
             if(Build.VERSION.SDK_INT < Build.VERSION_CODES.R &&
                shareIntent.resolveActivity(activity.getPackageManager()) == null)
             {
@@ -145,6 +128,82 @@ public class ShareUtil {
             Intent.FLAG_GRANT_READ_URI_PERMISSION
         );
         activity.startActivity(chooser);
+    }
+
+    // 直接打开指定目标 App，不显示系统分享选择器。
+    private static void ShareToTarget(String contentSubject, String contentText, String contentImageFilePath, String targetAppPackageId) {
+        Activity activity = UnityPlayer.currentActivity;
+        if(activity==null || targetAppPackageId==null || targetAppPackageId.length()==0)
+            return;
+
+        Intent shareIntent = BuildShareIntent(
+            activity,
+            contentSubject,
+            contentText,
+            contentImageFilePath
+        );
+        if(shareIntent==null)
+            return;
+
+        shareIntent.setPackage(targetAppPackageId);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        try
+        {
+            activity.startActivity(shareIntent);
+        }
+        catch (android.content.ActivityNotFoundException e)
+        {
+            Log.w(TAG, "Target app is unavailable for sharing: " + targetAppPackageId, e);
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.fh_share_target_unavailable),
+                Toast.LENGTH_SHORT
+            ).show();
+        }
+    }
+
+    private static Intent BuildShareIntent(Activity activity, String contentSubject, String contentText, String contentImageFilePath) {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        boolean hasContent = false;
+
+        if(contentText!=null && contentText.length()>0)
+        {
+            hasContent=true;
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, contentText);
+        }
+
+        if(contentImageFilePath!=null && contentImageFilePath.length()>0)
+        {
+            File imageFile = new File(contentImageFilePath);
+            if(imageFile.exists())
+            {
+                hasContent=true;
+                shareIntent.setType("image/*");
+
+                // Android 7.0+ 通过 FileProvider 分享本地文件。
+                Uri imageUri = FileProvider.getUriForFile(
+                    activity,
+                    activity.getPackageName() + ".fileprovider",
+                    imageFile
+                );
+
+                shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                shareIntent.setClipData(ClipData.newRawUri("share_image", imageUri));
+            }
+        }
+
+        if(!hasContent)
+            return null;
+
+        if(contentSubject!=null && contentSubject.length()>0)
+        {
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, contentSubject);
+        }
+
+        return shareIntent;
     }
 
     private static final int SaveImageError_OK=0;
