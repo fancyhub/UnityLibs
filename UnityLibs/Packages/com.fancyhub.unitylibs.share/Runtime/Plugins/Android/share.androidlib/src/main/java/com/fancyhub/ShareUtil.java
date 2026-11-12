@@ -8,6 +8,26 @@
 package com.fancyhub;
 
 import android.app.Activity;
+import android.app.Dialog;
+import android.content.res.Configuration;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.GradientDrawable;
+import android.text.TextUtils;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.content.ComponentName;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import java.util.List;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.Context;
@@ -28,12 +48,25 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.widget.Toast;
 import com.fancyhub.share.R;
+import com.fancyhub.share.BuildConfig;
 
 public class ShareUtil {
     private static final String TAG = "FHShare";
 
-    // 指定 targetPackageId 时：true=直接打开目标 App，false=继续显示系统 chooser。
-    private static final boolean USE_DIRECT_TARGET_SHARE = true;
+    // 与 Manifest 查询声明使用同一份 Gradle 配置，构建时生成。
+    private static final String[] TARGET_QUERY_PACKAGES =
+        BuildConfig.FH_SHARE_TARGET_PACKAGES.split(",");
+
+    private static boolean SupportsTargetQuery(String packageId) {
+        if(packageId==null)
+            return false;
+        for(String enabledPackage : TARGET_QUERY_PACKAGES)
+        {
+            if(!enabledPackage.isEmpty() && packageId.equals(enabledPackage))
+                return true;
+        }
+        return false;
+    }
 
     private static Activity.ScreenCaptureCallback sScreenshotCallBack;
     
@@ -78,7 +111,7 @@ public class ShareUtil {
     }
 
     public static void Share(String choserTitle, String contentSubject, String contentText, String contentImageFilePath, String targetAppPackageId) {
-        if(targetAppPackageId!=null && targetAppPackageId.length()>0 && USE_DIRECT_TARGET_SHARE)
+        if(SupportsTargetQuery(targetAppPackageId))
         {
             ShareToTarget(contentSubject, contentText, contentImageFilePath, targetAppPackageId);
         }
@@ -130,7 +163,7 @@ public class ShareUtil {
         activity.startActivity(chooser);
     }
 
-    // 直接打开指定目标 App，不显示系统分享选择器。
+    // 查询目标 App 的分享入口，每次自行显示选择框，不保存上次选择。
     private static void ShareToTarget(String contentSubject, String contentText, String contentImageFilePath, String targetAppPackageId) {
         Activity activity = UnityPlayer.currentActivity;
         if(activity==null || targetAppPackageId==null || targetAppPackageId.length()==0)
@@ -145,22 +178,152 @@ public class ShareUtil {
         if(shareIntent==null)
             return;
 
-        shareIntent.setPackage(targetAppPackageId);
-        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        // 未适配的包名不依赖查询结果，交给系统分享面板处理。
+        if(!SupportsTargetQuery(targetAppPackageId))
+        {
+            ShareWithChooser(null, contentSubject, contentText, contentImageFilePath, targetAppPackageId);
+            return;
+        }
 
-        try
+        shareIntent.setPackage(targetAppPackageId);
+        activity.runOnUiThread(() -> {
+            if(activity.isFinishing() || activity.isDestroyed())
+                return;
+
+            PackageManager pm = activity.getPackageManager();
+            List<ResolveInfo> targets = pm.queryIntentActivities(
+                shareIntent, PackageManager.MATCH_DEFAULT_ONLY);
+            if(targets.isEmpty())
+            {
+                Toast.makeText(activity, R.string.fh_share_target_unavailable,
+                    Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            ShowTargetPicker(activity, shareIntent, targets);
+        });
+    }
+
+    // 底部横向分享面板：Activity 图标在上、名称在下，入口较多时横向滚动。
+    private static void ShowTargetPicker(Activity activity, Intent shareIntent, List<ResolveInfo> targets) {
+        boolean dark = (activity.getResources().getConfiguration().uiMode &
+            Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+        Dialog dialog = new Dialog(activity, R.style.FHSharePickerTheme);
+        Context context = dialog.getContext();
+        PackageManager pm = activity.getPackageManager();
+
+        LinearLayout panel = new LinearLayout(context);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(0, Dp(context, 12), 0, Dp(context, 20));
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(dark ? Color.rgb(35, 35, 38) : Color.rgb(250, 250, 252));
+        float radius = Dp(context, 24);
+        background.setCornerRadii(new float[] {radius, radius, radius, radius, 0, 0, 0, 0});
+        panel.setBackground(background);
+
+        View handle = new View(context);
+        GradientDrawable handleBackground = new GradientDrawable();
+        handleBackground.setColor(dark ? Color.rgb(100, 100, 105) : Color.rgb(190, 190, 195));
+        handleBackground.setCornerRadius(Dp(context, 2));
+        handle.setBackground(handleBackground);
+        handle.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        LinearLayout.LayoutParams handleParams = new LinearLayout.LayoutParams(
+            Dp(context, 36), Dp(context, 4));
+        handleParams.gravity = Gravity.CENTER_HORIZONTAL;
+        handleParams.bottomMargin = Dp(context, 16);
+        panel.addView(handle, handleParams);
+
+        HorizontalScrollView scroll = new HorizontalScrollView(context);
+        scroll.setHorizontalScrollBarEnabled(false);
+        scroll.setFillViewport(true);
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        // 内容不足一屏时居中；超过一屏时仍保持横向滚动。
+        row.setGravity(Gravity.CENTER);
+        row.setPadding(Dp(context, 12), 0, Dp(context, 12), 0);
+
+        TypedValue selectableBackground = new TypedValue();
+        context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground,
+            selectableBackground, true);
+        for(ResolveInfo target : targets)
         {
-            activity.startActivity(shareIntent);
+            CharSequence label = target.loadLabel(pm);
+            LinearLayout item = new LinearLayout(context);
+            item.setOrientation(LinearLayout.VERTICAL);
+            item.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+            item.setPadding(Dp(context, 6), Dp(context, 12), Dp(context, 6), Dp(context, 8));
+            if(selectableBackground.resourceId != 0)
+                item.setBackgroundResource(selectableBackground.resourceId);
+            item.setFocusable(true);
+            item.setContentDescription(label);
+
+            ImageView icon = new ImageView(context);
+            icon.setImageDrawable(target.loadIcon(pm));
+            icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            item.addView(icon, new LinearLayout.LayoutParams(Dp(context, 48), Dp(context, 48)));
+
+            TextView name = new TextView(context);
+            name.setText(label);
+            name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+            name.setTextColor(dark ? Color.rgb(240, 240, 245) : Color.rgb(35, 35, 40));
+            name.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+            name.setMaxLines(2);
+            name.setEllipsize(TextUtils.TruncateAt.END);
+            name.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            nameParams.topMargin = Dp(context, 10);
+            item.addView(name, nameParams);
+            item.setOnClickListener(view -> {
+                dialog.dismiss();
+                Intent selectedIntent = new Intent(shareIntent);
+                selectedIntent.setComponent(new ComponentName(
+                    target.activityInfo.packageName, target.activityInfo.name));
+                try
+                {
+                    activity.startActivity(selectedIntent);
+                }
+                catch(android.content.ActivityNotFoundException e)
+                {
+                    Log.w(TAG, "Share activity is unavailable: " + selectedIntent.getComponent(), e);
+                    Toast.makeText(activity, R.string.fh_share_target_unavailable,
+                        Toast.LENGTH_SHORT).show();
+                }
+            });
+            row.addView(item, new LinearLayout.LayoutParams(
+                Dp(context, 96), ViewGroup.LayoutParams.WRAP_CONTENT));
         }
-        catch (android.content.ActivityNotFoundException e)
-        {
-            Log.w(TAG, "Target app is unavailable for sharing: " + targetAppPackageId, e);
-            Toast.makeText(
-                activity,
-                activity.getString(R.string.fh_share_target_unavailable),
-                Toast.LENGTH_SHORT
-            ).show();
-        }
+
+        scroll.addView(row, new ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        panel.addView(scroll, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        dialog.setContentView(panel);
+        dialog.setCanceledOnTouchOutside(true);
+        Window window = dialog.getWindow();
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        window.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        WindowManager.LayoutParams params = window.getAttributes();
+        params.dimAmount = 0.35f;
+        window.setAttributes(params);
+        window.setWindowAnimations(R.style.FHSharePickerAnimation);
+        dialog.show();
+        scroll.post(() -> {
+            // XML Theme 已经把窗口宽度设置为可用宽度的 75%。
+            // 这里仅使用 Dialog 测量后的实际宽度，让入口保持水平居中。
+            int contentWidth = scroll.getWidth();
+            if(contentWidth > 0)
+            {
+                row.setMinimumWidth(contentWidth);
+                row.requestLayout();
+            }
+        });
+    }
+
+    private static int Dp(Context context, int value) {
+        return Math.round(value * context.getResources().getDisplayMetrics().density);
     }
 
     private static Intent BuildShareIntent(Activity activity, String contentSubject, String contentText, String contentImageFilePath) {

@@ -7,6 +7,8 @@
 
 	<!-- 下面都是分享需要的 -->
 	<uses-permission android:name="android.permission.INTERNET" />
+	<!-- 构建时根据 gradle.properties 的 fhShare.targetPackages 生成查询声明。 -->
+	<!-- FH_SHARE_QUERIES -->
 	<application>
 		<!-- FileProvider配置（Android 7.0+分享文件必须） -->
 		<provider

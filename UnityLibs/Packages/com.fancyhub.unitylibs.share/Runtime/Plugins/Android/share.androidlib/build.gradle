@@ -1,5 +1,52 @@
 apply plugin: 'com.android.library'
 
+// Unity 的 .androidlib 是子模块，显式读取模块内的配置文件。
+def shareProperties = new Properties()
+file('gradle.properties').withInputStream { shareProperties.load(it) }
+// 支持宿主工程通过 gradle.properties 或 -P 覆盖默认配置；空字符串关闭所有目标查询。
+def targetPackagesValue = project.findProperty('fhShare.targetPackages')
+if (targetPackagesValue == null) {
+    targetPackagesValue = shareProperties.getProperty('fhShare.targetPackages', '')
+}
+def shareTargetPackages = targetPackagesValue.toString().split(',')
+    .collect { it.trim() }.findAll { !it.isEmpty() }.unique()
+shareTargetPackages.each { packageId ->
+    if (!(packageId ==~ /[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)+/)) {
+        throw new GradleException("Invalid fhShare.targetPackages entry: ${packageId}")
+    }
+}
+
+def shareManifestTemplate = file('AndroidManifest.xml')
+def generatedShareManifest = layout.buildDirectory.file('generated/fhShare/AndroidManifest.xml')
+def generateShareManifest = tasks.register('generateFhShareManifest') {
+    inputs.file(shareManifestTemplate)
+    inputs.property('targetPackages', shareTargetPackages.join(','))
+    outputs.file(generatedShareManifest)
+    doLast {
+        def marker = '<!-- FH_SHARE_QUERIES -->'
+        def manifestText = shareManifestTemplate.getText('UTF-8')
+        if (!manifestText.contains(marker)) {
+            throw new GradleException('Missing FH_SHARE_QUERIES marker in AndroidManifest.xml')
+        }
+        def queries = ''
+        if (!shareTargetPackages.isEmpty()) {
+            queries = '<queries>\n' + shareTargetPackages.collect {
+                '        <package android:name="' + it + '" />'
+            }.join('\n') + '\n    </queries>'
+        }
+        def outputFile = generatedShareManifest.get().asFile
+        outputFile.parentFile.mkdirs()
+        outputFile.setText(manifestText.replace(marker, queries), 'UTF-8')
+    }
+}
+
+// 显式保证各变体处理 Manifest 前，生成文件已经准备好。
+tasks.configureEach { task ->
+    if (task.name == 'preBuild' ||
+        (task.name.startsWith('process') && task.name.contains('Manifest'))) {
+        task.dependsOn(generateShareManifest)
+    }
+}
 
  
 dependencies {
@@ -14,9 +61,13 @@ dependencies {
 android {
     namespace 'com.fancyhub.share'
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     sourceSets {
         main {
-            manifest.srcFile 'AndroidManifest.xml'
+            manifest.srcFile generatedShareManifest.get().asFile
             java.srcDirs = ['src/main/java']
             res.srcDirs = ['res']
             //assets.srcDirs = ['assets']
@@ -26,6 +77,8 @@ android {
 	
 	compileSdkVersion 34    
     defaultConfig {
+        buildConfigField 'String', 'FH_SHARE_TARGET_PACKAGES',
+            groovy.json.JsonOutput.toJson(shareTargetPackages.join(','))
         //minSdkVersion 16
         targetSdkVersion 22
 		consumerProguardFiles 'proguard-user.txt'

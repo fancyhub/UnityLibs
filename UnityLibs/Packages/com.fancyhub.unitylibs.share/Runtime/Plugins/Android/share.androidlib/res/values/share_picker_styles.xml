@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="FHSharePickerTheme" parent="android:style/Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowMinWidthMajor">75%</item>
+        <item name="android:windowMinWidthMinor">75%</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:windowAnimationStyle">@style/FHSharePickerAnimation</item>
+    </style>
+
+    <style name="FHSharePickerAnimation">
+        <item name="android:windowEnterAnimation">@anim/fh_share_picker_enter</item>
+        <item name="android:windowExitAnimation">@anim/fh_share_picker_exit</item>
+    </style>
+</resources>
