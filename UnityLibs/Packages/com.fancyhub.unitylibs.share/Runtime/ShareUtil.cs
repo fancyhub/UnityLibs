@@ -9,7 +9,6 @@ using FH.UI;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-//using FH.UI;
 
 #if UNITY_EDITOR
 using PlatformShare = FH.PlatformShare_Empty;
@@ -37,9 +36,6 @@ namespace FH
         // 国内常用应用
         Wechat,
         Douyin,
-        TikTok,
-        [Obsolete("请使用 TikTok")]
-        Ticktok = TikTok,
         QQ,
         Weibo,
         Xiaohongshu,
@@ -49,6 +45,7 @@ namespace FH
         Alipay,
 
         // 海外常用应用
+        TikTok,
         Facebook,
         Messenger,
         Instagram,
@@ -75,7 +72,7 @@ namespace FH
         public void Share(string title, string text, string imageFilePath, EShareTarget target = EShareTarget.None);
     }
 
-    public static class ShareUtil
+    public static partial class ShareUtil
     {
         private static IPlatformShareUtil _Share;
 
@@ -130,14 +127,29 @@ namespace FH
                 return;
 
             GetShare()?.Share(title, text, imageFilePath, target);
-        }
+        }        
 
+        private static bool IsScreenTextureFlipped()
+        {
+            bool isAndroid = Application.platform == RuntimePlatform.Android;
+            bool isVulkan = SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Vulkan;
+
+            bool flipY = isAndroid && isVulkan;
+
+            return flipY;
+        }
+    }
+
+
+    public static partial class ShareUtil
+    {
         public static void Capture(Action<Texture2D> callBack,
             RectTransform targetArea = null,
             params GameObject[] nodesListToHided)
         {
             GlobalCoroutine.StartCoroutine(_CaptureRoutine(callBack, targetArea, nodesListToHided));
         }
+
 
         private static List<GameObject> _TempList = new();
         private static bool _InRoutine = false;
@@ -210,16 +222,6 @@ namespace FH
             _InRoutine = false;
             //7. 
             callBack(screenShotTexture);
-        }
-
-        private static bool IsScreenTextureFlipped()
-        {
-            bool isAndroid = Application.platform == RuntimePlatform.Android;
-            bool isVulkan = SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Vulkan;
-
-            bool flipY = isAndroid && isVulkan;
-
-            return flipY;
         }
     }
 }

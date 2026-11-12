@@ -122,8 +122,10 @@ public class ShareUtil {
         {
             shareIntent.setPackage(targetAppPackageId);
 
-            // 指定的应用未安装或不支持当前分享内容时，不要让 startActivity 抛异常。
-            if(shareIntent.resolveActivity(activity.getPackageManager()) == null)
+            // Android 11（API 30）开始，resolveActivity 结果会受到 package visibility
+            //（<queries>）影响，因此先判断版本，再决定是否进行查询。
+            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.R &&
+               shareIntent.resolveActivity(activity.getPackageManager()) == null)
             {
                 Log.w(TAG, "Target app is unavailable for sharing: " + targetAppPackageId);
                 Toast.makeText(
@@ -131,12 +133,10 @@ public class ShareUtil {
                     activity.getString(R.string.fh_share_target_unavailable),
                     Toast.LENGTH_SHORT
                 ).show();
-                return;
             }
         }
 
-        
-        // 启动分享选择器
+        // 使用系统分享选择器
         Intent chooser = Intent.createChooser(shareIntent, choserTitle);
         chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         activity.startActivity(chooser);

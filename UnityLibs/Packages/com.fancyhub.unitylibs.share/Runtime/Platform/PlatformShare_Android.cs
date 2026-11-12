@@ -72,7 +72,6 @@ namespace FH
                 // 国内
                 EShareTarget.Wechat => "com.tencent.mm",
                 EShareTarget.Douyin => "com.ss.android.ugc.aweme",
-                EShareTarget.TikTok => "com.zhiliaoapp.musically",
                 EShareTarget.QQ => "com.tencent.mobileqq",
                 EShareTarget.Weibo => "com.sina.weibo",
                 EShareTarget.Xiaohongshu => "com.xingin.xhs",
@@ -82,6 +81,7 @@ namespace FH
                 EShareTarget.Alipay => "com.eg.android.AlipayGphone",
 
                 // 海外
+                EShareTarget.TikTok => "com.zhiliaoapp.musically",
                 EShareTarget.Facebook => "com.facebook.katana",
                 EShareTarget.Messenger => "com.facebook.orca",
                 EShareTarget.Instagram => "com.instagram.android",
