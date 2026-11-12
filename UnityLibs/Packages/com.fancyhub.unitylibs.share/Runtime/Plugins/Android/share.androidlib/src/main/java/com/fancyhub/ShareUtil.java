@@ -9,6 +9,7 @@ package com.fancyhub;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -104,8 +105,9 @@ public class ShareUtil {
                 );
 
                 shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
-                // 授予临时访问权限
+                // 授予目标 App 和系统 Sharesheet 临时读取权限。
                 shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                shareIntent.setClipData(ClipData.newRawUri("share_image", imageUri));
                 
             }
         }
@@ -138,7 +140,10 @@ public class ShareUtil {
 
         // 使用系统分享选择器
         Intent chooser = Intent.createChooser(shareIntent, choserTitle);
-        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        chooser.addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK |
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        );
         activity.startActivity(chooser);
     }
 
