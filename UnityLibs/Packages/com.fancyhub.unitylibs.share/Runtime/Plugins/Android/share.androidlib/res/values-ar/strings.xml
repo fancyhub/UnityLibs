@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fh_share_target_unavailable">التطبيق المستهدف غير مثبت أو لا يدعم هذا المحتوى</string>
+</resources>

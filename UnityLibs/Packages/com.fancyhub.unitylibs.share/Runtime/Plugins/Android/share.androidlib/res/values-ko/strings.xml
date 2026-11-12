@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fh_share_target_unavailable">대상 앱이 설치되어 있지 않거나 이 콘텐츠를 지원하지 않습니다</string>
+</resources>

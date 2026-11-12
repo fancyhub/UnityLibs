@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fh_share_target_unavailable">L’application cible n’est pas installée ou ne prend pas en charge ce contenu</string>
+</resources>

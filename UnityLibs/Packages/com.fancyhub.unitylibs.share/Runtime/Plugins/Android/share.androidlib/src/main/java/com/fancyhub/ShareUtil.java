@@ -25,6 +25,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.widget.Toast;
+import com.fancyhub.share.R;
 
 public class ShareUtil {
     private static final String TAG = "FHShare";
@@ -124,6 +126,11 @@ public class ShareUtil {
             if(shareIntent.resolveActivity(activity.getPackageManager()) == null)
             {
                 Log.w(TAG, "Target app is unavailable for sharing: " + targetAppPackageId);
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.fh_share_target_unavailable),
+                    Toast.LENGTH_SHORT
+                ).show();
                 return;
             }
         }

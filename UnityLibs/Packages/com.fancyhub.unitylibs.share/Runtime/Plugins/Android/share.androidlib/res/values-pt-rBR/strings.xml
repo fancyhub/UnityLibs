@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fh_share_target_unavailable">O aplicativo de destino não está instalado ou não oferece suporte a este conteúdo</string>
+</resources>

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fh_share_target_unavailable">未安装该应用或该应用不支持此分享内容</string>
+</resources>
