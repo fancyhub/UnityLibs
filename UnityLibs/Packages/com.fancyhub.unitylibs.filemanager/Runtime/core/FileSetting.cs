@@ -10,82 +10,10 @@ using UnityEngine;
 
 namespace FH
 {
-    public enum EFilePlatform
-    {
-        None,
-        Android,
-        IOS,
-        Win,
-        OSX,
-    }
-
     public static class FileSetting
     {
         public const string CRelativeFileFullNameExt = "._fullname";
         internal const string CBaseResVersionFileName = "base_res_version";
-
-        #region Platform
-        private static EFilePlatform _Platform = EFilePlatform.None;
-        public static EFilePlatform Platform
-        {
-            get
-            {
-                if (_Platform != EFilePlatform.None)
-                    return _Platform;
-
-                switch (Application.platform)
-                {
-                    case RuntimePlatform.Android:
-                        _Platform = EFilePlatform.Android;
-                        break;
-                    case RuntimePlatform.IPhonePlayer:
-                        _Platform = EFilePlatform.IOS;
-                        break;
-
-                    case RuntimePlatform.WindowsPlayer:
-                    case RuntimePlatform.WindowsEditor:
-                        _Platform = EFilePlatform.Win;
-                        break;
-                    case RuntimePlatform.OSXPlayer:
-                    case RuntimePlatform.OSXEditor:
-                        _Platform = EFilePlatform.OSX;
-                        break;
-
-                    default:
-                        FileLog._.E("未知类型 {0}", Application.platform);
-                        _Platform = EFilePlatform.Win;
-                        break;
-                }
-
-#if UNITY_EDITOR
-                if (Application.isEditor)
-                {
-                    switch (UnityEditor.EditorUserBuildSettings.activeBuildTarget)
-                    {
-                        case UnityEditor.BuildTarget.iOS:
-                            _Platform = EFilePlatform.IOS;
-                            break;
-                        case UnityEditor.BuildTarget.Android:
-                            _Platform = EFilePlatform.Android;
-                            break;
-                        case UnityEditor.BuildTarget.StandaloneWindows:
-                        case UnityEditor.BuildTarget.StandaloneWindows64:
-                            _Platform = EFilePlatform.Win;
-                            break;
-                        case UnityEditor.BuildTarget.StandaloneOSX:
-                            _Platform = EFilePlatform.OSX;
-                            break;
-                        default:
-                            FileLog._.E("未知类型 {0}", UnityEditor.EditorUserBuildSettings.activeBuildTarget);
-                            _Platform = EFilePlatform.Win;
-                            break;
-                    }
-                }
-#endif
-                return _Platform;
-            }
-        }
-        #endregion
 
         private static string _PersistentDir;
         public static string PersistentDir
@@ -95,8 +23,8 @@ namespace FH
                 if (_PersistentDir != null)
                     return _PersistentDir;
 
-                if (Application.isEditor || Platform == EFilePlatform.Win)
-                    _PersistentDir = System.IO.Path.Combine("ProjTemp/Persistent", Platform.ToString());
+                if (Application.isEditor || Application.platform == RuntimePlatform.WindowsPlayer)
+                    _PersistentDir = System.IO.Path.Combine("ProjTemp/Persistent", Application.platform.Ext2DirName());
                 else
                     _PersistentDir = Application.persistentDataPath;
 
@@ -159,7 +87,7 @@ namespace FH
             {
                 if (_StreamingAssetsDir == null)
                 {
-                    _StreamingAssetsDir = System.IO.Path.Combine(Application.streamingAssetsPath, Platform.ToString());
+                    _StreamingAssetsDir = System.IO.Path.Combine(Application.streamingAssetsPath, "Files", Application.platform.Ext2DirName());
                     _StreamingAssetsDir = _StreamingAssetsDir.Replace("\\", "/");
                     _StreamingAssetsDir += "/";
                 }

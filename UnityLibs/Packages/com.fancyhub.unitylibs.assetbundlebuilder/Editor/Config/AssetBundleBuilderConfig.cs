@@ -37,7 +37,7 @@ namespace FH.AssetBundleBuilder.Ed
 
         public string GetOutputDir(UnityEditor.BuildTarget target)
         {
-            return _OutputDir.Replace("{Target}", target.Ext2Name());
+            return _OutputDir.Replace("{Target}", target.Ext2DirName());
         }
 
         [HideInInspector] public List<BuilderAssetCollector> AssetCollector = new List<BuilderAssetCollector>();

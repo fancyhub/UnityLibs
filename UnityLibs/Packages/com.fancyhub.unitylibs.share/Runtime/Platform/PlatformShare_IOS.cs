@@ -15,7 +15,7 @@ namespace FH
     internal class PlatformShare_IOS : IPlatformShareUtil
     {
         private static readonly _.FHScreenshotEventCallback _FHScreenshotEventCallback = _OnScreenShotEvent;
-        private static Action _ScreenShotEventCallBack;        
+        private static Action _ScreenShotEventCallBack;
 
         public PlatformShare_IOS()
         {
@@ -49,7 +49,7 @@ namespace FH
             }
         }
 
-        public void Share(string title, string text, string imageFilePath)
+        public void Share(string title, string text, string imageFilePath, EShareTarget target)
         {
             _.FHShare(title, text, imageFilePath);
         }
@@ -72,7 +72,7 @@ namespace FH
             [DllImport("__Internal")] public static extern void FHStartScreenShotListener(FHScreenshotEventCallback callBack);
             [DllImport("__Internal")] public static extern void FHStopScreenShotListener();
 
-            [DllImport("__Internal")] public static extern string FHGetLatestPhotoAssetID();            
+            [DllImport("__Internal")] public static extern string FHGetLatestPhotoAssetID();
 
             [DllImport("__Internal")] public static extern int FHSaveImageToPhotoAlbum(string imagePath);
 

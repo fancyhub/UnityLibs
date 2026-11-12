@@ -60,9 +60,44 @@ namespace FH
             }
         }
 
-        void IPlatformShareUtil.Share(string title, string text, string imageFilePath)
+        void IPlatformShareUtil.Share(string title, string text, string imageFilePath, EShareTarget target)
         {
-            _Share(null, title, text, imageFilePath, null);
+            _Share(null, title, text, imageFilePath, GetPackageId(target));
+        }
+
+        private static string GetPackageId(EShareTarget target)
+        {
+            return target switch
+            {
+                // 国内
+                EShareTarget.Wechat => "com.tencent.mm",
+                EShareTarget.Douyin => "com.ss.android.ugc.aweme",
+                EShareTarget.TikTok => "com.zhiliaoapp.musically",
+                EShareTarget.QQ => "com.tencent.mobileqq",
+                EShareTarget.Weibo => "com.sina.weibo",
+                EShareTarget.Xiaohongshu => "com.xingin.xhs",
+                EShareTarget.Kuaishou => "com.smile.gifmaker",
+                EShareTarget.DingTalk => "com.alibaba.android.rimet",
+                EShareTarget.Bilibili => "tv.danmaku.bili",
+                EShareTarget.Alipay => "com.eg.android.AlipayGphone",
+
+                // 海外
+                EShareTarget.Facebook => "com.facebook.katana",
+                EShareTarget.Messenger => "com.facebook.orca",
+                EShareTarget.Instagram => "com.instagram.android",
+                EShareTarget.WhatsApp => "com.whatsapp",
+                EShareTarget.X => "com.twitter.android",
+                EShareTarget.Telegram => "org.telegram.messenger",
+                EShareTarget.Snapchat => "com.snapchat.android",
+                EShareTarget.Line => "jp.naver.line.android",
+                EShareTarget.Discord => "com.discord",
+                EShareTarget.Pinterest => "com.pinterest",
+                EShareTarget.Reddit => "com.reddit.frontpage",
+                EShareTarget.Gmail => "com.google.android.gm",
+                EShareTarget.GoogleDrive => "com.google.android.apps.docs",
+                EShareTarget.YouTube => "com.google.android.youtube",
+                _ => null,
+            };
         }
 
 

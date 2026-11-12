@@ -32,7 +32,7 @@ namespace FH.Ed.ResManagement
                 return null;
 
             List<BuildFileInfo> ret = new List<BuildFileInfo>();
-            string dest_dir = config.OutputDir.Replace("{Target}", buildTarget.Ext2Name());
+            string dest_dir = config.OutputDir.Replace("{Target}", buildTarget.Ext2DirName());
             FileUtil.CreateDir(dest_dir);
             foreach (var p in config.Items)
             {

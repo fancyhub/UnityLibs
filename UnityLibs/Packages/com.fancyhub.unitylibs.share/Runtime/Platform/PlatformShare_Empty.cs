@@ -17,7 +17,7 @@ namespace FH
             return EShareCopyImageResult.Unkown;
         }
 
-        public void Share(string title, string text, string imageFilePath)
+        public void Share(string title, string text, string imageFilePath, EShareTarget target)
         {
         }
 

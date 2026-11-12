@@ -119,6 +119,13 @@ public class ShareUtil {
         if(targetAppPackageId!=null && targetAppPackageId.length()>0)
         {
             shareIntent.setPackage(targetAppPackageId);
+
+            // 指定的应用未安装或不支持当前分享内容时，不要让 startActivity 抛异常。
+            if(shareIntent.resolveActivity(activity.getPackageManager()) == null)
+            {
+                Log.w(TAG, "Target app is unavailable for sharing: " + targetAppPackageId);
+                return;
+            }
         }
 
         

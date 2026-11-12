@@ -26,6 +26,7 @@ namespace FH.UI.RedDot.Ed
         [MenuItem("Tools/FancyHub/Red Dot Viewer", false, 25)]
         static void FindRef()
         {
+            Debug.Log($"{UnityEngine.Application.platform} {UnityEditor.EditorUserBuildSettings.activeBuildTarget} ");
             EdRedDotViewWindow window = GetWindow<EdRedDotViewWindow>();
             window.titleContent = new GUIContent("Red Dot Viewer");
             window.Show();

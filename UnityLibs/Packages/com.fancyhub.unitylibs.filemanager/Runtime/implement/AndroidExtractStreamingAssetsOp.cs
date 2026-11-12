@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.IO;
+using UnityEngine;
 
 namespace FH.FileManagement
 {
@@ -46,7 +47,7 @@ namespace FH.FileManagement
             if (_Thread != null)
                 return;
 
-            if (manifest == null || FileSetting.Platform != EFilePlatform.Android)
+            if (manifest == null || Application.platform != RuntimePlatform.Android)
                 return;
 
             _TotalCount = 0;
@@ -74,7 +75,7 @@ namespace FH.FileManagement
             FileLog._.I("Begin Extra Android Streamign Assets {0}", _TotalCount);
             _Thread = new Thread(_CopyTask);
             _Thread.IsBackground = true;
-            _Thread.Priority = ThreadPriority.Highest;
+            _Thread.Priority = System.Threading.ThreadPriority.Highest;
             _Thread.Start();
 
             UnityMono.StartCheck(this, _FileCollection, _Version);
@@ -96,7 +97,7 @@ namespace FH.FileManagement
             {
                 yield return operation;
 
-                if(!operation.HasError)
+                if (!operation.HasError)
                 {
                     string path = FileSetting.LocalDir + FileSetting.CBaseResVersionFileName;
                     if (System.IO.File.Exists(path))

@@ -183,11 +183,11 @@ namespace FH
             DefaultServerUrl = url;
             if (DefaultServerUrl.EndsWith('/') || DefaultServerUrl.EndsWith('\\'))
             {
-                DefaultServerFullUrl = DefaultServerUrl + FileSetting.Platform.ToString() + "/";
+                DefaultServerFullUrl = DefaultServerUrl + UnityEngine.Application.platform.Ext2DirName() + "/";
             }
             else
             {
-                DefaultServerFullUrl = DefaultServerUrl + "/" + FileSetting.Platform.ToString() + "/";
+                DefaultServerFullUrl = DefaultServerUrl + "/" + UnityEngine.Application.platform.Ext2DirName() + "/";
             }
         }
 

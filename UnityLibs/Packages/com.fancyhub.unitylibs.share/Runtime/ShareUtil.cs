@@ -30,6 +30,41 @@ namespace FH
         Unkown,
     }
 
+    public enum EShareTarget
+    {
+        None, //系统的
+
+        // 国内常用应用
+        Wechat,
+        Douyin,
+        TikTok,
+        [Obsolete("请使用 TikTok")]
+        Ticktok = TikTok,
+        QQ,
+        Weibo,
+        Xiaohongshu,
+        Kuaishou,
+        DingTalk,
+        Bilibili,
+        Alipay,
+
+        // 海外常用应用
+        Facebook,
+        Messenger,
+        Instagram,
+        WhatsApp,
+        X,
+        Telegram,
+        Snapchat,
+        Line,
+        Discord,
+        Pinterest,
+        Reddit,
+        Gmail,
+        GoogleDrive,
+        YouTube,
+    }
+
     internal interface IPlatformShareUtil
     {
         public void StartScreenshotListen(System.Action callBack);
@@ -37,7 +72,7 @@ namespace FH
 
         public EShareCopyImageResult CopyLocalImage2Gallery(string srcFillePath, string destFileName);
 
-        public void Share(string title, string text, string imageFilePath);
+        public void Share(string title, string text, string imageFilePath, EShareTarget target = EShareTarget.None);
     }
 
     public static class ShareUtil
@@ -73,28 +108,28 @@ namespace FH
             return inst.CopyLocalImage2Gallery(srcFillePath, destFileName);
         }
 
-        public static void ShareImage(string imageFilePath)
+        public static void ShareImage(string imageFilePath, EShareTarget target = EShareTarget.None)
         {
             if (string.IsNullOrEmpty(imageFilePath))
                 return;
 
-            GetShare()?.Share(null, null, imageFilePath);
+            GetShare()?.Share(null, null, imageFilePath, target);
         }
 
-        public static void ShareText(string title, string text)
+        public static void ShareText(string title, string text, EShareTarget target = EShareTarget.None)
         {
             if (string.IsNullOrEmpty(text))
                 return;
 
-            GetShare()?.Share(title, text, null);
+            GetShare()?.Share(title, text, null, target);
         }
 
-        public static void ShareImageWithText(string title, string text, string imageFilePath)
+        public static void ShareImageWithText(string title, string text, string imageFilePath, EShareTarget target = EShareTarget.None)
         {
             if (string.IsNullOrEmpty(text) && string.IsNullOrEmpty(imageFilePath))
                 return;
 
-            GetShare()?.Share(title, text, imageFilePath);
+            GetShare()?.Share(title, text, imageFilePath, target);
         }
 
         public static void Capture(Action<Texture2D> callBack,

@@ -26,7 +26,7 @@ namespace FH.FileManagement.Ed
 
         public string GetOutputDir(UnityEditor.BuildTarget target)
         {
-            return _OutputDir.Replace("{Target}", target.ToString());
+            return _OutputDir.Replace("{Target}", target.Ext2DirName());
         }
         [HideInInspector] public List<BuildStep> BuildSteps = new List<BuildStep>();
 
