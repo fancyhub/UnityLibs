@@ -50,7 +50,7 @@ MonoBehaviour:
     BundleName: texture
     Tags: base
   - Asset:
-      Path: Assets/Res/TestCycle
+      Path: Assets/Res/TestAB/TestCycle
     SearchPattern: '*.*'
     AddressMode: 0
     BundleName: ui_prefab2
@@ -73,3 +73,9 @@ MonoBehaviour:
     AddressMode: 0
     BundleName: scene_3d
     Tags: scene_3d
+  - Asset:
+      Path: Assets/Res/TestAB/TestCharAB.prefab
+    SearchPattern: '*.*'
+    AddressMode: 0
+    BundleName: test_char
+    Tags: xx

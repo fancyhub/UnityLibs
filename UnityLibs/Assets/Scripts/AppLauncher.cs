@@ -17,7 +17,7 @@ namespace Game
             FH.Log.AutoInit();
 
             //if (!Application.isEditor)
-                FH.DebugConnectionServer.StartServer();
+            FH.DebugConnectionServer.StartServer();
 
             new MyUISceneMgr().Init();
             FH.UI.UIMgr.ChangeScene<UISceneExtractAsset>();
@@ -68,19 +68,32 @@ namespace Game
     {
         private const string CScenePath = "Assets/Scenes/3DDemoScene.unity";
         private FH.SceneRef _Scene;
+        private CPtr<IResHolder> _ResHolder;
         public override void OnSceneEnter(IUIScene lastScene)
         {
             _Scene = FH.SceneMgr.LoadScene(CScenePath, UnityEngine.SceneManagement.LoadSceneMode.Single);
             this.OpenUI<UI3DSceneMainPage>(Tag: EUITagIndex.BG);
+            _ResHolder = ResMgr.CreateHolder(false, false).CPtr();
         }
 
+        private bool _Inited = false;
         public override void OnUpdate()
         {
+            if (_Scene.IsDone && !_Inited)
+            {
+                _Inited = true;
+                var obj = _ResHolder.Val?.Create("Assets/Res/TestCharAB.prefab");
+                if(obj!=null)
+                {
+                    obj.transform.SetParent(_Scene.SceneRoot);
+                }
+            }
         }
 
         public override void OnSceneExit(IUIScene nextScene)
         {
             _Scene.Unload();
+            _ResHolder.Destroy();
         }
     }
 }

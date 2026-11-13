@@ -177,7 +177,7 @@ MonoBehaviour:
   Windows:
     BuildOptions: 13056
     SBPParam:
-      Compression: 3
+      Compression: 2
       BuildFlags: 0
       ScriptOptions: 0
       UseCache: 1
@@ -197,10 +197,13 @@ MonoBehaviour:
   AssetCollector:
   - {fileID: 2025067351490501056}
   - {fileID: 8874996120352380956}
+  - {fileID: 6968040074409223336}
   AssetDependency:
   - {fileID: -378453670168858969}
+  - {fileID: 2444237901325711262}
   BundleRulers:
   - {fileID: 343812129609068264}
+  - {fileID: 6651914230963233030}
   - {fileID: -4920360229105867983}
   - {fileID: -6171372005339789729}
   - {fileID: 4093512310837149485}
@@ -250,7 +253,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5cd0e598f56bd174791c5508ee22fc20, type: 3}
   m_Name: AssetCollector_AssetsInputConfig
   m_EditorClassIdentifier: 
+  Enable: 1
   Config: {fileID: 11400000, guid: 5fafba931ae9d5d4a98a3e3b776e2834, type: 2}
+--- !u!114 &2444237901325711262
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bc42b6e097e5bf4480b9dcf8800fae1, type: 3}
+  m_Name: AssetDependency_Fake
+  m_EditorClassIdentifier: 
+  GraphPath: ProjTemp/Build/Output/Win/graph.json
 --- !u!114 &4093512310837149485
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -266,6 +283,36 @@ MonoBehaviour:
   Enable: 1
   RulerName: 
   Config: {fileID: 11400000, guid: 5fafba931ae9d5d4a98a3e3b776e2834, type: 2}
+--- !u!114 &6651914230963233030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8d055346303f484ea724cbdb99d9113, type: 3}
+  m_Name: BundleRuler_Shader
+  m_EditorClassIdentifier: 
+  Enable: 1
+  RulerName: shader
+  BundleName: shader
+  IncludeShaderVariantCollection: 1
+--- !u!114 &6968040074409223336
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1c517bfcf3f9384689f86309bf6214c, type: 3}
+  m_Name: AssetCollector_Fake
+  m_EditorClassIdentifier: 
+  Enable: 1
+  GraphPath: ProjTemp/Build/Output/Win/graph.json
 --- !u!114 &7091622530271296509
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -308,6 +355,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f413d43d18e558c498663009e00123f7, type: 3}
   m_Name: AssetCollector_Folder
   m_EditorClassIdentifier: 
+  Enable: 0
   Folders:
   - Folder:
       Path: Assets/Res

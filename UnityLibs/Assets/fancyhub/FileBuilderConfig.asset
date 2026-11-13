@@ -53,7 +53,6 @@ MonoBehaviour:
   Name: Build Vfs Zip
   Enable: 1
   BuilderConfig: {fileID: 11400000, guid: 6391484e906e5344f8de151ba727b78c, type: 2}
-  OutputDir: ProjTemp/Build/Output/{Target}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

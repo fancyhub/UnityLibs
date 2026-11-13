@@ -16,21 +16,25 @@ namespace Game
         {
             base.OnUI2Open();
             BaseView._BtnClose.OnClick = _OnBtnCloseClick;
+            BaseView._BtnSimuateCapture.OnClick = _OnDetectedCapture;
             BaseView._BtnDownload.OnClick = _OnBtnDownloadClick;
             BaseView._BtnShare.OnClick = _OnBtnShareClick;
-            BaseView._BtnSimuateCapture.OnClick = _OnDetectedCapture;
+            BaseView._BtnShareWechat.OnClick = _OnBtnShareWechatClick;
+            BaseView._BtnShareDouyin.OnClick = _OnBtnShareDouyinClick;
+            BaseView._BtnShareFacebook.OnClick = _OnBtnShareFBClick;
+            BaseView._BtnShareTiktok.OnClick = _OnBtnShareTiktokClick;
             BaseView._Img.ExtSetOverrideTexture(null);
 
             ShareUtil.StartScreenshotListen(_OnDetectedCapture);
-      
+
             bool isAndroid = Application.platform == RuntimePlatform.Android;
 
             // 满足下面任意一个，截图一定颠倒
             bool isVulkan = SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Vulkan;
             bool flipY = isAndroid && isVulkan;
-            BaseView._Info.text= $"isAndroid: {isAndroid} isVulkan:{SystemInfo.graphicsDeviceType} flipY:{flipY}";
-            
-        
+            BaseView._Info.text = $"isAndroid: {isAndroid} isVulkan:{SystemInfo.graphicsDeviceType} flipY:{flipY}";
+
+
         }
 
         protected override void OnUI5Close()
@@ -86,7 +90,7 @@ namespace Game
 
                     case EShareCopyImageResult.NoPermission:
                         NoticeApi.ShowCommon("Download No Permission");
-                        break;                        
+                        break;
 
                     case EShareCopyImageResult.Unkown:
                         NoticeApi.ShowCommon("Download Unkown error");
@@ -100,6 +104,42 @@ namespace Game
             _GetShareImageFilePath((file_path) =>
             {
                 ShareUtil.ShareImageWithText("test title", "test text : https://www.google.com/ncr", file_path);
+            });
+        }
+
+        private void _OnBtnShareWechatClick()
+        {
+            _GetShareImageFilePath((file_path) =>
+            {
+                ShareUtil.ShareImage(file_path, EShareTarget.Wechat);
+                //ShareUtil.ShareImageWithText("test title", "test text : https://www.google.com/ncr", file_path, EShareTarget.Wechat);
+            });
+        }
+
+        private void _OnBtnShareDouyinClick()
+        {
+            _GetShareImageFilePath((file_path) =>
+            {
+                ShareUtil.ShareImage(file_path, EShareTarget.Douyin);
+                //ShareUtil.ShareImageWithText("test title", "test text : https://www.google.com/ncr", file_path, EShareTarget.Wechat);
+            });
+        }
+
+        private void _OnBtnShareFBClick()
+        {
+            _GetShareImageFilePath((file_path) =>
+            {
+                ShareUtil.ShareImage(file_path, EShareTarget.Facebook);
+                //ShareUtil.ShareImageWithText("test title", "test text : https://www.google.com/ncr", file_path, EShareTarget.Wechat);
+            });
+        }
+
+        private void _OnBtnShareTiktokClick()
+        {
+            _GetShareImageFilePath((file_path) =>
+            {
+                ShareUtil.ShareImage(file_path, EShareTarget.TikTok);
+                //ShareUtil.ShareImageWithText("test title", "test text : https://www.google.com/ncr", file_path, EShareTarget.Wechat);
             });
         }
 
