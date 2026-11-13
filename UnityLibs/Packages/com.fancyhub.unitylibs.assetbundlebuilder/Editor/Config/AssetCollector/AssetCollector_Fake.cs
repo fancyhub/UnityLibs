@@ -27,7 +27,9 @@ namespace FH.AssetBundleBuilder.Ed
 
         public override IAssetCollector GetAssetCollector(ABBuildContext context)
         {
-            var graph = AssetGraph.LoadFromFile(GraphPath);
+            var file_path = GraphPath.Replace("{Target}", context.Target.Ext2DirName());
+
+            var graph = AssetGraph.LoadFromFile(file_path);
             _asset_list = new List<(string path, string address)>(graph.Assets.Count);
             foreach (var asset in graph.Assets)
             {

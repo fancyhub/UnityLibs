@@ -27,9 +27,10 @@ namespace FH.AssetBundleBuilder.Ed
             return true;
         }
 
-        public override IAssetDependency GetAssetDependency()
+        public override IAssetDependency GetAssetDependency(ABBuildContext context)
         {
-            AssetGraph graph = AssetGraph.LoadFromFile(GraphPath);
+            var file_path = GraphPath.Replace("{Target}", context.Target.Ext2DirName());
+            AssetGraph graph = AssetGraph.LoadFromFile(file_path);
             _Assets = graph.Assets;
             _DictAssets = new Dictionary<string, AssetGraph.Asset>(_Assets.Count);
             foreach (var asset in _Assets)

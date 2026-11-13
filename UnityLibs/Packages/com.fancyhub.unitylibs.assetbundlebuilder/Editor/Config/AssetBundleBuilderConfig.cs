@@ -60,7 +60,7 @@ namespace FH.AssetBundleBuilder.Ed
             foreach (var p in AssetDependency)
             {
                 if (p.IsFake() == context.Fake)
-                    return p.GetAssetDependency();
+                    return p.GetAssetDependency(context);
             }
             Debug.LogError("AssetDependency 是空的", this);
             throw new Exception($"AssetDependency 是空的 {AssetDatabase.GetAssetPath(this)} ");

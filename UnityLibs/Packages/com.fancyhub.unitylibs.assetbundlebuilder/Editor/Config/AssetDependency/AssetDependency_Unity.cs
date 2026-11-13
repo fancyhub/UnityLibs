@@ -31,7 +31,7 @@ namespace FH.AssetBundleBuilder.Ed
             return false;
         }
 
-        public override IAssetDependency GetAssetDependency()
+        public override IAssetDependency GetAssetDependency(ABBuildContext context)
         {
             _UnityDepCache = AssetDependencyCache.Create();
             _UnityDepCollection = new UnityDependencyUtil(_UnityDepCache, IgnoreAssetPathList, IngoreExtList);

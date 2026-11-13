@@ -77,7 +77,7 @@ namespace FH.AssetBundleBuilder.Ed
     public abstract class BuilderAssetDependency : ScriptableObject, IAssetDependency
     {
         public abstract bool IsFake();
-        public virtual IAssetDependency GetAssetDependency() { return this; }
+        public virtual IAssetDependency GetAssetDependency(ABBuildContext context) { return this; }
         public abstract string FileGuid(string path);
         public abstract List<string> CollectDirectDeps(string asset_path, EAssetObjType asset_type);
         public virtual void OnFinishCollect() { }
