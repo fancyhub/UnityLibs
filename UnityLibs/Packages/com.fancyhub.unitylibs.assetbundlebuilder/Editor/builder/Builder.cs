@@ -25,7 +25,7 @@ namespace FH.AssetBundleBuilder.Ed
         [MenuItem("Tools/FancyHub/Res/AssetBundle/Asset Graph Viewer")]
         public static void ShowAssetGraphWindow()
         {
-            EditorWindow.GetWindow(typeof(AssetGraphViewWindow)).Show();
+            AssetGraphViewWindow.Open();
         }
 
         public static ABBuildContext Build(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target, bool fake = false)

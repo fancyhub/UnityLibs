@@ -82,7 +82,7 @@ namespace Game
             if (_Scene.IsDone && !_Inited)
             {
                 _Inited = true;
-                var obj = _ResHolder.Val?.Create("Assets/Res/TestCharAB.prefab");
+                var obj = _ResHolder.Val?.Create("Assets/Res/TestAB/TestCharAB.prefab");
                 if(obj!=null)
                 {
                     obj.transform.SetParent(_Scene.SceneRoot);

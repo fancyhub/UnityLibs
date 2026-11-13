@@ -36,7 +36,6 @@ namespace FH.AssetBundleBuilder.Ed
         private AssetGraphLoadSimulationView _loadView;
         private AssetGraphReverseDependencyView _reverseView;
 
-        [MenuItem("Tools/FancyHub/Res/AssetBundle/Asset Graph Viewer")]
         public static void Open()
         {
             AssetGraphViewWindow window = GetWindow<AssetGraphViewWindow>();

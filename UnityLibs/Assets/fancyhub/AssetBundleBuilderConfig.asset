@@ -267,7 +267,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bc42b6e097e5bf4480b9dcf8800fae1, type: 3}
   m_Name: AssetDependency_Fake
   m_EditorClassIdentifier: 
-  GraphPath: ProjTemp/Build/Output/Win/graph.json
+  GraphPath: ProjTemp/Build/Output/{Target}/graph.json
 --- !u!114 &4093512310837149485
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -312,7 +312,7 @@ MonoBehaviour:
   m_Name: AssetCollector_Fake
   m_EditorClassIdentifier: 
   Enable: 1
-  GraphPath: ProjTemp/Build/Output/Win/graph.json
+  GraphPath: ProjTemp/Build/Output/{Target}/graph.json
 --- !u!114 &7091622530271296509
 MonoBehaviour:
   m_ObjectHideFlags: 0
