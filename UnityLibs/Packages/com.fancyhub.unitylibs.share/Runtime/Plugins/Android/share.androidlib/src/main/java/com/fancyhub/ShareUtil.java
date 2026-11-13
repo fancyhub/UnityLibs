@@ -200,6 +200,12 @@ public class ShareUtil {
                 return;
             }
 
+            if(targets.size() == 1)
+            {
+                StartTargetActivity(activity, shareIntent, targets.get(0));
+                return;
+            }
+
             ShowTargetPicker(activity, shareIntent, targets);
         });
     }
@@ -277,19 +283,7 @@ public class ShareUtil {
             item.addView(name, nameParams);
             item.setOnClickListener(view -> {
                 dialog.dismiss();
-                Intent selectedIntent = new Intent(shareIntent);
-                selectedIntent.setComponent(new ComponentName(
-                    target.activityInfo.packageName, target.activityInfo.name));
-                try
-                {
-                    activity.startActivity(selectedIntent);
-                }
-                catch(android.content.ActivityNotFoundException e)
-                {
-                    Log.w(TAG, "Share activity is unavailable: " + selectedIntent.getComponent(), e);
-                    Toast.makeText(activity, R.string.fh_share_target_unavailable,
-                        Toast.LENGTH_SHORT).show();
-                }
+                StartTargetActivity(activity, shareIntent, target);
             });
             row.addView(item, new LinearLayout.LayoutParams(
                 Dp(context, 96), ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -320,6 +314,22 @@ public class ShareUtil {
                 row.requestLayout();
             }
         });
+    }
+
+    private static void StartTargetActivity(Activity activity, Intent shareIntent, ResolveInfo target) {
+        Intent selectedIntent = new Intent(shareIntent);
+        selectedIntent.setComponent(new ComponentName(
+            target.activityInfo.packageName, target.activityInfo.name));
+        try
+        {
+            activity.startActivity(selectedIntent);
+        }
+        catch(android.content.ActivityNotFoundException e)
+        {
+            Log.w(TAG, "Share activity is unavailable: " + selectedIntent.getComponent(), e);
+            Toast.makeText(activity, R.string.fh_share_target_unavailable,
+                Toast.LENGTH_SHORT).show();
+        }
     }
 
     private static int Dp(Context context, int value) {

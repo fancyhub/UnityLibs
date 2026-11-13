@@ -15,10 +15,10 @@ namespace FH.AssetBundleBuilder.Ed
 {
     public static partial class Builder
     {    
-        private static void _BuildABLegacy(BuildTarget target, BuilderParam param, string outputDir, BundleNodeMap bundleMap)
+        private static void _BuildABLegacy(ABBuildContext context, BundleNodeMap bundleMap)
         {
             var buildInfoList = bundleMap.GenAssetBundleBuildList_Legacy();
-            var unityManifest = UnityEditor.BuildPipeline.BuildAssetBundles(outputDir, buildInfoList, param.BuildOptions, target);
+            var unityManifest = UnityEditor.BuildPipeline.BuildAssetBundles(context.OutputDir, buildInfoList, context.BuilderParam.BuildOptions, context.Target);
 
             foreach (var p in bundleMap.GetAllNodes())
             {

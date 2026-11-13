@@ -17,14 +17,14 @@ namespace FH.AssetBundleBuilder.Ed
     {
         public AssetsInputConfig Config;
 
-        public override ITagRuler GetTagRuler()
+        public override ITagRuler GetTagRuler(ABBuildContext context)
         {
             if (Config == null)
                 return null;
-            return base.GetTagRuler();
+            return base.GetTagRuler(context);
         }
 
-        public override void GetTags(string bundle_name, List<string> assets_list, HashSet<string> out_tags)
+        public override void GetTags(ABBuildContext context, string bundle_name, List<string> assets_list, HashSet<string> out_tags)
         {            
             foreach (var p in assets_list)
             {

@@ -16,7 +16,7 @@ namespace FH.AssetBundleBuilder.Ed
 #if !ENABLE_SBP
     public static partial class Builder
     {
-        private static void _BuildABSbpSimple(BuildTarget target, BuilderParam param, string outputDir, BundleNodeMap bundleMap)
+        private static void _BuildABSbpSimple(BuildContext context, BundleNodeMap bundleMap)
         {            
             throw new NotImplementedException();
         }
@@ -25,14 +25,14 @@ namespace FH.AssetBundleBuilder.Ed
 
     public static partial class Builder
     {
-        private static void _BuildABSbpSimple(BuildTarget target, BuilderParam param, string outputDir, BundleNodeMap bundleMap)
+        private static void _BuildABSbpSimple(ABBuildContext context, BundleNodeMap bundleMap)
         {
             var sbp_tasks = UnityEditor.Build.Pipeline.DefaultBuildTasks.Create(UnityEditor.Build.Pipeline.DefaultBuildTasks.Preset.AssetBundleCompatible);
 
 
             var sbp_content = bundleMap.GenBundleBuildContent_SbpSimple();
 
-            var sbp_param = param.SBPParam.ToSbpParam(target, outputDir);
+            var sbp_param = context.BuilderParam.SBPParam.ToSbpParam(context.Target,context.OutputDir);
             var exitCode = UnityEditor.Build.Pipeline.ContentPipeline.BuildAssetBundles(
                 sbp_param,
                 sbp_content,
@@ -44,7 +44,7 @@ namespace FH.AssetBundleBuilder.Ed
 
             foreach (var p in bundleMap.GetAllNodes())
             {
-                string path = System.IO.Path.Combine(outputDir, p.GetNodeName());
+                string path = System.IO.Path.Combine(context.OutputDir, p.GetNodeName());
                 if (System.IO.File.Exists(path))
                     p.FileHash = FileUtil.CalcFileHash(path);
             }

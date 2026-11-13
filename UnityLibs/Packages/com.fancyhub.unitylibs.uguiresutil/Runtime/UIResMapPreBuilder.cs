@@ -17,9 +17,9 @@ namespace FH.UI
     /// </summary>
     public class PreBuild_UIResMap : BuilderPreBuild
     {
-        public override void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target, bool fake)
+        public override void OnPreBuild(ABBuildContext context)
         {
-            if (fake)
+            if (context.Fake)
                 return;
             UnityEditor.AssetDatabase.MakeEditable(UIResMapConfig.CEditorPATH);
             Debug.Log("UIResMap 生成开始===========================");

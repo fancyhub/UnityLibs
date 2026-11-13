@@ -17,7 +17,7 @@ namespace FH.Ed.AssetBundleBuilder
     /// </summary>
     public class PostBuild_SaveBunldeManifest : BuilderPostBuild
     {
-        public override void OnPostBuild(PostBuildContext context)
+        public override void OnPostBuild(ABBuildContext context)
         {
             if (context.Fake)
                 return;
@@ -25,7 +25,7 @@ namespace FH.Ed.AssetBundleBuilder
             //BundleMgrManifest manifest = BundleMgrManifest.EdCreateFromManifest(context.Manifest, context.BundleBuildArray);
             BundleManifest manifest = _CreateFromGraph(context.AssetGraph);
 
-            string path = System.IO.Path.Combine(context.Config.GetOutputDir(context.Target), FH.BundleManifest.DefaultFileName);
+            string path = System.IO.Path.Combine(context.OutputDir, FH.BundleManifest.DefaultFileName);
             System.IO.File.WriteAllText(path, UnityEngine.JsonUtility.ToJson(manifest, true));
         }
 

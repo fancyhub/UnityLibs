@@ -26,7 +26,7 @@ namespace FH.AssetBundleBuilder.Ed
         public List<FolderItem> Folders= new List<FolderItem>();
 
         public override bool IsFake() { return false; }
-        public override List<(string path, string address)> GetAllAssets()
+        public override List<(string path, string address)> GetAllAssets(ABBuildContext context)
         {
             List<(string, string)> ret = new List<(string, string)>();
 
@@ -44,7 +44,7 @@ namespace FH.AssetBundleBuilder.Ed
             return ret;
         }
 
-        public override IAssetCollector GetAssetCollector()
+        public override IAssetCollector GetAssetCollector(ABBuildContext context)
         {
             return this;
         }

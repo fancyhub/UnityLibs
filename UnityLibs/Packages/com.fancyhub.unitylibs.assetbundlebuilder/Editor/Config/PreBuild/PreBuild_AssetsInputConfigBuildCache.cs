@@ -16,9 +16,9 @@ namespace FH.AssetBundleBuilder.Ed
     public class PreBuild_AssetsInputConfigBuildCache : BuilderPreBuild
     {
         public AssetsInputConfig Config;
-        public override void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target, bool fake)
+        public override void OnPreBuild(ABBuildContext context)
         {
-            if (!fake)
+            if (!context.Fake)
                 Config?.BuildCache();
         }
     }

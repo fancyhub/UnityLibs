@@ -19,7 +19,7 @@ namespace FH.AssetBundleBuilder.Ed
     {
         public AssetsInputConfig Config;
 
-        public override string GetBundleName(string asset_path, EAssetObjType asset_type, bool need_export)
+        public override string GetBundleName(ABBuildContext context, string asset_path, EAssetObjType asset_type, bool need_export)
         {
             if (Config == null)
                 return null;

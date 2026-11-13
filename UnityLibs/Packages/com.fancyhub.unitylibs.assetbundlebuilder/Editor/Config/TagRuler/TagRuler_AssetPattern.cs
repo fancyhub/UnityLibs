@@ -20,7 +20,7 @@ namespace FH.AssetBundleBuilder.Ed
         public List<PatternSearch> PatternList = new List<PatternSearch>();
 
         private List<string> _Tags = new List<string>();
-        public override ITagRuler GetTagRuler()
+        public override ITagRuler GetTagRuler(ABBuildContext context)
         {
             string[] temps = Tags.Split(';', StringSplitOptions.RemoveEmptyEntries);
             _Tags.Clear();
@@ -34,10 +34,10 @@ namespace FH.AssetBundleBuilder.Ed
             if (_Tags.Count == 0)
                 return null;
 
-            return base.GetTagRuler();
+            return base.GetTagRuler(context);
         }
 
-        public override void GetTags(string bundle_name, List<string> assets_list, HashSet<string> out_tags)
+        public override void GetTags(ABBuildContext context, string bundle_name, List<string> assets_list, HashSet<string> out_tags)
         {
             if (!_IsMatch(assets_list))
                 return;

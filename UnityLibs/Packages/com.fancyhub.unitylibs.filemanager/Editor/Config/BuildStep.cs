@@ -24,7 +24,7 @@ namespace FH.FileManagement.Ed
 
     public interface IBuildStep
     {
-        List<BuildFileInfo> Build(BuildContext context);
+        List<BuildFileInfo> Build(FileBuildContext context);
     }
 
     public abstract class BuildStep : ScriptableObject, IBuildStep
@@ -37,6 +37,6 @@ namespace FH.FileManagement.Ed
                 return this;
             return null;
         }
-        public abstract List<BuildFileInfo> Build(BuildContext context);
+        public abstract List<BuildFileInfo> Build(FileBuildContext context);
     }
 }

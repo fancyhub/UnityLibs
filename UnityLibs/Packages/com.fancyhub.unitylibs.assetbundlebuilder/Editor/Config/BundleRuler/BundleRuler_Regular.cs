@@ -26,7 +26,7 @@ namespace FH.AssetBundleBuilder.Ed
         private Regex _Reg;
         public List<PatternSearch> PatternList = new List<PatternSearch>();
 
-        public override string GetBundleName(string asset_path, EAssetObjType asset_type, bool need_export)
+        public override string GetBundleName(ABBuildContext context,string asset_path, EAssetObjType asset_type, bool need_export)
         {
             if (!need_export && OnlyExportFile)
                 return null;

@@ -23,7 +23,7 @@ namespace FH.Ed.ResManagement
         [Header("eg: tag_a;tag_b")]
         public string BundleManifestTags = "base";
 
-        public override List<BuildFileInfo> Build(BuildContext context)
+        public override List<BuildFileInfo> Build(FileBuildContext context)
         {
             string dir = ABBuilderConfig.GetOutputDir(context.BuildTarget);
             string path = System.IO.Path.Combine(dir, AssetGraph.CDefaultName);

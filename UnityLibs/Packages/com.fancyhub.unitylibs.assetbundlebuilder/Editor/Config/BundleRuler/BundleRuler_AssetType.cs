@@ -21,7 +21,7 @@ namespace FH.AssetBundleBuilder.Ed
 
         private HashSet<EAssetObjType> _HashAssetTypes;
 
-        public override string GetBundleName(string asset_path, EAssetObjType asset_type, bool need_export)
+        public override string GetBundleName(ABBuildContext context, string asset_path, EAssetObjType asset_type, bool need_export)
         {
             if (_HashAssetTypes.Contains(asset_type))
                 return BundleName;
@@ -29,7 +29,7 @@ namespace FH.AssetBundleBuilder.Ed
             return null;
         }
 
-        public override IBundleRuler GetBundleRuler()
+        public override IBundleRuler GetBundleRuler(ABBuildContext context)
         {            
             if(_HashAssetTypes==null)
                 _HashAssetTypes= new HashSet<EAssetObjType>();

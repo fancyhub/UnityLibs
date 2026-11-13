@@ -13,7 +13,7 @@ using UnityEditor;
 using FH.Ed;
 namespace FH.FileManagement.Ed
 {   
-    public sealed class BuildContext
+    public sealed class FileBuildContext
     {
         public BuildTarget BuildTarget;        
     }     

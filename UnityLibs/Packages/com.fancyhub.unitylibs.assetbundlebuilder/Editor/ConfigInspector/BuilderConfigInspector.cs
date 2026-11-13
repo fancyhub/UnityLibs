@@ -50,7 +50,7 @@ namespace FH.AssetBundleBuilder.Ed
 
             EditorGUILayout.Space(10);
 
-            _AssetCollectDrawer.Draw("[Asset Collector](First Enable)");
+            _AssetCollectDrawer.Draw("[Asset Collector]");
 
 
             EditorGUILayout.Space(10);
@@ -76,7 +76,12 @@ namespace FH.AssetBundleBuilder.Ed
             AssetBundleBuilderConfig config = (AssetBundleBuilderConfig)target;
 
             if (_AssetCollectDrawer == null)
-                _AssetCollectDrawer = new InnerSOListDrawer<BuilderAssetCollector>(ref config.AssetCollector, AssetDatabase.GetAssetPath(target), "Add Asset Collector", null);
+            {
+                _AssetCollectDrawer = new InnerSOListDrawer<BuilderAssetCollector>(ref config.AssetCollector, AssetDatabase.GetAssetPath(target), "Add Asset Collector", (a)=>
+                {
+                    return (a.Enable ? "√" : "X") + " : " + a.GetType().Name;
+                });
+            }
 
             if (_PreBuildDrawer == null)
             {

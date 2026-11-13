@@ -19,7 +19,7 @@ namespace FH.AssetBundleBuilder.Ed
 
         public bool IncludeShaderVariantCollection;
 
-        public override string GetBundleName(string asset_path, EAssetObjType asset_type, bool need_export)
+        public override string GetBundleName(ABBuildContext context, string asset_path, EAssetObjType asset_type, bool need_export)
         {
             if (asset_type == EAssetObjType.shader)
                 return BundleName;

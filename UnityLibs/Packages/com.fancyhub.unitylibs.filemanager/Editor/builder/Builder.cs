@@ -18,7 +18,7 @@ namespace FH.FileManagement.Ed
         public static void Build(FileBuilderConfig config, UnityEditor.BuildTarget target)
         {
             //1. 步骤
-            BuildContext context = new BuildContext();
+            FileBuildContext context = new FileBuildContext();
             context.BuildTarget = target;
             Dictionary<string, BuildFileInfo> all_file = new Dictionary<string, BuildFileInfo>();
 

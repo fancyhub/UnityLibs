@@ -14,10 +14,10 @@ namespace FH.AssetBundleBuilder.Ed
     /// </summary>
     public class PostBuild_SaveGraph : BuilderPostBuild
     {
-        public override void OnPostBuild(PostBuildContext context)
+        public override void OnPostBuild(ABBuildContext context)
         {
             string name = context.Fake ? "graph_fake.json" : AssetGraph.CDefaultName;
-            context.AssetGraph.SaveToDir(context.Config.GetOutputDir(context.Target), name);
+            context.AssetGraph.SaveToDir(context.OutputDir, name);
         }
     }
 }

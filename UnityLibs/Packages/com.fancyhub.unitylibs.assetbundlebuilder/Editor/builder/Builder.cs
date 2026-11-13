@@ -28,10 +28,19 @@ namespace FH.AssetBundleBuilder.Ed
             EditorWindow.GetWindow(typeof(AssetGraphViewWindow)).Show();
         }
 
-        public static PostBuildContext Build(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target, bool fake = false)
+        public static ABBuildContext Build(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target, bool fake = false)
         {
-            BuilderParam param = config.GetBuilderParam(target);
-            string outputDir = config.GetOutputDir(target);
+            ABBuildContext context = new ABBuildContext()
+            {
+                Target = target,
+                PipelineType = config.PipelineType,
+                BuilderParam = config.GetBuilderParam(target),
+                Fake = fake,
+                OutputDir = config.GetOutputDir(target),
+
+                AssetGraph = null,
+            };
+
             BuilderTimer.Intend = 0;
             using var _ = new BuilderTimer("Build Bundles");
             int cur_step = 1;
@@ -43,7 +52,7 @@ namespace FH.AssetBundleBuilder.Ed
                 foreach (var p in config.PreBuild)
                 {
                     if (p != null && p.Enable)
-                        p.OnPreBuild(config, target, fake);
+                        p.OnPreBuild(context);
                 }
             }
 
@@ -51,15 +60,15 @@ namespace FH.AssetBundleBuilder.Ed
             List<(string path, string address)> fileList = null;
             using (new BuilderTimer($"{cur_step++}/{total_steps}. Collect"))
             {
-                IAssetCollector assetCollection = config.GetAssetCollector(fake);
-                fileList = assetCollection.GetAllAssets();
+                IAssetCollector assetCollection = config.GetAssetCollector(context);
+                fileList = assetCollection.GetAllAssets(context);
             }
 
             //3. 添加到 AssetObjMap, 建立依赖关系
             AssetObjMap assetMap = new AssetObjMap();
             using (new BuilderTimer($"{cur_step++}/{total_steps}. Dep"))
             {
-                IAssetDependency assetDep = config.GetAssetDependency(fake);
+                IAssetDependency assetDep = config.GetAssetDependency(context);
                 assetMap.SetDepCollection(assetDep);
                 foreach (var file in fileList)
                 {
@@ -74,12 +83,12 @@ namespace FH.AssetBundleBuilder.Ed
             BundleNodeMap bundleMap = new BundleNodeMap();
             using (new BuilderTimer($"{cur_step++}/{total_steps}. Group"))
             {
-                IBundleRuler bundle_ruler = config.GetBundleRuler();
+                IBundleRuler bundle_ruler = config.GetBundleRuler(context);
                 foreach (var file in fileList)
                 {
                     var asset = assetMap.FindObject(file.path);
 
-                    string bundle_name = bundle_ruler.GetBundleName(asset.FilePath, asset.AssetType, asset.NeedExport);
+                    string bundle_name = bundle_ruler.GetBundleName(context, asset.FilePath, asset.AssetType, asset.NeedExport);
                     if (!string.IsNullOrEmpty(bundle_name))
                         bundleMap.Add(asset, bundle_name);
                 }
@@ -94,7 +103,7 @@ namespace FH.AssetBundleBuilder.Ed
             }
 
             //6. 生成
-            FileUtil.CreateDir(outputDir);
+            FileUtil.CreateDir(context.OutputDir);
             using (new BuilderTimer($"{cur_step++}/{total_steps}. Build Bundles"))
             {
                 if (fake)
@@ -107,45 +116,36 @@ namespace FH.AssetBundleBuilder.Ed
                     {
                         default:
                         case EBuildPipeline.Legacy:
-                            _BuildABLegacy(target, param, outputDir, bundleMap);
+                            _BuildABLegacy(context, bundleMap);
                             break;
 
                         case EBuildPipeline.SBP_Simple:
-                            _BuildABSbpSimple(target, param, outputDir, bundleMap);
+                            _BuildABSbpSimple(context, bundleMap);
                             break;
 
                         case EBuildPipeline.SBP_Custom:
-                            _BuildABSbpCustom(target, param, outputDir, bundleMap);
+                            _BuildABSbpCustom(context, bundleMap);
                             break;
                     }
                 }
             }
 
             //7. 生成 Graph
-            AssetGraph graph = null;
             using (new BuilderTimer($"{cur_step++}/{total_steps}. Gen Graph"))
             {
-                graph = AssetGraph.CreateFromBundleNodeMap(bundleMap);
+                context.AssetGraph = AssetGraph.CreateFromBundleNodeMap(bundleMap);
             }
 
             //8. tags
             using (new BuilderTimer($"{cur_step++}/{total_steps}. Add Tags"))
             {
-                ITagRuler tag_rule = config.GetTagRuler();
-                _BuildTags(graph, tag_rule);
+                ITagRuler tag_rule = config.GetTagRuler(context);
+                _BuildTags(context, tag_rule);
             }
 
             //9. 后处理
             using (new BuilderTimer($"{cur_step++}/{total_steps}. Post Build"))
             {
-                PostBuildContext context = new PostBuildContext()
-                {
-                    Target = target,
-                    Config = config,
-                    AssetGraph = graph,
-                    Fake = fake,
-                };
-
                 foreach (var p in config.PostBuild)
                 {
                     if (p == null || !p.Enable)
@@ -156,10 +156,10 @@ namespace FH.AssetBundleBuilder.Ed
                 return context;
             }
         }
-        private static void _BuildTags(AssetGraph graph, ITagRuler tag_rule)
+        private static void _BuildTags(ABBuildContext context, ITagRuler tag_rule)
         {
             List<string> asset_list = new List<string>();
-            HashSet<string>[] bundle_tag_array = new HashSet<string>[graph.Bundles.Count];
+            HashSet<string>[] bundle_tag_array = new HashSet<string>[context.AssetGraph.Bundles.Count];
             for (int i = 0; i < bundle_tag_array.Length; i++)
                 bundle_tag_array[i] = new HashSet<string>();
 
@@ -168,17 +168,17 @@ namespace FH.AssetBundleBuilder.Ed
                 HashSet<string> temp_tags = new HashSet<string>();
                 HashSet<int> temp_bundle_index_set = new HashSet<int>();
 
-                foreach (var bundle in graph.Bundles)
+                foreach (var bundle in context.AssetGraph.Bundles)
                 {
                     asset_list.Clear();
-                    graph.GetAssetPathListInBundle(bundle.Index, asset_list);
+                    context.AssetGraph.GetAssetPathListInBundle(bundle.Index, asset_list);
 
                     temp_tags.Clear();
-                    tag_rule.GetTags(bundle.Name, asset_list, temp_tags);
+                    tag_rule.GetTags(context,bundle.Name, asset_list, temp_tags);
 
                     temp_bundle_index_set.Clear();
                     temp_bundle_index_set.Add(bundle.Index);
-                    graph.GetBundleAllDeps(bundle.Index, temp_bundle_index_set);
+                    context.AssetGraph.GetBundleAllDeps(bundle.Index, temp_bundle_index_set);
 
                     foreach (int bundle_index in temp_bundle_index_set)
                     {
@@ -189,7 +189,7 @@ namespace FH.AssetBundleBuilder.Ed
             }
 
             List<string> tag_list = new List<string>();
-            foreach (var bundle in graph.Bundles)
+            foreach (var bundle in context.AssetGraph.Bundles)
             {
                 tag_list.Clear();
                 tag_list.AddRange(bundle_tag_array[bundle.Index]);

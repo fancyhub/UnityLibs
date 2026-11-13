@@ -23,7 +23,7 @@ namespace FH.Ed.ResManagement
         [Header("eg: tag_a;tag_b")]
         public string BundleManifestTags = "base";
 
-        public override List<BuildFileInfo> Build(BuildContext context)
+        public override List<BuildFileInfo> Build(FileBuildContext context)
         {
             if (ABBuilderConfig == null)
                 return null;

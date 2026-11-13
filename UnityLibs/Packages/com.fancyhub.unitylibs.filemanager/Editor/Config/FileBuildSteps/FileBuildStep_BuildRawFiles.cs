@@ -32,7 +32,7 @@ namespace FH.Ed.FileManagement
         }
         public List<SearchItem> SearchList = new List<SearchItem>();
 
-        public override List<BuildFileInfo> Build(BuildContext context)
+        public override List<BuildFileInfo> Build(FileBuildContext context)
         {
             List<string> tags = new(Tags.Split(';', StringSplitOptions.RemoveEmptyEntries));
             List<BuildFileInfo> ret = new List<BuildFileInfo>();

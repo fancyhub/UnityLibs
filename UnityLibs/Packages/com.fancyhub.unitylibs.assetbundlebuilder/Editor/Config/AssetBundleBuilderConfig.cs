@@ -50,37 +50,30 @@ namespace FH.AssetBundleBuilder.Ed
 
         [HideInInspector] public List<BuilderPostBuild> PostBuild = new List<BuilderPostBuild>();
 
-        public IAssetCollector GetAssetCollector(bool fake)
+        public IAssetCollector GetAssetCollector(ABBuildContext context)
         {
-            foreach (var p in AssetCollector)
-            {
-                if (p.IsFake() == fake)
-                    return p.GetAssetCollector();
-            }
-
-            Debug.LogError("AssetCollector 是空的", this);
-            throw new Exception($"AssetCollector 是空的 {AssetDatabase.GetAssetPath(this)} ");
+            return new AssetCollectorGroup(AssetCollector, context);
         }
 
-        public IAssetDependency GetAssetDependency(bool fake)
+        public IAssetDependency GetAssetDependency(ABBuildContext context)
         {
             foreach (var p in AssetDependency)
             {
-                if (p.IsFake() == fake)
+                if (p.IsFake() == context.Fake)
                     return p.GetAssetDependency();
             }
             Debug.LogError("AssetDependency 是空的", this);
             throw new Exception($"AssetDependency 是空的 {AssetDatabase.GetAssetPath(this)} ");
         }
 
-        public IBundleRuler GetBundleRuler()
+        public IBundleRuler GetBundleRuler(ABBuildContext context)
         {
-            return new BuilderBundleRulerGroup(BundleRulers);
+            return new BuilderBundleRulerGroup(BundleRulers,context);
         }
 
-        public ITagRuler GetTagRuler()
+        public ITagRuler GetTagRuler(ABBuildContext context)
         {
-            return new BuilderTagRulerGroup(TagRulers);
+            return new BuilderTagRulerGroup(TagRulers,context);
         }
 
         public static AssetBundleBuilderConfig GetDefault()
@@ -116,7 +109,7 @@ namespace FH.AssetBundleBuilder.Ed
         private sealed class BuilderTagRulerGroup : ITagRuler
         {
             private List<ITagRuler> _Rulers;
-            public BuilderTagRulerGroup(List<BuilderTagRuler> rulers)
+            public BuilderTagRulerGroup(List<BuilderTagRuler> rulers, ABBuildContext context)
             {
                 _Rulers = new List<ITagRuler>();
                 if (rulers != null)
@@ -125,17 +118,17 @@ namespace FH.AssetBundleBuilder.Ed
                     {
                         if (p == null || !p.Enable)
                             continue;
-                        var r = p.GetTagRuler();
+                        var r = p.GetTagRuler(context);
                         if (r != null)
                             _Rulers.Add(r);
                     }
                 }
             }
-            public void GetTags(string bundle_name, List<string> assets_list, HashSet<string> out_tags)
+            public void GetTags(ABBuildContext context, string bundle_name, List<string> assets_list, HashSet<string> out_tags)
             {
                 foreach (var p in _Rulers)
                 {
-                    p.GetTags(bundle_name, assets_list, out_tags);
+                    p.GetTags(context,bundle_name, assets_list, out_tags);
                 }
             }
         }
@@ -144,7 +137,7 @@ namespace FH.AssetBundleBuilder.Ed
         private sealed class BuilderBundleRulerGroup : IBundleRuler
         {
             private List<IBundleRuler> _Rulers;
-            public BuilderBundleRulerGroup(List<BuilderBundleRuler> rulers)
+            public BuilderBundleRulerGroup(List<BuilderBundleRuler> rulers, ABBuildContext context)
             {
                 _Rulers = new List<IBundleRuler>();
                 if (rulers != null)
@@ -153,7 +146,7 @@ namespace FH.AssetBundleBuilder.Ed
                     {
                         if (p == null || !p.Enable)
                             continue;
-                        var r = p.GetBundleRuler();
+                        var r = p.GetBundleRuler(context);
                         if (r != null)
                             _Rulers.Add(r);
                     }
@@ -162,15 +155,59 @@ namespace FH.AssetBundleBuilder.Ed
                 UnityEngine.Debug.Assert(_Rulers.Count > 0, "规则为空");
             }
 
-            public string GetBundleName(string asset_path, EAssetObjType asset_type, bool need_export)
+            public string GetBundleName(ABBuildContext context, string asset_path, EAssetObjType asset_type, bool need_export)
             {
                 foreach (var p in _Rulers)
                 {
-                    string ret = p.GetBundleName(asset_path, asset_type, need_export);
+                    string ret = p.GetBundleName(context, asset_path, asset_type, need_export);
                     if (ret != null)
                         return ret;
                 }
                 return null;
+            }
+
+        }
+
+
+        private sealed class AssetCollectorGroup : IAssetCollector
+        {
+            private List<IAssetCollector> _Collectors;
+            public AssetCollectorGroup(List<BuilderAssetCollector> collectors, ABBuildContext context)
+            {
+                _Collectors = new List<IAssetCollector>();
+                if (collectors != null)
+                {
+                    foreach (var p in collectors)
+                    {
+                        if (p == null || !p.Enable || p.IsFake() != context.Fake)
+                            continue;
+                        var r = p.GetAssetCollector(context);
+                        if (r != null)
+                            _Collectors.Add(r);
+                    }
+                }
+
+                UnityEngine.Debug.Assert(_Collectors.Count > 0, "Collector为空");
+            }
+
+            public List<(string path, string address)> GetAllAssets(ABBuildContext context)
+            {
+                List<List<(string path, string address)>> temp = new List<List<(string path, string address)>>();
+                int count = 0;
+                foreach (var p in _Collectors)
+                {
+                    var t = p.GetAllAssets(context);
+                    if (t == null || t.Count == 0)
+                        continue;
+                    temp.Add(t);
+                    count += t.Count;
+                }
+                List<(string path, string address)> ret = new List<(string path, string address)>(count);
+                foreach (var p in temp)
+                {
+                    ret.AddRange(p);
+                }
+                return ret;
             }
         }
     }

@@ -13,12 +13,25 @@ using UnityEngine;
 
 namespace FH.AssetBundleBuilder.Ed
 {
+    public class ABBuildContext
+    {
+        public BuildTarget Target;
+        public EBuildPipeline PipelineType;
+        public BuilderParam BuilderParam;
+        public bool Fake;
+        public string OutputDir;
+
+
+        // 中途的输出
+        public AssetGraph AssetGraph;
+    }
+
     /// <summary>
     /// 1/6 ab打包前,预处理
     /// </summary>
     public interface IPreBuild
     {
-        void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target, bool fake);
+        void OnPreBuild(ABBuildContext context);
     }
     /// <summary>
     /// 1/6 ab打包前,预处理
@@ -26,7 +39,7 @@ namespace FH.AssetBundleBuilder.Ed
     public abstract class BuilderPreBuild : ScriptableObject, IPreBuild
     {
         public bool Enable = true;
-        public abstract void OnPreBuild(AssetBundleBuilderConfig config, UnityEditor.BuildTarget target, bool fake);
+        public abstract void OnPreBuild(ABBuildContext context);
     }
 
 
@@ -35,7 +48,7 @@ namespace FH.AssetBundleBuilder.Ed
     /// </summary>
     public interface IAssetCollector
     {
-        public List<(string path, string address)> GetAllAssets();
+        public List<(string path, string address)> GetAllAssets(ABBuildContext context);
 
     }
     /// <summary>
@@ -43,8 +56,9 @@ namespace FH.AssetBundleBuilder.Ed
     /// </summary>
     public abstract class BuilderAssetCollector : ScriptableObject, IAssetCollector
     {
-        public virtual IAssetCollector GetAssetCollector() { return this; }
-        public abstract List<(string path, string address)> GetAllAssets();
+        public bool Enable;
+        public virtual IAssetCollector GetAssetCollector(ABBuildContext context) { return this; }
+        public abstract List<(string path, string address)> GetAllAssets(ABBuildContext context);
         public abstract bool IsFake();
     }
 
@@ -79,7 +93,7 @@ namespace FH.AssetBundleBuilder.Ed
         /// 如果返回空: 就找下一个 Ruler
         /// 如果最终为空, 就说明不需要明确指定, 通过自动分包, 如果该资源没有被任何 其他资源引用, 最终会报错
         /// </summary>        
-        public string GetBundleName(string asset_path, EAssetObjType asset_type, bool need_export);
+        public string GetBundleName(ABBuildContext context, string asset_path, EAssetObjType asset_type, bool need_export);
     }
     /// <summary>
     /// 4/6 ab打包前, 确定每个asset对应的ab名字
@@ -89,9 +103,9 @@ namespace FH.AssetBundleBuilder.Ed
         public bool Enable = true;
         public string RulerName;
 
-        public abstract string GetBundleName(string asset_path, EAssetObjType asset_type, bool need_export);
+        public abstract string GetBundleName(ABBuildContext context, string asset_path, EAssetObjType asset_type, bool need_export);
 
-        public virtual IBundleRuler GetBundleRuler()
+        public virtual IBundleRuler GetBundleRuler(ABBuildContext context)
         {
             return this;
         }
@@ -103,7 +117,7 @@ namespace FH.AssetBundleBuilder.Ed
     /// </summary>
     public interface ITagRuler
     {
-        public void GetTags(string bundle_name, List<string> assets_list, HashSet<string> out_tags);
+        public void GetTags(ABBuildContext context, string bundle_name, List<string> assets_list, HashSet<string> out_tags);
     }
 
     /// <summary>
@@ -114,28 +128,21 @@ namespace FH.AssetBundleBuilder.Ed
         public string Name;
         public bool Enable = true;
 
-        public virtual ITagRuler GetTagRuler()
+        public virtual ITagRuler GetTagRuler(ABBuildContext context)
         {
             return this;
         }
 
-        public abstract void GetTags(string bundle_name, List<string> assets_list, HashSet<string> out_tags);
+        public abstract void GetTags(ABBuildContext context, string bundle_name, List<string> assets_list, HashSet<string> out_tags);
     }
 
 
-    public class PostBuildContext
-    {
-        public BuildTarget Target;
-        public AssetBundleBuilderConfig Config;
-        public AssetGraph AssetGraph;
-        public bool Fake;
-    }
     /// <summary>
     /// 6/6 ab打包后, 后处理, 主要是处理manifest
     /// </summary>
     public interface IPostBuild
     {
-        void OnPostBuild(PostBuildContext context);
+        void OnPostBuild(ABBuildContext context);
     }
     /// <summary>
     /// 6/6 ab打包后, 后处理, 主要是处理manifest
@@ -143,7 +150,7 @@ namespace FH.AssetBundleBuilder.Ed
     public abstract class BuilderPostBuild : ScriptableObject, IPostBuild
     {
         public bool Enable = true;
-        public abstract void OnPostBuild(PostBuildContext context);
+        public abstract void OnPostBuild(ABBuildContext context);
     }
 
 }

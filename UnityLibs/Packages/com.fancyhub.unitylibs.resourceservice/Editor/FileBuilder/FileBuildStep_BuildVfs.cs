@@ -21,7 +21,7 @@ namespace FH.Ed.ResManagement
     {
         public FH.VFSManagement.Builder.BuilderConfig BuilderConfig;
 
-        public override List<BuildFileInfo> Build(BuildContext context)
+        public override List<BuildFileInfo> Build(FileBuildContext context)
         {
             return Build(BuilderConfig, context.BuildTarget);
         }

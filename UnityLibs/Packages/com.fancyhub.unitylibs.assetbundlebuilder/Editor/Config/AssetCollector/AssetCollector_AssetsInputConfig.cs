@@ -18,7 +18,7 @@ namespace FH.AssetBundleBuilder.Ed
     {
         public AssetsInputConfig Config;
         public override bool IsFake() { return false; }
-        public override List<(string path, string address)> GetAllAssets()
+        public override List<(string path, string address)> GetAllAssets(ABBuildContext context)
         {
             if (Config == null)
                 return new List<(string path, string address)>();
@@ -26,7 +26,7 @@ namespace FH.AssetBundleBuilder.Ed
             return Config.GetResCollection();
         }
 
-        public override IAssetCollector GetAssetCollector()
+        public override IAssetCollector GetAssetCollector(ABBuildContext context)
         {
             return this;
         }
