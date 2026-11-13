@@ -1,6 +1,7 @@
 'use strict';
 const { execFileSync } = require('child_process');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const {
     readZipCommentData,
@@ -240,8 +241,8 @@ function printCertWithApksigner(config, inputFilePath) {
 }
 
 /**
- * Decodes an APK with apktool.  `--no-res` is suitable when only the
- * human-readable AndroidManifest.xml is needed; rebuilding requires resources.
+ * Decodes an APK with apktool. `--only-manifest` keeps the temporary output
+ * limited to the human-readable AndroidManifest.xml.
  * @param {Config} config validated tool configuration
  * @param {string} inputFilePath APK path to decode
  * @param {string} outputDir decoded output directory
@@ -250,9 +251,9 @@ function printCertWithApksigner(config, inputFilePath) {
  */
 function decodeApkWithApktool(config, inputFilePath, outputDir, manifestOnly) {
     ensureParentDir(outputDir);
-    const args = ['-jar', config.apktoolPath, 'd', '--force', '--no-src'];
+    const args = ['-jar', config.apktoolPath, 'd', '--force', '--no-src', '--no-assets'];
     if (manifestOnly) {
-        args.push('--no-res');
+        args.push('--only-manifest');
     }
     args.push(inputFilePath, '--output', outputDir);
     return execCommand('java', args, 'apktool decode');
@@ -741,8 +742,10 @@ Usage: node ${selfName} -config </path/xxx/config.json> cmd
         - printApkData: print APK Signing Block entries and ZIP comment data,
             example: node ${selfName} -config </path/xxx/config.json> printApkData inputFilePath
 
-        - decodeManifest: extract a readable AndroidManifest.xml from an APK,
-            example: node ${selfName} -config </path/xxx/config.json> decodeManifest inputFilePath [outputDir]
+        - decodeManifest: decode only AndroidManifest.xml from an APK,
+            the output is a human-readable XML file,
+            the output is written as inputFilePath.AndroidManifest.xml,
+            example: node ${selfName} -config </path/xxx/config.json> decodeManifest inputFilePath
 
         - replaceManifest: replace an APK manifest and generate a newly signed APK,
             example: node ${selfName} -config </path/xxx/config.json> replaceManifest inputFilePath AndroidManifest.xml
@@ -891,6 +894,7 @@ function cmdPrintApkData() {
 
 /**
  * Handles the decodeManifest command for APK files.
+ * Decodes only AndroidManifest.xml from the APK into a temporary directory.
  * @param {Config} config validated tool configuration
  */
 function cmdDecodeManifest(config) {
@@ -906,15 +910,38 @@ function cmdDecodeManifest(config) {
         process.exit(1);
     }
 
-    const defaultOutputDir = path.resolve('output', `${path.basename(inputFilePath, '.apk')}_manifest`);
-    const outputDir = path.resolve(process.argv[6] || defaultOutputDir);
-    console.log('\nstep1/1: decode AndroidManifest.xml================================');
+    if (!fs.existsSync(inputFilePath) || !fs.statSync(inputFilePath).isFile()) {
+        console.error('input APK not exist: ' + inputFilePath);
+        process.exit(1);
+    }
+
+    // Keep apktool's temporary files outside the project and remove them
+    // after copying the decoded manifest. Nothing except the final manifest
+    // is left beside the APK.
+    const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'resign-android-manifest-'));
+    const outputManifestPath = `${inputFilePath}.AndroidManifest.xml`;
+
+    console.log('\nstep1/2: decode AndroidManifest.xml only=========================');
     if (!decodeApkWithApktool(config, inputFilePath, outputDir, true)) {
         process.exit(1);
     }
 
+    const decodedManifestPath = path.join(outputDir, 'AndroidManifest.xml');
+    if (!fs.existsSync(decodedManifestPath) || !fs.statSync(decodedManifestPath).isFile()) {
+        console.error('AndroidManifest.xml not found in APK: ' + inputFilePath);
+        process.exit(1);
+    }
+
+    console.log('\nstep2/2: copy AndroidManifest.xml beside APK====================');
+    copyFile(decodedManifestPath, outputManifestPath, true);
+
+    // Remove the temporary extraction directory so this command only leaves
+    // Remove the temporary directory; only inputFilePath.AndroidManifest.xml
+    // remains beside the input APK.
+    fs.rmSync(outputDir, { recursive: true, force: true });
+
     console.log('\n================================');
-    console.log('Success: ' + path.join(outputDir, 'AndroidManifest.xml'));
+    console.log('Success: ' + outputManifestPath);
     console.log('================================');
 }
 
