@@ -112,7 +112,7 @@ namespace FH
             {
                 if (self == null) return default(T);//for c++ assert
 
-                return self.CallStatic<T>(name,arg0,arg1);
+                return self.CallStatic<T>(name, arg0, arg1);
             }
             catch (System.Exception ex)
             {
@@ -307,6 +307,22 @@ namespace FH
             catch (Exception e)
             {
                 return false;
+            }
+        }
+
+        private static long _VersionCode = -1;
+        public static long VersionCode
+        {
+            get
+            {
+                if (_VersionCode < 0)
+                {
+                    if (BuildVersion_SDK_INT >= 28)
+                        _VersionCode = GetSelfPackageInfo(0)._ExtCall<long>("getLongVersionCode");
+                    else
+                        _VersionCode = GetSelfPackageInfo(0)._ExtGet<int>("versionCode");
+                }
+                return _VersionCode;
             }
         }
 
@@ -781,7 +797,7 @@ namespace FH
         private static AndroidJavaClass _android_provider_Settings_Secure;
         private static AndroidJavaClass _GetAndroidProviderSettingsSecure()
         {
-            if(_android_provider_Settings_Secure==null)
+            if (_android_provider_Settings_Secure == null)
             {
                 _android_provider_Settings_Secure = new AndroidJavaClass("android.provider.Settings$Secure");
             }
@@ -791,7 +807,7 @@ namespace FH
         private static AndroidJavaObject _contentResolver;
         private static AndroidJavaObject _GetContentResolver()
         {
-            if(_contentResolver==null)
+            if (_contentResolver == null)
             {
                 _contentResolver = _GetCurrentActivity().Call<AndroidJavaObject>("getContentResolver");
             }

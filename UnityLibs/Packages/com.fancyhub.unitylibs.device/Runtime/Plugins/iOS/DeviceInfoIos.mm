@@ -127,6 +127,117 @@ extern "C" int FH_GetIOSDistributionType()
     return 0; // Unknown
 }
 
+static id FH_InfoPlistValueToJsonValue(id value)
+{
+    if (!value || value == [NSNull null]) {
+        return [NSNull null];
+    }
+
+    if ([value isKindOfClass:[NSData class]]) {
+        return [(NSData *)value base64EncodedStringWithOptions:0];
+    }
+
+    if ([value isKindOfClass:[NSArray class]]) {
+        NSMutableArray *result = [NSMutableArray arrayWithCapacity:[(NSArray *)value count]];
+        for (id item in (NSArray *)value) {
+            [result addObject:FH_InfoPlistValueToJsonValue(item) ?: [NSNull null]];
+        }
+        return result;
+    }
+
+    if ([value isKindOfClass:[NSDictionary class]]) {
+        NSDictionary *dictionary = (NSDictionary *)value;
+        NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:dictionary.count];
+        for (id key in dictionary) {
+            if ([key isKindOfClass:[NSString class]]) {
+                result[key] = FH_InfoPlistValueToJsonValue(dictionary[key]) ?: [NSNull null];
+            }
+        }
+        return result;
+    }
+
+    if ([value isKindOfClass:[NSString class]] || [value isKindOfClass:[NSNumber class]]) {
+        return value;
+    }
+
+    return [value description] ?: [NSNull null];
+}
+
+extern "C" int FH_HasIOSInfoPlistItem(const char *itemKey)
+{
+    if (!itemKey || itemKey[0] == '\0') {
+        return 0;
+    }
+
+    NSString *key = [NSString stringWithUTF8String:itemKey];
+    if (!key || key.length == 0) {
+        return 0;
+    }
+
+    return [NSBundle mainBundle].infoDictionary[key] != nil ? 1 : 0;
+}
+
+extern "C" const char *FH_GetIOSInfoPlistItemJson(const char *itemKey)
+{
+    if (!itemKey || itemKey[0] == '\0') {
+        return NULL;
+    }
+
+    NSString *key = [NSString stringWithUTF8String:itemKey];
+    if (!key || key.length == 0) {
+        return NULL;
+    }
+
+    id value = [NSBundle mainBundle].infoDictionary[key];
+    if (!value) {
+        return NULL;
+    }
+
+    NSString *type = @"unknown";
+    id jsonValue = nil;
+    CFTypeID typeId = CFGetTypeID((__bridge CFTypeRef)value);
+
+    if (typeId == CFBooleanGetTypeID()) {
+        type = @"bool";
+        jsonValue = value;
+    } else if ([value isKindOfClass:[NSString class]]) {
+        type = @"string";
+        jsonValue = value;
+    } else if ([value isKindOfClass:[NSArray class]]) {
+        type = @"array";
+        jsonValue = FH_InfoPlistValueToJsonValue(value);
+    } else if ([value isKindOfClass:[NSDictionary class]]) {
+        type = @"dictionary";
+        jsonValue = FH_InfoPlistValueToJsonValue(value);
+    } else if ([value isKindOfClass:[NSData class]]) {
+        type = @"data";
+        jsonValue = [(NSData *)value base64EncodedStringWithOptions:0];
+    } else if (typeId == CFNumberGetTypeID()) {
+        type = @"number";
+        jsonValue = value;
+    } else if ([value isKindOfClass:[NSDate class]]) {
+        type = @"date";
+        jsonValue = [value description];
+    } else {
+        jsonValue = [value description];
+    }
+
+    NSDictionary *object = @{
+        @"type": type,
+        @"value": jsonValue ?: [NSNull null]
+    };
+
+    NSError *error = nil;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:object options:0 error:&error];
+    if (error || !jsonData) {
+        return NULL;
+    }
+
+    NSString *json = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    const char *utf8 = json.UTF8String;
+    return utf8 ? strdup(utf8) : NULL;
+}
+
 extern "C" int FH_HasIOSEntitlement(const char *entitlementKey)
 {
     if (!entitlementKey || entitlementKey[0] == '\0') {
