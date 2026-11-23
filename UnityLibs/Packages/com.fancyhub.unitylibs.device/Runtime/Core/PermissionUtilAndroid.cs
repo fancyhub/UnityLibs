@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace FH
 {
-    public static class AndroidPermissionUtil
+    public static class PermissionUtilAndroid
     {
         public static bool HasPermission(string permission)
         {

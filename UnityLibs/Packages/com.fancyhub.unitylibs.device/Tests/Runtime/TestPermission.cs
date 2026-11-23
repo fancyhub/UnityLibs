@@ -23,7 +23,7 @@ namespace FH
         {
             string permission = _Input.text;
             permission = permission.Trim();
-            string msg = $"Check {permission} : {AndroidPermissionUtil.HasPermission(permission)}";
+            string msg = $"Check {permission} : {PermissionUtilAndroid.HasPermission(permission)}";
             _Text.text = msg;
             Debug.Log(permission);
         }
@@ -33,7 +33,7 @@ namespace FH
             string permission = _Input.text;
             permission = permission.Trim();
 
-            var dialog1 = new AndroidPermissionUtil.AlertDialog()
+            var dialog1 = new PermissionUtilAndroid.AlertDialog()
             {
                 Title = "权限1",
                 Message = "需要权限1",
@@ -41,14 +41,14 @@ namespace FH
                 ButtonCancel = "Cancle",
             };
 
-            var dialog2 = new AndroidPermissionUtil.AlertDialog()
+            var dialog2 = new PermissionUtilAndroid.AlertDialog()
             {
                 Title = "权限2",
                 Message = "需要权限2",
                 ButtonOK = "OK2",
                 ButtonCancel = "Cancle2",
             };
-            AndroidPermissionUtil.RequestPermission(permission,
+            PermissionUtilAndroid.RequestPermission(permission,
             _OnPermissionCallBack,
             dialog1, dialog2);
         }
