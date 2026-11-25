@@ -40,8 +40,6 @@ namespace Game
         [SerializeField] public TestConfig _testData = new TestConfig();
 
 
-
-
         [FH.Omi.Button]
         [UnityEngine.ContextMenu("Show")]
         public void Show()
@@ -92,7 +90,7 @@ namespace Game
                     notice_api.ShowNotice(data, NoticeItemTextMarquee.Create(notice_api.ResHolder, txt));
                     break;
                 case ENoticeViewType.message_box:
-                    notice_api.ShowNotice(data, NoticeItemMessageBox.Create(notice_api.ResHolder, txt));
+                    notice_api.ShowNotice(data, NoticeItemMessageBox.Create(notice_api.ResHolder, "Title", txt));
                     break;
 
                 default:

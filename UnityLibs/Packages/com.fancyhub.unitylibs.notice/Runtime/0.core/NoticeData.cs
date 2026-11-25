@@ -24,7 +24,7 @@ namespace FH
         /// <summary>
         /// 显示的时间, ms
         /// </summary>
-        public readonly int DurationShow;
+        public readonly long DurationShow;
 
         /// <summary>
         /// 多少毫秒之后,过期, 只在排队过程中有用,一旦进入显示队列, 就不需要了
@@ -42,7 +42,7 @@ namespace FH
             Channel = channel;
             Priority = priority;
             DurationExpire = duration_expire;
-            DurationShow = (int)(duration * 1000);
+            DurationShow = (long)(duration * 1000);
             AddTimeStampMs = 0;
             _item = null;
         }

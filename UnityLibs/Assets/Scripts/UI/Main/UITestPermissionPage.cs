@@ -151,7 +151,7 @@ namespace Game
             string permission = _Data.Name;
             permission = permission.Trim();
 
-            var dialog1 = new AndroidPermissionUtil.AlertDialog()
+            var dialog1 = new PermissionUtilAndroid.AlertDialog()
             {
                 Title = $"{_Data.Name} 1",
                 Message = $"Need {_Data.Name} 1",
@@ -159,7 +159,7 @@ namespace Game
                 ButtonCancel = "Cancle",
             };
 
-            var dialog2 = new AndroidPermissionUtil.AlertDialog()
+            var dialog2 = new PermissionUtilAndroid.AlertDialog()
             {
                 Title = $"{_Data.Name} 2",
                 Message = $"Need {_Data.Name} 2",
@@ -168,7 +168,7 @@ namespace Game
             };
 
             Log.I($"<Permission>: _RequestWithPermission: {_Data.Name} ");
-            AndroidPermissionUtil.RequestPermission(permission,
+            PermissionUtilAndroid.RequestPermission(permission,
             _OnAndroidPermissionCallBack,
             dialog1, dialog2);
         }

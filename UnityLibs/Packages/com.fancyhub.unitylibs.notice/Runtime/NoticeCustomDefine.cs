@@ -17,6 +17,8 @@ namespace FH
     {
         None = 0,
         Common,
+
+        Dialog,
         Max,
     }
 

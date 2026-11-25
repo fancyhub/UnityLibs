@@ -49,3 +49,38 @@ MonoBehaviour:
         PendingCountMin: 5
         PendingCountMax: 10
         TimeScaleMax: 2
+  - ChannelType: 2
+    Dummy:
+      LayerName: Top
+      PosX: 0.5
+      PosY: 0.5
+    Container:
+      ContainerType: 1
+      Immediate: 0
+      Multi:
+        MaxShowCount: 3
+        StepMoveDuration: 0.3
+        DirUp: 1
+      Time:
+        ShowUpDuration: 0.5
+        HideOutDuration: 0.3
+      Effect:
+        ShowUp:
+        - EffectType: 1
+          Offset: 0
+        HideOut:
+        - EffectType: 1
+          Offset: 0
+    Channel:
+      Visible:
+        VisiblePattern: 0
+        WhiteList:
+          Value: 0
+        BlackList:
+          Value: 0
+        ClearSignal:
+          Value: 0
+      TimeScale:
+        PendingCountMin: 5
+        PendingCountMax: 10
+        TimeScaleMax: 2

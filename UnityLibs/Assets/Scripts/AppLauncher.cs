@@ -30,6 +30,24 @@ namespace Game
             FH.TimerMgr.Init();
             FH.UI.UIMgr.UpdateList += FH.TimerMgr.Update;
         }
+
+        public void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                Debug.Log("On Escape");
+
+                NoticeApi.ShowMessageBox("", "Exit App?", (r) =>
+                {
+                    Debug.Log($"On MessageBox Result {r}");
+
+                    if (r == EMessageBoxResult.OK)
+                    {
+                        Application.Quit();
+                    }
+                }, EMessageBoxButton.Two);
+            }
+        }
     }
 
 
@@ -83,7 +101,7 @@ namespace Game
             {
                 _Inited = true;
                 var obj = _ResHolder.Val?.Create("Assets/Res/TestAB/TestCharAB.prefab");
-                if(obj!=null)
+                if (obj != null)
                 {
                     obj.transform.SetParent(_Scene.SceneRoot);
                 }

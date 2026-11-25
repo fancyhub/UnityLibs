@@ -79,24 +79,38 @@ namespace Game
         {
             _GetShareImageFilePath((file_path) =>
             {
-                var date = DateTime.Now;
-                string file_name = $"screenshot_{date}.jpg";
-                var result = ShareUtil.CopyLocalImage2Gallery(file_path, file_name);
-                switch (result)
-                {
-                    case EShareCopyImageResult.OK:
-                        NoticeApi.ShowCommon("Download Succ");
-                        break;
-
-                    case EShareCopyImageResult.NoPermission:
-                        NoticeApi.ShowCommon("Download No Permission");
-                        break;
-
-                    case EShareCopyImageResult.Unkown:
-                        NoticeApi.ShowCommon("Download Unkown error");
-                        break;
-                }
+                FH.GlobalCoroutine.StartCoroutine(_SaveImage(file_path));
             });
+        }
+        private static System.Collections.IEnumerator _SaveImage(string file_path)
+        {
+            var date = DateTime.Now;
+            string file_name = $"screenshot_{date}.jpg";
+            var result = ShareUtil.CopyLocalImage2Gallery(file_path, file_name);
+            switch (result)
+            {
+                case EShareCopyImageResult.OK:
+                    NoticeApi.ShowCommon("Download Succ");
+                    break;
+
+                case EShareCopyImageResult.NoPermission:
+                    FH.PermissionUtil.RequestWriteStorage(null);
+                    yield return null; //在代码里会
+                    var result2 = ShareUtil.CopyLocalImage2Gallery(file_path, file_name);
+                    if (result2 == FH.EShareCopyImageResult.OK)
+                    {
+                        NoticeApi.ShowCommon("Download Succ");
+                    }
+                    else
+                    {
+                        NoticeApi.ShowCommon("Download No Permission");
+                    }
+                    break;
+
+                case EShareCopyImageResult.Unkown:
+                    NoticeApi.ShowCommon("Download Unkown error");
+                    break;
+            }
         }
 
         private void _OnBtnShareClick()

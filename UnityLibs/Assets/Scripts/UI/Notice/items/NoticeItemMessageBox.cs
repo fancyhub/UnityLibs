@@ -14,27 +14,69 @@ using FH.UI;
 
 namespace Game
 {
+    public enum EMessageBoxResult
+    {
+        OK,
+        Cancel,
+    }
+
+    public enum EMessageBoxButton
+    {
+        One,
+        Two,
+    }
+
+    public struct MessageBoxData
+    {
+        public string Title;
+        public string Message;
+
+        public EMessageBoxButton Button;
+        public string BtnNameOK;
+        public string BtnNameCancel;
+
+        public Action<EMessageBoxResult> CallBack;
+    }
+
     public sealed class NoticeItemMessageBox : CPoolItemBase, INoticeItem
     {
         public const float C_FADE_OUT_PERCENT = 0.8f;
 
-        public string _Text;
-        public string _BtnName;
+        private MessageBoxData _data;
 
         public NoticeItemDummy _dummy;
         public UINoticeMessageBoxView _view;
         public CPtr<IResHolder> _res_holder;
 
-        public static NoticeItemMessageBox Create(IResHolder resHolder, string text, string btn_name = null)
+        public static NoticeItemMessageBox Create(
+            IResHolder resHolder,
+            string title,
+            string message,
+            Action<EMessageBoxResult> action = null,
+            EMessageBoxButton button = EMessageBoxButton.One,
+            string btn_name_ok = null,
+            string btn_name_cancel = null)
+        {
+            return Create(resHolder, new MessageBoxData
+            {
+                Title = title,
+                Message = message,
+
+                Button = button,
+                BtnNameOK = btn_name_ok,
+                BtnNameCancel = btn_name_cancel,
+
+                CallBack = action,
+            });
+        }
+
+        public static NoticeItemMessageBox Create(
+            IResHolder resHolder,
+            MessageBoxData data)
         {
             NoticeItemMessageBox ret = GPool.New<NoticeItemMessageBox>();
-            ret._Text = text;
-            ret._BtnName = btn_name;
+            ret._data = data;
             ret._res_holder = new CPtr<IResHolder>(resHolder);
-
-            if (string.IsNullOrEmpty(btn_name))
-                ret._BtnName = "OK";
-
             return ret;
         }
 
@@ -67,17 +109,34 @@ namespace Game
             _view = FH.UI.UIBaseView.CreateView<UINoticeMessageBoxView>(_dummy.Dummy, _res_holder.Val);
             if (_view == null)
                 return;
-            _view._txt.text = _Text;
-            _view._btn.onClick.RemoveAllListeners();
-            _view._btn.onClick.AddListener(_OnBtnClick);
-            _view._txt_btn.text = _BtnName;            
+            _view._title.text = string.IsNullOrEmpty(_data.Title) ? string.Empty : _data.Title;
+            _view._message.text = string.IsNullOrEmpty(_data.Message) ? string.Empty : _data.Message;
+
+            _view._btnOK.ButtonName = string.IsNullOrEmpty(_data.BtnNameOK) ? "OK" : _data.BtnNameOK;
+            _view._btnOK.OnClick = _OnBtnOKClick;
+
+            if (_data.Button == EMessageBoxButton.Two)
+            {
+                _view._btnCancel.Active = true;
+                _view._btnCancel.OnClick = _OnBtnCancelClick;
+                _view._btnCancel.ButtonName = string.IsNullOrEmpty(_data.BtnNameCancel) ? "Cancel" : _data.BtnNameCancel;
+            }
+            else
+            {
+                _view._btnCancel.OnClick = null;
+                _view._btnCancel.Active = false;
+            }
+
         }
 
-        private void _OnBtnClick()
+        private void _OnBtnOKClick()
         {
-            _view?.Destroy();
-            _view = null;
-            _dummy = default;
+            _OnResult(EMessageBoxResult.OK);
+        }
+
+        private void _OnBtnCancelClick()
+        {
+            _OnResult(EMessageBoxResult.Cancel);
         }
 
         public void FadeOut(float progress, NoticeEffectConfig effect)
@@ -97,9 +156,18 @@ namespace Game
 
         protected override void OnPoolRelease()
         {
+            _OnResult(EMessageBoxResult.Cancel);
+        }
+
+        private void _OnResult(EMessageBoxResult result)
+        {
+            var action = _data.CallBack;
             _view?.Destroy();
             _view = null;
             _dummy = default;
+            _data = default;
+
+            action?.Invoke(result);
         }
     }
 }
